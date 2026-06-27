@@ -111,8 +111,8 @@
     }
 
     .brand-logo {
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
       border-radius: var(--radius-sm);
       object-fit: cover;
       transition: transform var(--transition);
@@ -131,7 +131,6 @@
       text-transform: capitalize;
     }
 
-    /* Nueva clase extraída de index.html para resaltar el texto */
     .highlight {
       color: var(--primary);
     }
@@ -187,7 +186,6 @@
       margin: 0 2px 10px;
     }
 
-    /* Ajustado para alinear iconos con el estilo de index.html */
     .section-title {
       margin: 0;
       font-size: 1.2rem;
@@ -256,11 +254,11 @@
       height: auto;
     }
 
-    /* ========== TARJETAS ESTILO INDEX (SIN BOTÓN NI DESCRIPCIÓN) ========== */
+    /* ========== TARJETAS ========== */
     .card {
       position: relative;
-      flex: 0 0 164px;
-      width: 164px;
+      flex: 0 0 260px;
+      width: 260px;
       background: var(--card-gradient);
       border: 1px solid #333;
       border-radius: var(--radius);
@@ -330,10 +328,10 @@
       font-size: 0.85rem;
       color: #fff;
       margin-bottom: 5px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
       text-transform: capitalize;
       line-height: 1.2;
     }
@@ -347,7 +345,6 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      margin-top: auto; /* Empuja el subtítulo abajo si el título es corto */
     }
 
     .card-subtitle i {
@@ -378,6 +375,48 @@
       display: none !important;
     }
 
+    /* MEDIA QUERIES RESPONSIVAS */
+    @media (max-width: 768px) {
+      .apps-row .card {
+        flex: 0 0 230px;
+        width: 230px;
+      }
+      .brand-logo { width: 36px; height: 36px; }
+      .brand { font-size: 1.2rem; }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 14px; }
+      .brand-container { margin-left: 0; }
+      .content { padding: 16px; }
+      
+      .detail-title { font-size: 24px; }
+      .detail-main { padding: 16px 16px 24px; }
+      .detail-topbar { padding: 12px 16px; gap: 8px; }
+
+      .detail-gallery-item img {
+        max-height: 220px;
+        max-width: 220px;  
+        min-width: 125px; 
+      }
+
+      .detail-download {
+        width: 100%;
+        margin-top: 12px;
+        padding: 14px 18px;
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .apps-row .card {
+        flex: 0 0 200px;
+        width: 200px;
+      }
+      .brand-logo { width: 30px; height: 30px; }
+      .brand { font-size: 1rem; }
+    }
+
     @media (min-width: 768px) {
       .topbar {
         padding: 16px 24px;
@@ -385,16 +424,208 @@
       .content {
         padding: 18px 24px 28px;
       }
-      .card {
-        flex-basis: 180px;
-        width: 180px;
-      }
       .apps-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 20px;
       }
     }
-  
+
+    @media (min-width: 1024px) {
+      .topbar { padding: 20px 32px; }
+      .brand-container { margin-left: 8px; }
+      .brand-logo { width: 44px; height: 44px; } /* Mantiene 44px en escritorio */
+      .topbar-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .brand { font-size: 1.4rem; white-space: nowrap; }
+      .search-box {
+        margin-top: 0;
+        flex: 0 1 560px;
+        width: 100%;
+        max-width: 560px;
+        padding: 14px 20px;
+        font-size: 16px;
+        border-radius: 20px;
+        margin-left: auto;
+      }
+
+      .content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 32px 32px 40px;
+        gap: 16px;
+      }
+
+      .section-header { margin: 0 2px 16px; }
+      .section-title { font-size: 1.4rem; }
+
+      .apps-row {
+        overflow: visible;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 4px 0 0;
+      }
+
+      .apps-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 20px;
+      }
+
+      .apps-row .card {
+        flex: 0 0 260px;
+        width: 260px;
+        max-width: 260px;
+      }
+
+      .card-title { font-size: 0.95rem; }
+
+      .detail-topbar { padding: 18px 32px; }
+      .detail-topbar > div { max-width: 1400px; margin: 0 auto; }
+      .detail-shell { align-items: center; }
+
+      .detail-main {
+        max-width: 1400px;
+        width: calc(100% - 64px);
+        margin: 0 auto;
+        padding: 32px 0 40px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+        grid-template-areas:
+          "hero hero"
+          "meta info"
+          "gallery gallery"
+          "download download";
+        gap: 24px;
+      }
+
+      .detail-main > .detail-hero {
+        grid-area: hero;
+        aspect-ratio: auto;
+        height: auto;
+        max-height: 480px;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+      }
+
+      .detail-hero img {
+        height: auto;
+        max-height: 480px;
+        object-fit: contain; 
+        border-radius: var(--radius);
+      }
+
+      .detail-main > div:nth-child(2) { grid-area: meta; align-self: start; }
+      .detail-main > .detail-info-grid {
+        grid-area: info;
+        align-self: start;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+      .detail-info:last-child { grid-column: span 1; }
+      .detail-main > div:nth-child(4) { grid-area: gallery; }
+
+      .detail-gallery { margin-top: 16px; }
+      .detail-gallery-item img {
+        max-height: 300px;
+        max-width: 300px;
+        min-width: 160px;
+      }
+
+      .detail-title { font-size: 34px; }
+      .detail-desc { font-size: 16px; }
+
+      .detail-download {
+        position: static;
+        grid-area: download;
+        width: 100%;
+        max-width: 400px; 
+        margin-left: auto; 
+        margin-right: auto; 
+        transform: none;
+        padding: 18px 24px;
+        font-size: 16px;
+      }
+
+      .modal-box { max-width: 420px; padding: 28px; }
+      .modal-actions { flex-direction: row; }
+      .modal-btn { width: auto; min-width: 150px; flex: 1; }
+    }
+
+    @media (min-width: 1200px) {
+      .topbar { padding: 20px 40px; }
+      .topbar-row, .content, .detail-topbar > div, .detail-main { max-width: 1500px; }
+      .content { padding: 32px 40px 48px; gap: 16px; }
+      
+      .detail-main {
+        width: calc(100% - 80px);
+        grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+        grid-template-areas:
+          "meta meta"
+          "hero info"
+          "gallery gallery"
+          "download download";
+      }
+    }
+
+    @media (orientation: landscape) and (max-width: 1023px) and (max-height: 700px) {
+      .topbar { padding: 10px 16px; }
+      .topbar-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
+      .brand { font-size: 1.2rem; }
+      .search-box {
+        margin-top: 0;
+        padding: 10px 14px;
+        font-size: 14px;
+        border-radius: 14px;
+        margin-left: auto;
+      }
+      .content { padding: 16px; gap: 14px; }
+      .apps-row .card { flex-basis: 230px; width: 230px; }
+    }
+
+    /* Forzar estilo de escritorio en PC */
+    html.desktop-device, body.desktop-device { min-width: 100%; }
+    .desktop-device .topbar { padding: 20px 32px; }
+    .desktop-device .topbar-row {
+      flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; max-width: 1400px; margin: 0 auto;
+    }
+    .desktop-device .brand-logo { width: 44px; height: 44px; }
+    .desktop-device .brand { font-size: 1.4rem; }
+    .desktop-device .search-box { margin-top: 0; flex: 0 1 560px; max-width: 560px; margin-left: auto; }
+    .desktop-device .content { max-width: 1400px; margin: 0 auto; padding: 32px 32px 40px; gap: 16px; }
+    
+    .desktop-device .apps-row {
+      overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; gap: 20px;
+      padding: 4px 4px 16px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin; scrollbar-color: var(--primary) transparent;
+    }
+    .desktop-device .apps-row::-webkit-scrollbar { height: 6px; display: block; }
+
+    .desktop-device .apps-grid { grid-template-columns: repeat(6, 1fr); gap: 20px; }
+    .desktop-device .apps-row .card { flex: 0 0 260px; width: 260px; max-width: none; min-width: 260px; }
+    .desktop-device .detail-main {
+      max-width: min(1300px, calc(100vw - 80px));
+      width: min(1300px, calc(100vw - 80px));
+      padding: 32px 0 48px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      grid-template-areas: "meta meta" "hero info" "gallery gallery" "download download";
+      gap: 24px; align-items: start;
+    }
+    .desktop-device .detail-main > div:nth-of-type(1) { grid-area: hero; }
+    .desktop-device .detail-main > div:nth-of-type(2) { grid-area: meta; }
+    .desktop-device .detail-main > .detail-info-grid { grid-area: info; align-self: start; }
+    .desktop-device .detail-main > div:nth-of-type(4) { grid-area: gallery; }
+
+    .desktop-device .detail-hero img { border-radius: var(--radius); }
+    .desktop-device .detail-info-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); width: 340px; }
+    .desktop-device .detail-info:last-child { grid-column: span 1; }
+    .desktop-device .detail-download { width: 100%; max-width: 400px; margin: 0 auto; justify-self: center; align-self: center; }
+
     /* ========== MODAL DE ANUNCIO ========== */
     .modal-overlay {
       position: fixed;
@@ -445,7 +676,6 @@
       flex-wrap: nowrap;
     }
 
-    /* Modificado para soportar iconos en botones */
     .modal-btn {
       border: none;
       border-radius: var(--radius-sm);
@@ -778,7 +1008,6 @@
       transform: scale(0.96);
     }
 
-    /* Modificado para incluir soporte a iconos en botón principal */
     .detail-download {
       position: static;
       align-self: center;
@@ -806,227 +1035,6 @@
     .detail-download:active {
       transform: scale(0.96);
     }
-
-    @media (max-width: 640px) {
-      .topbar { padding: 12px 14px; } /* Ajustado para alineación */
-      .brand-container { margin-left: 0; } /* Ajustado a la izquierda */
-      .brand { font-size: 1.2rem; }
-      .content { padding: 16px; }
-      
-      .detail-title { font-size: 24px; }
-      .detail-main { padding: 16px 16px 24px; }
-      .detail-topbar { padding: 12px 16px; gap: 8px; }
-
-      .detail-gallery-item img {
-        max-height: 220px;
-        max-width: 220px;  
-        min-width: 125px; 
-      }
-
-      .detail-download {
-        width: 100%;
-        margin-top: 12px;
-        padding: 14px 18px;
-        font-size: 15px;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .topbar { padding: 20px 32px; }
-      .brand-container { margin-left: 8px; } /* Restaurado en PC */
-      .brand-logo { width: 36px; height: 36px; }
-      .topbar-row {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        max-width: 1400px;
-        margin: 0 auto;
-      }
-      .brand { font-size: 1.6rem; white-space: nowrap; }
-      .search-box {
-        margin-top: 0;
-        flex: 0 1 560px;
-        width: 100%;
-        max-width: 560px;
-        padding: 14px 20px;
-        font-size: 16px;
-        border-radius: 20px;
-        margin-left: auto;
-      }
-
-      .content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 32px 32px 40px;
-        gap: 16px;
-      }
-
-      .section-header { margin: 0 2px 16px; }
-      .section-title { font-size: 1.4rem; }
-
-      .apps-row {
-        overflow: visible;
-        flex-wrap: wrap;
-        gap: 20px;
-        padding: 4px 0 0;
-      }
-
-      .apps-grid {
-        grid-template-columns: repeat(6, 1fr);
-        gap: 20px;
-      }
-
-      .card {
-        flex: 1 1 200px;
-        width: auto;
-        max-width: 260px;
-        min-width: 190px;
-      }
-
-      .card-title { font-size: 0.95rem; }
-
-      .detail-topbar { padding: 18px 32px; }
-      .detail-topbar > div { max-width: 1400px; margin: 0 auto; }
-      .detail-shell { align-items: center; }
-
-      .detail-main {
-        max-width: 1400px;
-        width: calc(100% - 64px);
-        margin: 0 auto;
-        padding: 32px 0 40px;
-        display: grid;
-        grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
-        grid-template-areas:
-          "hero hero"
-          "meta info"
-          "gallery gallery"
-          "download download";
-        gap: 24px;
-      }
-
-      .detail-main > .detail-hero {
-        grid-area: hero;
-        aspect-ratio: auto;
-        height: auto;
-        max-height: 480px;
-        background: transparent;
-        border: none;
-        box-shadow: none;
-      }
-
-      .detail-hero img {
-        height: auto;
-        max-height: 480px;
-        object-fit: contain; 
-        border-radius: var(--radius);
-      }
-
-      .detail-main > div:nth-child(2) { grid-area: meta; align-self: start; }
-      .detail-main > .detail-info-grid {
-        grid-area: info;
-        align-self: start;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-      }
-      .detail-info:last-child { grid-column: span 1; }
-      .detail-main > div:nth-child(4) { grid-area: gallery; }
-
-      .detail-gallery { margin-top: 16px; }
-      .detail-gallery-item img {
-        max-height: 300px;
-        max-width: 300px;
-        min-width: 160px;
-      }
-
-      .detail-title { font-size: 34px; }
-      .detail-desc { font-size: 16px; }
-
-      .detail-download {
-        position: static;
-        grid-area: download;
-        width: 100%;
-        max-width: 400px; 
-        margin-left: auto; 
-        margin-right: auto; 
-        transform: none;
-        padding: 18px 24px;
-        font-size: 16px;
-      }
-
-      .modal-box { max-width: 420px; padding: 28px; }
-      .modal-actions { flex-direction: row; }
-      .modal-btn { width: auto; min-width: 150px; flex: 1; }
-    }
-
-    @media (min-width: 1200px) {
-      .topbar { padding: 20px 40px; }
-      .topbar-row, .content, .detail-topbar > div, .detail-main { max-width: 1500px; }
-      .content { padding: 32px 40px 48px; gap: 16px; }
-      
-      .detail-main {
-        width: calc(100% - 80px);
-        grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
-        grid-template-areas:
-          "meta meta"
-          "hero info"
-          "gallery gallery"
-          "download download";
-      }
-    }
-
-    @media (orientation: landscape) and (max-width: 1023px) and (max-height: 700px) {
-      .topbar { padding: 10px 16px; }
-      .topbar-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
-      .brand { font-size: 1.2rem; }
-      .search-box {
-        margin-top: 0;
-        padding: 10px 14px;
-        font-size: 14px;
-        border-radius: 14px;
-        margin-left: auto;
-      }
-      .content { padding: 16px; gap: 14px; }
-      .card { flex-basis: 150px; width: 150px; }
-    }
-
-    /* Forzar estilo de escritorio en PC */
-    html.desktop-device, body.desktop-device { min-width: 100%; }
-    .desktop-device .topbar { padding: 20px 32px; }
-    .desktop-device .topbar-row {
-      flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; max-width: 1400px; margin: 0 auto;
-    }
-    .desktop-device .brand-logo { width: 36px; height: 36px; }
-    .desktop-device .brand { font-size: 1.6rem; }
-    .desktop-device .search-box { margin-top: 0; flex: 0 1 560px; max-width: 560px; margin-left: auto; }
-    .desktop-device .content { max-width: 1400px; margin: 0 auto; padding: 32px 32px 40px; gap: 16px; }
-    
-    .desktop-device .apps-row {
-      overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; gap: 20px;
-      padding: 4px 4px 16px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin; scrollbar-color: var(--primary) transparent;
-    }
-    .desktop-device .apps-row::-webkit-scrollbar { height: 6px; display: block; }
-
-    .desktop-device .apps-grid { grid-template-columns: repeat(6, 1fr); gap: 20px; }
-    .desktop-device .card { flex: 0 0 200px; width: 200px; max-width: none; min-width: 200px; }
-    .desktop-device .detail-main {
-      max-width: min(1300px, calc(100vw - 80px));
-      width: min(1300px, calc(100vw - 80px));
-      padding: 32px 0 48px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 340px;
-      grid-template-areas: "meta meta" "hero info" "gallery gallery" "download download";
-      gap: 24px; align-items: start;
-    }
-    .desktop-device .detail-main > div:nth-of-type(1) { grid-area: hero; }
-    .desktop-device .detail-main > div:nth-of-type(2) { grid-area: meta; }
-    .desktop-device .detail-main > .detail-info-grid { grid-area: info; align-self: start; }
-    .desktop-device .detail-main > div:nth-of-type(4) { grid-area: gallery; }
-
-    .desktop-device .detail-hero img { border-radius: var(--radius); }
-    .desktop-device .detail-info-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); width: 340px; }
-    .desktop-device .detail-info:last-child { grid-column: span 1; }
-    .desktop-device .detail-download { width: 100%; max-width: 400px; margin: 0 auto; justify-self: center; align-self: center; }
 
     /* ========== LIGHTBOX VISOR ========== */
     .lightbox-overlay {
