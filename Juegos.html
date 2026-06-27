@@ -5,12 +5,17 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <link rel="icon" href="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" type="image/png"/>
 <title>ClyraPlay</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
+    /* ========== FUENTE PERSONALIZADA ========== */
     @font-face {
       font-family: 'FuenteClyra';
       src: url('./Fuente/fuente.ttf') format('truetype'), url('Fuente/fuente.ttf') format('truetype'), url('./fuente/fuente.ttf') format('truetype'), url('fuente/fuente.ttf') format('truetype');
       font-weight: normal;
       font-style: normal;
+      font-display: swap;
     }
 
     /* Bloque completo para eliminar el cuadro azul y el enfoque al tocar elementos */
@@ -21,16 +26,27 @@
         box-shadow: none !important;
     }
 
+    /* ========== VARIABLES DE ESTILO CLYRAPLAY ========== */
     :root {
-      --bg: #050505;
+      --bg: #000000;
       --surface: #111111;
-      --surface-2: #171717;
-      --text: #f7f8fb;
-      --muted: #b8bdc9;
-      --primary: #86f7d2;
-      --primary-2: #b6ff6b;
-      --border: #272727;
-      --shadow: 0 12px 28px rgba(18, 22, 33, 0.07);
+      --surface-2: #1a1a1a;
+      --text: #e0e0e0;
+      --muted: #a0a0a0;
+      --primary: #e63946;
+      --primary-2: #ff4d5a;
+      --border: #2a2a2a;
+      
+      /* Degradados extraídos del Index */
+      --card-gradient: linear-gradient(180deg, #262626 0%, #0a0a0a 100%);
+      --btn-gradient: linear-gradient(145deg, #2a2a2a 0%, #151515 100%);
+      --btn-active-gradient: linear-gradient(145deg, #ff4d5a 0%, #e63946 100%);
+      
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      --glow: 0 4px 15px rgba(230, 57, 70, 0.4);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: 0.3s ease;
     }
 
     * {
@@ -42,11 +58,12 @@
       padding: 0;
       background: var(--bg);
       color: var(--text);
-      font-family: 'FuenteClyra', Arial, Helvetica, sans-serif;
+      font-family: 'FuenteClyra', 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
       max-width: 100vw;
       overflow-x: hidden;
       scrollbar-width: none;
       -ms-overflow-style: none;
+      -webkit-font-smoothing: antialiased;
     }
 
     html::-webkit-scrollbar,
@@ -66,14 +83,16 @@
       overflow-x: hidden;
     }
 
+    /* ========== BARRA SUPERIOR ========== */
     .topbar {
       position: sticky;
       top: 0;
       z-index: 20;
-      background: #050505;
+      background-color: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
-      box-shadow: none;
-      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      padding: 12px 24px;
       width: 100%;
     }
 
@@ -88,23 +107,33 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-left: 8px; /* Ajuste para alinear con el contenido inferior */
+      margin-left: 0; /* Ajustado para alineación */
     }
 
     .brand-logo {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
       object-fit: cover;
+      transition: transform var(--transition);
+    }
+    
+    .brand-logo:hover {
+      transform: scale(1.08);
     }
 
     .brand {
-      font-size: 21px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      color: var(--text);
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #ffffff;
       line-height: 1;
       text-transform: capitalize;
+    }
+
+    /* Nueva clase extraída de index.html para resaltar el texto */
+    .highlight {
+      color: var(--primary);
     }
 
     .search-box {
@@ -116,21 +145,23 @@
       padding: 12px 14px;
       font-size: 15px;
       color: var(--text);
-      font-family: 'FuenteClyra', Arial, Helvetica, sans-serif;
+      font-family: inherit;
       margin-top: 4px;
-      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .search-box::placeholder {
-      color: #8d93a3;
+      color: var(--muted);
     }
 
     .search-box:focus {
       border-color: var(--primary);
       background: var(--surface);
       transform: translateY(-1px);
+      box-shadow: var(--glow);
     }
 
+    /* ========== CONTENIDO ========== */
     .content {
       padding: 16px 14px 24px;
       flex: 1;
@@ -139,6 +170,7 @@
       gap: 12px;
       width: 100%;
       max-width: 100%;
+      background-color: var(--bg);
     }
 
     .section {
@@ -155,146 +187,191 @@
       margin: 0 2px 10px;
     }
 
+    /* Ajustado para alinear iconos con el estilo de index.html */
     .section-title {
       margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text);
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title i {
+      color: var(--primary);
+      font-size: 1.1rem;
     }
 
     .section-subtitle {
-      margin: 0;
+      margin: 4px 0 0;
       font-size: 12px;
       color: var(--muted);
     }
 
     .apps-row {
       display: flex;
-      gap: 12px;
+      gap: 16px;
       overflow-x: auto;
-      padding: 2px 2px 8px;
+      padding: 4px 4px 12px;
       scroll-snap-type: x proximity;
       -webkit-overflow-scrolling: touch;
       width: 100%;
+      scrollbar-color: var(--primary) transparent;
     }
 
     .apps-row::-webkit-scrollbar {
       height: 6px;
     }
 
+    .apps-row::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+    }
+
     .apps-row::-webkit-scrollbar-thumb {
-      background: rgba(134, 247, 210, 0.32);
+      background: #444;
       border-radius: 999px;
+    }
+
+    .apps-row::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
     }
 
     /* GRID DE BÚSQUEDA (Vertical) */
     .apps-grid {
       display: grid;
-      gap: 12px;
-      grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles por espacio */
+      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
       width: 100%;
-      padding: 2px;
+      padding: 4px;
     }
 
-    .apps-grid .app-card {
+    .apps-grid .card {
       width: 100%;
       max-width: none;
       min-width: 0;
       flex: none;
-      height: 100%;
-      min-height: 245px;
+      height: auto;
     }
 
-    .app-card {
+    /* ========== TARJETAS ESTILO INDEX (SIN BOTÓN NI DESCRIPCIÓN) ========== */
+    .card {
       position: relative;
       flex: 0 0 164px;
       width: 164px;
-      height: 275px; 
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 22px;
+      background: var(--card-gradient);
+      border: 1px solid #333;
+      border-radius: var(--radius);
       overflow: hidden;
       box-shadow: var(--shadow);
       scroll-snap-align: start;
       display: flex;
       flex-direction: column;
       cursor: pointer;
+      transition: all var(--transition);
     }
 
-    .app-image {
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: var(--primary);
+      box-shadow: 0 15px 35px rgba(230, 57, 70, 0.2);
+    }
+
+    .card-img-container {
+      position: relative;
       width: 100%;
-      height: 108px;
-      object-fit: cover;
-      display: block;
-      background: #1a1a1a;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #111;
       flex-shrink: 0;
     }
 
-    .app-body {
-      padding: 12px 12px 10px; 
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      flex: 1;
-      min-height: 0;
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
     }
 
-    .app-name {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 800;
-      line-height: 1.15;
-      color: var(--text);
+    .card:hover .card-img {
+      transform: scale(1.1);
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: var(--btn-active-gradient);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      z-index: 2;
+      letter-spacing: 0.5px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-info {
+      padding: 12px 10px; 
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      position: relative;
+      z-index: 2;
+      background: var(--card-gradient);
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #fff;
+      margin-bottom: 5px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-transform: capitalize;
+      line-height: 1.2;
     }
 
-    .app-desc {
-      margin: 0;
-      font-size: 12px;
-      line-height: 1.35;
+    .card-subtitle {
+      font-size: 0.7rem;
       color: var(--muted);
-      min-height: 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: auto; /* Empuja el subtítulo abajo si el título es corto */
     }
 
-    .install-btn {
-      margin-top: auto;
-      width: 100%;
-      border: none;
-      border-radius: 14px;
-      padding: 10px 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #101010;
-      font-size: 13px;
-      font-weight: 800;
-      font-family: 'FuenteClyra', Arial, Helvetica, sans-serif;
-      cursor: pointer;
-      transform: translateZ(0);
-      transition: transform 0.15s ease, opacity 0.15s ease;
-    }
-
-    .install-btn:active {
-      transform: scale(0.98);
-      opacity: 0.92;
+    .card-subtitle i {
+      font-size: 0.7rem;
+      color: var(--primary);
     }
 
     .empty-state {
       display: none;
       margin: 18px 2px 0;
       padding: 18px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius);
+      background: var(--card-gradient);
       border: 1px dashed var(--border);
       color: var(--muted);
       text-align: center;
       font-size: 14px;
+    }
+
+    .empty-state i {
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: block;
     }
 
     .hidden {
@@ -302,31 +379,28 @@
     }
 
     @media (min-width: 768px) {
-      .content {
-        padding: 18px 18px 28px;
-      }
       .topbar {
-        padding: 16px 18px;
+        padding: 16px 24px;
       }
-      .app-card {
-        flex-basis: 172px;
-        width: 172px;
-        height: 260px; 
+      .content {
+        padding: 18px 24px 28px;
       }
-      .app-image {
-        height: 118px;
+      .card {
+        flex-basis: 180px;
+        width: 180px;
       }
       .apps-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
+        gap: 20px;
       }
     }
   
-    /* Modal de anuncio */
+    /* ========== MODAL DE ANUNCIO ========== */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.72);
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -341,19 +415,19 @@
     .modal-box {
       width: 100%;
       max-width: 360px;
-      background: linear-gradient(180deg, #141414 0%, #101010 100%);
+      background: var(--card-gradient);
       border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
-      padding: 18px;
+      border-radius: var(--radius);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.8);
+      padding: 24px;
       text-align: center;
     }
 
     .modal-title {
       margin: 0 0 10px;
       font-size: 18px;
-      font-weight: 800;
-      color: var(--text);
+      font-weight: 700;
+      color: #fff;
     }
 
     .modal-text {
@@ -366,58 +440,70 @@
     .modal-actions {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       justify-content: center;
       flex-wrap: nowrap;
     }
 
+    /* Modificado para soportar iconos en botones */
     .modal-btn {
       border: none;
-      border-radius: 14px;
-      padding: 11px 14px;
-      font-size: 13px;
-      font-weight: 800;
-      font-family: 'FuenteClyra', Arial, Helvetica, sans-serif;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
       min-width: 130px;
       width: 100%;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .modal-btn.ad {
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #101010;
+      background: var(--btn-active-gradient);
+      color: #fff;
+      box-shadow: var(--glow);
+    }
+    
+    .modal-btn.ad:active {
+        transform: scale(0.96);
     }
 
     .modal-btn.link {
-      background: #2a2a2a;
-      color: #ffffff;
-      opacity: 0.55;
+      background: var(--btn-gradient);
+      border: 1px solid #333;
+      color: var(--muted);
       cursor: not-allowed;
     }
 
     .modal-btn.link.enabled {
-      background: linear-gradient(135deg, #7ee8ff, #86f7d2);
-      color: #101010;
-      opacity: 1;
+      background: var(--btn-active-gradient);
+      color: #fff;
+      border-color: transparent;
       cursor: pointer;
+      box-shadow: var(--glow);
     }
 
     .ad-status {
-      margin-top: 12px;
+      margin-top: 14px;
       font-size: 12px;
-      color: #8d93a3;
+      color: var(--muted);
       min-height: 16px;
     }
 
     .ad-status.success {
-      color: #a8ff8f;
+      color: var(--primary);
     }
 
-    /* Detalle a pantalla completa */
+    /* ========== DETALLE A PANTALLA COMPLETA ========== */
     .detail-overlay {
       position: fixed;
       inset: 0;
-      background: #050505;
+      background: var(--bg);
       display: none;
       z-index: 9998;
       overflow-y: auto;
@@ -456,8 +542,9 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 14px 16px;
-      background: #050505;
+      padding: 14px 24px;
+      background-color: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       width: 100%;
       max-width: 100%;
@@ -472,26 +559,47 @@
       text-overflow: ellipsis;
     }
 
+    .detail-topbar .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-topbar .brand i {
+      color: var(--primary);
+    }
+
     .detail-subtitle { display: none !important; }
 
     .detail-close {
-      border: none;
-      border-radius: 999px;
-      width: 40px;
-      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
       flex-shrink: 0;
-      background: #262626;
-      color: #fff;
-      font-size: 22px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 16px;
       line-height: 1;
       cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .detail-close:hover {
+        background: var(--surface-2);
+        color: #fff;
+        border-color: var(--primary);
+        transform: rotate(90deg);
     }
 
     .detail-main {
-      padding: 16px 16px 96px;
+      padding: 20px 24px 96px;
       display: flex; 
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
       max-width: 900px;
       width: 100%;
       margin: 0 auto;
@@ -509,7 +617,7 @@
     .detail-hero {
       width: 100%;
       aspect-ratio: 16 / 9;
-      border-radius: 22px;
+      border-radius: var(--radius);
       overflow: hidden;
       background: #111;
       border: 1px solid var(--border);
@@ -526,8 +634,9 @@
     .detail-title {
       margin: 0;
       font-size: 28px;
-      line-height: 1.1;
-      font-weight: 900;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #fff;
       word-wrap: break-word;
       overflow-wrap: break-word;
       hyphens: auto;
@@ -536,10 +645,10 @@
     }
 
     .detail-desc {
-      margin: 8px 0 0;
+      margin: 10px 0 0;
       color: var(--muted);
-      font-size: 14px;
-      line-height: 1.55;
+      font-size: 15px;
+      line-height: 1.6;
       word-wrap: break-word;
       overflow-wrap: break-word;
       white-space: normal;
@@ -549,7 +658,7 @@
     .detail-info-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 12px;
       width: 100%;
       max-width: 100%;
     }
@@ -559,18 +668,19 @@
     }
 
     .detail-info {
-      border-radius: 18px;
-      background: #111111;
+      border-radius: var(--radius);
+      background: var(--card-gradient);
       border: 1px solid var(--border);
-      padding: 12px;
+      padding: 14px;
       overflow: hidden;
       word-wrap: break-word;
+      box-shadow: var(--shadow);
     }
 
     .detail-info-label {
       display: block;
       font-size: 12px;
-      color: #9aa0ad;
+      color: var(--muted);
       margin-bottom: 6px;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -579,16 +689,24 @@
 
     .detail-info-value {
       font-size: 15px;
-      font-weight: 800;
-      color: var(--text);
+      font-weight: 600;
+      color: #fff;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
 
     .detail-section-title {
-      margin: 0 0 10px;
-      font-size: 16px;
-      font-weight: 800;
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-section-title i {
+      color: var(--primary);
     }
 
     .detail-gallery {
@@ -598,25 +716,34 @@
       overflow-y: hidden;
       display: block;
       scrollbar-width: thin;
-      scrollbar-color: rgba(134, 247, 210, 0.32) transparent;
-      margin-top: 16px; 
+      scrollbar-color: var(--primary) transparent;
+      margin-top: 10px; 
     }
 
     .detail-gallery::-webkit-scrollbar {
       height: 6px;
     }
 
+    .detail-gallery::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+    }
+
     .detail-gallery::-webkit-scrollbar-thumb {
-      background: rgba(134, 247, 210, 0.32);
+      background: #444;
       border-radius: 999px;
+    }
+
+    .detail-gallery::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
     }
 
     .detail-gallery-track {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 12px;
       width: max-content;
-      padding-bottom: 8px;
+      padding-bottom: 12px;
     }
 
     .detail-gallery-item {
@@ -635,56 +762,60 @@
       width: auto;
       height: auto;
       display: block;
-      border-radius: 14px;
+      border-radius: var(--radius);
       object-fit: cover;
-      background: #1a1a1a;
+      background: #111;
+      border: 1px solid var(--border);
       cursor: pointer;
-      transition: transform 0.15s ease;
+      transition: transform var(--transition), border-color var(--transition);
+    }
+    
+    .detail-gallery-item img:hover {
+        border-color: var(--primary);
     }
 
     .detail-gallery-item img:active {
       transform: scale(0.96);
     }
 
+    /* Modificado para incluir soporte a iconos en botón principal */
     .detail-download {
       position: static;
       align-self: center;
       z-index: 1;
       border: none;
-      border-radius: 16px;
-      padding: 14px 22px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #101010;
-      font-size: 15px;
-      font-weight: 900;
-      font-family: 'FuenteClyra', Arial, Helvetica, sans-serif;
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      background: var(--btn-active-gradient);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
       cursor: pointer;
       width: 100%;
       box-sizing: border-box;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      box-shadow: var(--glow);
       margin: 16px 0 0 0;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     .detail-download:active {
-      transform: scale(0.99);
-    }
-
-    .detail-download,
-    .detail-download * {
-      font-family: 'FuenteClyra', Arial, Helvetica, sans-serif !important;
+      transform: scale(0.96);
     }
 
     @media (max-width: 640px) {
-      .detail-title {
-        font-size: 24px;
-      }
-      .detail-main {
-        padding: 14px 14px 16px;
-      }
-      .detail-topbar {
-        padding: 12px 14px;
-        gap: 8px;
-      }
+      .topbar { padding: 12px 14px; } /* Ajustado para alineación */
+      .brand-container { margin-left: 0; } /* Ajustado a la izquierda */
+      .brand { font-size: 1.2rem; }
+      .content { padding: 16px; }
+      
+      .detail-title { font-size: 24px; }
+      .detail-main { padding: 16px 16px 24px; }
+      .detail-topbar { padding: 12px 16px; gap: 8px; }
 
       .detail-gallery-item img {
         max-height: 220px;
@@ -695,132 +826,75 @@
       .detail-download {
         width: 100%;
         margin-top: 12px;
-        padding: 13px 18px;
-        font-size: 14px;
+        padding: 14px 18px;
+        font-size: 15px;
       }
     }
 
-
     @media (min-width: 1024px) {
-      .topbar {
-        padding: 20px 32px;
-      }
-
-      .brand-logo {
-        width: 36px;
-        height: 36px;
-      }
-
+      .topbar { padding: 20px 32px; }
+      .brand-container { margin-left: 8px; } /* Restaurado en PC */
+      .brand-logo { width: 36px; height: 36px; }
       .topbar-row {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
-        max-width: 1320px;
+        gap: 24px;
+        max-width: 1400px;
         margin: 0 auto;
       }
-
-      .brand-container {
-        margin-left: 0; /* En PC se alinea por su contenedor */
-      }
-
-      .brand {
-        font-size: 28px;
-        white-space: nowrap;
-      }
-
+      .brand { font-size: 1.6rem; white-space: nowrap; }
       .search-box {
         margin-top: 0;
         flex: 0 1 560px;
         width: 100%;
         max-width: 560px;
-        padding: 14px 18px;
+        padding: 14px 20px;
         font-size: 16px;
-        border-radius: 18px;
+        border-radius: 20px;
         margin-left: auto;
       }
 
       .content {
-        max-width: 1320px;
+        max-width: 1400px;
         margin: 0 auto;
-        padding: 28px 32px 40px;
-        gap: 12px;
+        padding: 32px 32px 40px;
+        gap: 16px;
       }
 
-      .section-header {
-        margin: 0 2px 14px;
-      }
-
-      .section-title {
-        font-size: 24px;
-      }
-
-      .section-subtitle {
-        font-size: 14px;
-      }
+      .section-header { margin: 0 2px 16px; }
+      .section-title { font-size: 1.4rem; }
 
       .apps-row {
         overflow: visible;
         flex-wrap: wrap;
-        gap: 16px;
-        padding: 2px 0 0;
+        gap: 20px;
+        padding: 4px 0 0;
       }
 
-      /* 6 COLUMNAS EN RESULTADOS DE BÚSQUEDA PARA PC */
       .apps-grid {
         grid-template-columns: repeat(6, 1fr);
-        gap: 16px;
+        gap: 20px;
       }
 
-      .app-card {
-        flex: 1 1 190px;
+      .card {
+        flex: 1 1 200px;
         width: auto;
-        max-width: 250px;
+        max-width: 260px;
         min-width: 190px;
-        height: 245px; 
       }
 
-      .app-image {
-        height: 112px;
-      }
+      .card-title { font-size: 0.95rem; }
 
-      .app-body {
-        padding: 10px;
-        gap: 4px;
-      }
-
-      .app-name {
-        font-size: 14px;
-      }
-
-      .app-desc {
-        font-size: 11px;
-        min-height: 34px;
-      }
-
-      .install-btn {
-        padding: 10px 12px;
-        font-size: 13px;
-      }
-
-      .detail-topbar {
-        padding: 18px 28px;
-      }
-
-      .detail-topbar > div {
-        max-width: 1320px;
-        margin: 0 auto;
-      }
-
-      .detail-shell {
-        align-items: center;
-      }
+      .detail-topbar { padding: 18px 32px; }
+      .detail-topbar > div { max-width: 1400px; margin: 0 auto; }
+      .detail-shell { align-items: center; }
 
       .detail-main {
-        max-width: 1320px;
-        width: calc(100% - 56px);
+        max-width: 1400px;
+        width: calc(100% - 64px);
         margin: 0 auto;
-        padding: 24px 0 40px;
+        padding: 32px 0 40px;
         display: grid;
         grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
         grid-template-areas:
@@ -828,7 +902,7 @@
           "meta info"
           "gallery gallery"
           "download download";
-        gap: 20px;
+        gap: 24px;
       }
 
       .detail-main > .detail-hero {
@@ -845,44 +919,27 @@
         height: auto;
         max-height: 480px;
         object-fit: contain; 
+        border-radius: var(--radius);
       }
 
-      .detail-main > div:nth-child(2) {
-        grid-area: meta;
-        align-self: start;
-      }
-
+      .detail-main > div:nth-child(2) { grid-area: meta; align-self: start; }
       .detail-main > .detail-info-grid {
         grid-area: info;
         align-self: start;
         grid-template-columns: repeat(1, minmax(0, 1fr));
       }
+      .detail-info:last-child { grid-column: span 1; }
+      .detail-main > div:nth-child(4) { grid-area: gallery; }
 
-      .detail-info:last-child {
-        grid-column: span 1;
-      }
-
-      .detail-main > div:nth-child(4) {
-        grid-area: gallery;
-      }
-
-      .detail-gallery {
-        margin-top: 12px;
-      }
-
+      .detail-gallery { margin-top: 16px; }
       .detail-gallery-item img {
         max-height: 300px;
         max-width: 300px;
         min-width: 160px;
       }
 
-      .detail-title {
-        font-size: 34px;
-      }
-
-      .detail-desc {
-        font-size: 15px;
-      }
+      .detail-title { font-size: 34px; }
+      .detail-desc { font-size: 16px; }
 
       .detail-download {
         position: static;
@@ -892,524 +949,91 @@
         margin-left: auto; 
         margin-right: auto; 
         transform: none;
-        left: auto;
-        bottom: auto;
-        justify-self: center; 
-        align-self: center;
-        padding: 16px 22px;
+        padding: 18px 24px;
         font-size: 16px;
-        border-radius: 18px; 
       }
 
-      .modal-box {
-        max-width: 420px;
-        padding: 22px;
-      }
-
-      .modal-actions {
-        flex-direction: row;
-      }
-
-      .modal-btn {
-        width: auto;
-        min-width: 150px;
-        flex: 1;
-      }
+      .modal-box { max-width: 420px; padding: 28px; }
+      .modal-actions { flex-direction: row; }
+      .modal-btn { width: auto; min-width: 150px; flex: 1; }
     }
 
-
     @media (min-width: 1200px) {
-      .topbar {
-        padding: 20px 40px;
-      }
-
-      .topbar-row {
-        max-width: 1440px;
-      }
-
-      .content {
-        max-width: 1440px;
-        padding: 30px 40px 44px;
-        gap: 12px;
-      }
-
-      .section-header {
-        margin-bottom: 16px;
-      }
-
-      .apps-row {
-        gap: 18px;
-      }
-
-      .app-card {
-        flex: 1 1 196px;
-        min-width: 196px;
-        max-width: 260px;
-        height: 245px;
-      }
-
-      .app-image {
-        height: 118px;
-      }
-
-      .detail-topbar {
-        padding: 18px 36px;
-      }
-
-      .detail-topbar > div {
-        max-width: 1440px;
-      }
-
+      .topbar { padding: 20px 40px; }
+      .topbar-row, .content, .detail-topbar > div, .detail-main { max-width: 1500px; }
+      .content { padding: 32px 40px 48px; gap: 16px; }
+      
       .detail-main {
-        max-width: 1440px;
-        width: calc(100% - 72px);
-        padding: 26px 0 44px;
+        width: calc(100% - 80px);
         grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
         grid-template-areas:
           "meta meta"
           "hero info"
           "gallery gallery"
           "download download";
-        gap: 22px;
-      }
-
-      .detail-main > .detail-hero {
-        aspect-ratio: auto;
-        height: auto;
-        max-height: 480px;
-      }
-
-      .detail-main > .detail-info-grid {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-      }
-
-      .detail-info:last-child {
-        grid-column: span 1;
-      }
-
-      .detail-title {
-        font-size: 36px;
-      }
-
-      .detail-desc {
-        font-size: 15px;
-        max-width: 980px;
-      }
-
-      .detail-gallery-item img {
-        max-height: 320px;
-        max-width: 320px;
-        min-width: 170px;
-      }
-    }
-
-    @media (min-width: 1600px) {
-      .topbar-row,
-      .content,
-      .detail-topbar > div,
-      .detail-main {
-        max-width: 1560px;
-      }
-
-      .content {
-        padding-left: 48px;
-        padding-right: 48px;
-      }
-
-      .app-card {
-        max-width: 340px;
-        min-width: 250px;
       }
     }
 
     @media (orientation: landscape) and (max-width: 1023px) and (max-height: 700px) {
-      .topbar {
-        padding: 10px 14px;
-      }
-
-      .topbar-row {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .brand {
-        font-size: 20px;
-        white-space: nowrap;
-      }
-
+      .topbar { padding: 10px 16px; }
+      .topbar-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
+      .brand { font-size: 1.2rem; }
       .search-box {
         margin-top: 0;
-        padding: 10px 12px;
+        padding: 10px 14px;
         font-size: 14px;
         border-radius: 14px;
         margin-left: auto;
       }
-
-      .content {
-        padding: 14px 12px 18px;
-        gap: 14px;
-      }
-
-      .section-header {
-        margin-bottom: 8px;
-      }
-
-      .section-title {
-        font-size: 17px;
-      }
-
-      .section-subtitle {
-        font-size: 12px;
-      }
-
-      .apps-row {
-        gap: 10px;
-        padding-bottom: 6px;
-      }
-
-      .app-card {
-        flex-basis: 150px;
-        width: 150px;
-        height: 220px; 
-      }
-
-      .app-image {
-        height: 94px;
-      }
-
-      .app-body {
-        padding: 10px;
-        gap: 4px;
-      }
-
-      .app-name {
-        font-size: 15px;
-      }
-
-      .app-desc {
-        font-size: 11px;
-        min-height: 32px;
-      }
-
-      .install-btn {
-        padding: 9px 10px;
-        font-size: 12px;
-      }
-
-      .detail-topbar {
-        padding: 10px 12px;
-      }
-
-      .detail-main {
-        padding: 12px 12px 86px;
-        gap: 12px;
-      }
-
-      .detail-title {
-        font-size: 22px;
-      }
-
-      .detail-desc {
-        font-size: 13px;
-        line-height: 1.45;
-      }
-
-      .detail-info-grid {
-        gap: 8px;
-      }
-
-      .detail-info {
-        padding: 10px;
-      }
-
-      .detail-info-value {
-        font-size: 13px;
-      }
-
-      .detail-gallery-item img {
-        max-height: 200px;
-        max-width: 200px;
-        min-width: 115px;
-      }
-
-      .detail-download {
-        width: 100%;
-        padding: 12px 14px;
-        font-size: 14px;
-      }
-
-      .modal-box {
-        max-width: 380px;
-      }
+      .content { padding: 16px; gap: 14px; }
+      .card { flex-basis: 150px; width: 150px; }
     }
 
-    /* Forzar estilo de escritorio en PC aunque la ventana sea pequeña */
-    html.desktop-device, body.desktop-device {
-      min-width: 100%;
-    }
-
-    .desktop-device .topbar {
-      padding: 20px 32px;
-    }
-
+    /* Forzar estilo de escritorio en PC */
+    html.desktop-device, body.desktop-device { min-width: 100%; }
+    .desktop-device .topbar { padding: 20px 32px; }
     .desktop-device .topbar-row {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      max-width: 1320px;
-      margin: 0 auto;
+      flex-direction: row; align-items: center; justify-content: space-between; gap: 24px; max-width: 1400px; margin: 0 auto;
     }
-
-    .desktop-device .brand-container { margin-left: 0; }
-
-    .desktop-device .brand-logo {
-      width: 36px;
-      height: 36px;
-    }
-
-    .desktop-device .brand {
-      font-size: 28px;
-      white-space: nowrap;
-    }
-
-    .desktop-device .search-box {
-      margin-top: 0;
-      flex: 0 1 560px;
-      width: 100%;
-      max-width: 560px;
-      padding: 14px 18px;
-      font-size: 16px;
-      border-radius: 18px;
-      margin-left: auto;
-    }
-
-    .desktop-device .content {
-      max-width: 1320px;
-      margin: 0 auto;
-      padding: 28px 32px 40px;
-      gap: 12px;
-    }
-
-    .desktop-device .section-header {
-      margin: 0 2px 14px;
-    }
-
-    .desktop-device .section-title {
-      font-size: 24px;
-    }
-
-    .desktop-device .section-subtitle {
-      font-size: 14px;
-    }
-
+    .desktop-device .brand-logo { width: 36px; height: 36px; }
+    .desktop-device .brand { font-size: 1.6rem; }
+    .desktop-device .search-box { margin-top: 0; flex: 0 1 560px; max-width: 560px; margin-left: auto; }
+    .desktop-device .content { max-width: 1400px; margin: 0 auto; padding: 32px 32px 40px; gap: 16px; }
+    
     .desktop-device .apps-row {
-      overflow-x: auto;
-      overflow-y: hidden;
-      flex-wrap: nowrap;
-      gap: 16px;
-      padding: 2px 2px 12px;
-      scroll-snap-type: x proximity;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; gap: 20px;
+      padding: 4px 4px 16px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin; scrollbar-color: var(--primary) transparent;
     }
+    .desktop-device .apps-row::-webkit-scrollbar { height: 6px; display: block; }
 
-    .desktop-device .apps-row::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* GRID FORZADO A 6 COLUMNAS EN MODO ESCRITORIO */
-    .desktop-device .apps-grid {
-      grid-template-columns: repeat(6, 1fr);
-      gap: 16px;
-    }
-
-    .desktop-device .app-card {
-      flex: 0 0 190px;
-      width: 190px;
-      max-width: none;
-      min-width: 190px;
-      height: 245px;
-      scroll-snap-align: start;
-    }
-
-    .desktop-device .app-image {
-      height: 106px;
-    }
-
-    .desktop-device .app-body {
-      padding: 10px;
-      gap: 4px;
-    }
-
-    .desktop-device .app-name {
-      font-size: 14px;
-    }
-
-    .desktop-device .app-desc {
-      font-size: 10px;
-      min-height: 32px;
-    }
-
-    .desktop-device .install-btn {
-      padding: 8px 11px;
-      font-size: 11px;
-    }
-
-    .desktop-device .detail-topbar {
-      padding: 18px 28px;
-    }
-
-    .desktop-device .detail-topbar > div {
-      max-width: 1320px;
-      margin: 0 auto;
-    }
-
+    .desktop-device .apps-grid { grid-template-columns: repeat(6, 1fr); gap: 20px; }
+    .desktop-device .card { flex: 0 0 200px; width: 200px; max-width: none; min-width: 200px; }
     .desktop-device .detail-main {
-      max-width: min(1240px, calc(100vw - 72px));
-      width: min(1240px, calc(100vw - 72px));
-      padding: 26px 0 44px;
+      max-width: min(1300px, calc(100vw - 80px));
+      width: min(1300px, calc(100vw - 80px));
+      padding: 32px 0 48px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 340px;
-      grid-template-areas:
-        "meta meta"
-        "hero info"
-        "gallery gallery"
-        "download download";
-      gap: 22px;
-      align-items: start;
+      grid-template-areas: "meta meta" "hero info" "gallery gallery" "download download";
+      gap: 24px; align-items: start;
     }
-
     .desktop-device .detail-main > div:nth-of-type(1) { grid-area: hero; }
     .desktop-device .detail-main > div:nth-of-type(2) { grid-area: meta; }
     .desktop-device .detail-main > .detail-info-grid { grid-area: info; align-self: start; }
     .desktop-device .detail-main > div:nth-of-type(4) { grid-area: gallery; }
 
-    .desktop-device .detail-main > .detail-hero {
-      aspect-ratio: auto;
-      height: auto;
-      max-height: 480px;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-    }
+    .desktop-device .detail-hero img { border-radius: var(--radius); }
+    .desktop-device .detail-info-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); width: 340px; }
+    .desktop-device .detail-info:last-child { grid-column: span 1; }
+    .desktop-device .detail-download { width: 100%; max-width: 400px; margin: 0 auto; justify-self: center; align-self: center; }
 
-    .desktop-device .detail-hero img {
-      height: auto;
-      max-height: 480px;
-      object-fit: contain;
-      border-radius: 18px;
-    }
-
-    .desktop-device .detail-info-grid {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-      width: 340px;
-    }
-
-    .desktop-device .detail-info:last-child {
-      grid-column: span 1;
-    }
-
-    .desktop-device .detail-title {
-      font-size: 36px;
-    }
-
-    .desktop-device .detail-desc {
-      font-size: 15px;
-      max-width: 980px;
-    }
-
-    .desktop-device .detail-gallery-item img {
-      max-height: 320px;
-      max-width: 320px;
-      min-width: 170px;
-    }
-
-    .desktop-device .detail-download {
-      position: static;
-      width: 100%;
-      min-width: 0;
-      max-width: 400px; 
-      margin-left: auto;
-      margin-right: auto;
-      left: auto;
-      transform: none;
-      right: auto;
-      bottom: auto;
-      justify-self: center; 
-      align-self: center;
-      padding: 16px 22px;
-      font-size: 16px;
-      border-radius: 18px;
-    }
-
-    .desktop-device .modal-box {
-      max-width: 420px;
-      padding: 22px;
-    }
-
-    .desktop-device .modal-actions {
-      flex-direction: row;
-    }
-
-    .desktop-device .modal-btn {
-      width: auto;
-      min-width: 150px;
-      flex: 1;
-    }
-
-    .desktop-device .detail-close {
-      width: 44px;
-      height: 44px;
-    }
-
-    .desktop-device html,
-    .desktop-device body {
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-
-    .desktop-device html::-webkit-scrollbar,
-    .desktop-device body::-webkit-scrollbar {
-      display: none;
-    }
-
-    .desktop-device .detail-topbar,
-    .desktop-device .topbar,
-    .desktop-device .content,
-    .desktop-device .detail-main,
-    .desktop-device .topbar-row,
-    .desktop-device .detail-topbar > div {
-      box-sizing: border-box;
-    }
-
-    @media (min-width: 1600px) {
-      .desktop-device .topbar-row,
-      .desktop-device .content,
-      .desktop-device .detail-topbar > div,
-      .desktop-device .detail-main {
-        max-width: 1240px;
-      }
-
-      .desktop-device .content {
-        padding-left: 48px;
-        padding-right: 48px;
-      }
-
-      .desktop-device .app-card {
-        max-width: 190px;
-        min-width: 190px;
-      }
-    }
-
-    /* Visor a pantalla completa de las capturas (Lightbox) */
+    /* ========== LIGHTBOX VISOR ========== */
     .lightbox-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -1427,11 +1051,12 @@
       max-width: 100%;
       max-height: 85vh;
       object-fit: contain; 
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      border-radius: var(--radius);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
       user-select: none;
       -webkit-user-select: none;
       cursor: default;
+      border: 1px solid var(--border);
     }
 </style>
 </head>
@@ -1441,7 +1066,7 @@
     <div class="topbar-row">
       <div class="brand-container">
         <img alt="ClyraPlay Logo" class="brand-logo" src="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png"/>
-        <div class="brand">ClyraStore</div>
+        <div class="brand">Clyra<span class="highlight">Juegos</span></div>
       </div>
       <input aria-label="Buscar aplicaciones" class="search-box" id="searchInput" placeholder="Buscar aplicaciones..." type="search"/>
     </div>
@@ -1452,7 +1077,7 @@
     <section class="section" id="section-destacadas">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Destacadas</h2>
+          <h2 class="section-title"><i class="fa-solid fa-star"></i> Destacadas</h2>
           <p class="section-subtitle">Aplicaciones más populares</p>
         </div>
       </div>
@@ -1462,7 +1087,7 @@
     <section class="section" id="section-pc">
       <div class="section-header">
         <div>
-          <h2 class="section-title">PC</h2>
+          <h2 class="section-title"><i class="fa-solid fa-desktop"></i> PC</h2>
           <p class="section-subtitle">Juegos exclusivos de PC</p>
         </div>
       </div>
@@ -1472,7 +1097,7 @@
     <section class="section" id="section-nuevas">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Nuevas</h2>
+          <h2 class="section-title"><i class="fa-solid fa-gamepad"></i> Nuevas</h2>
           <p class="section-subtitle">Lo último que llegó a la tienda</p>
         </div>
       </div>
@@ -1482,25 +1107,27 @@
     <section class="section" id="section-recomendadas">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Recomendadas</h2>
+          <h2 class="section-title"><i class="fa-solid fa-thumbs-up"></i> Recomendadas</h2>
           <p class="section-subtitle">Apps que combinan con tu estilo</p>
         </div>
       </div>
       <div class="apps-row" id="row-recomendadas"></div>
     </section>
 
-    <!-- SECCIÓN VERTICAL PARA BÚSQUEDA -->
     <section class="section hidden" id="search-results-section">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Resultados de búsqueda</h2>
+          <h2 class="section-title"><i class="fa-solid fa-magnifying-glass"></i> Resultados de búsqueda</h2>
           <p class="section-subtitle" id="search-subtitle">Aplicaciones encontradas</p>
         </div>
       </div>
       <div class="apps-grid" id="search-results-grid"></div>
     </section>
 
-    <div class="empty-state" id="emptyState">No se encontraron aplicaciones con esa búsqueda.</div>
+    <div class="empty-state" id="emptyState">
+      <i class="fa-solid fa-folder-open"></i>
+      No se encontraron aplicaciones con esa búsqueda.
+    </div>
   </main>
 </div>
 
@@ -1508,9 +1135,9 @@
   <div aria-labelledby="detailTitle" aria-modal="true" class="detail-shell" role="dialog">
     <div class="detail-topbar">
       <div>
-        <div class="brand" id="detailBrand">Información</div>
+        <div class="brand" id="detailBrand"><i class="fa-solid fa-circle-info"></i> Información</div>
       </div>
-      <button aria-label="Cerrar detalles" class="detail-close" id="detailCloseBtn" type="button">×</button>
+      <button aria-label="Cerrar detalles" class="detail-close" id="detailCloseBtn" type="button"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="detail-main">
       <div class="detail-hero"><img alt="" id="detailHero"/></div>
@@ -1533,12 +1160,12 @@
         </div>
       </div>
       <div>
-        <h2 class="detail-section-title">🖼️ Capturas</h2>
+        <h2 class="detail-section-title"><i class="fa-solid fa-image"></i> Capturas</h2>
         <div aria-label="Capturas de pantalla" class="detail-gallery" id="detailScreenshotsGallery">
           <div class="detail-gallery-track" id="detailScreenshotsTrack"></div>
         </div>
       </div>
-      <button class="detail-download" id="detailDownloadBtn" type="button">Descargar</button>
+      <button class="detail-download" id="detailDownloadBtn" type="button"><i class="fa-solid fa-download"></i> Descargar</button>
     </div>
   </div>
 </div>
@@ -1548,8 +1175,8 @@
     <h3 class="modal-title" id="adModalTitle">Ver 2 anuncios para continuar</h3>
     <p class="modal-text">Cuando toques Ver anuncio se abrirá el anuncio en otra pestaña. Después vuelve a la aplicación y repite el proceso dos veces para desbloquear el enlace de MediaFire.</p>
     <div class="modal-actions">
-      <button class="modal-btn ad" id="watchAdBtn" type="button">Ver anuncio</button>
-      <button class="modal-btn link" disabled="" id="linkBtn" type="button">Botón de enlace bloqueado</button>
+      <button class="modal-btn ad" id="watchAdBtn" type="button"><i class="fa-solid fa-play"></i> Ver anuncio</button>
+      <button class="modal-btn link" disabled="" id="linkBtn" type="button"><i class="fa-solid fa-lock"></i> Botón de enlace bloqueado</button>
     </div>
     <div class="ad-status" id="adStatus">Toca Ver anuncio dos veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.</div>
   </div>
@@ -1575,9 +1202,9 @@
           "https://i.postimg.cc/mrSQXm95/4.png"
         ],
         directLink: "https://www.mediafire.com/file/bxuyfetj53bm1de/FWFS_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "🖥️ Windows 10",
-        versionLatest: "ℹ️ v1.5",
-        weight: "📦 344 MB",
+        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.5",
+        weight: "<i class=\"fa-solid fa-box\"></i> 344 MB",
         tags: ["Pc", "nuevas"]
 },
 {
@@ -1591,9 +1218,9 @@
           "https://i.postimg.cc/mgr08SzG/6.png"
         ],
         directLink: "https://www.mediafire.com/file/x2uq0vgzmwgrqo9/MBM_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "🖥️ Windows 10",
-        versionLatest: "ℹ️ v2.1.1.0",
-        weight: "📦 304 MB",
+        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v2.1.1.0",
+        weight: "<i class=\"fa-solid fa-box\"></i> 304 MB",
         tags: ["Pc", "nuevas"]
 },
 {
@@ -1607,9 +1234,9 @@
           "https://i.postimg.cc/j2KCnjx2/5.png"
         ],
         directLink: "https://www.mediafire.com/file/fvs3ww7vt8hsdxg/WLitC_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "🖥️ Windows 10",
-        versionLatest: "ℹ️ v25.03.13",
-        weight: "📦 1.05 GB",
+        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v25.03.13",
+        weight: "<i class=\"fa-solid fa-box\"></i> 1.05 GB",
         tags: ["Pc", "nuevas"]
 },
 {
@@ -1623,9 +1250,9 @@
           "https://i.postimg.cc/wM0gybkm/9.png"
         ],
         directLink: "https://www.mediafire.com/file/hyp7qrsu4189ctj/MI_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "🖥️ Windows 10",
-        versionLatest: "ℹ️ v0.5.8.2",
-        weight: "📦 1 GB",
+        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.5.8.2",
+        weight: "<i class=\"fa-solid fa-box\"></i> 1 GB",
         tags: ["Pc", "nuevas"]
 },
 {
@@ -1639,9 +1266,9 @@
           "https://i.postimg.cc/0jYhn651/3.png"
         ],
         directLink: "https://www.mediafire.com/file/p80j6ozfali0bqa/WPDolwA_%2528En_espa%25C3%25B1ol_por_DarkEros177%2529.rar/file",
-        versionAvailable: "🖥️ Windows 10",
-        versionLatest: "ℹ️ No Especificado",
-        weight: "📦 640 MB",
+        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
+        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No Especificado",
+        weight: "<i class=\"fa-solid fa-box\"></i> 640 MB",
         tags: ["Pc", "nuevas"]
 },
       {
@@ -1655,9 +1282,9 @@
           "https://i.postimg.cc/8c6bF5Gw/4.png"
         ],
         directLink: "https://www.mediafire.com/file/r2bt0myw6wudhak/EL_%2528En_espa%25C3%25B1ol_por_DarkEros177%2529.rar/file",
-        versionAvailable: "🖥️ Windows 10",
-        versionLatest: "ℹ️ v1.2",
-        weight: "📦 302 MB",
+        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.2",
+        weight: "<i class=\"fa-solid fa-box\"></i> 302 MB",
         tags: ["nuevas", "Pc"]
       },
       {
@@ -1671,9 +1298,9 @@
           "https://i.postimg.cc/0rgfX6VD/7.png"
         ],
         directLink: "https://www.mediafire.com/file/4oa5ifqi356pb9r/b_w_14.0.1.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v14.0.1",
-        weight: "📦  77 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v14.0.1",
+        weight: "<i class=\"fa-solid fa-box\"></i> 77 MB",
         tags: ["nuevas"]
       },
       {
@@ -1687,9 +1314,9 @@
           "https://i.postimg.cc/3N6yHsCx/3.png"
         ],
         directLink: "https://www.mediafire.com/file/lbsrl9oc8tsruub/LwMLS.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "🚫  No Especificado",
-        weight: "📦  168 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No Especificado",
+        weight: "<i class=\"fa-solid fa-box\"></i> 168 MB",
         tags: ["nuevas"]
       },
       {
@@ -1703,9 +1330,9 @@
           "https://i.postimg.cc/QCZT1S6D/3.png"
         ],
         directLink: "https://www.mediafire.com/file/rloc4abmypbs649/DLoMC_v0.3.3.1_by_the66.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v0.3.3.1",
-        weight: "📦 345 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.3.3.1",
+        weight: "<i class=\"fa-solid fa-box\"></i> 345 MB",
         tags: ["nuevas"]
       },
       {
@@ -1719,9 +1346,9 @@
           "https://i.postimg.cc/pXBbnZLt/3.png"
         ],
         directLink: "https://www.mediafire.com/file/uh5ka3fatjct6mc/v1.52_SucHun.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v1.52",
-        weight: "📦 181 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.52",
+        weight: "<i class=\"fa-solid fa-box\"></i> 181 MB",
         tags: ["destacadas"]
       },
       {
@@ -1735,9 +1362,9 @@
           "https://i.postimg.cc/bNS580P0/3.png"
         ],
         directLink: "https://www.mediafire.com/file/mt6sn05tpui2ni9/TC_v0.6.5.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v0.6.5",
-        weight: "📦 249 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.6.5",
+        weight: "<i class=\"fa-solid fa-box\"></i> 249 MB",
         tags: ["destacadas", "nuevas", "recomendadas"]
       },
       {
@@ -1751,9 +1378,9 @@
           "https://i.postimg.cc/KY9B1J3b/3.png"
         ],
         directLink: "https://www.mediafire.com/file/n31hql7oyy8l887/HoVi.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v1.1.0",
-        weight: "📦 324 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.1.0",
+        weight: "<i class=\"fa-solid fa-box\"></i> 324 MB",
         tags: ["destacadas", "nuevas", "recomendadas"]
       },
       {
@@ -1767,9 +1394,9 @@
           "https://i.postimg.cc/VNxLkTFk/3.png"
         ],
         directLink: "https://www.mediafire.com/file/roftwup2onjunfz/MagMonAca_4.1.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v4.1.1",
-        weight: "📦 190 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v4.1.1",
+        weight: "<i class=\"fa-solid fa-box\"></i> 190 MB",
         tags: ["destacadas", "nuevas"]
       },
       {
@@ -1783,9 +1410,9 @@
           "https://i.postimg.cc/TYJWfMs9/3.png"
         ],
         directLink: "https://www.mediafire.com/file/bk2b9bqtz4n1nk4/URJJ.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v1.1.3",
-        weight: "📦 239 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.1.3",
+        weight: "<i class=\"fa-solid fa-box\"></i> 239 MB",
         tags: ["destacadas", "nuevas"]
       },
       {
@@ -1799,9 +1426,9 @@
           "https://i.ibb.co/v69fXKW6/3.png"
         ],
         directLink: "https://www.mediafire.com/file/b63hem9jsfb7rzq/PD_2025-11-11.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v2025.11.11",
-        weight: "📦 21 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v2025.11.11",
+        weight: "<i class=\"fa-solid fa-box\"></i> 21 MB",
         tags: ["nuevas"]
       },
       {
@@ -1815,9 +1442,9 @@
           "https://i.postimg.cc/CLsds9tn/3.png"
         ],
         directLink: "https://www.mediafire.com/file/3e9m66xaoh2ujey/IDwMTS_v0.3.1.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v0.3.1",
-        weight: "📦 539 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.3.1",
+        weight: "<i class=\"fa-solid fa-box\"></i> 539 MB",
         tags: ["nuevas", "recomendadas"]
       },
       {
@@ -1831,9 +1458,9 @@
           "https://i.postimg.cc/sx3b2yX8/3.png"
         ],
         directLink: "https://www.mediafire.com/file/s4yt2097wuoucsw/GS_0.1.8.3.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "ℹ️ v0.1.8.3",
-        weight: "📦 188 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.1.8.3",
+        weight: "<i class=\"fa-solid fa-box\"></i> 188 MB",
         tags: ["nuevas"]
       },
       {
@@ -1847,9 +1474,9 @@
           "https://i.postimg.cc/tJDZDQsK/3.png"
         ],
         directLink: "https://www.mediafire.com/file/zg68b32856fpbs5/mi_ti.apk/file",
-        versionAvailable: "📱 5+",
-        versionLatest: "🚫 No especificando",
-        weight: "📦 190 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No especificado",
+        weight: "<i class=\"fa-solid fa-box\"></i> 190 MB",
         tags: ["nuevas", "recomendadas"]
       },
       {
@@ -1863,9 +1490,9 @@
           "https://i.postimg.cc/6QKNLgcn/3.png"
         ],
         directLink: "https://www.mediafire.com/file/gg8mwllu6wbg6hy/Pack_apk_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "📱5+",
-        versionLatest: "🚫 No especificado",
-        weight: "📦 139 MB",
+        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
+        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No especificado",
+        weight: "<i class=\"fa-solid fa-box\"></i> 139 MB",
         tags: ["nuevas", "recomendadas"]
       }
     ];
@@ -1929,13 +1556,19 @@
       rowRecomendadas.innerHTML = '';
 
       appsDatabase.forEach(app => {
+        // Limpiamos el texto eliminando etiquetas HTML para el subtítulo de la tarjeta
+        const weightText = app.weight.replace(/<[^>]*>?/gm, '').trim();
+        const badgeHTML = app.tags.includes('nuevas') ? '<span class="card-badge">Nuevo</span>' : '';
+        
         const cardHTML = `
-          <article class="app-card" data-id="${app.id}">
-            <img alt="${app.name}" class="app-image" src="${app.image}"/>
-            <div class="app-body">
-              <h3 class="app-name">${app.name}</h3>
-              <p class="app-desc">${app.desc}</p>
-              <button class="install-btn" type="button">Ver detalles</button>
+          <article class="card" data-id="${app.id}">
+            <div class="card-img-container">
+              <img alt="${app.name}" class="card-img" src="${app.image}" loading="lazy"/>
+              ${badgeHTML}
+            </div>
+            <div class="card-info">
+              <div class="card-title">${app.name}</div>
+              <div class="card-subtitle"><i class="fa-solid fa-box"></i> ${weightText}</div>
             </div>
           </article>
         `;
@@ -2004,16 +1637,22 @@
           emptyState.style.display = 'none';
           document.getElementById('search-subtitle').textContent = `${filteredApps.length} resultado(s) para "${q}"`;
           
-          searchGrid.innerHTML = filteredApps.map(app => `
-            <article class="app-card" data-id="${app.id}">
-              <img alt="${app.name}" class="app-image" src="${app.image}"/>
-              <div class="app-body">
-                <h3 class="app-name">${app.name}</h3>
-                <p class="app-desc">${app.desc}</p>
-                <button class="install-btn" type="button">Ver detalles</button>
-              </div>
-            </article>
-          `).join('');
+          searchGrid.innerHTML = filteredApps.map(app => {
+            const weightText = app.weight.replace(/<[^>]*>?/gm, '').trim();
+            const badgeHTML = app.tags.includes('nuevas') ? '<span class="card-badge">Nuevo</span>' : '';
+            return `
+              <article class="card" data-id="${app.id}">
+                <div class="card-img-container">
+                  <img alt="${app.name}" class="card-img" src="${app.image}" loading="lazy"/>
+                  ${badgeHTML}
+                </div>
+                <div class="card-info">
+                  <div class="card-title">${app.name}</div>
+                  <div class="card-subtitle"><i class="fa-solid fa-box"></i> ${weightText}</div>
+                </div>
+              </article>
+            `;
+          }).join('');
         }
       }
     }
@@ -2023,7 +1662,8 @@
     // 4. LÓGICA DE MODALES
     // ----------------------------------------------------------------------
     contentArea.addEventListener('click', (e) => {
-      const cardEl = e.target.closest('.app-card');
+      // Ahora escucha a la clase .card genérica
+      const cardEl = e.target.closest('.card');
       if (!cardEl) return;
       openDetailModal(cardEl.dataset.id);
     });
@@ -2038,12 +1678,15 @@
       detailHero.alt = app.name;
       detailTitle.textContent = app.name;
       detailDesc.textContent = app.desc;
-      detailWeight.textContent = app.weight;
+      
+      // Se utiliza innerHTML para procesar los iconos FontAwesome correctamente
+      detailWeight.innerHTML = app.weight; 
+      detailAvailableVersion.innerHTML = app.versionAvailable;
+      detailLatestVersion.innerHTML = app.versionLatest;
+      
       if (detailAvailableVersionLabel) {
         detailAvailableVersionLabel.textContent = app.tags.includes('Pc') ? 'Versión de PC' : 'Versión de android';
       }
-      detailAvailableVersion.textContent = app.versionAvailable;
-      detailLatestVersion.textContent = app.versionLatest;
 
       if (detailScreenshotsTrack) {
         detailScreenshotsTrack.innerHTML = app.screenshots.map((src, index) => `
@@ -2087,7 +1730,7 @@
 
       linkBtn.disabled = true;
       linkBtn.classList.remove('enabled');
-      linkBtn.textContent = 'Botón de enlace bloqueado';
+      linkBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Botón de enlace bloqueado';
       adStatus.textContent = `Toca Ver anuncio ${adsRequired} veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.`;
       adStatus.classList.remove('success');
 
@@ -2100,14 +1743,14 @@
       adModal.setAttribute('aria-hidden', 'true');
       awaitingReturn = false;
       watchAdBtn.disabled = false;
-      watchAdBtn.textContent = 'Ver anuncio';
+      watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
     }
 
     watchAdBtn.addEventListener('click', () => {
       const adUrl = adUrls[adsCompleted] || adUrls[adUrls.length - 1];
       window.open(adUrl, '_blank', 'noopener,noreferrer');
       watchAdBtn.disabled = true;
-      watchAdBtn.textContent = 'Abriendo anuncio...';
+      watchAdBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Abriendo anuncio...';
       awaitingReturn = true;
       adStatus.textContent = `Se abrió el anuncio ${adsCompleted + 1}/${adsRequired}. Vuelve a la aplicación para continuar.`;
       adStatus.classList.remove('success');
@@ -2119,13 +1762,13 @@
       adsCompleted += 1;
       awaitingReturn = false;
       watchAdBtn.disabled = false;
-      watchAdBtn.textContent = 'Ver anuncio';
+      watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
 
       if (adsCompleted >= adsRequired) {
         adWatched = true;
         linkBtn.disabled = false;
         linkBtn.classList.add('enabled');
-        linkBtn.textContent = 'Enlace desbloqueado';
+        linkBtn.innerHTML = '<i class="fa-solid fa-unlock"></i> Enlace desbloqueado';
         adStatus.textContent = 'Ya volviste a la aplicación. El enlace de MediaFire está desbloqueado.';
         adStatus.classList.add('success');
       } else {
@@ -2151,7 +1794,7 @@
     adModal.addEventListener('click', (e) => {
       if (e.target === adModal) {
         watchAdBtn.disabled = false;
-        watchAdBtn.textContent = 'Ver anuncio';
+        watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
         closeAdModal();
       }
     });
