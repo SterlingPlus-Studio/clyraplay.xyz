@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClyraPlay</title>
-    <!-- Icono de la página -->
     <link rel="icon" type="image/png" href="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png">
     
-    <!-- Librería FontAwesome para los iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -21,7 +19,7 @@
         }
 
         :root {
-            --bg: #000000;
+            --bg: #050505;
             --surface: #111111;
             --surface-light: #1a1a1a;
             --text: #e0e0e0;
@@ -35,11 +33,11 @@
             --btn-gradient: linear-gradient(145deg, #2a2a2a 0%, #151515 100%);
             --btn-active-gradient: linear-gradient(145deg, #ff4d5a 0%, #e63946 100%);
             
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            --glow: 0 4px 15px rgba(230, 57, 70, 0.4);
-            --radius: 12px;
-            --radius-sm: 8px;
-            --transition: 0.3s ease;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+            --glow: 0 4px 20px rgba(230, 57, 70, 0.5);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             --max-width-pc: 1400px;
         }
 
@@ -51,6 +49,14 @@
 
         body {
             background-color: var(--bg);
+            /* Fondo con patrón de cuadrícula y resplandor para eliminar el vacío */
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(230, 57, 70, 0.12) 0%, transparent 40%),
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            background-attachment: fixed;
+            
             color: var(--text);
             font-family: 'CustomFont', 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
@@ -68,13 +74,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
-            height: 68px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            background-color: rgba(5, 5, 5, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            height: 72px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             width: 100%;
-            padding: 12px 24px;
+            padding: 12px 32px;
             max-width: var(--max-width-pc);
             margin: 0 auto;
         }
@@ -82,34 +89,37 @@
         .top-bar-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
         }
 
         .logo-img {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: var(--radius-sm);
             object-fit: cover;
             flex-shrink: 0;
             background-color: transparent;
-            box-shadow: none;
-            transition: transform var(--transition);
+            box-shadow: 0 4px 10px rgba(230, 57, 70, 0.2);
+            transition: transform var(--transition), box-shadow var(--transition);
         }
 
         .logo-img:hover {
-            transform: scale(1.08);
+            transform: scale(1.05) rotate(-3deg);
+            box-shadow: var(--glow);
         }
 
         .site-title {
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
             color: #ffffff;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.5px;
             white-space: nowrap;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         .site-title .highlight {
             color: var(--accent);
+            text-shadow: 0 0 15px rgba(230, 57, 70, 0.4);
         }
 
 
@@ -128,15 +138,16 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 11px 18px;
+            padding: 12px 22px;
             border-radius: 999px;
             cursor: pointer;
             transition: all var(--transition);
             background: var(--btn-gradient);
-            border: 1px solid #333;
+            border: 1px solid rgba(255,255,255,0.08);
             color: #fff;
             font: inherit;
             font-weight: 700;
+            font-size: 0.95rem;
             white-space: nowrap;
             box-shadow: var(--shadow);
         }
@@ -144,9 +155,9 @@
         .download-btn:hover,
         .download-btn:focus-visible {
             background: var(--btn-active-gradient);
-            border-color: transparent;
+            border-color: rgba(255, 255, 255, 0.2);
             box-shadow: var(--glow);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             outline: none;
         }
 
@@ -162,58 +173,64 @@
         .download-menu {
             position: absolute;
             right: 0;
-            top: calc(100% + 10px);
-            min-width: 220px;
-            background: rgba(17, 17, 17, 0.98);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
-            padding: 8px;
+            top: calc(100% + 12px);
+            min-width: 240px;
+            background: rgba(15, 15, 15, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            padding: 10px;
             display: none;
             overflow: hidden;
             z-index: 200;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .download-dropdown.open .download-menu {
             display: block;
+            animation: fadeInDown 0.3s ease forwards;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .download-option {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 10px;
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
             color: #f1f1f1;
             text-decoration: none;
             font-weight: 600;
-            transition: background var(--transition), transform var(--transition);
+            transition: all var(--transition);
         }
 
         .download-option:hover,
         .download-option:focus-visible {
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(230, 57, 70, 0.15);
+            color: var(--accent);
             outline: none;
-            transform: translateX(2px);
+            transform: translateX(4px);
         }
 
         .download-option i {
-            color: var(--accent);
-            width: 18px;
+            width: 20px;
             text-align: center;
             flex-shrink: 0;
+            font-size: 1.2rem;
         }
-
 
         /* ========== MENÚ PRINCIPAL ========== */
         .main-menu {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            padding: 16px 24px 8px;
-            background-color: var(--bg);
+            gap: 14px;
+            padding: 24px 32px 16px;
             max-width: var(--max-width-pc);
             margin: 0 auto;
             width: 100%;
@@ -225,27 +242,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 12px 24px;
+            gap: 12px;
+            padding: 14px 28px;
             border-radius: 30px;
             cursor: pointer;
             transition: all var(--transition);
             text-decoration: none;
-            color: #ccc;
+            color: #bbb;
             font-weight: 600;
-            font-size: 0.95rem;
-            background: var(--btn-gradient);
-            border: 1px solid #333;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             font-family: inherit;
             white-space: nowrap;
+            backdrop-filter: blur(10px);
         }
 
         .menu-item:hover {
-            background: var(--btn-active-gradient);
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            border-color: transparent;
-            box-shadow: var(--glow);
             transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .menu-item.active {
@@ -256,79 +273,130 @@
         }
 
         .menu-item i {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             flex-shrink: 0;
         }
 
         /* ========== CONTENIDO PRINCIPAL ========== */
         .content-area {
             flex: 1;
-            padding: 20px 24px 40px;
+            padding: 0 32px 60px;
             max-width: var(--max-width-pc);
             margin: 0 auto;
             width: 100%;
-            background-color: var(--bg);
         }
 
+        /* ===== HERO BANNER (NUEVO) ===== */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.15) 0%, rgba(10, 10, 10, 0.8) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(230,57,70,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        
+        .hero-content h1 span {
+            color: var(--accent);
+        }
+
+        .hero-content p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+        }
+
+        /* ===== SECCIONES ===== */
         .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding-left: 5px;
         }
 
         .section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.4rem;
+            font-weight: 700;
             color: #fff;
             letter-spacing: -0.2px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .section-title i {
             color: var(--accent);
-            font-size: 1.1rem;
+            font-size: 1.3rem;
+            filter: drop-shadow(0 0 8px rgba(230, 57, 70, 0.4));
         }
 
         .see-all {
             color: var(--text-secondary);
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.9rem;
-            transition: color var(--transition);
+            font-size: 0.95rem;
+            transition: all var(--transition);
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 8px 18px;
             border-radius: 20px;
-            background: var(--btn-gradient);
-            border: 1px solid #333;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
         }
         
         .see-all:hover {
             color: #fff;
-            background: var(--accent);
-            border-color: var(--accent);
+            background: var(--btn-active-gradient);
+            border-color: transparent;
             box-shadow: var(--glow);
+            transform: translateX(3px);
         }
 
         /* ========== SCROLL HORIZONTAL ========== */
         .horizontal-scroll-wrapper {
             position: relative;
-            margin-bottom: 10px; /* Reducido para juntar las secciones */
+            margin-bottom: 20px;
         }
 
         .horizontal-scroll {
             display: flex;
-            gap: 20px;
+            gap: 24px;
             overflow-x: auto;
             scroll-behavior: smooth;
-            padding: 8px 4px 10px; /* Reducido el padding inferior */
+            padding: 10px 10px 30px; 
             scrollbar-width: thin;
-            scrollbar-color: var(--accent) transparent;
+            scrollbar-color: var(--accent) rgba(255,255,255,0.02);
             -webkit-overflow-scrolling: touch;
             cursor: grab;
             user-select: none;
+            margin: 0 -10px; /* Compensa el padding para las sombras */
         }
 
         .horizontal-scroll:active {
@@ -336,14 +404,15 @@
         }
 
         .horizontal-scroll::-webkit-scrollbar {
-            height: 6px;
+            height: 8px;
         }
         .horizontal-scroll::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.3);
             border-radius: 10px;
+            margin: 0 10px;
         }
         .horizontal-scroll::-webkit-scrollbar-thumb {
-            background: #444;
+            background: rgba(230, 57, 70, 0.5);
             border-radius: 10px;
         }
         .horizontal-scroll::-webkit-scrollbar-thumb:hover {
@@ -353,27 +422,47 @@
         /* ========== TARJETAS BASE CON DEGRADADO ========== */
         .card {
             flex-shrink: 0;
-            background: var(--card-gradient);
+            background: var(--surface);
             border-radius: var(--radius);
             overflow: hidden;
             transition: all var(--transition);
             cursor: pointer;
-            border: 1px solid #333;
-            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
-            transform: translateY(-8px);
-            border-color: var(--accent);
-            box-shadow: 0 15px 35px rgba(230, 57, 70, 0.2);
+            transform: translateY(-10px);
+            border-color: rgba(230, 57, 70, 0.4);
+            box-shadow: 0 15px 35px rgba(230, 57, 70, 0.25);
         }
 
         .card-img-container {
             position: relative;
             width: 100%;
             overflow: hidden;
-            background: #111;
+            background: #0a0a0a;
+        }
+
+        /* Degradado interno para que el texto de la imagen no se pierda */
+        .card-img-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            pointer-events: none;
+            opacity: 0.8;
+            transition: opacity var(--transition);
+        }
+
+        .card:hover .card-img-container::after {
+            opacity: 1;
         }
 
         .card-img {
@@ -381,160 +470,180 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .card:hover .card-img {
-            transform: scale(1.1);
+            transform: scale(1.12);
         }
 
         .card-badge {
             position: absolute;
-            top: 8px;
-            left: 8px;
+            top: 12px;
+            left: 12px;
             background: var(--btn-active-gradient);
             color: #fff;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 5px 12px;
             border-radius: 20px;
             z-index: 2;
             letter-spacing: 0.5px;
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            text-transform: uppercase;
         }
 
         .card-info {
-            padding: 12px 10px;
+            padding: 16px 14px;
+            background: var(--card-gradient);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .card-title {
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             color: #fff;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .card-subtitle {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
 
         .card-subtitle i {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: var(--accent);
         }
 
-        /* ========== ESTILOS ESPECÍFICOS DE CÓMICS (Más gorditas) ========== */
+        /* ========== ESTILOS ESPECÍFICOS DE CÓMICS ========== */
         #comics-scroll .card {
-            width: 160px;
+            width: 180px;
         }
         #comics-scroll .card-img-container {
             aspect-ratio: 3 / 4;
         }
 
-        /* ========== ESTILOS ESPECÍFICOS DE JUEGOS (Cápsula horizontal) ========== */
+        /* ========== ESTILOS ESPECÍFICOS DE JUEGOS ========== */
         #juegos-scroll .card {
-            width: 260px;
+            width: 290px;
         }
         #juegos-scroll .card-img-container {
             aspect-ratio: 16 / 9;
         }
 
-        /* ========== IMAGEN TEMPORAL ========== */
-        .temp-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        /* ========== PIE DE PÁGINA (NUEVO) ========== */
+        .site-footer {
+            margin-top: auto;
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .site-footer p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             .top-bar {
-                padding: 10px 16px;
-                height: 58px;
-                max-width: 100%;
+                padding: 12px 20px;
+                height: 64px;
             }
-            .site-title {
-                font-size: 1.2rem;
-            }
-            .logo-img {
-                width: 36px;
-                height: 36px;
-            }
+            .site-title { font-size: 1.3rem; }
+            .logo-img { width: 40px; height: 40px; }
 
             .download-btn {
-                padding: 10px 14px;
-                gap: 8px;
+                padding: 10px 16px;
                 font-size: 0.85rem;
-            }
-
-            .download-menu {
-                min-width: 200px;
             }
 
             .main-menu {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 8px;
-                padding: 12px 16px 6px;
+                gap: 10px;
+                padding: 16px 20px 10px;
             }
 
             .menu-item {
                 justify-content: flex-start;
-                padding: 12px 18px;
-                font-size: 0.9rem;
+                padding: 14px 20px;
+                font-size: 0.95rem;
             }
+
+            .hero-banner {
+                padding: 24px;
+                margin-bottom: 24px;
+                border-radius: 16px;
+            }
+            .hero-content h1 { font-size: 1.6rem; }
+            .hero-content p { font-size: 0.95rem; }
 
             .content-area {
-                padding: 16px 16px 32px;
-                max-width: 100%;
+                padding: 10px 20px 40px;
             }
+            
+            .section-title { font-size: 1.2rem; }
 
-            #comics-scroll .card { width: 140px; }
-            #juegos-scroll .card { width: 230px; }
+            #comics-scroll .card { width: 150px; }
+            #juegos-scroll .card { width: 250px; }
         }
 
         @media (max-width: 480px) {
-            #comics-scroll .card { width: 125px; }
-            #juegos-scroll .card { width: 200px; }
+            .top-bar { padding: 10px 16px; height: 60px;}
+            .site-title { font-size: 1.1rem; }
+            .top-bar-left { gap: 10px; }
+            .logo-img { width: 34px; height: 34px; }
             
-            .horizontal-scroll { gap: 12px; }
-            .site-title { font-size: 1rem; }
-            .top-bar-left { gap: 8px; }
-            .logo-img { width: 30px; height: 30px; }
+            .main-menu { padding: 12px 16px 8px; }
+            .menu-item { padding: 12px 18px; font-size: 0.9rem; }
             
-            .main-menu { padding: 10px 12px 4px; }
-            .menu-item { padding: 10px 16px; font-size: 0.85rem; }
-        }
+            .hero-banner { padding: 20px; text-align: center; }
+            .hero-banner::before { display: none; }
+            
+            .content-area { padding: 10px 16px 30px; }
+            .horizontal-scroll { gap: 16px; }
 
-        @media (min-width: 769px) {
-            .main-menu {
-                flex-direction: row;
-                justify-content: flex-start;
-            }
+            #comics-scroll .card { width: 135px; }
+            #juegos-scroll .card { width: 220px; }
+            
+            .card-info { padding: 12px 10px; }
+            .card-title { font-size: 0.85rem; }
+            .card-subtitle { font-size: 0.75rem; }
         }
 
         @media (min-width: 1025px) {
             :root { --max-width-pc: 1500px; }
-            .top-bar, .main-menu, .content-area {
-                padding-left: 32px;
-                padding-right: 32px;
+            .hero-banner {
+                padding: 60px;
+            }
+            .hero-content h1 {
+                font-size: 2.8rem;
+            }
+            .hero-content p {
+                font-size: 1.2rem;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ==================== BARRA SUPERIOR ==================== -->
     <header class="top-bar">
         <div class="top-bar-left">
             <img
@@ -556,11 +665,11 @@
                 </button>
                 <div class="download-menu" id="downloadMenu" role="menu" aria-label="Menú de descargas">
                     <a class="download-option" href="Descargar/Clyra.apk" download role="menuitem">
-                        <i class="fa-brands fa-android"></i>
+                        <i class="fa-brands fa-android" style="color: #3DDC84;"></i>
                         <span>Android (.apk)</span>
                     </a>
                     <a class="download-option" href="Descargar/ClyraPlay PC.zip" download role="menuitem">
-                        <i class="fa-brands fa-windows"></i>
+                        <i class="fa-brands fa-windows" style="color: #00A4EF;"></i>
                         <span>Windows (.zip)</span>
                     </a>
                 </div>
@@ -568,7 +677,6 @@
         </div>
     </header>
 
-    <!-- ==================== MENÚ PRINCIPAL ==================== -->
     <nav class="main-menu" aria-label="Menú principal">
         <a class="menu-item active" href="Juegos.html">
             <i class="fa-solid fa-gamepad"></i>
@@ -584,23 +692,27 @@
         </a>
     </nav>
 
-    <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
     <main class="content-area" id="mainContent">
 
-        <!-- ===== SECCIÓN: CÓMICS NUEVOS ===== -->
+        <div class="hero-banner">
+            <div class="hero-content">
+                <h1>Bienvenido a Clyra<span>Play</span></h1>
+                <p>Tu colección definitiva de cómics y juegos sin censura. Explora, descarga y disfruta del mejor contenido actualizado.</p>
+            </div>
+        </div>
+
         <section id="comics-section">
             <div class="section-header">
                 <h2 class="section-title">
                     <i class="fa-solid fa-book-open"></i> Cómics nuevos
                 </h2>
-                <a class="see-all" href="Cómics.html">Ver todos <i class="fa-solid fa-arrow-right" style="margin-left: 5px; font-size: 0.8rem;"></i></a>
+                <a class="see-all" href="Cómics.html">Ver todos <i class="fa-solid fa-arrow-right" style="margin-left: 6px; font-size: 0.85rem;"></i></a>
             </div>
             <div class="horizontal-scroll-wrapper">
                 <div class="horizontal-scroll" id="comics-scroll">
-                    <!-- Tarjetas de Cómics -->
                     <div class="card" data-comic="Familia Sacana 14">
                         <div class="card-img-container">
-                            <img src="https://imges.sexkomix2.com/uploads_images/comic-porno-familia-sacana-14--tufos-comico-de-sexo-perra-se-quedo-2022-07-31/comic-porno-familia-sacana-14--tufos-comico-de-sexo-perra-se-quedo-2022-07-31-484303336.jpg" alt="FAMILIA SACANA 14" class="temp-img" loading="lazy">
+                            <img src="https://imges.sexkomix2.com/uploads_images/comic-porno-familia-sacana-14--tufos-comico-de-sexo-perra-se-quedo-2022-07-31/comic-porno-familia-sacana-14--tufos-comico-de-sexo-perra-se-quedo-2022-07-31-484303336.jpg" alt="FAMILIA SACANA 14" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info">
@@ -610,49 +722,49 @@
                     </div>
                     <div class="card" data-comic="Familia Sacana 31">
                         <div class="card-img-container">
-                            <img src="https://imges.sexkomix2.com/uploads_images/comic-porno-familia-sacana-31--tufos-comico-de-sexo-tipo-masturb-2022-08-05-28701089.jpg" alt="Familia Sacana 31" class="temp-img" loading="lazy">
+                            <img src="https://imges.sexkomix2.com/uploads_images/comic-porno-familia-sacana-31--tufos-comico-de-sexo-tipo-masturb-2022-08-05-28701089.jpg" alt="Familia Sacana 31" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Familia Sacana 31</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Incesto</div></div>
                     </div>
                     <div class="card" data-comic="Movie With Horny Divorced">
                         <div class="card-img-container">
-                            <img src="https://imges.sexkomix2.com/uploads_images/comic-porno-movie-with-horny-divorced-mommy--not-enough-milk--comico-de-sexo-espectacular-milf-invito-2024-08-25/comic-porno-movie-with-horny-divorced-mommy--not-enough-milk--comico-de-sexo-espectacular-milf-invito-2024-08-25-426601188.jpg" alt="Dragon Ball Super" class="temp-img" loading="lazy">
+                            <img src="https://imges.sexkomix2.com/uploads_images/comic-porno-movie-with-horny-divorced-mommy--not-enough-milk--comico-de-sexo-espectacular-milf-invito-2024-08-25/comic-porno-movie-with-horny-divorced-mommy--not-enough-milk--comico-de-sexo-espectacular-milf-invito-2024-08-25-426601188.jpg" alt="Dragon Ball Super" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Movie With Horny Divorced Mommy Not Enough Milk</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Incesto</div></div>
                     </div>
                     <div class="card" data-comic="Una Madre Muy Ingenua 2">
                         <div class="card-img-container">
-                            <img src="https://reycomix.com/wp-content/uploads/2025/06/Una-Madre-Muy-Ingenua-2-Pinktoon-01-scaled-1.jpg" alt="The Flash: Velocity" class="temp-img" loading="lazy">
+                            <img src="https://reycomix.com/wp-content/uploads/2025/06/Una-Madre-Muy-Ingenua-2-Pinktoon-01-scaled-1.jpg" alt="The Flash: Velocity" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Una Madre Muy Ingenua 2 Pinktoon</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Incesto</div></div>
                     </div>
                     <div class="card" data-comic="Plants Vs Zombies">
                         <div class="card-img-container">
-                            <img src="https://reycomix.com/wp-content/uploads/2025/08/Plants-vs-Zombies-Forbidden-Garden-DedLinX-01.webp" alt="Samurai X" class="temp-img" loading="lazy">
+                            <img src="https://reycomix.com/wp-content/uploads/2025/08/Plants-vs-Zombies-Forbidden-Garden-DedLinX-01.webp" alt="Samurai X" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Plants Vs Zombies Forbidden Garden Dedlinx</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Zombie</div></div>
                     </div>
                     <div class="card" data-comic="El Castigo De La Princesa">
                         <div class="card-img-container">
-                            <img src="https://reycomix.com/wp-content/uploads/2025/09/El-Castigo-de-la-Princesa-Jasmine-Pixelussy-01.webp" alt="Capitán América" class="temp-img" loading="lazy">
+                            <img src="https://reycomix.com/wp-content/uploads/2025/09/El-Castigo-de-la-Princesa-Jasmine-Pixelussy-01.webp" alt="Capitán América" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">El Castigo De La Princesa Jasmine Pixelussy</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Hentai</div></div>
                     </div>
                     <div class="card" data-comic="Companionship Dross">
                         <div class="card-img-container">
-                            <img src="https://reycomix.com/wp-content/uploads/2026/01/Companionship-Dross-1.jpg" alt="Chainsaw Man" class="temp-img" loading="lazy">
+                            <img src="https://reycomix.com/wp-content/uploads/2026/01/Companionship-Dross-1.jpg" alt="Chainsaw Man" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Companionship Dross</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Femboy</div></div>
                     </div>
                     <div class="card" data-comic="Merry Christsomps">
                         <div class="card-img-container">
-                            <img src="https://reycomix.com/wp-content/uploads/2026/01/Merry-ChristSomps-The-Simpsons-1.webp" alt="Watchmen" class="temp-img" loading="lazy">
+                            <img src="https://reycomix.com/wp-content/uploads/2026/01/Merry-ChristSomps-The-Simpsons-1.webp" alt="Watchmen" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Merry Christsomps</div><div class="card-subtitle"><i class="fa-solid fa-tag"></i> Incesto</div></div>
@@ -661,20 +773,18 @@
             </div>
         </section>
 
-        <!-- ===== SECCIÓN: JUEGOS NUEVOS ===== -->
         <section id="juegos-section">
             <div class="section-header">
                 <h2 class="section-title">
                     <i class="fa-solid fa-gamepad"></i> Juegos nuevos
                 </h2>
-                <a class="see-all" href="Juegos.html">Ver todos <i class="fa-solid fa-arrow-right" style="margin-left: 5px; font-size: 0.8rem;"></i></a>
+                <a class="see-all" href="Juegos.html">Ver todos <i class="fa-solid fa-arrow-right" style="margin-left: 6px; font-size: 0.85rem;"></i></a>
             </div>
             <div class="horizontal-scroll-wrapper">
                 <div class="horizontal-scroll" id="juegos-scroll">
-                    <!-- Tarjetas de Juegos -->
                     <div class="card" data-game="FlipWitch">
                         <div class="card-img-container">
-                            <img src="https://i.ibb.co/5XJMcvvb/IMG-20260626-141524.png" alt="FlipWitch" class="temp-img" loading="lazy">
+                            <img src="https://i.ibb.co/5XJMcvvb/IMG-20260626-141524.png" alt="FlipWitch" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info">
@@ -684,49 +794,49 @@
                     </div>
                     <div class="card" data-game="Monster Black Market">
                         <div class="card-img-container">
-                            <img src="https://i.ibb.co/Lhx9yYfb/IMG-20260626-140810.png" alt="Monster Black Market" class="temp-img" loading="lazy">
+                            <img src="https://i.ibb.co/Lhx9yYfb/IMG-20260626-140810.png" alt="Monster Black Market" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Monster Black Market</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 304 MB</div></div>
                     </div>
                     <div class="card" data-game="Winter: Life in the Countryside">
                         <div class="card-img-container">
-                            <img src="https://erosgamesroom.com/wp-content/uploads/2026/03/Portada-1536x1152.webp" alt="Winter: Life" class="temp-img" loading="lazy">
+                            <img src="https://erosgamesroom.com/wp-content/uploads/2026/03/Portada-1536x1152.webp" alt="Winter: Life" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Winter: Life in the Countryside</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 1.05 GB</div></div>
                     </div>
                     <div class="card" data-game="Mad Island">
                         <div class="card-img-container">
-                            <img src="https://i.ibb.co/chJWSCHB/IMG-20260626-135608.png" alt="Mad Island" class="temp-img" loading="lazy">
+                            <img src="https://i.ibb.co/chJWSCHB/IMG-20260626-135608.png" alt="Mad Island" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Mad Island</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 1 GB</div></div>
                     </div>
                     <div class="card" data-game="Whispered Promises">
                         <div class="card-img-container">
-                            <img src="https://erosgamesroom.com/wp-content/uploads/2026/03/Portada.png" alt="Whispered Promises" class="temp-img" loading="lazy">
+                            <img src="https://erosgamesroom.com/wp-content/uploads/2026/03/Portada.png" alt="Whispered Promises" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Whispered Promises: 14 Days of Love with Anna</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 640 MB</div></div>
                     </div>
                     <div class="card" data-game="Exposed Livestream">
                         <div class="card-img-container">
-                            <img src="https://i.ibb.co/LD3CbgyQ/IMG-20260626-114141.png" alt="Exposed Livestream" class="temp-img" loading="lazy">
+                            <img src="https://i.ibb.co/LD3CbgyQ/IMG-20260626-114141.png" alt="Exposed Livestream" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Exposed Livestream</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 302 MB</div></div>
                     </div>
                     <div class="card" data-game="Town’s Charm">
                         <div class="card-img-container">
-                            <img src="https://i.ibb.co/1Ybc3t80/Portada-1.png" alt="Town’s Charm" class="temp-img" loading="lazy">
+                            <img src="https://i.ibb.co/1Ybc3t80/Portada-1.png" alt="Town’s Charm" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Town’s Charm</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 249 MB</div></div>
                     </div>
                     <div class="card" data-game="Back Alley Tales">
                         <div class="card-img-container">
-                            <img src="https://i.ibb.co/LD1ZnpfY/Portada.jpg" alt="Back Alley Tales" class="temp-img" loading="lazy">
+                            <img src="https://i.ibb.co/LD1ZnpfY/Portada.jpg" alt="Back Alley Tales" class="card-img" loading="lazy">
                             <span class="card-badge">Nuevo</span>
                         </div>
                         <div class="card-info"><div class="card-title">Back Alley Tales</div><div class="card-subtitle"><i class="fa-solid fa-box"></i> 239 MB</div></div>
@@ -736,6 +846,10 @@
         </section>
 
     </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Sterling Studio | @OnimaruDev. Todos los derechos reservados.</p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -790,7 +904,7 @@
                 });
             });
 
-            console.log('✅ ClyraPlay UI Mejorada: Espaciado reducido entre secciones.');
+            console.log('✅ ClyraPlay UI Mejorada: Diseño enriquecido y responsivo.');
         });
     </script>
 </body>
