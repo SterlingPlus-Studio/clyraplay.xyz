@@ -22,7 +22,7 @@
         }
 
         :root {
-            --bg: #000000;
+            --bg: #050505;
             --surface: #111111;
             --surface-light: #1a1a1a;
             --text: #e0e0e0;
@@ -52,7 +52,12 @@
         
         body {
             background-color: var(--bg) !important;
-            background-image: none !important;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(230, 57, 70, 0.12) 0%, transparent 40%),
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px) !important;
+            background-size: 100% 100%, 40px 40px, 40px 40px !important;
+            background-attachment: fixed !important;
             min-height: 100vh;
             overflow-x: hidden;
             color: var(--text);
