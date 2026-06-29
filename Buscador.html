@@ -149,12 +149,6 @@
             border-color: var(--accent);
             transform: translateY(-1px);
         }
-
-        .desktop-search-slot,
-        .desktop-filter-slot,
-        .desktop-saved-slot {
-            display: none;
-        }
         
         .search-toggle-icon {
             width: 20px;
@@ -166,7 +160,7 @@
         /* Panel de búsqueda flotante */
         .search-filters-panel {
             position: fixed;
-            top: 56px;
+            top: 54px;
             left: 0;
             width: 100%;
             background-color: rgba(10, 10, 10, 0.96);
@@ -186,7 +180,7 @@
         }
         
         .search-filters-content {
-            padding: 15px;
+            padding: 4px 15px 15px;
         }
         
         /* Recuadro para buscador */
@@ -238,7 +232,7 @@
             width: 18px; 
             object-fit: contain;
             pointer-events: none;
-            filter: brightness(0) invert(1); /* Fuerza el icono a blanco */
+            filter: brightness(0.8);
         }
 
         .pin-btn {
@@ -878,27 +872,20 @@
             .search-toggle-btn {
                 width: 44px;
                 height: 44px;
-                margin-left: auto;
-            }
-
-            .desktop-search-slot,
-            .desktop-filter-slot,
-            .desktop-saved-slot {
-                display: none !important;
             }
 
             .search-filters-content {
-                padding: 8px 12px 12px;
+                padding: 8px;
             }
 
             .search-box-container {
-                padding: 10px 12px 12px;
+                padding: 12px;
                 border-radius: 16px;
             }
 
             .type-btn {
-                padding: 8px 10px;
-                font-size: 10px;
+                padding: 9px 12px;
+                font-size: 11px;
             }
 
             .results-wrapper {
@@ -942,7 +929,7 @@
             .site-title { font-size: 1rem; }
             .top-bar-left { gap: 8px; }
             .logo-img { width: 30px; height: 30px; }
-            .search-toggle-btn { width: 36px; height: 36px; margin-left: auto; }
+            .search-toggle-btn { width: 36px; height: 36px; }
         }
 
         @media (min-width: 1024px) {
@@ -981,10 +968,10 @@
 
             .search-filters-panel {
                 position: fixed;
-                top: 68px;
+                top: 58px;
                 left: 0;
                 width: 320px;
-                height: calc(100vh - 68px);
+                height: calc(100vh - 58px);
                 max-height: none !important;
                 opacity: 1 !important;
                 overflow-y: auto;
@@ -1057,10 +1044,10 @@
         /* === AJUSTE PC / ANDROID SOLICITADO === */
         @media (min-width: 1024px) {
             .search-filters-panel {
-                top: 68px;
+                top: 58px;
                 left: 0;
                 width: 330px;
-                height: calc(100vh - 68px);
+                height: calc(100vh - 58px);
                 max-height: none !important;
                 opacity: 1;
                 overflow-y: auto;
@@ -1074,7 +1061,7 @@
             }
 
             .search-filters-content {
-                padding: 16px 14px 18px;
+                padding: 6px 14px 18px;
             }
 
             .results-wrapper {
@@ -1155,10 +1142,10 @@
 
         body.desktop-mode .search-filters-panel {
             position: fixed;
-            top: 68px;
+            top: 58px;
             left: 0;
             width: 330px;
-            height: calc(100vh - 68px);
+            height: calc(100vh - 58px);
             max-height: none !important;
             opacity: 1;
             overflow-y: auto;
@@ -1171,7 +1158,7 @@
         }
 
         body.desktop-mode .search-filters-content {
-            padding: 16px 14px 18px;
+            padding: 6px 14px 18px;
         }
 
         body.desktop-mode .type-filters {
@@ -1282,11 +1269,11 @@
 
         body.desktop-mode .search-filters-panel {
             position: fixed;
-            top: 68px;
+            top: 58px;
             left: auto;
             right: 0;
             width: 330px;
-            height: calc(100vh - 68px);
+            height: calc(100vh - 58px);
             max-height: none !important;
             opacity: 1;
             overflow-y: auto;
@@ -1300,7 +1287,7 @@
         }
 
         body.desktop-mode .search-filters-content {
-            padding: 16px 14px 18px;
+            padding: 6px 14px 18px;
         }
 
         body.desktop-mode .results-wrapper {
@@ -1391,166 +1378,136 @@
         }
         /* === FIN AJUSTE SOLICITADO === */
 
+    
 
-        /* === NUEVO AJUSTE ESCRITORIO: TÍTULO IZQUIERDA, BUSCADOR DERECHA Y FILTROS HORIZONTALES === */
-        body:not(.desktop-mode) .search-toggle-btn {
-            margin-left: auto;
-        }
+/* ===== ANTI DNS / ANTIBLOCK ===== */
+#adblockModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    animation: adblockFadeBg 0.3s ease;
+}
 
-        @media (min-width: 1024px) {
-            body.desktop-mode .logo-bar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                height: auto;
-                min-height: 0;
-                z-index: 130;
-                padding: 10px 16px 12px;
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(320px, 480px);
-                grid-template-areas:
-                    "title search"
-                    "filters filters"
-                    "saved saved";
-                column-gap: 14px;
-                row-gap: 8px;
-                align-items: center;
-                border-bottom: 1px solid var(--border);
-            }
+#adblockModal .adblock-box.tsun {
+    width: 90%;
+    max-width: 360px;
+    padding: 25px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #1a1a1a, #222, #111);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 25px rgba(255,0,150,0.25), 0 0 40px rgba(0,255,255,0.15);
+    animation: adblockPop 0.35s ease, adblockTsunShake 0.5s ease 0.35s;
+}
 
-            body.desktop-mode .top-bar-left {
-                grid-area: title;
-                min-width: 0;
-            }
+#adblockModal .adblock-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
 
-            body.desktop-mode .desktop-search-slot {
-                grid-area: search;
-                display: flex;
-                justify-content: flex-end;
-                align-items: center;
-                min-width: 0;
-            }
+#adblockModal .adblock-logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(230,57,70,0.2);
+}
 
-            body.desktop-mode .desktop-filter-slot {
-                grid-area: filters;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                min-width: 0;
-                flex-wrap: nowrap;
-            }
+#adblockModal h2 {
+    text-align: center;
+    margin: 0;
+    color: #ff7b7b;
+    text-shadow: 0 0 10px rgba(255,0,100,0.6);
+}
 
-            body.desktop-mode .desktop-saved-slot {
-                grid-area: saved;
-                display: flex;
-                align-items: center;
-                min-width: 0;
-            }
+#adblockModal .adblock-sub {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin: 0 0 15px;
+}
 
-            body:not(.desktop-mode) .desktop-search-slot,
-            body:not(.desktop-mode) .desktop-filter-slot,
-            body:not(.desktop-mode) .desktop-saved-slot {
-                display: none !important;
-            }
+#adblockModal .adblock-text {
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: center;
+    color: #ddd;
+}
 
-            body.desktop-mode .search-toggle-btn {
-                display: none !important;
-            }
+#adblockModal .adblock-btn {
+    margin-top: 15px;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(45deg, #ff5e5b, #ff9966);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 0 15px rgba(255,100,100,0.5);
+}
 
-            body.desktop-mode .search-filters-panel {
-                display: none !important;
-            }
+#adblockModal .adblock-btn:hover {
+    transform: scale(1.07);
+    box-shadow: 0 0 25px rgba(255,100,150,0.9);
+}
 
-            body.desktop-mode .search-box-container {
-                padding: 0;
-                margin: 0;
-                border: none;
-                background: transparent;
-                box-shadow: none;
-                width: 100%;
-            }
+#adblockModal .adblock-btn:active {
+    transform: scale(0.95);
+}
 
-            body.desktop-mode .search-container {
-                margin-bottom: 0;
-                width: 100%;
-                max-width: 460px;
-            }
+@keyframes adblockPop {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
 
-            body.desktop-mode .search-box {
-                width: 100%;
-                min-width: 0;
-                padding: 11px 18px 11px 46px;
-            }
+@keyframes adblockFadeBg {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
-            body.desktop-mode .type-filters {
-                display: flex;
-                flex: 1 1 auto;
-                gap: 6px;
-                margin-bottom: 0;
-                justify-content: flex-start;
-                flex-wrap: nowrap;
-            }
+@keyframes adblockTsunShake {
+    0% { transform: translate(0,0) rotate(0deg); }
+    10% { transform: translate(-3px, 2px) rotate(-1deg); }
+    20% { transform: translate(3px, -2px) rotate(1deg); }
+    30% { transform: translate(-4px, 1px) rotate(0deg); }
+    40% { transform: translate(4px, -1px) rotate(1deg); }
+    50% { transform: translate(-3px, 2px) rotate(-1deg); }
+    60% { transform: translate(3px, -2px) rotate(0deg); }
+    70% { transform: translate(-2px, 1px) rotate(1deg); }
+    80% { transform: translate(2px, -1px) rotate(-1deg); }
+    90% { transform: translate(-1px, 1px) rotate(0deg); }
+    100% { transform: translate(0,0) rotate(0deg); }
+}
 
-            body.desktop-mode .type-btn {
-                flex: 0 1 86px;
-                min-width: 0;
-                padding: 11px 8px;
-                font-size: 11px;
-                white-space: nowrap;
-            }
-
-            body.desktop-mode .ai-filter-container {
-                flex: 0 0 auto;
-                width: auto;
-                min-width: 250px;
-                margin-bottom: 0;
-                margin-left: auto;
-                padding: 12px 18px;
-                gap: 14px;
-                justify-content: space-between;
-                }
-
-            body.desktop-mode .ai-filter-label {
-                white-space: nowrap;
-            }
-
-            body.desktop-mode .search-options {
-                display: none;
-            }
-
-            body.desktop-mode .results-wrapper {
-                margin-top: 118px;
-                margin-left: 0;
-                margin-right: 0;
-                width: 100%;
-                max-width: none;
-                padding: 18px 18px 26px;
-            }
-
-            body.desktop-mode #scrollLoading,
-            body.desktop-mode .load-more-indicator,
-            body.desktop-mode .no-more-results {
-                margin-left: 0;
-                margin-right: 0;
-                width: 100%;
-            }
-
-            body.desktop-mode .image-modal {
-                padding-top: 132px;
-                padding-left: 14px;
-                padding-right: 14px;
-            }
-        }
-        /* === FIN NUEVO AJUSTE ESCRITORIO === */
-
-    </style>
+@media (max-width: 600px) {
+    #adblockModal .adblock-box.tsun {
+        animation: adblockPop 0.35s ease, adblockTsunShake 0.7s ease 0.35s;
+    }
+}
+/* ===== FIN ANTI DNS / ANTIBLOCK ===== */
+</style>
 </head>
 <body>
     <canvas id="particleCanvas"></canvas>
 
-    <div class="logo-bar" id="logoBar">
+    <div class="logo-bar">
         <div class="top-bar-left">
             <img src="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" alt="Logo ClyraHub" class="logo-img" loading="eager" onerror="this.style.display='none';">
             <span class="site-title">Clyra<span class="highlight">Buscador</span></span>
@@ -1558,9 +1515,6 @@
         <button class="search-toggle-btn" id="searchToggleBtn" title="Mostrar buscador">
             <img src="https://i.ibb.co/n84F5wwC/lupa.png" alt="Buscar" class="search-toggle-icon">
         </button>
-        <div class="desktop-search-slot" id="desktopSearchSlot"></div>
-        <div class="desktop-filter-slot" id="desktopFilterSlot"></div>
-        <div class="desktop-saved-slot" id="desktopSavedSlot"></div>
     </div>
     
     <div class="search-filters-panel" id="searchFiltersPanel">
@@ -1751,15 +1705,7 @@
         const relatedImagesGrid = document.getElementById('relatedImagesGrid');
         const relatedLoadingIndicator = document.getElementById('relatedLoadingIndicator');
         const aiFilterToggle = document.getElementById('aiFilterToggle');
-        const logoBar = document.getElementById('logoBar');
-        const desktopSearchSlot = document.getElementById('desktopSearchSlot');
-        const desktopFilterSlot = document.getElementById('desktopFilterSlot');
-        const desktopSavedSlot = document.getElementById('desktopSavedSlot');
-        const searchBoxContainer = document.querySelector('.search-box-container');
-        const searchContainer = document.querySelector('.search-container');
-        const typeFilters = document.querySelector('.type-filters');
-        const aiFilterContainer = document.querySelector('.ai-filter-container');
-
+        
         let currentPage = 0;
         let currentTags = '';
         let isFetching = false;
@@ -1891,36 +1837,6 @@
             }
             return shortest;
         }
-
-        function syncDesktopHeaderLayout(isDesktop) {
-            if (!searchBoxContainer || !searchContainer || !typeFilters || !aiFilterContainer || !searchOptions) return;
-
-            if (isDesktop) {
-                if (desktopSearchSlot && searchContainer.parentElement !== desktopSearchSlot) {
-                    desktopSearchSlot.appendChild(searchContainer);
-                }
-                if (desktopFilterSlot) {
-                    if (typeFilters.parentElement !== desktopFilterSlot) desktopFilterSlot.appendChild(typeFilters);
-                    if (aiFilterContainer.parentElement !== desktopFilterSlot) desktopFilterSlot.appendChild(aiFilterContainer);
-                }
-                if (desktopSavedSlot && searchOptions.parentElement !== desktopSavedSlot) {
-                    desktopSavedSlot.appendChild(searchOptions);
-                }
-            } else {
-                if (searchContainer.parentElement !== searchBoxContainer) {
-                    searchBoxContainer.insertBefore(searchContainer, searchBoxContainer.firstChild);
-                }
-                if (typeFilters.parentElement !== searchBoxContainer) {
-                    searchBoxContainer.appendChild(typeFilters);
-                }
-                if (aiFilterContainer.parentElement !== searchBoxContainer) {
-                    searchBoxContainer.appendChild(aiFilterContainer);
-                }
-                if (searchOptions.parentElement !== searchBoxContainer) {
-                    searchBoxContainer.appendChild(searchOptions);
-                }
-            }
-        }
         // ------------------------------
 
         async function rerenderMainGallery() {
@@ -1950,8 +1866,6 @@
                 searchToggleBtn.style.display = desktop ? 'none' : '';
                 document.body.classList.toggle('desktop-mode', desktop);
             }
-
-            syncDesktopHeaderLayout(desktop);
 
             const newCount = getMainColumnCount();
             if (newCount !== currentMainColumnCount && allPosts.length && !isFetching) {
@@ -2754,5 +2668,189 @@
             }
         });
     </script>
+
+
+<script>
+(function(){
+    let adblockDetected = false;
+    let bloqueadoActivo = false;
+    let listenersAttached = false;
+
+    function testBait() {
+        const bait = document.createElement("div");
+        bait.className = "adsbox adsbygoogle ad-banner ad-placement";
+        bait.style.position = "absolute";
+        bait.style.height = "1px";
+        bait.style.width = "1px";
+        bait.style.left = "-9999px";
+        bait.style.top = "-9999px";
+        document.body.appendChild(bait);
+
+        if (bait.offsetHeight === 0) {
+            adblockDetected = true;
+        }
+
+        bait.remove();
+    }
+
+    async function testFetch() {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    try {
+        await fetch("https://www.effectivecpmnetwork.com/pebktxz1?key=28ccb1c2d5f2bc6691f2610c6b05f11e", {
+            method: "GET",
+            mode: "no-cors",
+            cache: "no-store",
+            signal: controller.signal
+        });
+    } catch (e) {
+        adblockDetected = true;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+    async function testBrave() {
+        if (navigator.brave && navigator.brave.isBrave) {
+            try {
+                const isBrave = await navigator.brave.isBrave();
+                if (isBrave) adblockDetected = true;
+            } catch(e){}
+        }
+    }
+
+    function bloquearAcciones() {
+        document.querySelectorAll(
+            'a, button, [role="button"], [onclick], input, select, textarea, label, .card, .item, .menu-item, .download-option, .search-toggle-btn, .search-close, .search-icon, .genre-item, .switch, .option, .see-all, .bottom-bar .item, .topbar a, .top-bar a'
+        ).forEach(el => {
+            if (!el.closest("#adblockModal")) {
+                el.style.pointerEvents = "none";
+                el.style.userSelect = "none";
+                el.style.cursor = "not-allowed";
+            }
+        });
+    }
+
+    function attachGlobalBlockers() {
+        if (listenersAttached) return;
+        listenersAttached = true;
+
+        const stop = (e) => {
+            if (!bloqueadoActivo) return;
+            if (e.target && e.target.closest && e.target.closest("#adblockModal")) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        };
+
+        document.addEventListener("click", stop, true);
+        document.addEventListener("mousedown", stop, true);
+        document.addEventListener("touchstart", stop, true);
+        document.addEventListener("pointerdown", stop, true);
+        document.addEventListener("keydown", (e) => {
+            if (!bloqueadoActivo) return;
+            if (e.target && e.target.closest && e.target.closest("#adblockModal")) return;
+            const keys = ["Enter", " ", "Spacebar"];
+            if (keys.includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+            }
+        }, true);
+    }
+
+    async function detectarAdblock() {
+        adblockDetected = false;
+
+        testBait();
+        await testFetch();
+        await testBrave();
+
+        setTimeout(() => {
+            if (adblockDetected) {
+                bloquearTodo();
+            }
+        }, 500);
+    }
+
+    function bloquearTodo() {
+    if (bloqueadoActivo) return;
+    bloqueadoActivo = true;
+
+    const modal = document.getElementById("adblockModal");
+    if (!modal) return;
+
+    const box = modal.querySelector(".adblock-box");
+
+    modal.style.setProperty("display", "flex", "important");
+    modal.style.setProperty("position", "fixed", "important");
+    modal.style.setProperty("inset", "0", "important");
+    modal.style.setProperty("visibility", "visible", "important");
+    modal.style.setProperty("opacity", "1", "important");
+    modal.style.setProperty("z-index", "2147483647", "important");
+    modal.style.setProperty("pointer-events", "auto", "important");
+    modal.removeAttribute("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    requestAnimationFrame(() => {
+        if (box) {
+            box.classList.remove("tsun-angry");
+            requestAnimationFrame(() => {
+                box.classList.add("tsun-angry");
+            });
+        }
+    });
+
+    bloquearAcciones();
+    attachGlobalBlockers();
+
+    if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+    }
+}
+
+    function iniciarMonitor() {
+        detectarAdblock();
+        setInterval(detectarAdblock, 3000);
+    }
+
+    window.addEventListener("load", iniciarMonitor);
+})();
+</script>
+
+<div id="adblockModal" class="modal" aria-hidden="true">
+    <div class="adblock-box tsun">
+        <div class="adblock-brand">
+            <img src="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" alt="ClyraPlay" class="adblock-logo">
+            <h2>😤 Oye tú...</h2>
+        </div>
+
+        <p class="adblock-sub">n-no es como que me importe o algo...</p>
+
+        <div class="adblock-text">
+            Tienes un bloqueador de anuncios activo… 😒
+            <br><br>
+            D-desactívalo si quieres continuar…
+            n-no porque me importes ni nada 😤
+            <br><br>
+            Esos anuncios son los que mantienen vivo <b>ClyraPlay</b> 💸
+            así que… haz lo correcto, ¿sí? 😳
+            <br><br>
+            <span style="font-size:12px; opacity:0.7;">
+                P-por cierto… si estás usando Brave 😒💢
+                aunque lo desactives… igual seguiré apareciendo...
+                n-no es mi culpa, ese navegador es bien terco 😤
+                b-baka…
+            </span>
+        </div>
+
+        <button onclick="location.reload()" class="adblock-btn">
+            Ya lo desactivé... no te emociones 😤
+        </button>
+    </div>
+</div>
 </body>
 </html>
