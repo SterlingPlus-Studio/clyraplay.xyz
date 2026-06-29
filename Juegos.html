@@ -785,113 +785,6 @@
         max-width: var(--detail-download-maxw);
       }
     }
-
-    /* ========== MODAL DE ANUNCIO ========== */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      padding: 18px;
-    }
-
-    .modal-overlay.show {
-      display: flex;
-    }
-
-    .modal-box {
-      width: 100%;
-      max-width: 380px;
-      background: var(--card-gradient);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: var(--radius);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(230, 57, 70, 0.1);
-      padding: 28px;
-      text-align: center;
-    }
-
-    .modal-title {
-      margin: 0 0 12px;
-      font-size: 19px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .modal-text {
-      margin: 0 0 20px;
-      font-size: 14px;
-      line-height: 1.5;
-      color: var(--muted);
-    }
-
-    .modal-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      justify-content: center;
-      flex-wrap: nowrap;
-    }
-
-    .modal-btn {
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      min-width: 130px;
-      width: 100%;
-      transition: all var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .modal-btn.ad {
-      background: var(--btn-active-gradient);
-      color: #fff;
-      box-shadow: var(--glow);
-    }
-    
-    .modal-btn.ad:active {
-        transform: scale(0.96);
-    }
-
-    .modal-btn.link {
-      background: var(--btn-gradient);
-      border: 1px solid rgba(255,255,255,0.05);
-      color: #666;
-      cursor: not-allowed;
-    }
-
-    .modal-btn.link.enabled {
-      background: var(--btn-active-gradient);
-      color: #fff;
-      border-color: transparent;
-      cursor: pointer;
-      box-shadow: var(--glow);
-    }
-
-    .ad-status {
-      margin-top: 16px;
-      font-size: 13px;
-      color: var(--muted);
-      min-height: 18px;
-      line-height: 1.4;
-    }
-
-    .ad-status.success {
-      color: var(--primary);
-      font-weight: 600;
-    }
-
     /* ========== DETALLE A PANTALLA COMPLETA ========== */
     .detail-overlay {
       position: fixed;
@@ -1371,18 +1264,6 @@
   </div>
 </div>
 
-<div aria-hidden="true" class="modal-overlay" id="adModal">
-  <div aria-labelledby="adModalTitle" aria-modal="true" class="modal-box" role="dialog">
-    <h3 class="modal-title" id="adModalTitle">Ver 2 anuncios para continuar</h3>
-    <p class="modal-text">Cuando toques Ver anuncio se abrirá el anuncio en otra pestaña. Después vuelve a la aplicación y repite el proceso dos veces para desbloquear el enlace de MediaFire.</p>
-    <div class="modal-actions">
-      <button class="modal-btn ad" id="watchAdBtn" type="button"><i class="fa-solid fa-play"></i> Ver anuncio</button>
-      <button class="modal-btn link" disabled="" id="linkBtn" type="button"><i class="fa-solid fa-lock"></i> Botón de enlace bloqueado</button>
-    </div>
-    <div class="ad-status" id="adStatus">Toca Ver anuncio dos veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.</div>
-  </div>
-</div>
-
 <div aria-hidden="true" class="lightbox-overlay" id="screenshotLightbox">
   <img alt="Captura de pantalla ampliada" class="lightbox-img" id="lightboxImg"/>
 </div>
@@ -1718,12 +1599,6 @@
     const detailAvailableVersionLabel = document.querySelector('#detailAvailableVersion').previousElementSibling;
     const detailScreenshotsTrack = document.getElementById('detailScreenshotsTrack');
     const detailDownloadBtn = document.getElementById('detailDownloadBtn');
-
-    const adModal = document.getElementById('adModal');
-    const watchAdBtn = document.getElementById('watchAdBtn');
-    const linkBtn = document.getElementById('linkBtn');
-    const adStatus = document.getElementById('adStatus');
-
     const screenshotLightbox = document.getElementById('screenshotLightbox');
     const lightboxImg = document.getElementById('lightboxImg');
 
@@ -1752,17 +1627,7 @@
     } else if (desktopPointerQuery.addListener) {
       desktopPointerQuery.addListener(applyResponsiveMode);
     }
-
-    const adsterraUrl = 'https://www.effectivecpmnetwork.com/pebktxz1?key=28ccb1c2d5f2bc6691f2610c6b05f11e';
-    const omg10Url = 'https://omg10.com/4/11205348';
-    const adUrls = [adsterraUrl, omg10Url];
-    const defaultDirectLink = 'https://www.mediafire.com/file/ejemplo/archivo.zip/file';
-
-    let adWatched = false;
-    let awaitingReturn = false;
     let currentDetailCard = null;
-    const adsRequired = 2;
-    let adsCompleted = 0;
 
     // Función para renderizar el HTML inicial basado en los datos
     function renderApps() {
@@ -1938,86 +1803,11 @@
     detailModal.addEventListener('click', (e) => {
       if (e.target === detailModal) closeDetailModal();
     });
-
     detailDownloadBtn.addEventListener('click', () => {
       if (!currentDetailCard) return;
-      openAdModal();
-    });
-
-    function openAdModal() {
-      adWatched = false;
-      awaitingReturn = false;
-      adsCompleted = 0;
-
-      linkBtn.disabled = true;
-      linkBtn.classList.remove('enabled');
-      linkBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Botón de enlace bloqueado';
-      adStatus.textContent = `Toca Ver anuncio ${adsRequired} veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.`;
-      adStatus.classList.remove('success');
-
-      adModal.classList.add('show');
-      adModal.setAttribute('aria-hidden', 'false');
-    }
-
-    function closeAdModal() {
-      adModal.classList.remove('show');
-      adModal.setAttribute('aria-hidden', 'true');
-      awaitingReturn = false;
-      watchAdBtn.disabled = false;
-      watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
-    }
-
-    watchAdBtn.addEventListener('click', () => {
-      const adUrl = adUrls[adsCompleted] || adUrls[adUrls.length - 1];
-      window.open(adUrl, '_blank', 'noopener,noreferrer');
-      watchAdBtn.disabled = true;
-      watchAdBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Abriendo anuncio...';
-      awaitingReturn = true;
-      adStatus.textContent = `Se abrió el anuncio ${adsCompleted + 1}/${adsRequired}. Vuelve a la aplicación para continuar.`;
-      adStatus.classList.remove('success');
-    });
-
-    function unlockLinkOnReturn() {
-      if (!awaitingReturn || adWatched) return;
-
-      adsCompleted += 1;
-      awaitingReturn = false;
-      watchAdBtn.disabled = false;
-      watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
-
-      if (adsCompleted >= adsRequired) {
-        adWatched = true;
-        linkBtn.disabled = false;
-        linkBtn.classList.add('enabled');
-        linkBtn.innerHTML = '<i class="fa-solid fa-unlock"></i> Enlace desbloqueado';
-        adStatus.textContent = 'Ya volviste a la aplicación. El enlace de MediaFire está desbloqueado.';
-        adStatus.classList.add('success');
-      } else {
-        const remaining = adsRequired - adsCompleted;
-        adStatus.textContent = `Anuncio completado ${adsCompleted}/${adsRequired}. Te falta ${remaining} más para desbloquear el enlace.`;
-        adStatus.classList.remove('success');
-      }
-    }
-
-    window.addEventListener('focus', unlockLinkOnReturn);
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') unlockLinkOnReturn();
-    });
-
-    linkBtn.addEventListener('click', () => {
-      if (!adWatched || !currentDetailCard) return;
-      const directLink = currentDetailCard.directLink || defaultDirectLink;
+      const directLink = currentDetailCard.directLink || 'https://www.mediafire.com/file/ejemplo/archivo.zip/file';
       window.open(directLink, '_blank', 'noopener,noreferrer');
-      closeAdModal();
       closeDetailModal();
-    });
-
-    adModal.addEventListener('click', (e) => {
-      if (e.target === adModal) {
-        watchAdBtn.disabled = false;
-        watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
-        closeAdModal();
-      }
     });
 
     detailScreenshotsTrack.addEventListener('click', (e) => {
