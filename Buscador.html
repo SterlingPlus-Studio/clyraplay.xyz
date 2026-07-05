@@ -1223,7 +1223,7 @@
             padding: 16px 24px;
             z-index: 150;
             display: grid;
-            grid-template-columns: auto 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(380px, 520px);
             grid-template-rows: auto auto;
             grid-template-areas: 
                 "logo search"
@@ -1271,7 +1271,9 @@
 
         body.desktop-mode .search-box-container {
             grid-area: search;
-            width: 420px;
+            width: 100%;
+            max-width: 520px;
+            justify-self: end;
             background: transparent;
             border: none;
             padding: 0;
@@ -1284,12 +1286,18 @@
 
         body.desktop-mode .search-container {
             margin-bottom: 0;
+            width: 100%;
         }
 
         body.desktop-mode .ai-filter-container {
             margin-bottom: 0;
             background: var(--surface);
             border: 1px solid var(--border);
+        }
+
+        body.desktop-mode .search-options {
+            width: 100%;
+            justify-content: flex-end;
         }
 
         body.desktop-mode .results-wrapper {
