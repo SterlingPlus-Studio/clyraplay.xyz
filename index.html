@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClyraPlay</title>
+<link href="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" rel="icon" type="image/png"/>
+<!-- Font Awesome (para el resto de iconos) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<!-- FlatIcon – Uicons Regular Straight -->
+<link href="https://cdn-uicons.flaticon.com/uicons-regular-straight/css/uicons-regular-straight.css" rel="stylesheet"/>
+<!-- FlatIcon – Uicons Thin Straight (para fi-tr-*) -->
+<link href="https://cdn-uicons.flaticon.com/uicons-thin-straight/css/uicons-thin-straight.css" rel="stylesheet"/>
+
+<link href="css/styles.css" rel="stylesheet"/></head>
+<body>
+<nav class="navbar">
+<div class="logo">
+<img alt="ClyraPlay Logo" class="logo-img" src="https://i.ibb.co/fYFxpqQ5/1783988546734.png"/>
+</div>
+<div class="nav-links">
+<!-- Botón de Cómics con el nuevo icono de FlatIcon -->
+<button class="nav-btn" onclick="showAllComicsView()">
+<img alt="Libro marcador" class="bookmark-icon" src="https://i.ibb.co/TBJkZbLV/copia-del-libro.png"/>
+                Cómics
+            </button>
+<button class="nav-btn" onclick="showAllGamesView()">
+<svg viewbox="0 0 24 24">
+<path d="M22 11.5V11a8 8 0 0 0-8-8h-4a8 8 0 0 0-8 8v.5c0 4.142 3.358 7.5 7.5 7.5h5c4.142 0 7.5-3.358 7.5-7.5Z"></path>
+<line x1="6" x2="10" y1="11" y2="11"></line>
+<line x1="8" x2="8" y1="9" y2="13"></line>
+<circle cx="15" cy="10" r="1"></circle>
+<circle cx="17" cy="12" r="1"></circle>
+</svg>
+                Juegos
+            </button>
+<button class="nav-btn" onclick="openSearchPage()" type="button">
+<svg viewbox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+</svg>
+                Buscador
+            </button>
+</div>
+<button aria-label="Descargar" class="nav-btn download-btn-header" onclick="openDownloadModal()" type="button">
+<svg viewbox="0 0 24 24">
+<path d="M12 3v10"></path>
+<path d="m8 9 4 4 4-4"></path>
+<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+</svg>
+<span class="btn-text">Descargar</span>
+</button>
+</nav>
+<div id="main-view">
+<div class="hero-banner">
+<div class="hero-badge">✦ Nuevos lanzamientos cada semana</div>
+<h1 class="hero-title">
+<span class="hero-brand">Bienvenido a ClyraPlay</span>
+</h1>
+<p class="hero-text">Tu universo de comics y juegos en un solo lugar. Explora, descubre y disfruta.</p>
+</div>
+<div class="section-container">
+<div class="section-header">
+<h2 class="section-title">
+<img alt="Libro marcador" class="bookmark-icon" src="https://i.ibb.co/TBJkZbLV/copia-del-libro.png"/>
+                    Nuevos Cómics
+                </h2>
+<button class="see-all-btn" onclick="showAllComicsView()">
+<span class="see-all-text">Ver todo</span>
+<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</button>
+</div>
+<div class="horizontal-scroll" id="comics-container"></div>
+</div>
+<div class="section-container">
+<div class="section-header">
+<h2 class="section-title">
+<svg viewbox="0 0 24 24">
+<path d="M22 11.5V11a8 8 0 0 0-8-8h-4a8 8 0 0 0-8 8v.5c0 4.142 3.358 7.5 7.5 7.5h5c4.142 0 7.5-3.358 7.5-7.5Z"></path>
+<line x1="6" x2="10" y1="11" y2="11"></line>
+<line x1="8" x2="8" y1="9" y2="13"></line>
+<circle cx="15" cy="10" r="1"></circle>
+<circle cx="17" cy="12" r="1"></circle>
+</svg>
+                    Nuevos Juegos
+                </h2>
+<button class="see-all-btn" onclick="showAllGamesView()">
+<span class="see-all-text">Ver todo</span>
+<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</button>
+</div>
+<div class="horizontal-scroll" id="games-container"></div>
+</div>
+</div>
+<div id="all-comics-view">
+<div class="view-header">
+<div class="view-title-container">
+<button class="back-btn" onclick="hideAllComicsView()">
+<svg viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+</button>
+<h2 class="view-title">Todos Los Cómics</h2>
+</div>
+<div class="search-container">
+<input autocomplete="off" class="search-input" id="comic-search-input" placeholder="Buscar por título o etiqueta..." type="text"/>
+<div class="suggestions-box" id="search-suggestions"></div>
+</div>
+</div>
+<div class="comics-grid" id="all-comics-grid"></div>
+</div>
+<div id="all-games-view">
+<div class="view-header">
+<div class="view-title-container">
+<button class="back-btn" onclick="hideAllGamesView()">
+<svg viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+</button>
+<h2 class="view-title">Todos Los Juegos</h2>
+</div>
+<div class="search-container">
+<input autocomplete="off" class="search-input" id="game-search-input" placeholder="Buscar juegos por nombre..." type="text"/>
+</div>
+</div>
+<div class="games-grid" id="all-games-grid"></div>
+</div>
+<footer>
+        © 2026 Sterling Plus Studio. Todos los derechos reservados.
+        <div class="footer-social">
+<a class="social-btn telegram" href="https://t.me/SterlingPlus" rel="noopener noreferrer" target="_blank">
+<i class="fa-brands fa-telegram"></i>
+                Telegram
+            </a>
+</div>
+</footer>
+<div class="comic-modal" id="comic-reader-modal">
+<div class="comic-modal-header">
+<div class="comic-modal-title" id="modal-comic-title">Título del Cómic</div>
+<button class="comic-modal-close" onclick="closeComicModal()">
+<svg viewbox="0 0 24 24">
+<line x1="18" x2="6" y1="6" y2="18"></line>
+<line x1="6" x2="18" y1="6" y2="18"></line>
+</svg>
+</button>
+</div>
+<div class="comic-modal-body" id="modal-comic-body"></div>
+</div>
+<div class="comic-modal" id="game-details-modal">
+<div class="comic-modal-header">
+<button class="comic-modal-close" onclick="closeGameModal()">
+<svg aria-hidden="true" viewbox="0 0 24 24">
+<line x1="15" x2="8" y1="6" y2="12"></line>
+<line x1="8" x2="15" y1="12" y2="18"></line>
+</svg>
+<span>Regresar</span>
+</button>
+<div class="comic-modal-title" id="modal-game-title" style="display:none;"></div>
+</div>
+<div class="comic-modal-body">
+<div class="game-modal-padding" id="modal-game-body"></div>
+</div>
+</div>
+<div aria-hidden="true" class="download-overlay" id="downloadModal">
+<div aria-labelledby="downloadModalTitle" aria-modal="true" class="download-box" role="dialog">
+<h3 class="download-title" id="downloadModalTitle">Descargar ClyraPlay</h3>
+<p class="download-text">Elige la versión que quieres bajar. Al tocar una opción, la descarga comienza automáticamente.</p>
+<div class="download-actions">
+<button class="download-link-btn android" onclick="startDirectDownload('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Descargar/Clyra.apk')" type="button">
+<i class="fa-solid fa-download"></i> Versión Android
+                </button>
+<button class="download-link-btn pc" onclick="startDirectDownload('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Descargar/ClyraPlay%20PC.zip')" type="button">
+<i class="fa-solid fa-desktop"></i> Versión de PC
+                </button>
+</div>
+<button class="download-close" onclick="closeDownloadModal()" type="button">Cerrar</button>
+</div>
+</div>
+<div aria-hidden="true" class="modal-overlay" id="adModal">
+<div aria-labelledby="adModalTitle" aria-modal="true" class="modal-box" role="dialog">
+<h3 class="modal-title" id="adModalTitle">Ver 2 anuncios para continuar</h3>
+<p class="modal-text">Cuando toques Ver anuncio se abrirá el anuncio en otra pestaña. Después vuelve a la aplicación y repite el proceso dos veces para desbloquear el enlace de MediaFire.</p>
+<div class="modal-actions">
+<button class="modal-btn ad" id="watchAdBtn" type="button"><i class="fa-solid fa-play"></i> Ver anuncio</button>
+<button class="modal-btn link" disabled="" id="linkBtn" type="button"><i class="fa-solid fa-lock"></i> Botón de enlace bloqueado</button>
+</div>
+<div class="ad-status" id="adStatus">Toca Ver anuncio dos veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.</div>
+</div>
+</div>
+<div id="lightbox-overlay" onclick="closeLightbox()">
+<img alt="Ampliación" id="lightbox-img" src=""/>
+</div>
+
+
+<div aria-hidden="true" class="modal" id="adblockModal">
+<div class="adblock-box">
+<div class="adblock-brand">
+<img alt="ClyraPlay" class="adblock-logo" src="https://i.ibb.co/ymrW83St/8457afee-0265-467f-9e22-eb2fca5d02e0-profile.jpg"/>
+<h2>Bloqueador detectado</h2>
+</div>
+<p class="adblock-sub">ClyraPlay se mantiene gracias a la publicidad.</p>
+<div class="adblock-text">
+                Hemos detectado un bloqueador de anuncios o un DNS privado activo.
+                Desactívalo para seguir navegando con normalidad y ayudar a mantener la página activa.<br/><br/>
+<strong>Nota:</strong> si usas Brave u otro navegador con bloqueo interno, puede seguir apareciendo este
+                aviso.
+            </div>
+<button class="adblock-btn" onclick="location.reload()">
+                Ya lo desactivé
+            </button>
+</div>
+</div>
+
+<script src="js/main.js"></script><script src="js/adblock.js"></script><script src="js/firebase.js" type="module"></script></body>
+</html>
