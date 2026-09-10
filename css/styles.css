@@ -1,5 +1,4 @@
-
-        @font-face {
+@font-face {
             font-family: 'ClyraFont';
             src: url('../Fuente/fuente.ttf') format('truetype');
             font-weight: normal;
@@ -2541,4 +2540,37 @@
             color: #ffffff !important;
         }
 
-    
+        /* ===== OCULTAR BARRAS DE DESPLAZAMIENTO (scroll) ===== */
+        html,
+        body {
+            scrollbar-width: none;        /* Firefox */
+            -ms-overflow-style: none;     /* IE / Edge antiguo */
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+            background: transparent !important;
+        }
+
+        /* Todos los contenedores con scroll interno */
+        * {
+            scrollbar-width: none;        /* Firefox */
+            -ms-overflow-style: none;     /* IE / Edge antiguo */
+        }
+
+        *::-webkit-scrollbar {
+            width: 0 !important;
+            height: 0 !important;
+            display: none !important;
+        }
+
+        *::-webkit-scrollbar-track,
+        *::-webkit-scrollbar-thumb,
+        *::-webkit-scrollbar-corner {
+            background: transparent !important;
+            display: none !important;
+        }
+        /* ===== FIN OCULTAR BARRAS DE DESPLAZAMIENTO ===== */
