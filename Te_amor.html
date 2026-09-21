@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holograma 3D · Neco, te amo mucho</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;1,300&family=Inter:wght@200;300&display=swap" rel="stylesheet">
+
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #05000c;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    cursor: grab;
+  }
+  body:active { cursor: grabbing; }
+
+  #bg {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 55%, rgba(255,40,140,0.20) 0%, rgba(0,120,180,0.14) 38%, rgba(4,0,12,1) 80%),
+      radial-gradient(ellipse at 50% 100%, rgba(255,80,180,0.14) 0%, transparent 58%);
+    pointer-events: none;
+  }
+
+  canvas { display: block; position: relative; z-index: 2; }
+
+  .scanlines {
+    position: fixed; inset: -100px 0 0 0; z-index: 3;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 120, 200, 0.05) 0px,
+      rgba(0, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+    mix-blend-mode: screen;
+    animation: scanMove 6s linear infinite;
+  }
+  @keyframes scanMove { from { transform: translateY(0); } to { transform: translateY(100px); } }
+
+  .vignette {
+    position: fixed; inset: 0; z-index: 4; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.82) 100%);
+  }
+
+  /* ============================================================
+     HUD
+     ============================================================ */
+  .hud {
+    position: fixed; top: 20px; left: 22px; z-index: 5;
+    color: #ffd8f0; pointer-events: none;
+    animation: flicker 5s infinite;
+    line-height: 1.45;
+    max-width: calc(100vw - 130px);   /* deja hueco a los botones */
+  }
+  .hud .line1 {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 400;
+    font-size: 14px; letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #ff8fd0;
+    text-shadow: 0 0 14px rgba(255,60,160,0.95), 0 0 34px rgba(255,60,160,0.5);
+    white-space: nowrap;
+  }
+  .hud .line2 {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    font-size: 10px; letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #9ff6ff;
+    text-shadow: 0 0 12px rgba(0,255,255,0.9);
+    margin-top: 4px;
+    padding-left: 19px;
+    white-space: nowrap;
+  }
+  .hud .dot {
+    display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+    background: #ff2f8b; box-shadow: 0 0 14px #ff2f8b, 0 0 30px #ff2f8b;
+    margin-right: 10px; vertical-align: middle;
+    animation: pulse 1.05s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: .35; transform: scale(.62); }
+  }
+  @keyframes flicker {
+    0%, 92%, 100% { opacity: 1; }
+    93% { opacity: .4; } 94% { opacity: 1; }
+    96% { opacity: .55; } 97% { opacity: 1; }
+  }
+
+  #sub {
+    position: fixed; bottom: 42px; left: 50%; transform: translateX(-50%);
+    z-index: 5; width: 88%; max-width: 760px; text-align: center;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 200;
+    color: #ffe4f5; font-size: clamp(13px, 2.2vw, 18px);
+    letter-spacing: 2.5px;
+    text-shadow: 0 0 18px rgba(255,80,180,0.95), 0 0 44px rgba(0,200,255,0.45);
+    transition: opacity .45s ease;
+    pointer-events: none;
+  }
+
+  .hint {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 5;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    color: rgba(255,150,220,0.45); font-size: 10px;
+    letter-spacing: 4px; text-transform: uppercase; pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     BOTONES
+     ============================================================ */
+  .controls {
+    position: fixed; top: 20px; right: 20px; z-index: 6;
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;
+    align-items: center;
+  }
+  .holo-btn {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ffe4f5;
+    background: linear-gradient(135deg,
+      rgba(255,47,139,0.18) 0%,
+      rgba(0,229,255,0.18) 100%);
+    border: 1px solid rgba(159,249,255,0.55);
+    border-radius: 999px;
+    padding: 10px 16px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow:
+      0 0 14px rgba(0,229,255,0.35),
+      inset 0 0 12px rgba(255,95,176,0.22);
+    transition: all .28s ease;
+    outline: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    line-height: 1;
+  }
+  .holo-btn .btn-icon { font-size: 14px; line-height: 1; }
+  .holo-btn .btn-text { line-height: 1; }
+  .holo-btn:hover {
+    color: #ffffff;
+    border-color: rgba(255,143,208,0.95);
+    box-shadow:
+      0 0 22px rgba(255,60,160,0.65),
+      0 0 38px rgba(0,229,255,0.35),
+      inset 0 0 18px rgba(255,95,176,0.35);
+    transform: translateY(-1px);
+  }
+  .holo-btn:active { transform: translateY(0) scale(.97); }
+
+  /* ============================================================
+     MODAL — fondo transparente para que el holograma siga visible
+     ============================================================ */
+  .modal {
+    position: fixed; inset: 0; z-index: 20;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    background: rgba(4,0,14,0.18);
+    opacity: 0;
+    transition: opacity .35s ease;
+    pointer-events: auto;
+  }
+  .modal.open { display: flex; }
+  .modal.visible { opacity: 1; }
+
+  .modal-content {
+    position: relative;
+    width: 100%; max-width: 520px;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: linear-gradient(160deg,
+      rgba(24,6,36,0.42) 0%,
+      rgba(8,4,22,0.55) 100%);
+    border: 1px solid rgba(159,249,255,0.45);
+    border-radius: 22px;
+    padding: 30px 26px 26px;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    box-shadow:
+      0 0 40px rgba(255,60,160,0.35),
+      0 0 80px rgba(0,229,255,0.22),
+      inset 0 0 40px rgba(255,95,176,0.08);
+    transform: scale(0.94);
+    transition: transform .38s cubic-bezier(.2,.9,.3,1.2);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,143,208,0.5) transparent;
+  }
+  .modal.visible .modal-content { transform: scale(1); }
+  .modal-content::-webkit-scrollbar { width: 6px; }
+  .modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255,143,208,0.45); border-radius: 6px;
+  }
+
+  .modal-close {
+    position: absolute; top: 12px; right: 14px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(255,47,139,0.22);
+    border: 1px solid rgba(255,143,208,0.5);
+    color: #ff9fd8;
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .25s ease;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    backdrop-filter: blur(4px);
+  }
+  .modal-close:hover {
+    background: rgba(255,47,139,0.45);
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(255,60,160,0.7);
+  }
+
+  .modal-title {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #ff9fd8;
+    text-align: center;
+    margin: 0 0 6px 0;
+    text-shadow: 0 0 14px rgba(255,60,160,1), 0 0 30px rgba(255,60,160,0.6);
+  }
+  .modal-subtitle {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #9ff6ff;
+    text-align: center;
+    margin: 0 0 20px 0;
+    text-shadow: 0 0 10px rgba(0,255,255,0.95);
+  }
+
+  /* ============================================================
+     JUEGO
+     ============================================================ */
+  .game-wrap {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(159,249,255,0.4);
+    box-shadow:
+      0 0 24px rgba(0,229,255,0.28),
+      inset 0 0 24px rgba(255,95,176,0.10);
+    background: radial-gradient(circle at 50% 40%,
+      rgba(30,6,50,0.55) 0%,
+      rgba(6,2,18,0.72) 100%);
+    position: relative;
+    backdrop-filter: blur(3px);
+  }
+  #gameCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+  .game-hud {
+    display: flex; justify-content: space-between;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 400;
+    font-size: 11px; letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #9ff6ff;
+    padding: 14px 4px 6px;
+    text-shadow: 0 0 10px rgba(0,255,255,0.9);
+  }
+  .game-hud .score { color: #ff9fd8; text-shadow: 0 0 10px rgba(255,60,160,1); }
+
+  .game-msg {
+    text-align: center;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    font-size: 12px; letter-spacing: 2px;
+    color: #ffe4f5;
+    padding: 10px 6px 2px;
+    text-shadow: 0 0 12px rgba(255,80,180,0.9);
+    min-height: 20px;
+  }
+
+  /* ============================================================
+     POEMA
+     ============================================================ */
+  .poem {
+    font-family: "Montserrat", sans-serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(14px, 2.4vw, 17px);
+    line-height: 2;
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: 0.6px;
+    text-shadow:
+      0 0 14px rgba(255,80,180,0.85),
+      0 0 30px rgba(0,229,255,0.5),
+      0 2px 8px rgba(0,0,0,0.8);
+    padding: 4px 6px;
+  }
+  .poem p {
+    margin: 0 0 22px 0;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards;
+  }
+  .poem p:nth-child(1) { animation-delay: .15s; }
+  .poem p:nth-child(2) { animation-delay: .35s; }
+  .poem p:nth-child(3) { animation-delay: .55s; }
+  .poem p:nth-child(4) { animation-delay: .75s; }
+  .poem p:nth-child(5) { animation-delay: .95s; }
+  .poem .firma {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #ff9fd8;
+    margin-top: 12px;
+    text-shadow: 0 0 14px rgba(255,60,160,1);
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============================================================
+     MÓVIL: botones solo ícono, más pequeños, HUD más compacto
+     ============================================================ */
+  @media (max-width: 560px) {
+    .hud {
+      top: 14px; left: 16px;
+      max-width: calc(100vw - 108px);
+    }
+    .hud .line1 { font-size: 11px; letter-spacing: 3px; }
+    .hud .line2 { font-size: 8px;  letter-spacing: 4px; padding-left: 15px; }
+    .hud .dot   { width: 7px; height: 7px; margin-right: 8px; }
+
+    .controls { top: 14px; right: 12px; gap: 8px; }
+
+    .holo-btn {
+      width: 38px; height: 38px;
+      padding: 0;
+      border-radius: 50%;
+      gap: 0;
+      font-size: 0;               /* oculta el texto */
+      letter-spacing: 0;
+    }
+    .holo-btn .btn-icon { font-size: 17px; }
+    .holo-btn .btn-text { display: none; }
+
+    .modal-content { padding: 26px 18px 20px; }
+  }
+
+  @media (max-width: 360px) {
+    .hud .line1 { font-size: 10px; letter-spacing: 2.5px; }
+    .hud .line2 { font-size: 7.5px; letter-spacing: 3.5px; }
+    .holo-btn { width: 34px; height: 34px; }
+    .holo-btn .btn-icon { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<canvas id="scene"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<div class="hud">
+  <div class="line1"><span class="dot"></span>Neco, te amo mucho</div>
+  <div class="line2">Feliz primer aniversario</div>
+</div>
+
+<!-- BOTONES (icono + texto, en móvil solo icono) -->
+<div class="controls">
+  <button id="btnGame" class="holo-btn" aria-label="Mini Juego">
+    <span class="btn-icon">💗</span><span class="btn-text">Mini Juego</span>
+  </button>
+  <button id="btnPoem" class="holo-btn" aria-label="Poema">
+    <span class="btn-icon">📜</span><span class="btn-text">Poema</span>
+  </button>
+</div>
+
+<div id="sub"></div>
+<div class="hint">Arrastra para girar la proyección</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="modalClose" aria-label="Cerrar">×</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+
+/* ============================================================
+   1. RENDERER / ESCENA / CÁMARA
+   ============================================================ */
+const canvas   = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 700);
+
+let camTheta  = 0.35;
+let camPhi    = 0.10;
+let camRadius = 68;
+
+/* ============================================================
+   2. CORAZÓN BÉZIER CLÁSICO
+   ============================================================ */
+const heartShape = new THREE.Shape();
+const SC = 0.36;
+const CX = 50, CY = 44;
+const P  = (x, y) => [ (x - CX) * SC, -(y - CY) * SC ];
+
+heartShape.moveTo(...P(50, 88));
+heartShape.bezierCurveTo(...P(20, 65), ...P(0, 45),  ...P(0, 25));
+heartShape.bezierCurveTo(...P(0, 10),  ...P(12, 0),  ...P(25, 0));
+heartShape.bezierCurveTo(...P(37, 0),  ...P(45, 8),  ...P(50, 18));
+heartShape.bezierCurveTo(...P(55, 8),  ...P(63, 0),  ...P(75, 0));
+heartShape.bezierCurveTo(...P(88, 0),  ...P(100, 10),...P(100, 25));
+heartShape.bezierCurveTo(...P(100, 45),...P(80, 65), ...P(50, 88));
+
+/* ============================================================
+   3. EXTRUIDO + INFLADO 3D
+   ============================================================ */
+const heartGeo = new THREE.ExtrudeGeometry(heartShape, {
+  depth: 3.0,
+  bevelEnabled: true,
+  bevelSegments: 8,
+  bevelSize: 1.0,
+  bevelThickness: 1.2,
+  curveSegments: 24
+});
+heartGeo.center();
+heartGeo.computeVertexNormals();
+
+(function inflateHeart(geo, strength = 2.6) {
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  let maxR = 0;
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const r = Math.sqrt(v.x * v.x + v.y * v.y);
+    if (r > maxR) maxR = r;
+  }
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const r = Math.sqrt(v.x * v.x + v.y * v.y);
+    const t = Math.min(r / maxR, 1);
+    const puff = Math.pow(1 - t, 1.35);
+    v.z *= 1 + puff * strength;
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+})(heartGeo, 2.6);
+
+/* ============================================================
+   4. UN SOLO CORAZÓN
+   ============================================================ */
+const heartGroup = new THREE.Group();
+scene.add(heartGroup);
+
+const coreMat = new THREE.MeshBasicMaterial({
+  color: 0xff2f8b, transparent: true, opacity: 0.20,
+  blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+});
+heartGroup.add(new THREE.Mesh(heartGeo, coreMat));
+
+const innerMat = new THREE.MeshBasicMaterial({
+  color: 0xffffff, transparent: true, opacity: 0.10,
+  blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+});
+const innerMesh = new THREE.Mesh(heartGeo, innerMat);
+innerMesh.scale.setScalar(0.55);
+heartGroup.add(innerMesh);
+
+const wireMat = new THREE.MeshBasicMaterial({
+  color: 0x00e5ff, wireframe: true, transparent: true, opacity: 0.16,
+  blending: THREE.AdditiveBlending, depthWrite: false
+});
+heartGroup.add(new THREE.Mesh(heartGeo, wireMat));
+
+const edgeMat = new THREE.LineBasicMaterial({
+  color: 0xc8fdff, transparent: true, opacity: 0.7,
+  blending: THREE.AdditiveBlending, depthWrite: false
+});
+heartGroup.add(new THREE.LineSegments(new THREE.EdgesGeometry(heartGeo, 30), edgeMat));
+
+const dotMat = new THREE.PointsMaterial({
+  color: 0xffd6f0, size: 0.32, transparent: true, opacity: 0.85,
+  blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
+});
+heartGroup.add(new THREE.Points(heartGeo.clone(), dotMat));
+
+/* ============================================================
+   5. ANILLOS DE ESCANEO
+   ============================================================ */
+function makeRing(radius, tube, color, opacity) {
+  const geo = new THREE.TorusGeometry(radius, tube, 6, 140);
+  const mat = new THREE.MeshBasicMaterial({
+    color, transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  return new THREE.Mesh(geo, mat);
+}
+const ringA = makeRing(19, 0.05, 0x00e5ff, 0.30);
+ringA.rotation.x = Math.PI / 2;
+scene.add(ringA);
+
+const ringB = makeRing(22, 0.04, 0xff5fb5, 0.24);
+ringB.rotation.x = Math.PI / 2.6;
+ringB.rotation.z = 0.5;
+scene.add(ringB);
+
+/* ============================================================
+   6. RESPLANDOR
+   ============================================================ */
+function radialGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(128,128,0, 128,128,128);
+  grd.addColorStop(0.00, 'rgba(255,180,230,0.95)');
+  grd.addColorStop(0.22, 'rgba(255,60,160,0.55)');
+  grd.addColorStop(0.48, 'rgba(0,200,255,0.22)');
+  grd.addColorStop(1.00, 'rgba(0,0,0,0)');
+  g.fillStyle = grd;
+  g.fillRect(0,0,256,256);
+  return new THREE.CanvasTexture(c);
+}
+const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: radialGlowTexture(), transparent: true, opacity: 0.5,
+  blending: THREE.AdditiveBlending, depthWrite: false
+}));
+glow.scale.set(40, 40, 1);
+glow.position.z = -9;
+scene.add(glow);
+
+/* ============================================================
+   7. HAZ DEL PROYECTOR
+   ============================================================ */
+const beam = new THREE.Mesh(
+  new THREE.ConeGeometry(13, 32, 48, 1, true),
+  new THREE.MeshBasicMaterial({
+    color: 0xff4fa3, transparent: true, opacity: 0.05,
+    blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+  })
+);
+beam.rotation.x = Math.PI;
+beam.position.y = -17;
+scene.add(beam);
+
+/* ============================================================
+   8. POLVO HOLOGRÁFICO
+   ============================================================ */
+const N = 480;
+const pPos = new Float32Array(N * 3);
+for (let i = 0; i < N; i++) {
+  const r  = 24 + Math.random() * 44;
+  const th = Math.random() * Math.PI * 2;
+  const ph = Math.acos(2 * Math.random() - 1);
+  pPos[i*3]     = r * Math.sin(ph) * Math.cos(th);
+  pPos[i*3 + 1] = r * Math.cos(ph) * 0.65;
+  pPos[i*3 + 2] = r * Math.sin(ph) * Math.sin(th);
+}
+const starGeo = new THREE.BufferGeometry();
+starGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
+  color: 0x66f2ff, size: 0.42, transparent: true, opacity: 0.7,
+  blending: THREE.AdditiveBlending, depthWrite: false
+}));
+scene.add(stars);
+
+/* ============================================================
+   9. FRASES FLOTANTES — MISMA FUENTE QUE EL HUD
+   ============================================================ */
+const FRASES_INNER = [
+  'Eres mi todo', 'Te amo infinito', 'Mi corazón es tuyo', 'Contigo soy feliz',
+  'Eres mi sueño', 'Siempre tú y yo', 'Latido eterno', 'Mi media mitad'
+];
+const FRASES_OUTER = [
+  'Neco te amo', 'Feliz aniversario', 'Mi amor eterno', 'Eres mi universo',
+  'Te elijo siempre', 'Amor de mi vida', 'Juntos por siempre', 'Tú y yo, siempre'
+];
+
+const HUD_FONT = `'Montserrat', 'Inter', 'Helvetica Neue', Arial, sans-serif`;
+
+function makeTextSprite(text, color = '#9ff9ff') {
+  const displayText = text.toUpperCase();
+  const c = document.createElement('canvas');
+  let ctx = c.getContext('2d');
+  const FONT = `400 56px ${HUD_FONT}`;
+  ctx.font = FONT;
+  const textW = Math.ceil(ctx.measureText(displayText).width);
+  c.width  = Math.min(2048, THREE.MathUtils.ceilPowerOfTwo(textW + 260));
+  c.height = 130;
+
+  ctx = c.getContext('2d');
+  ctx.font = FONT;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const tracking = 7;
+  const chars = [...displayText];
+  const widths = chars.map(ch => ctx.measureText(ch).width);
+  const totalW = widths.reduce((a,b)=>a+b,0) + tracking * (chars.length - 1);
+
+  ctx.shadowColor = color;
+  ctx.shadowBlur  = 28;
+  ctx.fillStyle   = color;
+  let x = (c.width - totalW) / 2;
+  for (let i = 0; i < chars.length; i++) {
+    ctx.fillText(chars[i], x + widths[i]/2, c.height/2);
+    x += widths[i] + tracking;
+  }
+
+  ctx.shadowBlur = 12;
+  x = (c.width - totalW) / 2;
+  for (let i = 0; i < chars.length; i++) {
+    ctx.fillText(chars[i], x + widths[i]/2, c.height/2);
+    x += widths[i] + tracking;
+  }
+
+  ctx.shadowBlur = 5;
+  ctx.fillStyle  = '#ffffff';
+  x = (c.width - totalW) / 2;
+  for (let i = 0; i < chars.length; i++) {
+    ctx.fillText(chars[i], x + widths[i]/2, c.height/2);
+    x += widths[i] + tracking;
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  tex.minFilter  = THREE.LinearFilter;
+
+  const mat = new THREE.SpriteMaterial({
+    map: tex, transparent: true, opacity: 0.9,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const sprite = new THREE.Sprite(mat);
+  const K = 0.021;
+  sprite.scale.set(c.width * K, c.height * K, 1);
+  sprite.userData.baseScale = new THREE.Vector2(c.width * K, c.height * K);
+  return sprite;
+}
+
+function buildRing(list, radius, yAmp, color, phase) {
+  const grp = new THREE.Group();
+  list.forEach((txt, i) => {
+    const sp = makeTextSprite(txt, color);
+    const a  = (i / list.length) * Math.PI * 2 + phase;
+    sp.position.set(
+      Math.sin(a) * radius,
+      Math.sin(a * 2.6) * yAmp,
+      Math.cos(a) * radius
+    );
+    grp.add(sp);
+  });
+  scene.add(grp);
+  return grp;
+}
+
+const ringInner = buildRing(FRASES_INNER, 20, 5.0, '#9ff9ff', 0);
+const ringOuter = buildRing(FRASES_OUTER, 28, 6.8, '#ff9fd8', Math.PI / 8);
+
+/* ============================================================
+   10. MINI CORAZONES FLOTANTES
+   ============================================================ */
+function makeMiniHeartTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const x = 64, y = 44, size = 74;
+  const topCurveHeight = size * 0.30;
+  g.beginPath();
+  g.moveTo(x, y + topCurveHeight);
+  g.bezierCurveTo(x, y, x - size/2, y, x - size/2, y + topCurveHeight);
+  g.bezierCurveTo(x - size/2, y + (size + topCurveHeight)/2, x, y + (size + topCurveHeight)/1.4, x, y + size);
+  g.bezierCurveTo(x, y + (size + topCurveHeight)/1.4, x + size/2, y + (size + topCurveHeight)/2, x + size/2, y + topCurveHeight);
+  g.bezierCurveTo(x + size/2, y, x, y, x, y + topCurveHeight);
+  g.closePath();
+  g.shadowColor = '#ff3d96';
+  g.shadowBlur  = 24;
+  g.fillStyle   = '#ff5fb0';
+  g.fill();
+  g.shadowBlur  = 10;
+  g.fillStyle   = '#fff0f8';
+  g.fill();
+  return new THREE.CanvasTexture(c);
+}
+const miniHeartTex = makeMiniHeartTexture();
+
+const floatingHearts = [];
+const FH_COUNT = 30;
+const FH_RANGE = { minY: -28, maxY: 28 };
+
+function resetFloatingHeart(sp, initial = false) {
+  const a = Math.random() * Math.PI * 2;
+  const r = 6 + Math.random() * 16;
+  sp.position.set(
+    Math.cos(a) * r,
+    initial ? FH_RANGE.minY + Math.random() * (FH_RANGE.maxY - FH_RANGE.minY)
+            : FH_RANGE.minY - Math.random() * 6,
+    Math.sin(a) * r
+  );
+  sp.userData.speed = 1.4 + Math.random() * 2.2;
+  sp.userData.spin  = (Math.random() - 0.5) * 0.8;
+  sp.userData.baseS = 0.7 + Math.random() * 1.6;
+  sp.userData.phase = Math.random() * Math.PI * 2;
+}
+
+for (let i = 0; i < FH_COUNT; i++) {
+  const mat = new THREE.SpriteMaterial({
+    map: miniHeartTex, transparent: true,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    opacity: 0.85,
+    color: new THREE.Color().setHSL(0.90 + Math.random() * 0.10, 1, 0.72)
+  });
+  const sp = new THREE.Sprite(mat);
+  resetFloatingHeart(sp, true);
+  scene.add(sp);
+  floatingHearts.push(sp);
+}
+
+/* ============================================================
+   11. INTERACCIÓN
+   ============================================================ */
+let isDragging = false, lastX = 0, lastY = 0;
+
+canvas.addEventListener('pointerdown', e => {
+  isDragging = true; lastX = e.clientX; lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointerup', e => {
+  isDragging = false;
+  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+});
+canvas.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  camTheta -= dx * 0.006;
+  camPhi    = THREE.MathUtils.clamp(camPhi - dy * 0.005, -0.55, 0.85);
+});
+
+/* ============================================================
+   12. RESPONSIVE
+   ============================================================ */
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  const aspect = w / h;
+  renderer.setSize(w, h);
+  camera.aspect = aspect;
+  camRadius = aspect < 1 ? Math.min(120, 68 / aspect * 0.86) : 68;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ============================================================
+   13. SUBTÍTULO ROMÁNTICO
+   ============================================================ */
+const FRASES_LARGAS = [
+  'Neco, te amo mucho… feliz primer aniversario.',
+  'Un año a tu lado y sigo sin creer la suerte que tengo.',
+  'Te amo más de lo que las palabras pueden expresar.',
+  'Eres la casualidad más bonita que me ha pasado.',
+  'Mi corazón late al ritmo de tu nombre.',
+  'A tu lado, cualquier lugar es mi hogar.',
+  'Eres el sueño del que nunca quiero despertar.',
+  'Si volviera a nacer, te volvería a elegir.',
+  'Contigo el tiempo siempre sabe a poco.',
+  'Eres mi persona favorita en todo el universo.',
+  'Gracias por este primer año, y por todos los que vienen.',
+  'Mi lugar favorito en el mundo eres tú.'
+];
+const subEl = document.getElementById('sub');
+let fIdx = 0;
+subEl.textContent = FRASES_LARGAS[0];
+subEl.style.opacity = 1;
+
+setInterval(() => {
+  subEl.style.opacity = 0;
+  setTimeout(() => {
+    fIdx = (fIdx + 1) % FRASES_LARGAS.length;
+    subEl.textContent = FRASES_LARGAS[fIdx];
+    subEl.style.opacity = 1;
+  }, 480);
+}, 4400);
+
+/* ============================================================
+   14. ANIMACIÓN
+   ============================================================ */
+const clock   = new THREE.Clock();
+const camDir  = new THREE.Vector3();
+const worldPos = new THREE.Vector3();
+
+function heartbeat(x) {
+  return Math.exp(-Math.pow((x - 0.05) / 0.055, 2))
+       + 0.55 * Math.exp(-Math.pow((x - 0.20) / 0.075, 2));
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t  = clock.elapsedTime;
+
+  if (!isDragging) camTheta += dt * 0.13;
+
+  camera.position.set(
+    Math.sin(camTheta) * Math.cos(camPhi) * camRadius,
+    Math.sin(camPhi) * camRadius,
+    Math.cos(camTheta) * Math.cos(camPhi) * camRadius
+  );
+  camera.lookAt(0, 0, 0);
+  camDir.copy(camera.position).normalize();
+
+  const hb = heartbeat((t * 1.15) % 1);
+  const beatScale = 1 + hb * 0.075;
+
+  heartGroup.rotation.y += dt * 0.75;
+  heartGroup.rotation.x  = Math.sin(t * 0.6) * 0.13;
+  heartGroup.position.y  = Math.sin(t * 0.9) * 0.8;
+  heartGroup.scale.setScalar(beatScale);
+
+  ringA.rotation.z += dt * 0.55;
+  ringA.position.y  = Math.sin(t * 0.8) * 1.5;
+  ringB.rotation.z -= dt * 0.38;
+  ringB.position.y  = Math.cos(t * 0.7) * 2.0;
+
+  ringInner.rotation.y -= dt * 0.38;
+  ringInner.rotation.x  = Math.sin(t * 0.4) * 0.06;
+  ringOuter.rotation.y += dt * 0.26;
+  ringOuter.rotation.x  = Math.cos(t * 0.35) * 0.05;
+
+  const processRing = (grp) => {
+    for (const sp of grp.children) {
+      sp.getWorldPosition(worldPos);
+      const d = worldPos.dot(camDir) / 32;
+      const f = THREE.MathUtils.clamp((d + 1) / 2, 0, 1);
+      const e = Math.pow(f, 2.4);
+      sp.material.opacity = 0.06 + e * 0.94;
+      const bs = sp.userData.baseScale;
+      const k  = 0.78 + e * 0.45;
+      sp.scale.set(bs.x * k, bs.y * k, 1);
+    }
+  };
+  processRing(ringInner);
+  processRing(ringOuter);
+
+  for (const sp of floatingHearts) {
+    sp.position.y += sp.userData.speed * dt;
+    const wob = Math.sin(t * 1.6 + sp.userData.phase) * 0.35;
+    sp.position.x += wob * dt;
+    sp.position.z += Math.cos(t * 1.3 + sp.userData.phase) * 0.3 * dt;
+
+    const p = (sp.position.y - FH_RANGE.minY) / (FH_RANGE.maxY - FH_RANGE.minY);
+    const fadeIn  = THREE.MathUtils.clamp(p / 0.18, 0, 1);
+    const fadeOut = THREE.MathUtils.clamp((1 - p) / 0.28, 0, 1);
+    sp.material.opacity = 0.85 * fadeIn * fadeOut;
+
+    const s = sp.userData.baseS * (1 + Math.sin(t * 3 + sp.userData.phase) * 0.08);
+    sp.scale.set(s, s, 1);
+
+    if (sp.position.y > FH_RANGE.maxY) resetFloatingHeart(sp, false);
+  }
+
+  wireMat.opacity  = 0.16 + Math.sin(t * 12.0) * 0.05;
+  edgeMat.opacity  = 0.62 + Math.sin(t * 9.0)  * 0.16;
+  coreMat.opacity  = 0.18 + Math.sin(t * 5.0)  * 0.04 + hb * 0.06;
+  dotMat.opacity   = 0.72 + Math.sin(t * 7.0)  * 0.16;
+  innerMat.opacity = 0.08 + hb * 0.10;
+
+  glow.material.opacity = 0.42 + Math.sin(t * 2.0) * 0.08 + hb * 0.16;
+  glow.scale.setScalar(40 + hb * 5);
+
+  beam.material.opacity = 0.04 + Math.sin(t * 3.0) * 0.014;
+
+  stars.rotation.y += dt * 0.02;
+  stars.rotation.x  = Math.sin(t * 0.2) * 0.05;
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+
+/* ============================================================
+   15. UI: MODAL, JUEGO Y POEMA
+   ============================================================ */
+const modal     = document.getElementById('modal');
+const modalBody = document.getElementById('modalBody');
+const btnGame   = document.getElementById('btnGame');
+const btnPoem   = document.getElementById('btnPoem');
+const modalClose= document.getElementById('modalClose');
+
+let gameCleanup = null;
+
+function openModal(html) {
+  modalBody.innerHTML = html;
+  modal.classList.add('open');
+  requestAnimationFrame(() => modal.classList.add('visible'));
+}
+
+function closeModal() {
+  modal.classList.remove('visible');
+  setTimeout(() => {
+    modal.classList.remove('open');
+    modalBody.innerHTML = '';
+    if (gameCleanup) { gameCleanup(); gameCleanup = null; }
+  }, 350);
+}
+
+modalClose.addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+});
+
+/* ============================================================
+   POEMA
+   ============================================================ */
+const POEMA = `
+  <h2 class="modal-title">Para Neco</h2>
+  <p class="modal-subtitle">Feliz primer aniversario</p>
+  <div class="poem">
+    <p>En el jardín secreto de mis días,<br>donde florecen sueños y alegrías,<br>tu nombre es la luz que me ilumina<br>y el latido que mi pecho encamina.</p>
+    <p>Un año ha florecido a tu lado,<br>cada instante contigo es un regalo,<br>y en este holograma de amor sincero<br>te entrego el corazón, mi mundo entero.</p>
+    <p>Si el tiempo preguntara por mi vida,<br>diría que es tu risa compartida,<br>que es tu mirada, Neco, mi destino,<br>el verso más bonito que he vivido.</p>
+    <p>Y si el universo entero se apagara,<br>mi amor por ti jamás se apagaría,<br>porque eres tú, mi amor, mi poesía,<br>la razón por la que el alma mía late.</p>
+    <p class="firma">Te amo · Siempre tuyo</p>
+  </div>
+`;
+
+btnPoem.addEventListener('click', () => {
+  openModal(POEMA);
+});
+
+/* ============================================================
+   JUEGO: ATRAPA CORAZONES
+   ============================================================ */
+const GAME_HTML = `
+  <h2 class="modal-title">Atrapa corazones</h2>
+  <p class="modal-subtitle">30 segundos · esquiva los rotos</p>
+  <div class="game-hud">
+    <span>Puntos: <span class="score" id="gScore">0</span></span>
+    <span>Tiempo: <span id="gTime">30</span>s</span>
+  </div>
+  <div class="game-wrap">
+    <canvas id="gameCanvas"></canvas>
+  </div>
+  <div class="game-msg" id="gMsg">Mueve la cesta con el dedo, mouse o ← →</div>
+`;
+
+btnGame.addEventListener('click', () => {
+  openModal(GAME_HTML);
+  setTimeout(() => startGame(), 60);
+});
+
+function startGame() {
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('gScore');
+  const timeEl  = document.getElementById('gTime');
+  const msgEl   = document.getElementById('gMsg');
+
+  const W = 400, H = 400;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width  = W * DPR;
+  canvas.height = H * DPR;
+  ctx.scale(DPR, DPR);
+
+  const state = {
+    running: true,
+    score: 0,
+    timeLeft: 30,
+    player: { x: W/2, y: H - 42, w: 66, h: 46, targetX: W/2 },
+    items: [],
+    particles: [],
+    spawnAcc: 0,
+    spawnEvery: 620,
+    lastT: performance.now(),
+    endAt: performance.now() + 30000,
+    keys: {}
+  };
+
+  function onKey(e, down) {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') state.keys.left = down;
+    if (e.key === 'ArrowRight'|| e.key === 'd' || e.key === 'D') state.keys.right = down;
+  }
+  const kd = e => onKey(e, true);
+  const ku = e => onKey(e, false);
+  window.addEventListener('keydown', kd);
+  window.addEventListener('keyup', ku);
+
+  function pointerMove(clientX) {
+    const rect = canvas.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * W;
+    state.player.targetX = Math.max(state.player.w/2, Math.min(W - state.player.w/2, x));
+  }
+  const pm = e => pointerMove(e.clientX);
+  const tm = e => { if (e.touches[0]) pointerMove(e.touches[0].clientX); };
+  canvas.addEventListener('pointermove', pm);
+  canvas.addEventListener('pointerdown', pm);
+  canvas.addEventListener('touchmove', tm, { passive: true });
+  canvas.addEventListener('touchstart', tm, { passive: true });
+
+  gameCleanup = () => {
+    state.running = false;
+    window.removeEventListener('keydown', kd);
+    window.removeEventListener('keyup', ku);
+    canvas.removeEventListener('pointermove', pm);
+    canvas.removeEventListener('pointerdown', pm);
+    canvas.removeEventListener('touchmove', tm);
+    canvas.removeEventListener('touchstart', tm);
+  };
+
+  function spawnItem() {
+    const isBroken = Math.random() < 0.28;
+    state.items.push({
+      x: 30 + Math.random() * (W - 60),
+      y: -30,
+      vy: 1.6 + Math.random() * 1.6,
+      size: 20 + Math.random() * 8,
+      broken: isBroken,
+      rot: (Math.random() - 0.5) * 0.02,
+      angle: 0
+    });
+  }
+
+  function burst(x, y, color) {
+    for (let i = 0; i < 10; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = 1 + Math.random() * 3;
+      state.particles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s - 0.5,
+        life: 1,
+        color
+      });
+    }
+  }
+
+  function drawHeart(x, y, size, color, broken, alpha = 1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    const s = size / 100;
+    ctx.scale(s, s);
+    ctx.beginPath();
+    ctx.moveTo(0, -30);
+    ctx.bezierCurveTo(-50, -80, -100, -20, 0, 50);
+    ctx.bezierCurveTo(100, -20, 50, -80, 0, -30);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 20;
+    ctx.fill();
+
+    if (broken) {
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-6, -55);
+      ctx.lineTo(4, -20);
+      ctx.lineTo(-8, 6);
+      ctx.lineTo(6, 32);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function loop(now) {
+    if (!state.running) return;
+
+    const dt = Math.min((now - state.lastT) / 16.67, 3);
+    state.lastT = now;
+
+    const remain = Math.max(0, state.endAt - now);
+    state.timeLeft = Math.ceil(remain / 1000);
+    timeEl.textContent = state.timeLeft;
+
+    if (state.keys.left)  state.player.targetX -= 5.2 * dt;
+    if (state.keys.right) state.player.targetX += 5.2 * dt;
+    state.player.targetX = Math.max(state.player.w/2, Math.min(W - state.player.w/2, state.player.targetX));
+    state.player.x += (state.player.targetX - state.player.x) * 0.22 * dt;
+
+    state.spawnAcc += dt * 16.67;
+    if (state.spawnAcc > state.spawnEvery) {
+      state.spawnAcc = 0;
+      spawnItem();
+    }
+
+    for (let i = state.items.length - 1; i >= 0; i--) {
+      const it = state.items[i];
+      it.y += it.vy * dt;
+      it.angle += it.rot * dt;
+
+      const dx = Math.abs(it.x - state.player.x);
+      const dy = Math.abs(it.y - (state.player.y - state.player.h/2 + 6));
+      if (dx < state.player.w/2 + it.size/2 - 8 && dy < state.player.h/2 + it.size/2 - 6) {
+        if (it.broken) {
+          state.score = Math.max(0, state.score - 1);
+          burst(it.x, it.y, 'rgba(255,80,120,0.9)');
+        } else {
+          state.score += 1;
+          burst(it.x, it.y, 'rgba(255,143,208,0.95)');
+        }
+        scoreEl.textContent = state.score;
+        state.items.splice(i, 1);
+        continue;
+      }
+
+      if (it.y > H + 40) state.items.splice(i, 1);
+    }
+
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+      const p = state.particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 0.08 * dt;
+      p.life -= 0.025 * dt;
+      if (p.life <= 0) state.particles.splice(i, 1);
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.globalAlpha = 0.45;
+    for (let i = 0; i < 22; i++) {
+      const sx = (i * 73) % W;
+      const sy = (i * 131 + now * 0.02) % H;
+      ctx.fillStyle = 'rgba(120,240,255,0.35)';
+      ctx.fillRect(sx, sy, 1.4, 1.4);
+    }
+    ctx.restore();
+
+    for (const it of state.items) {
+      ctx.save();
+      ctx.translate(it.x, it.y);
+      ctx.rotate(it.angle);
+      if (it.broken) {
+        drawHeart(0, 0, it.size, '#5f8fff', true, 0.92);
+      } else {
+        drawHeart(0, 0, it.size, '#ff4fa3', false, 0.95);
+      }
+      ctx.restore();
+    }
+
+    for (const p of state.particles) {
+      ctx.save();
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    drawHeart(state.player.x, state.player.y, 62, '#00e5ff', false, 0.95);
+
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    const grad = ctx.createRadialGradient(state.player.x, state.player.y + 22, 4, state.player.x, state.player.y + 22, 40);
+    grad.addColorStop(0, 'rgba(0,229,255,0.55)');
+    grad.addColorStop(1, 'rgba(0,229,255,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(state.player.x - 50, state.player.y - 6, 100, 60);
+    ctx.restore();
+
+    if (remain <= 0) {
+      state.running = false;
+      let mensaje;
+      if (state.score >= 28)      mensaje = `¡${state.score} puntos! Eres perfecta para mí, Neco 💖`;
+      else if (state.score >= 18) mensaje = `¡${state.score} puntos! Increíble, te amo más 💗`;
+      else if (state.score >= 10) mensaje = `${state.score} puntos. ¡Bien! Eres mi corazón 💓`;
+      else if (state.score >= 4)  mensaje = `${state.score} puntos. Sigue intentando, mi amor 💕`;
+      else                        mensaje = `${state.score} puntos. Igual te amo muchísimo 💝`;
+
+      msgEl.innerHTML = `${mensaje}<br><span style="opacity:.75;font-size:11px;letter-spacing:2px;">Toca la pantalla para volver a jugar</span>`;
+
+      const restart = () => {
+        canvas.removeEventListener('pointerdown', restart);
+        canvas.removeEventListener('touchstart', restart);
+        state.running = true;
+        state.score = 0;
+        state.items = [];
+        state.particles = [];
+        state.spawnAcc = 0;
+        state.endAt = performance.now() + 30000;
+        state.lastT = performance.now();
+        scoreEl.textContent = 0;
+        msgEl.textContent = 'Mueve la cesta con el dedo, mouse o ← →';
+        loop(performance.now());
+      };
+      setTimeout(() => {
+        canvas.addEventListener('pointerdown', restart);
+        canvas.addEventListener('touchstart', restart);
+      }, 400);
+      return;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
