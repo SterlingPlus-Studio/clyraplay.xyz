@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Holograma 3D · Neco, te amo mucho</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +15,8 @@
     background: #05000c;
     font-family: "Segoe UI", Roboto, Arial, sans-serif;
     cursor: grab;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
   }
   body:active { cursor: grabbing; }
 
@@ -26,7 +28,13 @@
     pointer-events: none;
   }
 
-  canvas { display: block; position: relative; z-index: 2; }
+  canvas#scene {
+    display: block; position: relative; z-index: 2;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
 
   .scanlines {
     position: fixed; inset: -100px 0 0 0; z-index: 3;
@@ -48,15 +56,12 @@
     background: radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.82) 100%);
   }
 
-  /* ============================================================
-     HUD
-     ============================================================ */
   .hud {
     position: fixed; top: 20px; left: 22px; z-index: 5;
     color: #ffd8f0; pointer-events: none;
     animation: flicker 5s infinite;
     line-height: 1.45;
-    max-width: calc(100vw - 130px);   /* deja hueco a los botones */
+    max-width: calc(100vw - 130px);
   }
   .hud .line1 {
     font-family: "Montserrat", sans-serif;
@@ -116,9 +121,6 @@
     white-space: nowrap;
   }
 
-  /* ============================================================
-     BOTONES
-     ============================================================ */
   .controls {
     position: fixed; top: 20px; right: 20px; z-index: 6;
     display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;
@@ -136,7 +138,7 @@
       rgba(0,229,255,0.18) 100%);
     border: 1px solid rgba(159,249,255,0.55);
     border-radius: 999px;
-    padding: 10px 16px;
+    padding: 9px 16px 9px 14px;
     cursor: pointer;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -149,11 +151,24 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 9px;
     line-height: 1;
   }
-  .holo-btn .btn-icon { font-size: 14px; line-height: 1; }
-  .holo-btn .btn-text { line-height: 1; }
+  .holo-btn .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    flex: 0 0 auto;
+    color: #ff8fd0;
+    filter: drop-shadow(0 0 6px rgba(255,60,160,0.65));
+    transition: color .28s ease, filter .28s ease;
+  }
+  .holo-btn .btn-icon svg {
+    width: 100%; height: 100%;
+    display: block;
+    stroke: currentColor;
+  }
   .holo-btn:hover {
     color: #ffffff;
     border-color: rgba(255,143,208,0.95);
@@ -163,17 +178,22 @@
       inset 0 0 18px rgba(255,95,176,0.35);
     transform: translateY(-1px);
   }
+  .holo-btn:hover .btn-icon {
+    color: #ffffff;
+    filter: drop-shadow(0 0 8px rgba(255,120,200,0.95));
+  }
   .holo-btn:active { transform: translateY(0) scale(.97); }
 
-  /* ============================================================
-     MODAL — fondo transparente para que el holograma siga visible
-     ============================================================ */
   .modal {
     position: fixed; inset: 0; z-index: 20;
     display: none;
-    align-items: center; justify-content: center;
-    padding: 24px;
-    background: rgba(4,0,14,0.18);
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: max(20px, env(safe-area-inset-top)) 16px
+             max(30px, env(safe-area-inset-bottom));
+    background: rgba(4,0,14,0.20);
     opacity: 0;
     transition: opacity .35s ease;
     pointer-events: auto;
@@ -184,30 +204,23 @@
   .modal-content {
     position: relative;
     width: 100%; max-width: 520px;
-    max-height: 88vh;
-    overflow-y: auto;
+    margin: auto 0;
     background: linear-gradient(160deg,
-      rgba(24,6,36,0.42) 0%,
-      rgba(8,4,22,0.55) 100%);
+      rgba(24,6,36,0.55) 0%,
+      rgba(8,4,22,0.68) 100%);
     border: 1px solid rgba(159,249,255,0.45);
     border-radius: 22px;
-    padding: 30px 26px 26px;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    padding: 30px 22px 26px;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     box-shadow:
       0 0 40px rgba(255,60,160,0.35),
       0 0 80px rgba(0,229,255,0.22),
       inset 0 0 40px rgba(255,95,176,0.08);
     transform: scale(0.94);
     transition: transform .38s cubic-bezier(.2,.9,.3,1.2);
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,143,208,0.5) transparent;
   }
   .modal.visible .modal-content { transform: scale(1); }
-  .modal-content::-webkit-scrollbar { width: 6px; }
-  .modal-content::-webkit-scrollbar-thumb {
-    background: rgba(255,143,208,0.45); border-radius: 6px;
-  }
 
   .modal-close {
     position: absolute; top: 12px; right: 14px;
@@ -216,13 +229,19 @@
     background: rgba(255,47,139,0.22);
     border: 1px solid rgba(255,143,208,0.5);
     color: #ff9fd8;
-    font-size: 18px; line-height: 1;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all .25s ease;
-    font-family: "Montserrat", sans-serif;
-    font-weight: 300;
     backdrop-filter: blur(4px);
+    z-index: 1;
+    padding: 0;
+  }
+  .modal-close svg {
+    width: 14px; height: 14px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    fill: none;
   }
   .modal-close:hover {
     background: rgba(255,47,139,0.45);
@@ -253,12 +272,9 @@
     text-shadow: 0 0 10px rgba(0,255,255,0.95);
   }
 
-  /* ============================================================
-     JUEGO
-     ============================================================ */
   .game-wrap {
     width: 100%;
-    max-width: 400px;
+    max-width: min(400px, 78vw);
     margin: 0 auto;
     aspect-ratio: 1 / 1;
     border-radius: 16px;
@@ -273,7 +289,13 @@
     position: relative;
     backdrop-filter: blur(3px);
   }
-  #gameCanvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  #gameCanvas {
+    display: block; width: 100%; height: 100%;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
 
   .game-hud {
     display: flex; justify-content: space-between;
@@ -286,6 +308,47 @@
     text-shadow: 0 0 10px rgba(0,255,255,0.9);
   }
   .game-hud .score { color: #ff9fd8; text-shadow: 0 0 10px rgba(255,60,160,1); }
+  .game-hud .time  { color: #ffd166; text-shadow: 0 0 10px rgba(255,210,80,0.95); }
+
+  /* Leyenda de ítems */
+  .game-legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-family: "Montserrat", sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: #ffe4f5;
+    text-shadow: 0 0 8px rgba(255,80,180,0.7);
+  }
+  .game-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .game-legend .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex: 0 0 auto;
+  }
+  .game-legend .legend-dot.pink {
+    background: #ff4fa3;
+    box-shadow: 0 0 10px #ff4fa3, 0 0 18px rgba(255,79,163,0.6);
+  }
+  .game-legend .legend-dot.gold {
+    background: #ffd166;
+    box-shadow: 0 0 10px #ffd166, 0 0 18px rgba(255,209,102,0.6);
+  }
+  .game-legend .legend-dot.blue {
+    background: #5f8fff;
+    box-shadow: 0 0 10px #5f8fff, 0 0 18px rgba(95,143,255,0.6);
+  }
 
   .game-msg {
     text-align: center;
@@ -293,31 +356,29 @@
     font-weight: 300;
     font-size: 12px; letter-spacing: 2px;
     color: #ffe4f5;
-    padding: 10px 6px 2px;
+    padding: 12px 6px 2px;
     text-shadow: 0 0 12px rgba(255,80,180,0.9);
     min-height: 20px;
+    line-height: 1.5;
   }
 
-  /* ============================================================
-     POEMA
-     ============================================================ */
   .poem {
     font-family: "Montserrat", sans-serif;
     font-style: italic;
     font-weight: 300;
-    font-size: clamp(14px, 2.4vw, 17px);
-    line-height: 2;
+    font-size: clamp(13px, 3.4vw, 17px);
+    line-height: 1.9;
     color: #ffffff;
     text-align: center;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.4px;
     text-shadow:
       0 0 14px rgba(255,80,180,0.85),
       0 0 30px rgba(0,229,255,0.5),
-      0 2px 8px rgba(0,0,0,0.8);
-    padding: 4px 6px;
+      0 2px 8px rgba(0,0,0,0.85);
+    padding: 4px 2px;
   }
   .poem p {
-    margin: 0 0 22px 0;
+    margin: 0 0 20px 0;
     opacity: 0;
     animation: fadeUp 1s ease forwards;
   }
@@ -333,7 +394,7 @@
     letter-spacing: 5px;
     text-transform: uppercase;
     color: #ff9fd8;
-    margin-top: 12px;
+    margin-top: 8px;
     text-shadow: 0 0 14px rgba(255,60,160,1);
   }
   @keyframes fadeUp {
@@ -341,14 +402,8 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ============================================================
-     MÓVIL: botones solo ícono, más pequeños, HUD más compacto
-     ============================================================ */
   @media (max-width: 560px) {
-    .hud {
-      top: 14px; left: 16px;
-      max-width: calc(100vw - 108px);
-    }
+    .hud { top: 14px; left: 16px; max-width: calc(100vw - 108px); }
     .hud .line1 { font-size: 11px; letter-spacing: 3px; }
     .hud .line2 { font-size: 8px;  letter-spacing: 4px; padding-left: 15px; }
     .hud .dot   { width: 7px; height: 7px; margin-right: 8px; }
@@ -356,24 +411,25 @@
     .controls { top: 14px; right: 12px; gap: 8px; }
 
     .holo-btn {
-      width: 38px; height: 38px;
-      padding: 0;
-      border-radius: 50%;
-      gap: 0;
-      font-size: 0;               /* oculta el texto */
-      letter-spacing: 0;
+      width: 40px; height: 40px;
+      padding: 0; border-radius: 50%; gap: 0;
     }
-    .holo-btn .btn-icon { font-size: 17px; }
+    .holo-btn .btn-icon { width: 17px; height: 17px; }
     .holo-btn .btn-text { display: none; }
 
-    .modal-content { padding: 26px 18px 20px; }
+    .modal { padding: max(12px, env(safe-area-inset-top)) 12px
+                     max(20px, env(safe-area-inset-bottom)); }
+    .modal-content { padding: 26px 16px 22px; border-radius: 18px; }
+    .poem { font-size: 13.5px; line-height: 1.85; }
+    .poem p { margin-bottom: 16px; }
+    .game-wrap { max-width: 88vw; }
   }
 
   @media (max-width: 360px) {
     .hud .line1 { font-size: 10px; letter-spacing: 2.5px; }
     .hud .line2 { font-size: 7.5px; letter-spacing: 3.5px; }
-    .holo-btn { width: 34px; height: 34px; }
-    .holo-btn .btn-icon { font-size: 15px; }
+    .holo-btn { width: 36px; height: 36px; }
+    .holo-btn .btn-icon { width: 15px; height: 15px; }
   }
 </style>
 </head>
@@ -389,23 +445,41 @@
   <div class="line2">Feliz primer aniversario</div>
 </div>
 
-<!-- BOTONES (icono + texto, en móvil solo icono) -->
 <div class="controls">
   <button id="btnGame" class="holo-btn" aria-label="Mini Juego">
-    <span class="btn-icon">💗</span><span class="btn-text">Mini Juego</span>
+    <span class="btn-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </span>
+    <span class="btn-text">Mini Juego</span>
   </button>
+
   <button id="btnPoem" class="holo-btn" aria-label="Poema">
-    <span class="btn-icon">📜</span><span class="btn-text">Poema</span>
+    <span class="btn-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
+        <line x1="16" y1="8" x2="2" y2="22"/>
+        <line x1="17.5" y1="15" x2="9" y2="15"/>
+      </svg>
+    </span>
+    <span class="btn-text">Poema</span>
   </button>
 </div>
 
 <div id="sub"></div>
 <div class="hint">Arrastra para girar la proyección</div>
 
-<!-- MODAL -->
 <div id="modal" class="modal">
   <div class="modal-content">
-    <button class="modal-close" id="modalClose" aria-label="Cerrar">×</button>
+    <button class="modal-close" id="modalClose" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="6" y1="6" x2="18" y2="18"/>
+        <line x1="18" y1="6" x2="6" y2="18"/>
+      </svg>
+    </button>
     <div id="modalBody"></div>
   </div>
 </div>
@@ -430,7 +504,7 @@ let camPhi    = 0.10;
 let camRadius = 68;
 
 /* ============================================================
-   2. CORAZÓN BÉZIER CLÁSICO
+   2. CORAZÓN BÉZIER
    ============================================================ */
 const heartShape = new THREE.Shape();
 const SC = 0.36;
@@ -446,15 +520,11 @@ heartShape.bezierCurveTo(...P(88, 0),  ...P(100, 10),...P(100, 25));
 heartShape.bezierCurveTo(...P(100, 45),...P(80, 65), ...P(50, 88));
 
 /* ============================================================
-   3. EXTRUIDO + INFLADO 3D
+   3. EXTRUIDO + INFLADO
    ============================================================ */
 const heartGeo = new THREE.ExtrudeGeometry(heartShape, {
-  depth: 3.0,
-  bevelEnabled: true,
-  bevelSegments: 8,
-  bevelSize: 1.0,
-  bevelThickness: 1.2,
-  curveSegments: 24
+  depth: 3.0, bevelEnabled: true, bevelSegments: 8,
+  bevelSize: 1.0, bevelThickness: 1.2, curveSegments: 24
 });
 heartGeo.center();
 heartGeo.computeVertexNormals();
@@ -481,7 +551,7 @@ heartGeo.computeVertexNormals();
 })(heartGeo, 2.6);
 
 /* ============================================================
-   4. UN SOLO CORAZÓN
+   4. CORAZÓN ÚNICO
    ============================================================ */
 const heartGroup = new THREE.Group();
 scene.add(heartGroup);
@@ -519,7 +589,7 @@ const dotMat = new THREE.PointsMaterial({
 heartGroup.add(new THREE.Points(heartGeo.clone(), dotMat));
 
 /* ============================================================
-   5. ANILLOS DE ESCANEO
+   5. ANILLOS
    ============================================================ */
 function makeRing(radius, tube, color, opacity) {
   const geo = new THREE.TorusGeometry(radius, tube, 6, 140);
@@ -563,7 +633,7 @@ glow.position.z = -9;
 scene.add(glow);
 
 /* ============================================================
-   7. HAZ DEL PROYECTOR
+   7. HAZ
    ============================================================ */
 const beam = new THREE.Mesh(
   new THREE.ConeGeometry(13, 32, 48, 1, true),
@@ -577,7 +647,7 @@ beam.position.y = -17;
 scene.add(beam);
 
 /* ============================================================
-   8. POLVO HOLOGRÁFICO
+   8. POLVO
    ============================================================ */
 const N = 480;
 const pPos = new Float32Array(N * 3);
@@ -598,7 +668,7 @@ const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
 scene.add(stars);
 
 /* ============================================================
-   9. FRASES FLOTANTES — MISMA FUENTE QUE EL HUD
+   9. FRASES FLOTANTES
    ============================================================ */
 const FRASES_INNER = [
   'Eres mi todo', 'Te amo infinito', 'Mi corazón es tuyo', 'Contigo soy feliz',
@@ -639,14 +709,12 @@ function makeTextSprite(text, color = '#9ff9ff') {
     ctx.fillText(chars[i], x + widths[i]/2, c.height/2);
     x += widths[i] + tracking;
   }
-
   ctx.shadowBlur = 12;
   x = (c.width - totalW) / 2;
   for (let i = 0; i < chars.length; i++) {
     ctx.fillText(chars[i], x + widths[i]/2, c.height/2);
     x += widths[i] + tracking;
   }
-
   ctx.shadowBlur = 5;
   ctx.fillStyle  = '#ffffff';
   x = (c.width - totalW) / 2;
@@ -690,7 +758,7 @@ const ringInner = buildRing(FRASES_INNER, 20, 5.0, '#9ff9ff', 0);
 const ringOuter = buildRing(FRASES_OUTER, 28, 6.8, '#ff9fd8', Math.PI / 8);
 
 /* ============================================================
-   10. MINI CORAZONES FLOTANTES
+   10. MINI CORAZONES
    ============================================================ */
 function makeMiniHeartTexture() {
   const c = document.createElement('canvas');
@@ -730,7 +798,6 @@ function resetFloatingHeart(sp, initial = false) {
     Math.sin(a) * r
   );
   sp.userData.speed = 1.4 + Math.random() * 2.2;
-  sp.userData.spin  = (Math.random() - 0.5) * 0.8;
   sp.userData.baseS = 0.7 + Math.random() * 1.6;
   sp.userData.phase = Math.random() * Math.PI * 2;
 }
@@ -751,24 +818,46 @@ for (let i = 0; i < FH_COUNT; i++) {
 /* ============================================================
    11. INTERACCIÓN
    ============================================================ */
-let isDragging = false, lastX = 0, lastY = 0;
+let isDragging = false;
+let lastX = 0, lastY = 0;
 
-canvas.addEventListener('pointerdown', e => {
-  isDragging = true; lastX = e.clientX; lastY = e.clientY;
-  canvas.setPointerCapture(e.pointerId);
-});
-canvas.addEventListener('pointerup', e => {
-  isDragging = false;
-  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
-});
-canvas.addEventListener('pointermove', e => {
+function startDrag(x, y) { isDragging = true; lastX = x; lastY = y; }
+function moveDrag(x, y) {
   if (!isDragging) return;
-  const dx = e.clientX - lastX;
-  const dy = e.clientY - lastY;
-  lastX = e.clientX; lastY = e.clientY;
+  const dx = x - lastX, dy = y - lastY;
+  lastX = x; lastY = y;
   camTheta -= dx * 0.006;
   camPhi    = THREE.MathUtils.clamp(camPhi - dy * 0.005, -0.55, 0.85);
+}
+function endDrag() { isDragging = false; }
+
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch') return;
+  startDrag(e.clientX, e.clientY);
+  try { canvas.setPointerCapture(e.pointerId); } catch(_){}
 });
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return;
+  moveDrag(e.clientX, e.clientY);
+});
+canvas.addEventListener('pointerup', e => {
+  if (e.pointerType === 'touch') return;
+  endDrag();
+});
+canvas.addEventListener('pointercancel', () => endDrag());
+
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length !== 1) return;
+  e.preventDefault();
+  startDrag(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length !== 1) return;
+  e.preventDefault();
+  moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+canvas.addEventListener('touchend',    () => endDrag(), { passive: true });
+canvas.addEventListener('touchcancel', () => endDrag(), { passive: true });
 
 /* ============================================================
    12. RESPONSIVE
@@ -785,7 +874,7 @@ window.addEventListener('resize', resize);
 resize();
 
 /* ============================================================
-   13. SUBTÍTULO ROMÁNTICO
+   13. SUBTÍTULO
    ============================================================ */
 const FRASES_LARGAS = [
   'Neco, te amo mucho… feliz primer aniversario.',
@@ -914,7 +1003,7 @@ animate();
 
 
 /* ============================================================
-   15. UI: MODAL, JUEGO Y POEMA
+   15. UI
    ============================================================ */
 const modal     = document.getElementById('modal');
 const modalBody = document.getElementById('modalBody');
@@ -927,6 +1016,7 @@ let gameCleanup = null;
 function openModal(html) {
   modalBody.innerHTML = html;
   modal.classList.add('open');
+  modal.scrollTop = 0;
   requestAnimationFrame(() => modal.classList.add('visible'));
 }
 
@@ -960,22 +1050,25 @@ const POEMA = `
   </div>
 `;
 
-btnPoem.addEventListener('click', () => {
-  openModal(POEMA);
-});
+btnPoem.addEventListener('click', () => openModal(POEMA));
 
 /* ============================================================
-   JUEGO: ATRAPA CORAZONES
+   JUEGO — 60 seg, rotos -5s, estrellas +5s
    ============================================================ */
 const GAME_HTML = `
   <h2 class="modal-title">Atrapa corazones</h2>
-  <p class="modal-subtitle">30 segundos · esquiva los rotos</p>
+  <p class="modal-subtitle">60 segundos · suma tiempo</p>
   <div class="game-hud">
     <span>Puntos: <span class="score" id="gScore">0</span></span>
-    <span>Tiempo: <span id="gTime">30</span>s</span>
+    <span>Tiempo: <span class="time" id="gTime">60</span>s</span>
   </div>
   <div class="game-wrap">
     <canvas id="gameCanvas"></canvas>
+  </div>
+  <div class="game-legend">
+    <div class="legend-item"><span class="legend-dot pink"></span>+1 punto</div>
+    <div class="legend-item"><span class="legend-dot gold"></span>+5 seg</div>
+    <div class="legend-item"><span class="legend-dot blue"></span>−5 seg</div>
   </div>
   <div class="game-msg" id="gMsg">Mueve la cesta con el dedo, mouse o ← →</div>
 `;
@@ -984,6 +1077,8 @@ btnGame.addEventListener('click', () => {
   openModal(GAME_HTML);
   setTimeout(() => startGame(), 60);
 });
+
+const GAME_DURATION = 60000;   // 60 segundos
 
 function startGame() {
   const canvas = document.getElementById('gameCanvas');
@@ -996,20 +1091,21 @@ function startGame() {
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width  = W * DPR;
   canvas.height = H * DPR;
-  ctx.scale(DPR, DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
   const state = {
     running: true,
     score: 0,
-    timeLeft: 30,
-    player: { x: W/2, y: H - 42, w: 66, h: 46, targetX: W/2 },
+    player: { x: W/2, y: H - 42, targetX: W/2 },
     items: [],
     particles: [],
     spawnAcc: 0,
-    spawnEvery: 620,
+    spawnEvery: 640,
     lastT: performance.now(),
-    endAt: performance.now() + 30000,
-    keys: {}
+    endAt: performance.now() + GAME_DURATION,
+    keys: {},
+    hurtFlash: 0,
+    bonusFlash: 0
   };
 
   function onKey(e, down) {
@@ -1021,17 +1117,20 @@ function startGame() {
   window.addEventListener('keydown', kd);
   window.addEventListener('keyup', ku);
 
+  const playerHalf = 32;
   function pointerMove(clientX) {
     const rect = canvas.getBoundingClientRect();
     const x = ((clientX - rect.left) / rect.width) * W;
-    state.player.targetX = Math.max(state.player.w/2, Math.min(W - state.player.w/2, x));
+    state.player.targetX = Math.max(playerHalf, Math.min(W - playerHalf, x));
   }
-  const pm = e => pointerMove(e.clientX);
-  const tm = e => { if (e.touches[0]) pointerMove(e.touches[0].clientX); };
-  canvas.addEventListener('pointermove', pm);
-  canvas.addEventListener('pointerdown', pm);
-  canvas.addEventListener('touchmove', tm, { passive: true });
-  canvas.addEventListener('touchstart', tm, { passive: true });
+  const pm = e => { e.preventDefault(); pointerMove(e.clientX); };
+  const tm = e => {
+    if (e.touches[0]) { e.preventDefault(); pointerMove(e.touches[0].clientX); }
+  };
+  canvas.addEventListener('pointermove', pm, { passive: false });
+  canvas.addEventListener('pointerdown', pm, { passive: false });
+  canvas.addEventListener('touchmove',  tm, { passive: false });
+  canvas.addEventListener('touchstart', tm, { passive: false });
 
   gameCleanup = () => {
     state.running = false;
@@ -1043,29 +1142,32 @@ function startGame() {
     canvas.removeEventListener('touchstart', tm);
   };
 
+  // Tipos de ítem: 'good' (rosa +1), 'time' (oro +5s), 'broken' (azul -5s)
   function spawnItem() {
-    const isBroken = Math.random() < 0.28;
+    const r = Math.random();
+    let type;
+    if (r < 0.16)       type = 'time';      // 16%  estrella dorada
+    else if (r < 0.42)  type = 'broken';    // 26%  corazón roto
+    else                type = 'good';      // 58%  corazón rosa
+
     state.items.push({
       x: 30 + Math.random() * (W - 60),
       y: -30,
       vy: 1.6 + Math.random() * 1.6,
-      size: 20 + Math.random() * 8,
-      broken: isBroken,
+      size: type === 'time' ? 26 : 20 + Math.random() * 8,
+      type,
       rot: (Math.random() - 0.5) * 0.02,
       angle: 0
     });
   }
 
-  function burst(x, y, color) {
-    for (let i = 0; i < 10; i++) {
+  function burst(x, y, color, count = 12) {
+    for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
       const s = 1 + Math.random() * 3;
       state.particles.push({
-        x, y,
-        vx: Math.cos(a) * s,
-        vy: Math.sin(a) * s - 0.5,
-        life: 1,
-        color
+        x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 0.5,
+        life: 1, color
       });
     }
   }
@@ -1084,20 +1186,61 @@ function startGame() {
     ctx.shadowColor = color;
     ctx.shadowBlur = 20;
     ctx.fill();
-
     if (broken) {
       ctx.shadowBlur = 0;
       ctx.strokeStyle = 'rgba(0,0,0,0.65)';
       ctx.lineWidth = 4;
       ctx.beginPath();
-      ctx.moveTo(-6, -55);
-      ctx.lineTo(4, -20);
-      ctx.lineTo(-8, 6);
-      ctx.lineTo(6, 32);
+      ctx.moveTo(-6, -55); ctx.lineTo(4, -20);
+      ctx.lineTo(-8, 6);   ctx.lineTo(6, 32);
       ctx.stroke();
     }
     ctx.restore();
   }
+
+  // Estrella dorada para el bono de tiempo
+  function drawStar(x, y, size, color, alpha = 1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    const spikes = 5;
+    const outerR = size;
+    const innerR = size * 0.44;
+    ctx.beginPath();
+    for (let i = 0; i < spikes * 2; i++) {
+      const r = i % 2 === 0 ? outerR : innerR;
+      const a = (i * Math.PI) / spikes - Math.PI / 2;
+      const px = Math.cos(a) * r;
+      const py = Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else         ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 22;
+    ctx.fill();
+
+    // núcleo blanco
+    ctx.shadowBlur = 8;
+    ctx.globalAlpha = alpha * 0.65;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    for (let i = 0; i < spikes * 2; i++) {
+      const r = (i % 2 === 0 ? outerR : innerR) * 0.55;
+      const a = (i * Math.PI) / spikes - Math.PI / 2;
+      const px = Math.cos(a) * r;
+      const py = Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else         ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const CATCH_RADIUS = 24;
+  const CATCH_DY     = -14;
 
   function loop(now) {
     if (!state.running) return;
@@ -1106,12 +1249,11 @@ function startGame() {
     state.lastT = now;
 
     const remain = Math.max(0, state.endAt - now);
-    state.timeLeft = Math.ceil(remain / 1000);
-    timeEl.textContent = state.timeLeft;
+    timeEl.textContent = Math.ceil(remain / 1000);
 
     if (state.keys.left)  state.player.targetX -= 5.2 * dt;
     if (state.keys.right) state.player.targetX += 5.2 * dt;
-    state.player.targetX = Math.max(state.player.w/2, Math.min(W - state.player.w/2, state.player.targetX));
+    state.player.targetX = Math.max(playerHalf, Math.min(W - playerHalf, state.player.targetX));
     state.player.x += (state.player.targetX - state.player.x) * 0.22 * dt;
 
     state.spawnAcc += dt * 16.67;
@@ -1120,22 +1262,36 @@ function startGame() {
       spawnItem();
     }
 
+    // Colisiones
     for (let i = state.items.length - 1; i >= 0; i--) {
       const it = state.items[i];
       it.y += it.vy * dt;
       it.angle += it.rot * dt;
 
-      const dx = Math.abs(it.x - state.player.x);
-      const dy = Math.abs(it.y - (state.player.y - state.player.h/2 + 6));
-      if (dx < state.player.w/2 + it.size/2 - 8 && dy < state.player.h/2 + it.size/2 - 6) {
-        if (it.broken) {
-          state.score = Math.max(0, state.score - 1);
-          burst(it.x, it.y, 'rgba(255,80,120,0.9)');
+      const cx = state.player.x;
+      const cy = state.player.y + CATCH_DY;
+      const dx = it.x - cx;
+      const dy = it.y - cy;
+      const itR = it.size * 0.42;
+      const limit = CATCH_RADIUS + itR;
+
+      if (dx*dx + dy*dy < limit * limit) {
+        if (it.type === 'broken') {
+          // -5 segundos + flash rojo
+          state.endAt -= 5000;
+          state.hurtFlash = 1;
+          burst(it.x, it.y, 'rgba(255,80,120,0.95)', 14);
+        } else if (it.type === 'time') {
+          // +5 segundos + flash dorado
+          state.endAt += 5000;
+          state.bonusFlash = 1;
+          burst(it.x, it.y, 'rgba(255,210,80,0.98)', 18);
         } else {
+          // +1 punto
           state.score += 1;
-          burst(it.x, it.y, 'rgba(255,143,208,0.95)');
+          scoreEl.textContent = state.score;
+          burst(it.x, it.y, 'rgba(255,143,208,0.95)', 12);
         }
-        scoreEl.textContent = state.score;
         state.items.splice(i, 1);
         continue;
       }
@@ -1143,17 +1299,18 @@ function startGame() {
       if (it.y > H + 40) state.items.splice(i, 1);
     }
 
+    // Partículas
     for (let i = state.particles.length - 1; i >= 0; i--) {
       const p = state.particles[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += 0.08 * dt;
-      p.life -= 0.025 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vy += 0.08 * dt; p.life -= 0.025 * dt;
       if (p.life <= 0) state.particles.splice(i, 1);
     }
 
+    // ---- Render ----
     ctx.clearRect(0, 0, W, H);
 
+    // estrellas de fondo
     ctx.save();
     ctx.globalAlpha = 0.45;
     for (let i = 0; i < 22; i++) {
@@ -1164,18 +1321,22 @@ function startGame() {
     }
     ctx.restore();
 
+    // ítems
     for (const it of state.items) {
       ctx.save();
       ctx.translate(it.x, it.y);
       ctx.rotate(it.angle);
-      if (it.broken) {
+      if (it.type === 'broken') {
         drawHeart(0, 0, it.size, '#5f8fff', true, 0.92);
+      } else if (it.type === 'time') {
+        drawStar(0, 0, it.size * 0.95, '#ffd166', 0.95);
       } else {
         drawHeart(0, 0, it.size, '#ff4fa3', false, 0.95);
       }
       ctx.restore();
     }
 
+    // partículas
     for (const p of state.particles) {
       ctx.save();
       ctx.globalAlpha = p.life;
@@ -1188,29 +1349,47 @@ function startGame() {
       ctx.restore();
     }
 
+    // cesta
     drawHeart(state.player.x, state.player.y, 62, '#00e5ff', false, 0.95);
 
+    // aura cesta
     ctx.save();
     ctx.globalAlpha = 0.5;
-    const grad = ctx.createRadialGradient(state.player.x, state.player.y + 22, 4, state.player.x, state.player.y + 22, 40);
+    const grad = ctx.createRadialGradient(
+      state.player.x, state.player.y + 22, 4,
+      state.player.x, state.player.y + 22, 40);
     grad.addColorStop(0, 'rgba(0,229,255,0.55)');
     grad.addColorStop(1, 'rgba(0,229,255,0)');
     ctx.fillStyle = grad;
     ctx.fillRect(state.player.x - 50, state.player.y - 6, 100, 60);
     ctx.restore();
 
+    // Flashes de feedback
+    if (state.hurtFlash > 0) {
+      ctx.fillStyle = `rgba(255,60,100,${state.hurtFlash * 0.38})`;
+      ctx.fillRect(0, 0, W, H);
+      state.hurtFlash = Math.max(0, state.hurtFlash - 0.028 * dt);
+    }
+    if (state.bonusFlash > 0) {
+      ctx.fillStyle = `rgba(255,210,80,${state.bonusFlash * 0.32})`;
+      ctx.fillRect(0, 0, W, H);
+      state.bonusFlash = Math.max(0, state.bonusFlash - 0.028 * dt);
+    }
+
+    // Fin de partida
     if (remain <= 0) {
       state.running = false;
       let mensaje;
-      if (state.score >= 28)      mensaje = `¡${state.score} puntos! Eres perfecta para mí, Neco 💖`;
-      else if (state.score >= 18) mensaje = `¡${state.score} puntos! Increíble, te amo más 💗`;
-      else if (state.score >= 10) mensaje = `${state.score} puntos. ¡Bien! Eres mi corazón 💓`;
-      else if (state.score >= 4)  mensaje = `${state.score} puntos. Sigue intentando, mi amor 💕`;
-      else                        mensaje = `${state.score} puntos. Igual te amo muchísimo 💝`;
+      if (state.score >= 45)      mensaje = `¡${state.score} puntos! Eres perfecta para mí, Neco`;
+      else if (state.score >= 30) mensaje = `¡${state.score} puntos! Increíble, te amo más`;
+      else if (state.score >= 15) mensaje = `${state.score} puntos. ¡Bien! Eres mi corazón`;
+      else if (state.score >= 6)  mensaje = `${state.score} puntos. Sigue intentando, mi amor`;
+      else                        mensaje = `${state.score} puntos. Igual te amo muchísimo`;
 
       msgEl.innerHTML = `${mensaje}<br><span style="opacity:.75;font-size:11px;letter-spacing:2px;">Toca la pantalla para volver a jugar</span>`;
 
-      const restart = () => {
+      const restart = (e) => {
+        if (e) e.preventDefault();
         canvas.removeEventListener('pointerdown', restart);
         canvas.removeEventListener('touchstart', restart);
         state.running = true;
@@ -1218,15 +1397,18 @@ function startGame() {
         state.items = [];
         state.particles = [];
         state.spawnAcc = 0;
-        state.endAt = performance.now() + 30000;
+        state.hurtFlash = 0;
+        state.bonusFlash = 0;
+        state.endAt = performance.now() + GAME_DURATION;
         state.lastT = performance.now();
         scoreEl.textContent = 0;
+        timeEl.textContent  = 60;
         msgEl.textContent = 'Mueve la cesta con el dedo, mouse o ← →';
         loop(performance.now());
       };
       setTimeout(() => {
-        canvas.addEventListener('pointerdown', restart);
-        canvas.addEventListener('touchstart', restart);
+        canvas.addEventListener('pointerdown', restart, { passive: false });
+        canvas.addEventListener('touchstart', restart, { passive: false });
       }, 400);
       return;
     }
