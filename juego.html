@@ -879,13 +879,7 @@ _fpHandR.position.set(0.01, -0.075, 0.075);
 _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
-const _fpHandL = makeFPSHand('left');
-// Mano delantera de la M4A1: un poco más a la izquierda y alargada
-// en la dirección del brazo para que su extremo quede fuera de la vista.
-_fpHandL.scale.set(0.55, 0.55, 0.90);
-_fpHandL.position.set(-0.05, 0.005, -0.185);
-_fpHandL.rotation.set(0.40, 0, -0.08);
-weaponRifle.add(_fpHandL);
+// Segunda mano de la M4A1 eliminada de la cámara en primera persona.
 
 /* ─── Pistola: manos chicas también ─── */
 const _fpPHandR = makeFPSHand('right');
@@ -894,11 +888,7 @@ _fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
-const _fpPHandL = makeFPSHand('left');
-_fpPHandL.scale.setScalar(0.55);
-_fpPHandL.position.set(-0.008, -0.065, -0.030);
-_fpPHandL.rotation.set(0.58, 0, -0.14);
-weaponPistol.add(_fpPHandL);
+// Segunda mano de la pistola eliminada de la cámara en primera persona.
 
 const WEAPON_POS = {
   rifle:  new THREE.Vector3(0.15, -0.14, -0.34),
