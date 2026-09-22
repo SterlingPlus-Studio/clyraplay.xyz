@@ -640,7 +640,7 @@ function buildCharacter(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   MODELOS DE ARMA (contenedores vacíos que reciben el FBX)
+   MODELOS DE ARMA
    ═══════════════════════════════════════════ */
 function createFlash(radius, x, y, z, color) {
   const flash = new THREE.Mesh(
@@ -741,16 +741,13 @@ function loadFBXWeapon(url, targetLen, rotY = Math.PI / 2) {
     _fbxLoader.load(url, (obj) => {
       try {
         obj.rotation.set(0, rotY, 0);
-
         const box  = new THREE.Box3().setFromObject(obj);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
         obj.scale.setScalar(targetLen / maxDim);
-
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2   = box2.getCenter(new THREE.Vector3());
         obj.position.sub(c2);
-
         obj.traverse(n => {
           if (n.isMesh) {
             n.castShadow = true;
@@ -777,26 +774,15 @@ function loadFBXWeapon(url, targetLen, rotY = Math.PI / 2) {
   });
 }
 
-// Cargar FBX y aplicar a los modelos locales
 (async () => {
   const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 1.15, Math.PI / 2);
-  if (r) {
-    rifleModel.fbxModel = r;
-    rifleModel.group.add(r);
-  }
-
+  if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
   const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.42, Math.PI / 2);
-  if (p) {
-    pistolModel.fbxModel = p;
-    pistolModel.group.add(p);
-  }
+  if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
 })();
 
 /* ═══════════════════════════════════════════
-   MANOS FPS MEJORADAS
-   Construye una mano con palma, nudillos, 4 dedos
-   articulados, pulgar, muñeca, correa y antebrazo.
-   El antebrazo se extiende en +Z (hacia la cámara).
+   MANOS FPS
    ═══════════════════════════════════════════ */
 function makeFPSHand(side = 'right') {
   const g = new THREE.Group();
@@ -808,41 +794,34 @@ function makeFPSHand(side = 'right') {
   const matSleeve2 = new THREE.MeshLambertMaterial({ color: 0x353d27, flatShading: true });
   const matStrap   = new THREE.MeshLambertMaterial({ color: 0x2a2520, flatShading: true });
 
-  // Antebrazo (manga) — se extiende en +Z hacia la cámara
   const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.32), matSleeve);
   forearm.position.set(0, 0, 0.185);
   forearm.castShadow = true;
   g.add(forearm);
 
-  // Puño de la manga (borde enrollado)
   const band = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.135, 0.055), matSleeve2);
   band.position.set(0, 0, 0.035);
   band.castShadow = true;
   g.add(band);
 
-  // Muñeca / guante
   const wrap = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.075), matGlove);
   wrap.position.set(0, 0, -0.02);
   wrap.castShadow = true;
   g.add(wrap);
 
-  // Correa de la muñeca
   const strap = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.122, 0.014), matStrap);
   strap.position.set(0, 0, -0.052);
   g.add(strap);
 
-  // Palma
   const palm = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.115, 0.115), matGlove);
   palm.position.set(0, 0, -0.108);
   palm.castShadow = true;
   g.add(palm);
 
-  // Nudillos
   const knuckle = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.03, 0.075), matGlove2);
   knuckle.position.set(0, 0.058, -0.152);
   g.add(knuckle);
 
-  // 4 dedos (2 falanges cada uno)
   const fingerGeo = new THREE.BoxGeometry(0.021, 0.052, 0.024);
   const tipGeo    = new THREE.BoxGeometry(0.019, 0.036, 0.022);
   for (let i = 0; i < 4; i++) {
@@ -859,7 +838,6 @@ function makeFPSHand(side = 'right') {
     g.add(tip);
   }
 
-  // Pulgar
   const ts = side === 'right' ? -1 : 1;
   const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.033, 0.05, 0.033), matGlove2);
   thumb.position.set(ts * 0.06, -0.008, -0.105);
@@ -870,27 +848,29 @@ function makeFPSHand(side = 'right') {
   return g;
 }
 
-/* ─── Mano derecha en el rifle (empuñadura) ─── */
+/* ─── M4A1: manos más bajas y más pequeñas ─── */
 const _fpHandR = makeFPSHand('right');
-_fpHandR.position.set(0.006, -0.27, -0.042);
+_fpHandR.scale.setScalar(0.78);
+_fpHandR.position.set(0.006, -0.36, -0.042);
 _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
-/* ─── Mano izquierda en el rifle (guardamanos) ─── */
 const _fpHandL = makeFPSHand('left');
-_fpHandL.position.set(-0.008, 0.015, 0.315);
+_fpHandL.scale.setScalar(0.78);
+_fpHandL.position.set(-0.008, -0.07, 0.315);
 _fpHandL.rotation.set(0.42, 0, -0.08);
 weaponRifle.add(_fpHandL);
 
-/* ─── Mano derecha en la pistola ─── */
+/* ─── Pistola: manos un poco más pequeñas también ─── */
 const _fpPHandR = makeFPSHand('right');
-_fpPHandR.position.set(0.006, -0.265, -0.030);
+_fpPHandR.scale.setScalar(0.82);
+_fpPHandR.position.set(0.006, -0.285, -0.030);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
-/* ─── Mano izquierda apoyando la pistola ─── */
 const _fpPHandL = makeFPSHand('left');
-_fpPHandL.position.set(-0.010, -0.30, -0.075);
+_fpPHandL.scale.setScalar(0.82);
+_fpPHandL.position.set(-0.010, -0.32, -0.075);
 _fpPHandL.rotation.set(0.58, 0, -0.14);
 weaponPistol.add(_fpPHandL);
 
@@ -1348,19 +1328,31 @@ function createHouse(x, z, rot, styleIdx) {
   return g;
 }
 
+/* ═══════════════════════════════════════════
+   LAYOUT MEJORADO DE LA CIUDAD
+   ═══════════════════════════════════════════ */
 const houseLayout = [
+  // Casa central + 6 originales
   { x: 0,    z: 0,    rot: 0,                style: 6 },
   { x: -22,  z: -18,  rot:  0.20,            style: 0 },
   { x: -30,  z:  -6,  rot: -0.40,            style: 1 },
   { x:  24,  z: -20,  rot:  0.60,            style: 2 },
   { x:  30,  z:  -6,  rot: -0.20,            style: 3 },
   { x: -22,  z:  22,  rot:  Math.PI * 0.85,  style: 4 },
-  { x:  22,  z:  24,  rot: -Math.PI * 0.7,   style: 5 }
+  { x:  22,  z:  24,  rot: -Math.PI * 0.7,   style: 5 },
+  // Ampliación de la ciudad
+  { x: -14,  z: -34,  rot:  0.15,            style: 7 },
+  { x:  14,  z: -34,  rot: -0.15,            style: 0 },
+  { x: -34,  z:  14,  rot:  Math.PI * 0.55,  style: 1 },
+  { x:  34,  z:  14,  rot: -Math.PI * 0.55,  style: 2 },
+  { x: -14,  z:  34,  rot:  Math.PI * 0.85,  style: 3 },
+  { x:  14,  z:  34,  rot: -Math.PI * 0.85,  style: 4 }
 ];
 const outerHouses = houseLayout.slice(1);
 
 for (const h of houseLayout) scene.add(createHouse(h.x, h.z, h.rot, h.style));
 
+/* ─── Caminos ─── */
 const _pathMat = cachedMat(0x9c7a52);
 function createPath(fromX, fromZ, toX, toZ, width) {
   const dx = toX - fromX, dz = toZ - fromZ;
@@ -1382,13 +1374,37 @@ for (const h of outerHouses) {
   const path = createPath(door.x, door.z, endX, endZ, 1.9);
   if (path) scene.add(path);
 }
-const plaza = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 0.05, 24), _pathMat);
+const plaza = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 0.05, 24), _pathMat);
 plaza.position.set(0, 0.025, 0);
 plaza.receiveShadow = true;
 scene.add(plaza);
 
+/* ─── Farolas alrededor de la plaza ─── */
+const _lampPoleMat = cachedMat(0x1a1a1a);
+const _lampBaseMat = cachedMat(0x0a0a0a);
+const _lampBulbMat = new THREE.MeshBasicMaterial({ color: 0xffdd88 });
+function createLamp(x, z) {
+  const g = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.15, 0.4), _lampBaseMat);
+  base.position.y = 0.075; base.castShadow = true; g.add(base);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 4.2, 6), _lampPoleMat);
+  pole.position.y = 2.25; pole.castShadow = true; g.add(pole);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.35, 6), _lampPoleMat);
+  cap.position.y = 4.5; g.add(cap);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 5), _lampBulbMat);
+  bulb.position.y = 4.2; g.add(bulb);
+  const light = new THREE.PointLight(0xffcc66, 0.7, 14, 1.5);
+  light.position.set(0, 4.2, 0); g.add(light);
+  g.position.set(x, 0, z);
+  colliders.push({ x, z, r: 0.25, kind: 'lamp' });
+  return g;
+}
+for (const [lx, lz] of [[9, 9], [-9, 9], [9, -9], [-9, -9]]) {
+  scene.add(createLamp(lx, lz));
+}
+
 /* ═══════════════════════════════════════════
-   ÁRBOLES — cargados desde tree.fbx (sin generación procedural)
+   ÁRBOLES — tree.fbx
    ═══════════════════════════════════════════ */
 const _rockMat  = cachedMat(0x7f8c8d);
 
@@ -1399,8 +1415,11 @@ function tooCloseToHouse(x, z, minDist) {
   }
   return false;
 }
+function tooCloseToChurch(x, z, minDist) {
+  const dx = x - (-40), dz = z - (-40);
+  return dx * dx + dz * dz < minDist * minDist;
+}
 
-// 1) Generar posiciones con el mismo RNG (misma semilla → mismo mapa)
 const treePlacements = [];
 for (let i = 0; i < 24; i++) {
   let x, z, tries = 0;
@@ -1413,7 +1432,6 @@ for (let i = 0; i < 24; i++) {
   if (tries < 30) treePlacements.push({ x, z, rot: mapRandom() * Math.PI });
 }
 
-// 2) Cargar tree.fbx y poblar el mapa con clones
 let treeTemplate = null;
 let treeColliderRadius = 0.9;
 
@@ -1421,9 +1439,7 @@ _fbxLoader.load('modelos3d/tree.fbx', (obj) => {
   try {
     obj.traverse(n => {
       if (n.isMesh) {
-        n.castShadow = true;
-        n.receiveShadow = true;
-        n.frustumCulled = false;
+        n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false;
         if (n.material) {
           const mats = Array.isArray(n.material) ? n.material : [n.material];
           for (const m of mats) {
@@ -1433,56 +1449,38 @@ _fbxLoader.load('modelos3d/tree.fbx', (obj) => {
         }
       }
     });
-
-    // Normalizar: alto objetivo ~6.5 unidades, base en y=0
-    obj.rotation.set(0, 0, 0);
-    obj.position.set(0, 0, 0);
-    obj.scale.setScalar(1);
+    obj.rotation.set(0, 0, 0); obj.position.set(0, 0, 0); obj.scale.setScalar(1);
     obj.updateMatrixWorld(true);
-
     const box = new THREE.Box3().setFromObject(obj);
     const size = box.getSize(new THREE.Vector3());
     const targetH = 6.5;
     const s = targetH / Math.max(size.y, 0.001);
     obj.scale.setScalar(s);
     obj.updateMatrixWorld(true);
-
     const box2 = new THREE.Box3().setFromObject(obj);
     const c2 = box2.getCenter(new THREE.Vector3());
     obj.position.x -= c2.x;
     obj.position.z -= c2.z;
     obj.position.y -= box2.min.y;
-
     treeColliderRadius = Math.max(0.7, Math.min(size.x, size.z) * s * 0.32);
 
-    // Envolver en un group para poder posicionar sin afectar el recentrado
     const template = new THREE.Group();
     template.add(obj);
     treeTemplate = template;
 
-    // Instanciar en el mapa
     for (const p of treePlacements) {
       const clone = template.clone(true);
       clone.position.set(p.x, 0, p.z);
       clone.rotation.y = p.rot;
-      clone.traverse(n => {
-        if (n.isMesh) {
-          n.castShadow = true;
-          n.receiveShadow = true;
-        }
-      });
+      clone.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
       scene.add(clone);
       colliders.push({ x: p.x, z: p.z, r: treeColliderRadius, kind: 'tree' });
     }
-
-    // Re-optimizar ahora que los árboles están en la escena
     try { applyOptimizations(); } catch (e) {}
-  } catch (e) {
-    console.warn('Error preparando tree.fbx:', e);
-  }
+  } catch (e) { console.warn('Error preparando tree.fbx:', e); }
 }, undefined, err => console.warn('No se pudo cargar tree.fbx:', err));
 
-// 3) Rocas (siguen siendo procedurales, pero usan el mismo RNG → mismas posiciones que antes)
+/* ─── Rocas ─── */
 for (let i = 0; i < 16; i++) {
   const size = 0.4 + mapRandom() * 0.9;
   let x, z, tries = 0;
@@ -1499,6 +1497,113 @@ for (let i = 0; i < 16; i++) {
   rock.castShadow = true; rock.receiveShadow = true; scene.add(rock);
   colliders.push({ x, z, r: size * 1.05, kind: 'rock' });
 }
+
+/* ═══════════════════════════════════════════
+   IGLESIA — iglesia.fbx
+   ═══════════════════════════════════════════ */
+const CHURCH_POS = { x: -40, z: -40, rot: Math.PI / 4 };
+
+_fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
+  try {
+    obj.traverse(n => {
+      if (n.isMesh) {
+        n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false;
+        if (n.material) {
+          const mats = Array.isArray(n.material) ? n.material : [n.material];
+          for (const m of mats) {
+            if (m && 'flatShading' in m) m.flatShading = true;
+            if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+          }
+        }
+      }
+    });
+    obj.rotation.set(0, 0, 0); obj.position.set(0, 0, 0); obj.scale.setScalar(1);
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const targetH = 14;
+    const s = targetH / Math.max(size.y, 0.001);
+    obj.scale.setScalar(s);
+    obj.updateMatrixWorld(true);
+    const box2 = new THREE.Box3().setFromObject(obj);
+    const c2 = box2.getCenter(new THREE.Vector3());
+    obj.position.x -= c2.x;
+    obj.position.z -= c2.z;
+    obj.position.y -= box2.min.y;
+
+    const churchGroup = new THREE.Group();
+    churchGroup.add(obj);
+    churchGroup.position.set(CHURCH_POS.x, 0, CHURCH_POS.z);
+    churchGroup.rotation.y = CHURCH_POS.rot;
+    scene.add(churchGroup);
+
+    // Bounding box final para el collider aproximado
+    churchGroup.updateMatrixWorld(true);
+    const finalBox = new THREE.Box3().setFromObject(churchGroup);
+    const finalSize = finalBox.getSize(new THREE.Vector3());
+    boxColliders.push({
+      x: CHURCH_POS.x, z: CHURCH_POS.z,
+      hw: finalSize.x / 2 * 0.72,
+      hd: finalSize.z / 2 * 0.72,
+      rot: 0, kind: 'wall'
+    });
+
+    try { applyOptimizations(); } catch (e) {}
+  } catch (e) { console.warn('Error preparando iglesia.fbx:', e); }
+}, undefined, err => console.warn('No se pudo cargar iglesia.fbx:', err));
+
+/* ═══════════════════════════════════════════
+   HIERBA — Grass.fbx (esparcida por el mapa)
+   ═══════════════════════════════════════════ */
+_fbxLoader.load('modelos3d/Grass.fbx', (obj) => {
+  try {
+    obj.traverse(n => {
+      if (n.isMesh) {
+        n.castShadow = false;
+        n.receiveShadow = true;
+        n.frustumCulled = true;
+      }
+    });
+    obj.rotation.set(0, 0, 0); obj.position.set(0, 0, 0); obj.scale.setScalar(1);
+    obj.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const targetH = 0.8;
+    const s = targetH / Math.max(size.y, 0.001);
+    obj.scale.setScalar(s);
+    obj.updateMatrixWorld(true);
+    const box2 = new THREE.Box3().setFromObject(obj);
+    const c2 = box2.getCenter(new THREE.Vector3());
+    obj.position.x -= c2.x;
+    obj.position.z -= c2.z;
+    obj.position.y -= box2.min.y;
+
+    const template = new THREE.Group();
+    template.add(obj);
+
+    let placed = 0;
+    const MAX_GRASS = 180;
+    for (let i = 0; i < MAX_GRASS * 3 && placed < MAX_GRASS; i++) {
+      const a = mapRandom() * Math.PI * 2;
+      const r = 3 + mapRandom() * 62;
+      const x = Math.cos(a) * r;
+      const z = Math.sin(a) * r;
+      if (tooCloseToHouse(x, z, 5)) continue;
+      if (tooCloseToChurch(x, z, 12)) continue;
+      if (Math.hypot(x, z) < 10) continue; // dejar la plaza libre
+
+      const clone = template.clone(true);
+      clone.position.set(x, 0, z);
+      clone.rotation.y = mapRandom() * Math.PI * 2;
+      const sc = 0.7 + mapRandom() * 0.9;
+      clone.scale.setScalar(sc);
+      scene.add(clone);
+      placed++;
+    }
+
+    try { applyOptimizations(); } catch (e) {}
+  } catch (e) { console.warn('Error preparando Grass.fbx:', e); }
+}, undefined, err => console.warn('No se pudo cargar Grass.fbx:', err));
 
 /* ─────────────── ESTADO ─────────────── */
 let aiming = false;
@@ -1715,7 +1820,7 @@ function updateDebug(dt) {
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
   const ws = curWepState();
   const zinfo = gameMode === 'zombies'
-    ? `<span class="val">Zombies:</span>  ${zombies.filter(z => !z.dead).length} vivos\n<span class="val">Ola:</span>      ${zombieWave}\n<span class="val">Puntos:</span>   ${zombiePoints}\n<span class="val">Host:</span>     ${isZombieHost ? 'SÍ' : 'no'}`
+    ? `<span class="val">Zombies:</span>  ${zombies.filter(z => !z.dead).length} vivos\n<span class="val">Ola:</span>      ${zombieWave}\n<span class="val">Puntos:</span>   ${zombiePoints}\n<span class="val">Host:</span>     ${isZombieHost ? 'SÍ' : 'no'}\n<span class="val">SoloTimer:</span>${soloTimer.toFixed(1)}s`
     : `<span class="val">Remotos:</span>  ${remotePlayers.size}`;
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
@@ -1947,9 +2052,7 @@ function respawnPlayer() {
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
 
-  // FIX: forzar visibilidad del arma aunque currentWeaponKey ya sea 'rifle'
   selectWeapon('rifle', true, true);
-  // Doble seguro: forzar visibilidad directa por si el grupo quedó oculto
   weaponRifle.visible  = (currentWeaponKey === 'rifle');
   weaponPistol.visible = (currentWeaponKey === 'pistol');
 
@@ -2191,6 +2294,9 @@ const zombies = [];
 let zombieWave = 0, zombiePoints = 0, zombiesToSpawn = 0;
 let waveActive = false, waveIntermission = 3, zombieSpawnTimer = 0;
 let isZombieHost = false;
+const MAX_ZOMBIES = 25;   // ← límite duro de zombies vivos
+let soloTimer = 0;
+const SOLO_RESET_SECS = 5;
 
 const zombieHUD = document.getElementById('zombie-hud');
 const zombieStatusEl = document.getElementById('zombie-status');
@@ -2295,22 +2401,28 @@ let zombieSyncAcc = 0;
 const ZOMBIE_SYNC_HZ = 5;
 
 function updateZombiesHost(dt) {
+  // Spawn respetando el límite de 25 vivos
   if (waveActive && zombiesToSpawn > 0) {
     zombieSpawnTimer -= dt;
     if (zombieSpawnTimer <= 0) {
-      zombieSpawnTimer = 1.4;
-      const z = spawnZombieLocal();
-      if (onlineMode) {
-        set(ref(db, `rooms/${ROOM}/zombies/${z.id}`), {
-          x: +z.root.position.x.toFixed(2), y: 0, z: +z.root.position.z.toFixed(2),
-          yaw: +z.root.rotation.y.toFixed(3),
-          hp: z.hp, maxHp: z.maxHp, variant: z.variant,
-          dead: false, wave: zombieWave,
-          targetId: null, ts: Date.now()
-        }).catch(() => {});
+      const aliveCount = zombies.filter(z => !z.dead).length;
+      if (aliveCount >= MAX_ZOMBIES) {
+        zombieSpawnTimer = 0.4;
+      } else {
+        zombieSpawnTimer = 1.4;
+        const z = spawnZombieLocal();
+        if (onlineMode) {
+          set(ref(db, `rooms/${ROOM}/zombies/${z.id}`), {
+            x: +z.root.position.x.toFixed(2), y: 0, z: +z.root.position.z.toFixed(2),
+            yaw: +z.root.rotation.y.toFixed(3),
+            hp: z.hp, maxHp: z.maxHp, variant: z.variant,
+            dead: false, wave: zombieWave,
+            targetId: null, ts: Date.now()
+          }).catch(() => {});
+        }
+        zombiesToSpawn--;
+        updateZombieHUD();
       }
-      zombiesToSpawn--;
-      updateZombieHUD();
     }
   }
 
@@ -2485,10 +2597,49 @@ function updateZombiesClient(dt) {
   }
 }
 
+/* ─── Reset automático si no hay más jugadores ─── */
+function resetZombieSession() {
+  for (const z of zombies) {
+    scene.remove(z.root);
+    if (onlineMode) remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {});
+  }
+  zombies.length = 0;
+  zombiesToSpawn = 0;
+  waveActive = false;
+  waveIntermission = 3;
+  zombieWave = 0;
+  zombiePoints = 0;
+  updateZombieHUD();
+  showTempHint('🔄 Servidor vacío · Reiniciando', 2.5);
+  if (onlineMode && isZombieHost) {
+    update(ref(db, `rooms/${ROOM}/zombieState`), {
+      wave: 0, waveActive: false, waveIntermission: 3, hostId: playerId, ts: Date.now()
+    }).catch(() => {});
+  }
+}
+
+function updateSoloReset(dt) {
+  if (!isZombieHost) { soloTimer = 0; return; }
+  if (remotePlayers.size === 0) {
+    soloTimer += dt;
+    if (soloTimer >= SOLO_RESET_SECS && (zombieWave > 0 || zombies.length > 0 || waveActive)) {
+      soloTimer = 0;
+      resetZombieSession();
+    }
+  } else {
+    soloTimer = 0;
+  }
+}
+
 function updateZombies(dt) {
   if (gameMode !== 'zombies') return;
-  if (isZombieHost) updateZombiesHost(dt);
-  else updateZombiesClient(dt);
+  if (isZombieHost) {
+    updateZombiesHost(dt);
+    updateSoloReset(dt);
+  } else {
+    updateZombiesClient(dt);
+    soloTimer = 0;
+  }
 
   if (isZombieHost && onlineMode) {
     zombieSyncAcc += dt;
@@ -2526,6 +2677,7 @@ function startZombieMode() {
   zombieWave = 0; zombiePoints = 0;
   waveActive = false; waveIntermission = 3;
   zombiesToSpawn = 0;
+  soloTimer = 0;
   for (const z of zombies) scene.remove(z.root);
   zombies.length = 0;
   updateZombieHUD();
@@ -2535,7 +2687,7 @@ function updateZombieHUD() {
   if (gameMode !== 'zombies') return;
   const alive = zombies.filter(z => !z.dead).length + (isZombieHost ? zombiesToSpawn : 0);
   zombieHUD.querySelector('.wave').textContent = `OLA ${zombieWave}`;
-  zombieHUD.querySelector('.count').textContent = `🧟 ${alive}`;
+  zombieHUD.querySelector('.count').textContent = `🧟 ${alive}/${MAX_ZOMBIES}`;
   zombieHUD.querySelector('.pts').textContent = `⭐ ${zombiePoints}`;
   if (playerDead) zombieStatusEl.textContent = '— DERROTA —';
   else if (!waveActive && zombieWave > 0) zombieStatusEl.textContent = `Siguiente ola en ${Math.ceil(waveIntermission)}s`;
@@ -3011,7 +3163,17 @@ function drawMinimap() {
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + MM_H / 2;
   const plx = wx2mm(0), ply = wz2mm(0);
   ctx.fillStyle = 'rgba(156,122,82,0.5)';
-  ctx.beginPath(); ctx.arc(plx, ply, 9 * MM_SCALE, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(plx, ply, 11 * MM_SCALE, 0, Math.PI * 2); ctx.fill();
+
+  // Iglesia
+  const chpx = wx2mm(CHURCH_POS.x), chpy = wz2mm(CHURCH_POS.z);
+  if (chpx > -30 && chpx < MM_W + 30 && chpy > -30 && chpy < MM_H + 30) {
+    ctx.save(); ctx.translate(chpx, chpy); ctx.rotate(-CHURCH_POS.rot);
+    ctx.fillStyle = '#c9a0dc'; ctx.fillRect(-8, -10, 16, 20);
+    ctx.fillStyle = '#7d5ba6'; ctx.fillRect(-2, -16, 4, 10);
+    ctx.restore();
+  }
+
   for (const h of houseLayout) {
     const px = wx2mm(h.x), py = wz2mm(h.z), r = 9;
     if (px < -20 || px > MM_W + 20 || py < -20 || py > MM_H + 20) continue;
@@ -3024,7 +3186,9 @@ function drawMinimap() {
   for (const c of colliders) {
     const px = wx2mm(c.x), py = wz2mm(c.z), r = Math.max(2, c.r * MM_SCALE);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = c.kind === 'tree' ? '#2f8f3e' : '#7f8c8d';
+    ctx.fillStyle = c.kind === 'tree' ? '#2f8f3e'
+                  : c.kind === 'lamp' ? '#ffdd88'
+                  : '#7f8c8d';
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
   }
   if (gameMode === 'zombies') {
