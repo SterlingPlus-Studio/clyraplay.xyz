@@ -2250,13 +2250,13 @@ function updatePlayer(dt) {
   }
   if (moving && isGrounded) {
     walkPhase += dt * 11;
-    weaponWalkPhase += dt * (aiming ? 8.5 : 10.5);
+    weaponWalkPhase += dt * (aiming ? 6.8 : 8.2);
     const targetBob = Math.abs(Math.sin(walkPhase)) * (aiming ? 0.025 : 0.055);
     bobOffset += (targetBob - bobOffset) * Math.min(1, dt * 10);
-    weaponMoveBlend += (1 - weaponMoveBlend) * Math.min(1, dt * 9);
+    weaponMoveBlend += (1 - weaponMoveBlend) * Math.min(1, dt * 6);
   } else {
     bobOffset *= Math.max(0, 1 - dt * 8);
-    weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 8);
+    weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 5);
   }
   player.position.x = THREE.MathUtils.clamp(player.position.x, -70, 70);
   player.position.z = THREE.MathUtils.clamp(player.position.z, -70, 70);
@@ -2264,12 +2264,12 @@ function updatePlayer(dt) {
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
   const swayMul = currentWeaponKey === 'rifle' ? 1.0 : 0.82;
-  const swayX = Math.sin(weaponWalkPhase) * 0.018 * swayMul * weaponMoveBlend;
-  const swayY = Math.abs(Math.sin(weaponWalkPhase * 2)) * 0.012 * swayMul * weaponMoveBlend;
-  const swayZ = Math.cos(weaponWalkPhase) * 0.008 * swayMul * weaponMoveBlend;
-  const swayRotX = Math.cos(weaponWalkPhase) * 0.022 * swayMul * weaponMoveBlend;
-  const swayRotY = Math.sin(weaponWalkPhase * 0.5) * 0.014 * swayMul * weaponMoveBlend;
-  const swayRotZ = Math.sin(weaponWalkPhase) * 0.030 * swayMul * weaponMoveBlend;
+  const swayX = Math.sin(weaponWalkPhase) * 0.012 * swayMul * weaponMoveBlend;
+  const swayY = (1 - Math.cos(weaponWalkPhase * 2)) * 0.0045 * swayMul * weaponMoveBlend;
+  const swayZ = Math.cos(weaponWalkPhase) * 0.004 * swayMul * weaponMoveBlend;
+  const swayRotX = Math.cos(weaponWalkPhase) * 0.012 * swayMul * weaponMoveBlend;
+  const swayRotY = Math.sin(weaponWalkPhase * 0.5) * 0.008 * swayMul * weaponMoveBlend;
+  const swayRotZ = Math.sin(weaponWalkPhase) * 0.016 * swayMul * weaponMoveBlend;
   const targetX = basePos.x + swayX;
   const targetY = basePos.y + swayY;
   const targetZ = basePos.z + swayZ;
@@ -2278,11 +2278,11 @@ function updatePlayer(dt) {
     ws.reloadTimer -= dt;
     const t = 1 - Math.max(0, ws.reloadTimer) / def.reloadTime;
     const dip = Math.sin(t * Math.PI);
-    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 12);
+    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 16);
     g.position.y += (targetY - dip * 0.35 - g.position.y) * Math.min(1, dt * 14);
     g.position.z += (targetZ - g.position.z) * Math.min(1, dt * 14);
     g.rotation.x += (-dip * 0.3 + swayRotX - g.rotation.x) * Math.min(1, dt * 14);
-    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 10);
+    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 14);
     g.rotation.z += (dip * 0.9 + swayRotZ - g.rotation.z) * Math.min(1, dt * 14);
     if (ws.reloadTimer <= 0) finishReload();
   } else if (ws.recoil > 0) {
@@ -2291,15 +2291,15 @@ function updatePlayer(dt) {
     g.position.y += (targetY - g.position.y) * Math.min(1, dt * 14);
     g.position.z += (targetZ + ws.recoil * 0.07 - g.position.z) * Math.min(1, dt * 14);
     g.rotation.x += (ws.recoil * 0.18 + swayRotX - g.rotation.x) * Math.min(1, dt * 16);
-    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 10);
+    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 14);
     g.rotation.z += (swayRotZ - g.rotation.z) * Math.min(1, dt * 16);
   } else {
-    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 12);
-    g.position.y += (targetY - g.position.y) * Math.min(1, dt * 12);
-    g.position.z += (targetZ - g.position.z) * Math.min(1, dt * 15);
-    g.rotation.x += (swayRotX - g.rotation.x) * Math.min(1, dt * 12);
-    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 10);
-    g.rotation.z += (swayRotZ - g.rotation.z) * Math.min(1, dt * 12);
+    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 16);
+    g.position.y += (targetY - g.position.y) * Math.min(1, dt * 16);
+    g.position.z += (targetZ - g.position.z) * Math.min(1, dt * 16);
+    g.rotation.x += (swayRotX - g.rotation.x) * Math.min(1, dt * 16);
+    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 14);
+    g.rotation.z += (swayRotZ - g.rotation.z) * Math.min(1, dt * 16);
   }
   if (shootHeld && def.auto && ws.cooldown <= 0 && !ws.reloading) tryShoot();
   if (ws.cooldown > 0) ws.cooldown -= dt;
