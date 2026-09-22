@@ -565,11 +565,6 @@ function localToWorld(lx, lz, ox, oz, rot) {
   const c = Math.cos(rot), s = Math.sin(rot);
   return { x: ox + lx * c + lz * s, z: oz - lx * s + lz * c };
 }
-function worldToLocal(wx, wz, ox, oz, rot) {
-  const c = Math.cos(rot), s = Math.sin(rot);
-  const dx = wx - ox, dz = wz - oz;
-  return { x: dx * c - dz * s, z: dx * s + dz * c };
-}
 
 function computeBoxPenetration(px, pz, radius, box) {
   const c = Math.cos(box.rot), s = Math.sin(box.rot);
@@ -1229,6 +1224,10 @@ function updateDebug(dt) {
   if (fpsSamples.length > 30) fpsSamples.shift();
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
   const kmh = Math.abs(carState.speed * 3.6);
+  let remInfo = '';
+  for (const [id, r] of remotePlayers) {
+    remInfo += `\n  ${r.name}: ${r.moving ? 'W' : '·'}${r.aiming ? 'A' : '·'}${r.alive ? 'L' : 'D'}${r.inCar ? 'C' : '·'} d=${r.group.position.distanceTo(player.position).toFixed(1)}`;
+  }
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
@@ -1236,17 +1235,16 @@ function updateDebug(dt) {
 <span class="val">ID:</span>        ${playerId || '-'}
 <span class="val">Nombre:</span>    ${playerName || '-'}
 <span class="val">Remotos:</span>   ${remotePlayers.size}
+<span class="val">Yo mov:</span>    ${movingLocal ? 'SÍ' : 'no'}
+
+<span class="title">── Jugadores ──</span>${remInfo || ' (ninguno)'}
 
 <span class="title">── Modo ──</span>
 <span class="val">Cámara:</span>    ${playerDead ? '💀' : (inCar ? '🚗 auto' : '👁 FPS')}
-<span class="val">Conductor:</span> ${isCarDriver ? 'YO' : (remoteCarDriverId || 'nadie')}
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
 <span class="val">Balas:</span>     ${ammo} / ${MAG_SIZE}${reloading ? ' (recargando)' : ''}
 <span class="val">Auto HP:</span>   ${carHealth.toFixed(0)} / 100
-
-<span class="title">── Auto ──</span>
 <span class="val">Vel:</span>       ${carState.speed.toFixed(2)} m/s (${kmh.toFixed(0)} km/h)
-<span class="val">Destruido:</span> ${carDestroyed ? 'SÍ' : 'no'}
   `.trim();
 }
 
@@ -1330,6 +1328,7 @@ function toggleCar() {
   if (inCar) {
     inCar = false;
     isCarDriver = false;
+    movingLocal = false;
     weapon.visible = true;
     setAiming(false);
     const sideX = Math.cos(carState.angle) * 2.2;
@@ -1346,6 +1345,7 @@ function toggleCar() {
     if (remoteCarDriverId && remoteCarDriverId !== playerId) return;
     inCar = true;
     isCarDriver = true;
+    movingLocal = false;
     weapon.visible = false;
     setAiming(false);
     reloading = false;
@@ -1643,7 +1643,6 @@ function killPlayer() {
   spawnBurst(origin, [0x990000, 0xdd1111, 0xff3333, 0x660000], 40, 3, 9);
   deathUI.classList.add('active');
   if (pointerLocked) document.exitPointerLock();
-  // Avisar a la red
   sendLocalPlayerState();
 }
 function respawnPlayer() {
@@ -1967,34 +1966,75 @@ function updateDeathCamera(dt) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MULTIJUGADOR ONLINE — CON ANIMACIONES
+   MULTIJUGADOR — CON ANIMACIONES ROBUSTAS
    ═══════════════════════════════════════════════════════════ */
 const remotePlayers = new Map();
 let remoteCarDriverId = null;
 let carNetTarget = null;
 let carNetData = {};
 
-function createNameTag(text) {
+function createNameTag(text, hp) {
   const canvas = document.createElement('canvas');
-  canvas.width = 256; canvas.height = 64;
+  canvas.width = 256; canvas.height = 88;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillRect(0, 0, 256, 88);
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 32px system-ui, sans-serif';
+  ctx.font = 'bold 28px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(text, 128, 6);
+  // Barra de vida
+  const pct = Math.max(0, Math.min(100, hp)) / 100;
+  ctx.fillStyle = '#111';
+  ctx.fillRect(20, 44, 216, 20);
+  ctx.fillStyle = pct > 0.5 ? '#2ecc71' : pct > 0.25 ? '#f39c12' : '#e74c3c';
+  ctx.fillRect(22, 46, 212 * pct, 16);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20, 44, 216, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px ui-monospace, monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, 128, 32);
+  ctx.fillText(Math.round(hp) + ' HP', 128, 54);
   const tex = new THREE.CanvasTexture(canvas);
   tex.minFilter = THREE.LinearFilter;
   const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(2.2, 0.55, 1);
-  sprite.position.y = 2.85;
+  sprite.scale.set(2.4, 0.83, 1);
+  sprite.position.y = 2.95;
   return sprite;
 }
 
-/* ─── Arma remota (versión simplificada del M4A1) ─── */
+function updateNameTag(sprite, text, hp) {
+  const canvas = sprite.material.map.image;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 256, 88);
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.fillRect(0, 0, 256, 88);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(text, 128, 6);
+  const pct = Math.max(0, Math.min(100, hp)) / 100;
+  ctx.fillStyle = '#111';
+  ctx.fillRect(20, 44, 216, 20);
+  ctx.fillStyle = pct > 0.5 ? '#2ecc71' : pct > 0.25 ? '#f39c12' : '#e74c3c';
+  ctx.fillRect(22, 46, 212 * pct, 16);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20, 44, 216, 20);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(Math.round(hp) + ' HP', 128, 54);
+  sprite.material.map.needsUpdate = true;
+}
+
+/* ─── Arma remota (versión simplificada) ─── */
 function createRemoteWeapon() {
   const w = new THREE.Group();
   const recv = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.2, 0.55), gunMat);
@@ -2019,70 +2059,65 @@ function createRemoteWeapon() {
   return w;
 }
 
-/* ─── Cuerpo remoto con pivotes para animación ─── */
+/* ─── Cuerpo remoto con pivotes ─── */
 function createRemotePlayerBody() {
   const g = new THREE.Group();
 
-  // Torso
+  // Grupo de cuerpo (para bob)
+  const bodyGroup = new THREE.Group();
+  g.add(bodyGroup);
+
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.9, 0.42), pShirt);
-  torso.position.y = 1.35; torso.castShadow = true; g.add(torso);
-
-  // Cabeza
+  torso.position.y = 1.35; torso.castShadow = true; bodyGroup.add(torso);
   const head = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.52, 0.52), pSkin);
-  head.position.y = 2.06; head.castShadow = true; g.add(head);
-
-  // Pelo
+  head.position.y = 2.06; head.castShadow = true; bodyGroup.add(head);
   const hair = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.16, 0.56), pHairM);
-  hair.position.y = 2.32; g.add(hair);
-
-  // Ojos + nariz
+  hair.position.y = 2.32; bodyGroup.add(hair);
   const eyeGeo = new THREE.BoxGeometry(0.09, 0.11, 0.04);
-  const eL = new THREE.Mesh(eyeGeo, pDark); eL.position.set(-0.13, 2.1, 0.27); g.add(eL);
-  const eR = new THREE.Mesh(eyeGeo, pDark); eR.position.set( 0.13, 2.1, 0.27); g.add(eR);
+  const eL = new THREE.Mesh(eyeGeo, pDark); eL.position.set(-0.13, 2.1, 0.27); bodyGroup.add(eL);
+  const eR = new THREE.Mesh(eyeGeo, pDark); eR.position.set( 0.13, 2.1, 0.27); bodyGroup.add(eR);
   const nose = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.07), pSkin);
-  nose.position.set(0, 2.0, 0.29); g.add(nose);
+  nose.position.set(0, 2.0, 0.29); bodyGroup.add(nose);
 
-  // ── Piernas con pivote en la cadera ──
-  const legLPivot = new THREE.Group(); legLPivot.position.set(-0.17, 0.9, 0); g.add(legLPivot);
+  // Piernas
+  const legLPivot = new THREE.Group(); legLPivot.position.set(-0.17, 0.9, 0); bodyGroup.add(legLPivot);
   const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.7, 0.24), pPants);
   legL.position.y = -0.35; legL.castShadow = true; legLPivot.add(legL);
   const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.34), pDark);
   shoeL.position.set(0, -0.75, 0.05); legLPivot.add(shoeL);
 
-  const legRPivot = new THREE.Group(); legRPivot.position.set(0.17, 0.9, 0); g.add(legRPivot);
+  const legRPivot = new THREE.Group(); legRPivot.position.set(0.17, 0.9, 0); bodyGroup.add(legRPivot);
   const legR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.7, 0.24), pPants);
   legR.position.y = -0.35; legR.castShadow = true; legRPivot.add(legR);
   const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.34), pDark);
   shoeR.position.set(0, -0.75, 0.05); legRPivot.add(shoeR);
 
-  // ── Brazos con pivote en el hombro ──
-  const armLPivot = new THREE.Group(); armLPivot.position.set(-0.47, 1.75, 0); g.add(armLPivot);
+  // Brazos
+  const armLPivot = new THREE.Group(); armLPivot.position.set(-0.47, 1.75, 0); bodyGroup.add(armLPivot);
   const armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.65, 0.2), pShirt);
   armL.position.y = -0.325; armL.castShadow = true; armLPivot.add(armL);
   const handL = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.18, 0.19), pSkin);
   handL.position.y = -0.72; armLPivot.add(handL);
 
-  const armRPivot = new THREE.Group(); armRPivot.position.set(0.47, 1.75, 0); g.add(armRPivot);
+  const armRPivot = new THREE.Group(); armRPivot.position.set(0.47, 1.75, 0); bodyGroup.add(armRPivot);
   const armR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.65, 0.2), pShirt);
   armR.position.y = -0.325; armR.castShadow = true; armRPivot.add(armR);
   const handR = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.18, 0.19), pSkin);
   handR.position.y = -0.72; armRPivot.add(handR);
 
-  // Arma en frente del pecho
+  // Arma
   const remoteWeapon = createRemoteWeapon();
   remoteWeapon.position.set(0.15, 1.32, 0.55);
-  g.add(remoteWeapon);
+  bodyGroup.add(remoteWeapon);
 
-  // Pose base: sostener el arma (brazos hacia adelante)
+  // Pose base
   armLPivot.rotation.x = -1.05;
   armRPivot.rotation.x = -1.05;
 
-  // Guardar referencias
-  g.userData.parts = { legLPivot, legRPivot, armLPivot, armRPivot, weapon: remoteWeapon };
+  g.userData.parts = { legLPivot, legRPivot, armLPivot, armRPivot, weapon: remoteWeapon, bodyGroup };
   g.userData.walkPhase = 0;
   g.userData.deadFactor = 0;
   g.userData.aimFactor = 0;
-
   return g;
 }
 
@@ -2092,7 +2127,7 @@ function addRemotePlayer(id, data) {
   group.userData.remotePlayerId = id;
   group.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
   group.rotation.y = (data.yaw ?? 0) + Math.PI;
-  const tag = createNameTag(data.name || 'Jugador');
+  const tag = createNameTag(data.name || 'Jugador', data.hp ?? 100);
   group.add(tag);
   scene.add(group);
   remotePlayers.set(id, {
@@ -2103,6 +2138,7 @@ function addRemotePlayer(id, data) {
     targetZ: group.position.z,
     targetYaw: group.rotation.y,
     lastSeen: Date.now(),
+    lastMoveTime: 0,
     hp: data.hp ?? 100,
     moving: false, aiming: false, alive: true, inCar: false
   });
@@ -2112,26 +2148,34 @@ function updateRemotePlayer(id, data) {
   let r = remotePlayers.get(id);
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
-  r.targetX = data.x ?? r.targetX;
+
+  // Detección por posición (fallback)
+  const nx = data.x ?? r.targetX;
+  const nz = data.z ?? r.targetZ;
+  const ddx = nx - r.targetX;
+  const ddz = nz - r.targetZ;
+  const posDelta2 = ddx * ddx + ddz * ddz;
+  if (posDelta2 > 0.02 * 0.02) {  // movimiento > 2cm
+    r.lastMoveTime = Date.now();
+  }
+
+  r.targetX = nx;
   r.targetY = data.y ?? r.targetY;
-  r.targetZ = data.z ?? r.targetZ;
+  r.targetZ = nz;
   r.targetYaw = (data.yaw ?? 0) + Math.PI;
   r.lastSeen = Date.now();
   r.hp = data.hp ?? r.hp;
-  r.moving = data.moving === 1;
-  r.aiming = data.aim === 1;
-  r.alive = data.alive !== 0;
-  r.inCar = data.inCar === true;
+  r.moving = (data.moving === 1) || (data.moving === true);
+  r.aiming = (data.aim === 1) || (data.aim === true);
+  r.alive = data.alive !== 0 && data.alive !== false;
+  r.inCar = (data.inCar === true) || (data.inCar === 1);
 
   if (data.name && data.name !== r.name) {
     r.name = data.name;
-    r.group.remove(r.nameTag);
-    r.nameTag.material.map.dispose();
-    r.nameTag.material.dispose();
-    const newTag = createNameTag(data.name);
-    r.group.add(newTag);
-    r.nameTag = newTag;
   }
+
+  // Actualizar nametag con vida
+  updateNameTag(r.nameTag, r.name, r.hp);
 }
 
 function removeRemotePlayer(id) {
@@ -2143,50 +2187,53 @@ function removeRemotePlayer(id) {
   remotePlayers.delete(id);
 }
 
-/* ─── Animar un jugador remoto según su estado ─── */
+/* ─── Animar un jugador remoto ─── */
 function animateRemotePlayer(r, dt) {
   const ud = r.group.userData;
   const parts = ud.parts;
   if (!parts) return;
 
+  // Detección robusta: flag de red O movimiento reciente
+  const recentlyMoved = (Date.now() - (r.lastMoveTime || 0)) < 300;
+  const walking = r.alive && !r.inCar && (r.moving || recentlyMoved);
+
   // ── Caminar ──
-  if (r.moving && r.alive && !r.inCar) {
-    ud.walkPhase += dt * 11;
-    const swing = Math.sin(ud.walkPhase) * 0.55;
+  if (walking) {
+    ud.walkPhase += dt * 14;
+    const swing = Math.sin(ud.walkPhase) * 0.8;
     parts.legLPivot.rotation.x = swing;
     parts.legRPivot.rotation.x = -swing;
-    // Los brazos sostienen el arma — solo pequeña oscilación
-    parts.armLPivot.rotation.x = -1.05 + (-swing) * 0.12;
-    parts.armRPivot.rotation.x = -1.05 + swing * 0.12;
+    parts.armLPivot.rotation.x = -1.05 + (-swing) * 0.22;
+    parts.armRPivot.rotation.x = -1.05 + swing * 0.22;
+    // Bob del cuerpo
+    const bob = Math.abs(Math.sin(ud.walkPhase * 2)) * 0.04;
+    parts.bodyGroup.position.y = bob;
   } else {
-    // Volver a la pose neutral
-    parts.legLPivot.rotation.x += (0 - parts.legLPivot.rotation.x) * Math.min(1, dt * 8);
-    parts.legRPivot.rotation.x += (0 - parts.legRPivot.rotation.x) * Math.min(1, dt * 8);
-    parts.armLPivot.rotation.x += (-1.05 - parts.armLPivot.rotation.x) * Math.min(1, dt * 8);
-    parts.armRPivot.rotation.x += (-1.05 - parts.armRPivot.rotation.x) * Math.min(1, dt * 8);
+    parts.legLPivot.rotation.x += (0 - parts.legLPivot.rotation.x) * Math.min(1, dt * 10);
+    parts.legRPivot.rotation.x += (0 - parts.legRPivot.rotation.x) * Math.min(1, dt * 10);
+    parts.armLPivot.rotation.x += (-1.05 - parts.armLPivot.rotation.x) * Math.min(1, dt * 10);
+    parts.armRPivot.rotation.x += (-1.05 - parts.armRPivot.rotation.x) * Math.min(1, dt * 10);
+    parts.bodyGroup.position.y += (0 - parts.bodyGroup.position.y) * Math.min(1, dt * 10);
   }
 
-  // ── Apuntar (sube un poco el arma y los brazos) ──
+  // ── Apuntar ──
   const aimTarget = r.aiming ? 1 : 0;
   ud.aimFactor += (aimTarget - ud.aimFactor) * Math.min(1, dt * 8);
-  if (r.aiming && !r.moving) {
-    parts.armLPivot.rotation.x += (-1.25 - parts.armLPivot.rotation.x) * Math.min(1, dt * 6);
-    parts.armRPivot.rotation.x += (-1.25 - parts.armRPivot.rotation.x) * Math.min(1, dt * 6);
+  if (r.aiming && !walking) {
+    parts.armLPivot.rotation.x += (-1.3 - parts.armLPivot.rotation.x) * Math.min(1, dt * 8);
+    parts.armRPivot.rotation.x += (-1.3 - parts.armRPivot.rotation.x) * Math.min(1, dt * 8);
   }
-  parts.weapon.rotation.x = -ud.aimFactor * 0.18;
-  parts.weapon.position.y = 1.32 + ud.aimFactor * 0.08;
+  parts.weapon.rotation.x = -ud.aimFactor * 0.2;
+  parts.weapon.position.y = 1.32 + ud.aimFactor * 0.1;
 
-  // ── Muerte (cae al suelo girando sobre Z) ──
+  // ── Muerte ──
   const deadTarget = r.alive ? 0 : 1;
   ud.deadFactor += (deadTarget - ud.deadFactor) * Math.min(1, dt * 4);
   r.group.rotation.z = (Math.PI / 2) * ud.deadFactor;
 
-  // ── En auto: ocultar cuerpo ──
-  r.group.visible = !r.inCar && r.alive;
-  if (!r.alive) {
-    // Los muertos se ven tirados en el suelo
-    r.group.visible = true;
-  }
+  // ── Visibilidad ──
+  if (r.inCar && r.alive) r.group.visible = false;
+  else r.group.visible = true;
 }
 
 function sendLocalPlayerState() {
@@ -2234,23 +2281,19 @@ function updateNetwork(dt) {
   for (const [id, r] of remotePlayers) {
     if (now - r.lastSeen > NET_STALE_MS) { removeRemotePlayer(id); continue; }
 
-    // Interpolar posición
     const t = Math.min(1, dt * 12);
     r.group.position.x += (r.targetX - r.group.position.x) * t;
     r.group.position.y += (r.targetY - r.group.position.y) * t;
     r.group.position.z += (r.targetZ - r.group.position.z) * t;
 
-    // Yaw suavizado
     let dy = r.targetYaw - r.group.rotation.y;
     while (dy > Math.PI) dy -= Math.PI * 2;
     while (dy < -Math.PI) dy += Math.PI * 2;
     r.group.rotation.y += dy * Math.min(1, dt * 12);
 
-    // Animaciones
     animateRemotePlayer(r, dt);
   }
 
-  // Auto remoto
   if (carNetTarget && !isCarDriver) {
     const t = Math.min(1, dt * 10);
     car.position.x += (carNetTarget.x - car.position.x) * t;
@@ -2260,7 +2303,6 @@ function updateNetwork(dt) {
     while (dy < -Math.PI) dy += Math.PI * 2;
     carState.angle += dy * t;
     car.rotation.y = carState.angle;
-    // Girar ruedas visualmente
     const spin = carState.speed * dt * 2.2;
     for (const w of wheels) w.spinner.rotation.x += spin;
   }
@@ -2278,7 +2320,6 @@ function updateOnlineUI() {
   );
 }
 
-/* ─────────────── INICIALIZACIÓN ONLINE ─────────────── */
 async function initOnline() {
   if (!onlineMode) return;
 
@@ -2318,7 +2359,6 @@ async function initOnline() {
     }
   });
 
-  // Hits dirigidos a mí
   const myHitsRef = ref(db, `rooms/${ROOM}/players/${playerId}/hits`);
   onChildAdded(myHitsRef, snap => {
     const hit = snap.val();
@@ -2332,7 +2372,6 @@ async function initOnline() {
     remove(snap.ref);
   });
 
-  // Auto
   onValue(carNetRef, snap => {
     if (!snap.exists()) {
       set(carNetRef, {
@@ -2343,21 +2382,18 @@ async function initOnline() {
       return;
     }
     carNetData = snap.val() || {};
-
     if (typeof carNetData.health === 'number' && !isCarDriver) {
       carHealth = carNetData.health;
       updateCarHealthBar();
     }
     if (carNetData.destroyed && !carDestroyed) destroyCar(false);
-
     const now = Date.now();
     const driverFresh = carNetData.driver && (now - (carNetData.driverTs || 0) < 3000);
     if (carNetData.driver && carNetData.driver !== playerId && driverFresh && !carDestroyed) {
       remoteCarDriverId = carNetData.driver;
       if (!isCarDriver) {
         carNetTarget = {
-          x: carNetData.x ?? 8,
-          z: carNetData.z ?? 8,
+          x: carNetData.x ?? 8, z: carNetData.z ?? 8,
           angle: carNetData.angle ?? 0
         };
       }
