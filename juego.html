@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Low Poly FPS</title>
+<title>Low Poly FPS - Online</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
   body {
@@ -233,79 +233,62 @@
     background: rgba(50,220,100,0.3);
     border-color: rgba(150,255,150,0.9);
   }
+  /* Panel online */
+  #online-panel {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font: bold 12px ui-monospace, monospace;
+    padding: 6px 12px;
+    border: 2px solid rgba(100,220,150,0.7);
+    border-radius: 5px;
+    z-index: 22;
+    pointer-events: none;
+    white-space: nowrap;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #online-panel.offline { border-color: rgba(220,80,80,0.7); }
+  #online-panel .ok { color: #4cdf7b; }
+  #online-panel .bad { color: #ff6b6b; }
+  #online-panel .name { color: #ffd93d; }
+  body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
 
-  /* ══════════ AJUSTES PARA TÁCTIL / ANDROID ══════════ */
+  /* Ajustes táctiles */
   body.is-touch #minimap-wrap {
     top: 6px; left: 6px;
     width: 96px; height: 96px;
     border-width: 2px;
   }
-  body.is-touch #health-wrap {
-    top: 106px; left: 6px;
-    width: 96px;
-  }
+  body.is-touch #health-wrap { top: 106px; left: 6px; width: 96px; }
   body.is-touch #health-label,
   body.is-touch #ammo-label,
-  body.is-touch #car-health-label {
-    font-size: 9px;
-    margin-bottom: 2px;
-  }
+  body.is-touch #car-health-label { font-size: 9px; margin-bottom: 2px; }
   body.is-touch #health-bar-outer,
   body.is-touch #ammo-bar-outer,
-  body.is-touch #car-health-bar-outer {
-    height: 14px;
-    border-width: 2px;
-    padding: 1px;
-  }
-  body.is-touch #ammo-wrap {
-    top: 138px; left: 6px;
-    width: 96px;
-  }
-  body.is-touch #car-health-wrap {
-    top: 170px; left: 6px;
-    width: 96px;
-  }
-  /* Joystick más pequeño */
-  body.is-touch #joystick {
-    left: 20px; bottom: 20px;
-    width: 110px; height: 110px;
-  }
-  body.is-touch #stick {
-    width: 46px; height: 46px;
-    margin: -23px 0 0 -23px;
-  }
-  /* Botones un poco más compactos */
-  body.is-touch #shoot-btn {
-    right: 18px; bottom: 30px;
-    width: 88px; height: 88px;
-    font-size: 34px;
-  }
-  body.is-touch #aim-btn {
-    right: 118px; bottom: 42px;
-    width: 68px; height: 68px;
-    font-size: 26px;
-  }
-  body.is-touch #jump-btn {
-    right: 18px; bottom: 130px;
-    width: 68px; height: 68px;
-    font-size: 11px;
-  }
-  body.is-touch #action-btn {
-    right: 118px; bottom: 122px;
-    width: 68px; height: 68px;
-    font-size: 26px;
-  }
+  body.is-touch #car-health-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
+  body.is-touch #ammo-wrap { top: 138px; left: 6px; width: 96px; }
+  body.is-touch #car-health-wrap { top: 170px; left: 6px; width: 96px; }
+  body.is-touch #joystick { left: 20px; bottom: 20px; width: 110px; height: 110px; }
+  body.is-touch #stick { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+  body.is-touch #shoot-btn { right: 18px; bottom: 30px; width: 88px; height: 88px; font-size: 34px; }
+  body.is-touch #aim-btn { right: 118px; bottom: 42px; width: 68px; height: 68px; font-size: 26px; }
+  body.is-touch #jump-btn { right: 18px; bottom: 130px; width: 68px; height: 68px; font-size: 11px; }
+  body.is-touch #action-btn { right: 118px; bottom: 122px; width: 68px; height: 68px; font-size: 26px; }
 </style>
 </head>
 <body>
 <div id="info">Click en pantalla para jugar · Click izq: disparar · Click der: apuntar · R: recargar · E: auto · F3: debug</div>
 <div id="hint"></div>
 
+<div id="online-panel">
+  <span id="online-status">🔌 Conectando...</span>
+</div>
+
 <div id="click-overlay">
   <div class="inner">
     CLICK PARA JUGAR
     <div class="sub">
-      Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
+      Modo <b>ONLINE</b> · Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
       <span class="key">Click der</span> apuntar · <span class="key">R</span> recargar ·
       <span class="key">E</span> entrar al auto · <span class="key">ESC</span> liberar ratón
     </div>
@@ -364,6 +347,72 @@
 
 <script type="module">
 import * as THREE from 'three';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getDatabase, ref, set, update, onValue, onChildAdded, onChildRemoved,
+  onDisconnect, remove, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE / MULTIJUGADOR
+   ═══════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBq-yKzsMLLBPVoxjagwZFfxMwqNNbNV5g",
+  authDomain: "miniguerra-d9bc0.firebaseapp.com",
+  databaseURL: "https://miniguerra-d9bc0-default-rtdb.firebaseio.com",
+  projectId: "miniguerra-d9bc0",
+  storageBucket: "miniguerra-d9bc0.firebasestorage.app",
+  messagingSenderId: "150218119450",
+  appId: "1:150218119450:web:55015e9e412985453174a3",
+  measurementId: "G-PSKV1949H2"
+};
+
+let onlineMode = false;
+let db = null;
+let playerId = null;
+let playerName = null;
+let playerNetRef = null;
+let carNetRef = null;
+const ROOM = 'main';
+const NET_SEND_HZ = 10; // 10 envíos por segundo
+const NET_STALE_MS = 10000; // 10s sin señal → jugador fantasma
+const BULLET_DAMAGE_TO_PLAYER = 20;
+
+const onlinePanel = document.getElementById('online-panel');
+const onlineStatus = document.getElementById('online-status');
+
+function setOnlineStatus(html, offline = false) {
+  onlineStatus.innerHTML = html;
+  onlinePanel.classList.toggle('offline', offline);
+}
+
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getDatabase(app);
+  onlineMode = true;
+} catch (err) {
+  console.warn('Firebase no disponible, modo offline:', err);
+  onlineMode = false;
+  setOnlineStatus('<span class="bad">🔌 Offline (sin Firebase)</span>', true);
+}
+
+// Id y nombre persistentes en esta sesión
+playerId = 'p_' + Math.random().toString(36).substring(2, 10);
+try {
+  let stored = sessionStorage.getItem('lp_name');
+  if (!stored) {
+    stored = 'Jugador' + Math.floor(1000 + Math.random() * 9000);
+    sessionStorage.setItem('lp_name', stored);
+  }
+  playerName = stored;
+} catch (e) {
+  playerName = 'Jugador' + Math.floor(1000 + Math.random() * 9000);
+}
+
+if (onlineMode) {
+  playerNetRef = ref(db, `rooms/${ROOM}/players/${playerId}`);
+  carNetRef = ref(db, `rooms/${ROOM}/car`);
+}
 
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
@@ -395,7 +444,6 @@ Object.assign(sun.shadow.camera, {
 });
 scene.add(sun);
 
-/* ─────────────── SUELO ─────────────── */
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(140, 140, 1, 1),
   new THREE.MeshLambertMaterial({ color: 0x6ab04c, flatShading: true })
@@ -668,7 +716,6 @@ function createHouse(x, z, rot, styleIdx) {
   const trimMat   = new THREE.MeshLambertMaterial({ color: 0x3d2314, flatShading: true });
   const ceilMat   = new THREE.MeshLambertMaterial({ color: CEILING_COLOR, flatShading: true });
 
-  // Suelo interior de madera elevado (no atraviesa el suelo del map)
   const FLOOR_TOP = 0.06;
   const interiorFloor = new THREE.Mesh(
     new THREE.BoxGeometry(W - WALL_T * 2, 0.06, D - WALL_T * 2),
@@ -679,19 +726,15 @@ function createHouse(x, z, rot, styleIdx) {
   g.add(interiorFloor);
 
   walkableSurfaces.push({
-    kind: 'slab',
-    x: x, z: z,
-    hw: (W - WALL_T * 2) / 2,
-    hd: (D - WALL_T * 2) / 2,
-    rot: rot,
-    y: FLOOR_TOP
+    kind: 'slab', x: x, z: z,
+    hw: (W - WALL_T * 2) / 2, hd: (D - WALL_T * 2) / 2,
+    rot: rot, y: FLOOR_TOP
   });
 
-  // FRONT WALL
   const frontOpenings = [
-    { x: 0,      w: DOOR_W, y0: FLOOR_TOP,   y1: DOOR_H + FLOOR_TOP },
-    { x: -2.65,  w: 1.4,    y0: 3.7,         y1: 4.9 },
-    { x:  2.65,  w: 1.4,    y0: 3.7,         y1: 4.9 },
+    { x: 0,      w: DOOR_W, y0: FLOOR_TOP, y1: DOOR_H + FLOOR_TOP },
+    { x: -2.65,  w: 1.4,    y0: 3.7,       y1: 4.9 },
+    { x:  2.65,  w: 1.4,    y0: 3.7,       y1: 4.9 },
   ];
   const frontWall = buildWall(W, WALL_H, WALL_T, frontOpenings, wallMat);
   frontWall.position.set(0, 0, D / 2);
@@ -701,15 +744,13 @@ function createHouse(x, z, rot, styleIdx) {
   doorHinge.position.set(-DOOR_W / 2, FLOOR_TOP, D / 2 + WALL_T / 2);
   doorHinge.rotation.y = -Math.PI / 2 - 0.35;
   const doorMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(DOOR_W - 0.06, DOOR_H - 0.06, 0.06),
-    doorMat
+    new THREE.BoxGeometry(DOOR_W - 0.06, DOOR_H - 0.06, 0.06), doorMat
   );
   doorMesh.position.set((DOOR_W - 0.06) / 2, (DOOR_H - 0.06) / 2, 0);
   doorMesh.castShadow = true;
   doorHinge.add(doorMesh);
   g.add(doorHinge);
 
-  // BACK WALL
   const backOpenings = [
     { x: -2.4, w: 1.3, y0: 1.3, y1: 2.5 },
     { x:  2.4, w: 1.3, y0: 1.3, y1: 2.5 },
@@ -721,7 +762,6 @@ function createHouse(x, z, rot, styleIdx) {
   backWall.rotation.y = Math.PI;
   g.add(backWall);
 
-  // LEFT WALL
   const leftOpenings = [
     { x: -1.5, w: 1.3, y0: 1.3, y1: 2.5 },
     { x:  1.5, w: 1.3, y0: 1.3, y1: 2.5 },
@@ -733,7 +773,6 @@ function createHouse(x, z, rot, styleIdx) {
   leftWall.rotation.y = Math.PI / 2;
   g.add(leftWall);
 
-  // RIGHT WALL
   const rightOpenings = [
     { x: -2.8, w: 1.3, y0: 1.3, y1: 2.5 },
     { x:  0.0, w: 1.3, y0: 3.7, y1: 4.9 },
@@ -744,7 +783,6 @@ function createHouse(x, z, rot, styleIdx) {
   rightWall.rotation.y = -Math.PI / 2;
   g.add(rightWall);
 
-  // SEGUNDO PISO
   const holeXMin = STAIR_X - STAIR_W / 2;
   const holeZMin = STAIR_Z_TOP;
   const holeZMax = STAIR_Z_BOTTOM;
@@ -783,7 +821,6 @@ function createHouse(x, z, rot, styleIdx) {
     addSlabPiece(px, pz, pw, pd);
   }
 
-  // ESCALERAS
   const numSteps = 10;
   const stepRise = STAIR_H / numSteps;
   const stepRun = STAIR_LEN / numSteps;
@@ -791,8 +828,7 @@ function createHouse(x, z, rot, styleIdx) {
     const stepZ = STAIR_Z_BOTTOM - stepRun * (i + 0.5);
     const stepH = stepRise * (i + 1);
     const step = new THREE.Mesh(
-      new THREE.BoxGeometry(STAIR_W, stepH, stepRun),
-      stairMat
+      new THREE.BoxGeometry(STAIR_W, stepH, stepRun), stairMat
     );
     step.position.set(STAIR_X, stepH / 2, stepZ);
     step.castShadow = true; step.receiveShadow = true;
@@ -807,16 +843,13 @@ function createHouse(x, z, rot, styleIdx) {
     });
   }
 
-  // TECHO INTERIOR
   const ceiling = new THREE.Mesh(
-    new THREE.BoxGeometry(W - WALL_T, 0.1, D - WALL_T),
-    ceilMat
+    new THREE.BoxGeometry(W - WALL_T, 0.1, D - WALL_T), ceilMat
   );
   ceiling.position.set(0, WALL_H + 0.05, 0);
   ceiling.receiveShadow = true;
   g.add(ceiling);
 
-  // TEJADO A DOS AGUAS
   const roofH = 1.6;
   const overhang = 0.4;
   const halfW = W / 2 + overhang;
@@ -834,13 +867,11 @@ function createHouse(x, z, rot, styleIdx) {
   roofMesh.castShadow = true; roofMesh.receiveShadow = true;
   g.add(roofMesh);
 
-  // COLISIONADORES
   function addBoxColliderLocal(cx, cz, hw, hd, localRot, options = {}) {
     const wc = localToWorld(cx, cz, x, z, rot);
     boxColliders.push({
       x: wc.x, z: wc.z, hw, hd,
-      rot: rot + localRot, kind: 'wall',
-      ...options
+      rot: rot + localRot, kind: 'wall', ...options
     });
   }
   {
@@ -861,21 +892,11 @@ function createHouse(x, z, rot, styleIdx) {
   addBoxColliderLocal(-W / 2, 0, D / 2, WALL_T / 2, Math.PI / 2);
   addBoxColliderLocal(W / 2, 0, D / 2, WALL_T / 2, Math.PI / 2);
 
-  // Colisionador lateral izquierdo de la escalera
   addBoxColliderLocal(
-    STAIR_X - STAIR_W / 2 - 0.08,
-    0,
-    0.08,
-    STAIR_LEN / 2,
-    0
+    STAIR_X - STAIR_W / 2 - 0.08, 0, 0.08, STAIR_LEN / 2, 0
   );
-  // Colisionador trasero de la escalera (bloquea solo desde abajo)
   addBoxColliderLocal(
-    STAIR_X,
-    STAIR_Z_TOP,
-    STAIR_W / 2,
-    0.05,
-    0,
+    STAIR_X, STAIR_Z_TOP, STAIR_W / 2, 0.05, 0,
     { blockBelowY: 2.5 }
   );
 
@@ -974,8 +995,8 @@ const hoodFront = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.22, 0.15), trimMat
 hoodFront.position.set(0, 0.95, 2.18); car.add(hoodFront);
 const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.68, 0.72, 1.5), glassMat);
 cabin.position.set(0, 1.68, 0.05); cabin.castShadow = true; car.add(cabin);
-const roof = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.1, 1.55), bodyMat);
-roof.position.set(0, 2.09, 0.05); roof.castShadow = true; car.add(roof);
+const roofCar = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.1, 1.55), bodyMat);
+roofCar.position.set(0, 2.09, 0.05); roofCar.castShadow = true; car.add(roofCar);
 const cabFrame = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.18, 1.55), bodyMat);
 cabFrame.position.set(0, 1.29, 0.05); car.add(cabFrame);
 const doorPanelL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.4, 1.6), bodyMat);
@@ -1091,6 +1112,7 @@ const CAR_CIRCLES = [
 let inCar = false;
 let aiming = false;
 const ENTER_DISTANCE = 4.0;
+let isCarDriver = false;
 
 let health = 100;
 const healthBarInner = document.getElementById('health-bar-inner');
@@ -1191,7 +1213,6 @@ function endJoystick() {
   stick.style.transform = 'translate(0px, 0px)';
   touchInput.x = 0; touchInput.y = 0;
 }
-
 function isPointInJoystick(cx, cy, margin = 40) {
   const rect = joystick.getBoundingClientRect();
   return cx >= rect.left - margin && cx <= rect.right + margin &&
@@ -1202,7 +1223,6 @@ joystickZone.addEventListener('touchstart', e => {
   e.preventDefault();
   if (joystickActiveId !== null) return;
   for (const t of e.changedTouches) {
-    // Solo capturar si el toque cae cerca del joystick visual
     if (isPointInJoystick(t.clientX, t.clientY, 80)) {
       startJoystick(t.clientX, t.clientY, t.identifier);
       break;
@@ -1245,42 +1265,31 @@ shootBtn.addEventListener('pointerup',   e => { e.preventDefault(); shootHeld = 
 shootBtn.addEventListener('pointerleave',e => { shootHeld = false; });
 shootBtn.addEventListener('pointercancel',e => { shootHeld = false; });
 
-/* ═══════════════════════════════════════════
-   BOTÓN DE APUNTAR — TOGGLE
-   ═══════════════════════════════════════════ */
 function setAiming(v) {
   aiming = v;
   aimBtn.classList.toggle('held', aiming);
 }
-
 aimBtn.addEventListener('pointerdown', e => {
   e.preventDefault();
   setAiming(!aiming);
 });
-// Evitar que el click del pointerdown se duplique en navegadores viejos
 aimBtn.addEventListener('click', e => e.preventDefault());
 
 /* ─────────────── POINTER LOCK ─────────────── */
 let pointerLocked = false;
-
 function requestLock() {
   if (playerDead) return;
   const p = renderer.domElement.requestPointerLock();
   if (p && p.catch) p.catch(() => {});
 }
-
 clickOverlay.addEventListener('click', () => {
   clickOverlay.classList.remove('active');
   document.body.style.cursor = 'none';
   requestLock();
 });
-
 renderer.domElement.addEventListener('click', () => {
-  if (!isTouch && !pointerLocked && !playerDead) {
-    requestLock();
-  }
+  if (!isTouch && !pointerLocked && !playerDead) requestLock();
 });
-
 document.addEventListener('pointerlockchange', () => {
   pointerLocked = document.pointerLockElement === renderer.domElement;
   if (!pointerLocked && !isTouch && !playerDead) {
@@ -1288,7 +1297,6 @@ document.addEventListener('pointerlockchange', () => {
     document.body.style.cursor = 'default';
   }
 });
-
 document.addEventListener('mousemove', e => {
   if (!pointerLocked || playerDead) return;
   const sens = aiming ? 0.0012 : 0.0022;
@@ -1301,34 +1309,24 @@ document.addEventListener('mousemove', e => {
   }
   recenterDelay = 2.5;
 });
-
 document.addEventListener('mousedown', e => {
   if (isTouch || !pointerLocked || playerDead) return;
   if (e.button === 0) { shootHeld = true; tryShoot(); }
   else if (e.button === 2) { setAiming(true); }
 });
-
 document.addEventListener('mouseup', e => {
   if (isTouch) return;
   if (e.button === 0) shootHeld = false;
   else if (e.button === 2) { setAiming(false); }
 });
 
-/* ═══════════════════════════════════════════
-   CÁMARA TÁCTIL — GLOBAL (funciona aunque toques botones)
-   ═══════════════════════════════════════════ */
 let cameraTouchId = null;
 let lastTouchX = 0, lastTouchY = 0;
-
 addEventListener('touchstart', e => {
   if (playerDead) return;
   for (const t of e.changedTouches) {
-    // Si este toque pertenece al joystick, ignorar
     if (t.identifier === joystickActiveId) continue;
-    // Si el toque empieza cerca del joystick, ignorar
     if (isPointInJoystick(t.clientX, t.clientY, 60)) continue;
-
-    // El primer toque "libre" se convierte en la referencia de cámara
     if (cameraTouchId === null) {
       cameraTouchId = t.identifier;
       lastTouchX = t.clientX;
@@ -1336,7 +1334,6 @@ addEventListener('touchstart', e => {
     }
   }
 }, { passive: true });
-
 addEventListener('touchmove', e => {
   if (cameraTouchId === null || playerDead) return;
   for (const t of e.changedTouches) {
@@ -1358,7 +1355,6 @@ addEventListener('touchmove', e => {
     }
   }
 }, { passive: false });
-
 function handleCamEnd(e) {
   if (cameraTouchId === null) return;
   for (const t of e.changedTouches) {
@@ -1371,13 +1367,11 @@ addEventListener('touchcancel', handleCamEnd);
 /* ─────────────── DEBUG ─────────────── */
 let debugEnabled = false;
 const fpsSamples = [];
-
 function toggleDebug() {
   debugEnabled = !debugEnabled;
   debugPanel.classList.toggle('active', debugEnabled);
   fpsSamples.length = 0;
 }
-
 function updateDebug(dt) {
   if (!debugEnabled) return;
   fpsSamples.push(1 / Math.max(dt, 0.0001));
@@ -1388,16 +1382,18 @@ function updateDebug(dt) {
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
+<span class="val">Online:</span>    ${onlineMode ? 'SÍ' : 'no'}
+<span class="val">ID:</span>        ${playerId || '-'}
+<span class="val">Nombre:</span>    ${playerName || '-'}
+<span class="val">Remotos:</span>   ${remotePlayers.size}
 
 <span class="title">── Modo ──</span>
-<span class="val">Cámara:</span>    ${playerDead ? '💀 muerte' : (inCar ? '🚗 auto' : '👁 FPS')}
-<span class="val">Pointer:</span>   ${pointerLocked ? '🔒' : '🔓'}
+<span class="val">Cámara:</span>    ${playerDead ? '💀' : (inCar ? '🚗 auto' : '👁 FPS')}
+<span class="val">Conductor:</span> ${isCarDriver ? 'YO' : (remoteCarDriverId || 'nadie')}
 <span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
 <span class="val">Balas:</span>     ${ammo} / ${MAG_SIZE}${reloading ? ' (recargando)' : ''}
-<span class="val">Apuntando:</span> ${aiming ? 'SÍ' : 'no'}
 <span class="val">Auto HP:</span>   ${carHealth.toFixed(0)} / 100
-<span class="val">Piezas:</span>    auto:${carPieces.length} jug:${playerPieces.length}
 
 <span class="title">── Auto ──</span>
 <span class="val">Vel:</span>       ${carState.speed.toFixed(2)} m/s (${kmh.toFixed(0)} km/h)
@@ -1419,7 +1415,6 @@ const EYE_HEIGHT = 1.75;
 const smoothTarget = new THREE.Vector3(0, 1.6, 0);
 
 let recenterDelay = 0;
-
 let deathTimer = 0;
 let deathCameraAngle = 0;
 const deathPosition = new THREE.Vector3();
@@ -1502,7 +1497,9 @@ function toggleCar() {
   if (playerDead || carDestroyed) return;
 
   if (inCar) {
+    // Salir
     inCar = false;
+    isCarDriver = false;
     weapon.visible = true;
     setAiming(false);
     const sideX = Math.cos(carState.angle) * 2.2;
@@ -1514,9 +1511,20 @@ function toggleCar() {
     resolveCollisions(player, PLAYER_RADIUS);
     cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
     recenterDelay = 0;
+
+    // Liberar en la red
+    if (onlineMode && carNetRef) {
+      update(carNetRef, { driver: null });
+    }
   } else {
     if (!isNearCar()) return;
+    // Verificar que nadie más lo esté conduciendo
+    if (remoteCarDriverId && remoteCarDriverId !== playerId) {
+      // Alguien lo conduce
+      return;
+    }
     inCar = true;
+    isCarDriver = true;
     weapon.visible = false;
     setAiming(false);
     reloading = false;
@@ -1524,6 +1532,11 @@ function toggleCar() {
     cameraYaw = carState.angle + Math.PI;
     cameraPitch = Math.max(TP_PITCH_MIN, Math.min(TP_PITCH_MAX, cameraPitch));
     recenterDelay = 0;
+
+    // Reclamar en la red
+    if (onlineMode && carNetRef) {
+      update(carNetRef, { driver: playerId, driverTs: Date.now() });
+    }
   }
 }
 
@@ -1723,23 +1736,28 @@ function getTopParent(obj) {
   while (top.parent && top.parent !== scene) top = top.parent;
   return top;
 }
-
 function isPartOfCar(obj) {
   let p = obj;
   while (p) { if (p === car) return true; p = p.parent; }
   return false;
 }
-
 function isPartOfPlayer(obj) {
   let p = obj;
   while (p) { if (p === player) return true; p = p.parent; }
   return false;
 }
-
 function isPartOfWeapon(obj) {
   let p = obj;
   while (p) { if (p === weapon) return true; p = p.parent; }
   return false;
+}
+function getRemotePlayerId(obj) {
+  let p = obj;
+  while (p) {
+    if (p.userData && p.userData.remotePlayerId) return p.userData.remotePlayerId;
+    p = p.parent;
+  }
+  return null;
 }
 
 function spawnBulletHole(hit, normal) {
@@ -1797,9 +1815,18 @@ function disassembleCar() {
 
 const BLAST_RADIUS = 7.0;
 
-function destroyCar() {
+function destroyCar(broadcast = true) {
   if (carDestroyed) return;
   carDestroyed = true;
+
+  // Si yo estaba conduciendo, salir
+  if (isCarDriver) {
+    isCarDriver = false;
+    if (onlineMode && carNetRef) {
+      update(carNetRef, { driver: null });
+    }
+  }
+
   const centerPos = new THREE.Vector3(car.position.x, 1.2, car.position.z);
   spawnBurst(centerPos, [0xff6600, 0xffcc00, 0xff2200, 0xffaa00], 55, 5, 13);
 
@@ -1828,6 +1855,11 @@ function destroyCar() {
   });
   disassembleCar();
   carState.speed = 0;
+
+  // Broadcast
+  if (broadcast && onlineMode && carNetRef) {
+    update(carNetRef, { destroyed: true, health: 0 });
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -1899,7 +1931,11 @@ function respawnPlayer() {
   reloadTimer = 0;
   ammoWrap.classList.remove('reloading');
   updateAmmoBar();
-  player.position.set(0, 0, 0);
+
+  // Spawn aleatorio para no apilarse
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 6 + Math.random() * 10;
+  player.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
   player.rotation.set(0, 0, 0);
   velocityY = 0;
   isGrounded = true;
@@ -1911,6 +1947,9 @@ function respawnPlayer() {
   setAiming(false);
   deathUI.classList.remove('active');
   if (!isTouch) setTimeout(() => requestLock(), 100);
+
+  // Broadcast inmediato
+  if (onlineMode) sendLocalPlayerState();
 }
 respawnBtn.addEventListener('click', respawnPlayer);
 
@@ -1965,12 +2004,40 @@ function tryShoot() {
       normal = raycaster.ray.direction.clone().negate();
     }
 
+    // ¿Golpeó a un jugador remoto?
+    const remoteId = getRemotePlayerId(hit.object);
+    if (remoteId && !playerDead) {
+      // Enviar daño por Firebase
+      if (onlineMode) {
+        const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        const hitRef = ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`);
+        set(hitRef, { damage: BULLET_DAMAGE_TO_PLAYER, from: playerId, ts: Date.now() });
+      }
+      // Marca de bala sobre el cuerpo
+      spawnBulletHole(hit, normal);
+      break;
+    }
+
+    // Superficie normal
     spawnBulletHole(hit, normal);
 
     if (isPartOfCar(hit.object) && !carDestroyed) {
-      carHealth = Math.max(0, carHealth - BULLET_DAMAGE_TO_CAR);
-      updateCarHealthBar();
-      if (carHealth <= 0) destroyCar();
+      // Daño al auto con transacción (atómico entre todos los clientes)
+      if (onlineMode && carNetRef) {
+        runTransaction(ref(db, `rooms/${ROOM}/car/health`), h => {
+          const base = (typeof h === 'number') ? h : 100;
+          return Math.max(0, base - BULLET_DAMAGE_TO_CAR);
+        }).then(r => {
+          const newH = r.snapshot.val();
+          carHealth = newH;
+          updateCarHealthBar();
+          if (newH <= 0 && !carDestroyed) destroyCar(true);
+        });
+      } else {
+        carHealth = Math.max(0, carHealth - BULLET_DAMAGE_TO_CAR);
+        updateCarHealthBar();
+        if (carHealth <= 0) destroyCar(true);
+      }
     }
     break;
   }
@@ -2078,6 +2145,10 @@ function updatePlayer(dt) {
 let visualSteer = 0;
 
 function updateCar(dt) {
+  if (!isCarDriver && remoteCarDriverId) {
+    // Otro jugador lo conduce — no mover localmente
+    return;
+  }
   let throttle = 0, steer = 0;
   if (keys['KeyW'] || keys['ArrowUp'])    throttle += 1;
   if (keys['KeyS'] || keys['ArrowDown'])  throttle -= 1;
@@ -2112,9 +2183,21 @@ function updateCar(dt) {
   if (resolveCarCollisions()) {
     const impact = Math.abs(speedBefore) * 0.5;
     if (impact > 4 && !carDestroyed) {
-      carHealth = Math.max(0, carHealth - impact * 0.8);
-      updateCarHealthBar();
-      if (carHealth <= 0) destroyCar();
+      if (onlineMode && carNetRef) {
+        runTransaction(ref(db, `rooms/${ROOM}/car/health`), h => {
+          const base = (typeof h === 'number') ? h : 100;
+          return Math.max(0, base - impact * 0.8);
+        }).then(r => {
+          const newH = r.snapshot.val();
+          carHealth = newH;
+          updateCarHealthBar();
+          if (newH <= 0 && !carDestroyed) destroyCar(true);
+        });
+      } else {
+        carHealth = Math.max(0, carHealth - impact * 0.8);
+        updateCarHealthBar();
+        if (carHealth <= 0) destroyCar(true);
+      }
     }
     if (impact > 6 && !playerDead && inCar) {
       health = Math.max(0, health - impact * 0.35);
@@ -2185,7 +2268,6 @@ function updateCamera(dt) {
   }
 }
 
-/* ─────────────── CÁMARA DE MUERTE ─────────────── */
 function updateDeathCamera(dt) {
   deathTimer += dt;
   const t = Math.min(1, deathTimer / 1.2);
@@ -2203,6 +2285,296 @@ function updateDeathCamera(dt) {
   camera.lookAt(deathPosition.x, deathPosition.y + 1, deathPosition.z);
   camera.fov += (BASE_FOV - camera.fov) * Math.min(1, dt * 5);
   camera.updateProjectionMatrix();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MULTIJUGADOR ONLINE
+   ═══════════════════════════════════════════════════════════ */
+const remotePlayers = new Map(); // id -> { group, state, target, nameTag }
+let remoteCarDriverId = null;
+let carNetTarget = null;
+let carNetData = {};
+
+function createNameTag(text) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 32px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 32);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(2.2, 0.55, 1);
+  sprite.position.y = 2.85;
+  return sprite;
+}
+
+function createRemoteBody() {
+  const g = new THREE.Group();
+  // Clonar los meshes del jugador local (mismas proporciones)
+  for (const child of player.children) {
+    g.add(child.clone());
+  }
+  return g;
+}
+
+function addRemotePlayer(id, data) {
+  if (remotePlayers.has(id)) return;
+  const group = createRemoteBody();
+  group.userData.remotePlayerId = id;
+  group.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
+  group.rotation.y = (data.yaw ?? 0) + Math.PI;
+  const tag = createNameTag(data.name || 'Jugador');
+  group.add(tag);
+  scene.add(group);
+  remotePlayers.set(id, {
+    group,
+    nameTag: tag,
+    name: data.name || 'Jugador',
+    targetX: group.position.x,
+    targetY: group.position.y,
+    targetZ: group.position.z,
+    targetYaw: group.rotation.y,
+    lastSeen: Date.now(),
+    hp: data.hp ?? 100
+  });
+}
+
+function updateRemotePlayer(id, data) {
+  let r = remotePlayers.get(id);
+  if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
+  r.targetX = data.x ?? r.targetX;
+  r.targetY = data.y ?? r.targetY;
+  r.targetZ = data.z ?? r.targetZ;
+  r.targetYaw = (data.yaw ?? 0) + Math.PI;
+  r.lastSeen = Date.now();
+  r.hp = data.hp ?? r.hp;
+  if (data.name && data.name !== r.name) {
+    r.name = data.name;
+    r.group.remove(r.nameTag);
+    r.nameTag.material.map.dispose();
+    r.nameTag.material.dispose();
+    const newTag = createNameTag(data.name);
+    r.group.add(newTag);
+    r.nameTag = newTag;
+  }
+}
+
+function removeRemotePlayer(id) {
+  const r = remotePlayers.get(id);
+  if (!r) return;
+  scene.remove(r.group);
+  r.nameTag.material.map.dispose();
+  r.nameTag.material.dispose();
+  remotePlayers.delete(id);
+}
+
+function sendLocalPlayerState() {
+  if (!onlineMode || !playerNetRef) return;
+  const state = {
+    name: playerName,
+    x: +player.position.x.toFixed(2),
+    y: +player.position.y.toFixed(2),
+    z: +player.position.z.toFixed(2),
+    yaw: +cameraYaw.toFixed(3),
+    pitch: +cameraPitch.toFixed(3),
+    hp: Math.round(health),
+    inCar: inCar,
+    ts: Date.now()
+  };
+  update(playerNetRef, state).catch(() => {});
+}
+
+function sendCarState() {
+  if (!onlineMode || !carNetRef || !isCarDriver) return;
+  update(carNetRef, {
+    driver: playerId,
+    driverTs: Date.now(),
+    x: +car.position.x.toFixed(2),
+    z: +car.position.z.toFixed(2),
+    angle: +carState.angle.toFixed(3),
+    speed: +carState.speed.toFixed(2)
+  }).catch(() => {});
+}
+
+let netSendAcc = 0;
+function updateNetwork(dt) {
+  if (!onlineMode) return;
+
+  // Enviar estado
+  netSendAcc += dt;
+  if (netSendAcc >= 1 / NET_SEND_HZ) {
+    netSendAcc = 0;
+    sendLocalPlayerState();
+    if (isCarDriver) sendCarState();
+  }
+
+  // Interpolar jugadores remotos
+  const now = Date.now();
+  for (const [id, r] of remotePlayers) {
+    // Limpiar jugadores stale
+    if (now - r.lastSeen > NET_STALE_MS) {
+      removeRemotePlayer(id);
+      continue;
+    }
+    // Suavizado de posición
+    const t = Math.min(1, dt * 12);
+    r.group.position.x += (r.targetX - r.group.position.x) * t;
+    r.group.position.y += (r.targetY - r.group.position.y) * t;
+    r.group.position.z += (r.targetZ - r.group.position.z) * t;
+    // Rotación
+    let dy = r.targetYaw - r.group.rotation.y;
+    while (dy > Math.PI) dy -= Math.PI * 2;
+    while (dy < -Math.PI) dy += Math.PI * 2;
+    r.group.rotation.y += dy * Math.min(1, dt * 12);
+    // Actualizar nametag (mirar a cámara se maneja solo con Sprite)
+    r.nameTag.material.opacity = 1;
+  }
+
+  // Auto remoto — interpolación
+  if (carNetTarget && !isCarDriver) {
+    const t = Math.min(1, dt * 10);
+    car.position.x += (carNetTarget.x - car.position.x) * t;
+    car.position.z += (carNetTarget.z - car.position.z) * t;
+    let dy = carNetTarget.angle - carState.angle;
+    while (dy > Math.PI) dy -= Math.PI * 2;
+    while (dy < -Math.PI) dy += Math.PI * 2;
+    carState.angle += dy * t;
+    car.rotation.y = carState.angle;
+  }
+
+  // Actualizar contador online
+  updateOnlineUI();
+}
+
+let onlineUICounter = 0;
+function updateOnlineUI() {
+  onlineUICounter++;
+  if (onlineUICounter % 15 !== 0) return;
+  const n = remotePlayers.size + 1;
+  setOnlineStatus(
+    `<span class="ok">🟢 ONLINE</span> · <span class="name">${playerName}</span> · ${n} jugador${n === 1 ? '' : 'es'}`
+  );
+}
+
+/* ─────────────── INICIALIZACIÓN ONLINE ─────────────── */
+async function initOnline() {
+  if (!onlineMode) return;
+
+  // Conexión status
+  onValue(ref(db, '.info/connected'), snap => {
+    if (snap.val() === true) {
+      setOnlineStatus(`<span class="ok">🟢 Conectado</span> · ${playerName}`);
+    } else {
+      setOnlineStatus(`<span class="bad">🔴 Reconectando...</span>`, true);
+    }
+  });
+
+  // Registrar jugador
+  await set(playerNetRef, {
+    name: playerName,
+    x: 0, y: 0, z: 0,
+    yaw: 0, pitch: 0,
+    hp: 100,
+    inCar: false,
+    ts: Date.now()
+  });
+  // Eliminar automáticamente al desconectar
+  onDisconnect(playerNetRef).remove();
+
+  // Escuchar lista de jugadores
+  const playersRef = ref(db, `rooms/${ROOM}/players`);
+  onChildAdded(playersRef, snap => {
+    const id = snap.key;
+    if (id === playerId) return;
+    updateRemotePlayer(id, snap.val() || {});
+  });
+  onChildRemoved(playersRef, snap => {
+    const id = snap.key;
+    if (id === playerId) return;
+    removeRemotePlayer(id);
+  });
+  onValue(playersRef, snap => {
+    const all = snap.val() || {};
+    // Actualizar todos los existentes
+    for (const [id, data] of Object.entries(all)) {
+      if (id === playerId) continue;
+      updateRemotePlayer(id, data);
+    }
+  });
+
+  // Escuchar hits dirigidos a mí
+  const myHitsRef = ref(db, `rooms/${ROOM}/players/${playerId}/hits`);
+  onChildAdded(myHitsRef, snap => {
+    const hit = snap.val();
+    if (!hit) return;
+    if (!playerDead) {
+      health = Math.max(0, health - (hit.damage || 20));
+      updateHealthBar();
+      // Flash de daño
+      if (health <= 0) killPlayer();
+      // Enviar hp actualizado inmediatamente
+      sendLocalPlayerState();
+    }
+    remove(snap.ref);
+  });
+
+  // Inicializar auto si no existe
+  onValue(carNetRef, snap => {
+    if (!snap.exists()) {
+      set(carNetRef, {
+        health: 100,
+        destroyed: false,
+        driver: null,
+        driverTs: 0,
+        x: 8, z: 8, angle: 0, speed: 0
+      });
+      return;
+    }
+    carNetData = snap.val() || {};
+
+    // Actualizar vida del auto
+    if (typeof carNetData.health === 'number' && !isCarDriver) {
+      carHealth = carNetData.health;
+      updateCarHealthBar();
+    }
+
+    // Si el auto fue destruido remotamente
+    if (carNetData.destroyed && !carDestroyed) {
+      destroyCar(false);
+    }
+
+    // Conductor remoto
+    const now = Date.now();
+    const driverFresh = carNetData.driver && (now - (carNetData.driverTs || 0) < 3000);
+    if (carNetData.driver && carNetData.driver !== playerId && driverFresh && !carDestroyed) {
+      remoteCarDriverId = carNetData.driver;
+      if (!isCarDriver) {
+        carNetTarget = {
+          x: carNetData.x ?? 8,
+          z: carNetData.z ?? 8,
+          angle: carNetData.angle ?? 0
+        };
+      }
+    } else {
+      remoteCarDriverId = null;
+      if (carNetData.driver === null) carNetTarget = null;
+    }
+  });
+
+  // Enviar estado inicial
+  sendLocalPlayerState();
+
+  // Enviar heartbeat cada 5s para mantenernos vivos si no nos movemos
+  setInterval(() => {
+    if (!playerDead) sendLocalPlayerState();
+  }, 5000);
 }
 
 /* ─────────────── MINIMAPA ─────────────── */
@@ -2260,6 +2632,7 @@ function drawMinimap() {
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
   }
 
+  // Auto
   const carPx = wx2mm(car.position.x);
   const carPy = wz2mm(car.position.z);
   ctx.save();
@@ -2271,6 +2644,21 @@ function drawMinimap() {
   ctx.fillRect(-3, 4, 6, 2);
   ctx.restore();
 
+  // Jugadores remotos
+  for (const [id, r] of remotePlayers) {
+    const px = wx2mm(r.group.position.x);
+    const py = wz2mm(r.group.position.z);
+    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
+    ctx.fillStyle = '#f39c12';
+    ctx.beginPath();
+    ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Yo
   if (!inCar) {
     ctx.save();
     ctx.translate(MM_W / 2, MM_H / 2);
@@ -2323,7 +2711,7 @@ updateCarHealthBar();
 /* ─────────────── UI ─────────────── */
 function updateUI() {
   const near = isNearCar();
-  const showAction = (inCar || near) && !carDestroyed && !playerDead;
+  const showAction = (inCar || (near && !remoteCarDriverId)) && !carDestroyed && !playerDead;
   actionBtn.classList.toggle('active', showAction);
   actionBtn.textContent = inCar ? '🚪' : '🚗';
   if (isTouch) {
@@ -2341,6 +2729,9 @@ function updateUI() {
     hint.classList.add('active');
   } else if (inCar) {
     hint.textContent = 'E o 🚪 para bajar · Mueve el ratón para mirar';
+    hint.classList.add('active');
+  } else if (near && remoteCarDriverId) {
+    hint.textContent = '🚗 Ocupado por otro jugador';
     hint.classList.add('active');
   } else if (carDestroyed && near) {
     hint.textContent = '🚨 Auto destruido';
@@ -2371,6 +2762,7 @@ function animate() {
     updateCamera(dt);
   }
 
+  updateNetwork(dt);
   updateSmoke(dt);
   updatePieces(carPieces, dt, true);
   updatePieces(playerPieces, dt, false);
@@ -2381,6 +2773,13 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+
+/* ─────────────── ARRANQUE ─────────────── */
+initOnline().catch(err => {
+  console.warn('Error inicializando online:', err);
+  setOnlineStatus('<span class="bad">⚠ Error de conexión</span>', true);
+});
+
 animate();
 
 /* ─────────────── RESIZE ─────────────── */
@@ -2393,6 +2792,13 @@ addEventListener('resize', () => {
 document.addEventListener('touchmove', e => {
   if (e.target === document.body) e.preventDefault();
 }, { passive: false });
+
+// Guardar nombre al cerrar
+addEventListener('beforeunload', () => {
+  if (onlineMode && playerNetRef) {
+    remove(playerNetRef).catch(() => {});
+  }
+});
 </script>
 </body>
 </html>
