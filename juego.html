@@ -792,28 +792,107 @@ function loadFBXWeapon(url, targetLen, rotY = Math.PI / 2) {
   }
 })();
 
-/* Manos FPS del rifle */
-const _fpHandMat = new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true });
-const _fpArmMat  = new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true });
+/* ═══════════════════════════════════════════
+   MANOS FPS MEJORADAS
+   Construye una mano con palma, nudillos, 4 dedos
+   articulados, pulgar, muñeca, correa y antebrazo.
+   El antebrazo se extiende en +Z (hacia la cámara).
+   ═══════════════════════════════════════════ */
+function makeFPSHand(side = 'right') {
+  const g = new THREE.Group();
 
-const _fpRHand = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.10, 0.10), _fpHandMat);
-_fpRHand.position.set(0, -0.21, -0.14); weaponRifle.add(_fpRHand);
-const _fpRArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.32), _fpArmMat);
-_fpRArm.position.set(0.03, -0.30, -0.30); _fpRArm.rotation.set(0.60, 0, 0.10); weaponRifle.add(_fpRArm);
-const _fpLHand = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.09, 0.10), _fpHandMat);
-_fpLHand.position.set(0, 0.06, 0.38); weaponRifle.add(_fpLHand);
-const _fpLArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.34), _fpArmMat);
-_fpLArm.position.set(-0.04, -0.18, 0.18); _fpLArm.rotation.set(-0.42, 0, -0.20); weaponRifle.add(_fpLArm);
+  const matGlove   = new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true });
+  const matGlove2  = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
+  const matGloveDk = new THREE.MeshLambertMaterial({ color: 0x101010, flatShading: true });
+  const matSleeve  = new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true });
+  const matSleeve2 = new THREE.MeshLambertMaterial({ color: 0x353d27, flatShading: true });
+  const matStrap   = new THREE.MeshLambertMaterial({ color: 0x2a2520, flatShading: true });
 
-/* Manos FPS de la pistola */
-const _fpPHand1 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.13), _fpHandMat);
-_fpPHand1.position.set(0, -0.20, -0.13); _fpPHand1.rotation.x = 0.30; weaponPistol.add(_fpPHand1);
-const _fpPHand2 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.12), _fpHandMat);
-_fpPHand2.position.set(0.010, -0.235, -0.145); _fpPHand2.rotation.x = 0.30; weaponPistol.add(_fpPHand2);
-const _fpPArm1 = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.32), _fpArmMat);
-_fpPArm1.position.set(0.03, -0.34, -0.30); _fpPArm1.rotation.set(0.70, 0, 0.10); weaponPistol.add(_fpPArm1);
-const _fpPArm2 = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.30), _fpArmMat);
-_fpPArm2.position.set(-0.03, -0.37, -0.29); _fpPArm2.rotation.set(0.70, 0, -0.14); weaponPistol.add(_fpPArm2);
+  // Antebrazo (manga) — se extiende en +Z hacia la cámara
+  const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.32), matSleeve);
+  forearm.position.set(0, 0, 0.185);
+  forearm.castShadow = true;
+  g.add(forearm);
+
+  // Puño de la manga (borde enrollado)
+  const band = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.135, 0.055), matSleeve2);
+  band.position.set(0, 0, 0.035);
+  band.castShadow = true;
+  g.add(band);
+
+  // Muñeca / guante
+  const wrap = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.075), matGlove);
+  wrap.position.set(0, 0, -0.02);
+  wrap.castShadow = true;
+  g.add(wrap);
+
+  // Correa de la muñeca
+  const strap = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.122, 0.014), matStrap);
+  strap.position.set(0, 0, -0.052);
+  g.add(strap);
+
+  // Palma
+  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.115, 0.115), matGlove);
+  palm.position.set(0, 0, -0.108);
+  palm.castShadow = true;
+  g.add(palm);
+
+  // Nudillos
+  const knuckle = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.03, 0.075), matGlove2);
+  knuckle.position.set(0, 0.058, -0.152);
+  g.add(knuckle);
+
+  // 4 dedos (2 falanges cada uno)
+  const fingerGeo = new THREE.BoxGeometry(0.021, 0.052, 0.024);
+  const tipGeo    = new THREE.BoxGeometry(0.019, 0.036, 0.022);
+  for (let i = 0; i < 4; i++) {
+    const fx = -0.036 + i * 0.024;
+    const finger = new THREE.Mesh(fingerGeo, matGlove2);
+    finger.position.set(fx, -0.012, -0.182);
+    finger.rotation.x = -0.9;
+    finger.castShadow = true;
+    g.add(finger);
+    const tip = new THREE.Mesh(tipGeo, matGloveDk);
+    tip.position.set(fx, 0.006, -0.215);
+    tip.rotation.x = -1.4;
+    tip.castShadow = true;
+    g.add(tip);
+  }
+
+  // Pulgar
+  const ts = side === 'right' ? -1 : 1;
+  const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.033, 0.05, 0.033), matGlove2);
+  thumb.position.set(ts * 0.06, -0.008, -0.105);
+  thumb.rotation.set(-0.28, ts * 0.55, ts * 0.42);
+  thumb.castShadow = true;
+  g.add(thumb);
+
+  return g;
+}
+
+/* ─── Mano derecha en el rifle (empuñadura) ─── */
+const _fpHandR = makeFPSHand('right');
+_fpHandR.position.set(0.006, -0.27, -0.042);
+_fpHandR.rotation.set(0.55, 0, 0.10);
+weaponRifle.add(_fpHandR);
+
+/* ─── Mano izquierda en el rifle (guardamanos) ─── */
+const _fpHandL = makeFPSHand('left');
+_fpHandL.position.set(-0.008, 0.015, 0.315);
+_fpHandL.rotation.set(0.42, 0, -0.08);
+weaponRifle.add(_fpHandL);
+
+/* ─── Mano derecha en la pistola ─── */
+const _fpPHandR = makeFPSHand('right');
+_fpPHandR.position.set(0.006, -0.265, -0.030);
+_fpPHandR.rotation.set(0.55, 0, 0.10);
+weaponPistol.add(_fpPHandR);
+
+/* ─── Mano izquierda apoyando la pistola ─── */
+const _fpPHandL = makeFPSHand('left');
+_fpPHandL.position.set(-0.010, -0.30, -0.075);
+_fpPHandL.rotation.set(0.58, 0, -0.14);
+weaponPistol.add(_fpPHandL);
 
 const WEAPON_POS = {
   rifle:  new THREE.Vector3(0.17, -0.15, -0.42),
@@ -1308,8 +1387,9 @@ plaza.position.set(0, 0.025, 0);
 plaza.receiveShadow = true;
 scene.add(plaza);
 
-const _trunkMat = cachedMat(0x6b4a2b);
-const _leafMat  = cachedMat(0x2f8f3e);
+/* ═══════════════════════════════════════════
+   ÁRBOLES — cargados desde tree.fbx (sin generación procedural)
+   ═══════════════════════════════════════════ */
 const _rockMat  = cachedMat(0x7f8c8d);
 
 function tooCloseToHouse(x, z, minDist) {
@@ -1319,19 +1399,9 @@ function tooCloseToHouse(x, z, minDist) {
   }
   return false;
 }
-function createTree(x, z, rotY) {
-  const g = new THREE.Group();
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 2, 5), _trunkMat);
-  trunk.position.y = 1; trunk.castShadow = true; g.add(trunk);
-  for (let i = 0; i < 3; i++) {
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(1.7 - i * 0.45, 1.6, 6), _leafMat);
-    cone.position.y = 2 + i * 0.85; cone.castShadow = true; g.add(cone);
-  }
-  g.position.set(x, 0, z);
-  g.rotation.y = rotY;
-  colliders.push({ x, z, r: 0.7, kind: 'tree' });
-  return g;
-}
+
+// 1) Generar posiciones con el mismo RNG (misma semilla → mismo mapa)
+const treePlacements = [];
 for (let i = 0; i < 24; i++) {
   let x, z, tries = 0;
   do {
@@ -1340,8 +1410,79 @@ for (let i = 0; i < 24; i++) {
     x = Math.cos(a) * r; z = Math.sin(a) * r;
     tries++;
   } while (tooCloseToHouse(x, z, 10) && tries < 30);
-  if (tries < 30) scene.add(createTree(x, z, mapRandom() * Math.PI));
+  if (tries < 30) treePlacements.push({ x, z, rot: mapRandom() * Math.PI });
 }
+
+// 2) Cargar tree.fbx y poblar el mapa con clones
+let treeTemplate = null;
+let treeColliderRadius = 0.9;
+
+_fbxLoader.load('modelos3d/tree.fbx', (obj) => {
+  try {
+    obj.traverse(n => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.receiveShadow = true;
+        n.frustumCulled = false;
+        if (n.material) {
+          const mats = Array.isArray(n.material) ? n.material : [n.material];
+          for (const m of mats) {
+            if (m && 'flatShading' in m) m.flatShading = true;
+            if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+          }
+        }
+      }
+    });
+
+    // Normalizar: alto objetivo ~6.5 unidades, base en y=0
+    obj.rotation.set(0, 0, 0);
+    obj.position.set(0, 0, 0);
+    obj.scale.setScalar(1);
+    obj.updateMatrixWorld(true);
+
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const targetH = 6.5;
+    const s = targetH / Math.max(size.y, 0.001);
+    obj.scale.setScalar(s);
+    obj.updateMatrixWorld(true);
+
+    const box2 = new THREE.Box3().setFromObject(obj);
+    const c2 = box2.getCenter(new THREE.Vector3());
+    obj.position.x -= c2.x;
+    obj.position.z -= c2.z;
+    obj.position.y -= box2.min.y;
+
+    treeColliderRadius = Math.max(0.7, Math.min(size.x, size.z) * s * 0.32);
+
+    // Envolver en un group para poder posicionar sin afectar el recentrado
+    const template = new THREE.Group();
+    template.add(obj);
+    treeTemplate = template;
+
+    // Instanciar en el mapa
+    for (const p of treePlacements) {
+      const clone = template.clone(true);
+      clone.position.set(p.x, 0, p.z);
+      clone.rotation.y = p.rot;
+      clone.traverse(n => {
+        if (n.isMesh) {
+          n.castShadow = true;
+          n.receiveShadow = true;
+        }
+      });
+      scene.add(clone);
+      colliders.push({ x: p.x, z: p.z, r: treeColliderRadius, kind: 'tree' });
+    }
+
+    // Re-optimizar ahora que los árboles están en la escena
+    try { applyOptimizations(); } catch (e) {}
+  } catch (e) {
+    console.warn('Error preparando tree.fbx:', e);
+  }
+}, undefined, err => console.warn('No se pudo cargar tree.fbx:', err));
+
+// 3) Rocas (siguen siendo procedurales, pero usan el mismo RNG → mismas posiciones que antes)
 for (let i = 0; i < 16; i++) {
   const size = 0.4 + mapRandom() * 0.9;
   let x, z, tries = 0;
@@ -1805,7 +1946,13 @@ function respawnPlayer() {
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
-  selectWeapon('rifle', true);
+
+  // FIX: forzar visibilidad del arma aunque currentWeaponKey ya sea 'rifle'
+  selectWeapon('rifle', true, true);
+  // Doble seguro: forzar visibilidad directa por si el grupo quedó oculto
+  weaponRifle.visible  = (currentWeaponKey === 'rifle');
+  weaponPistol.visible = (currentWeaponKey === 'pistol');
+
   deathUI.classList.remove('active');
   playRespawnSound();
   if (gameMode === 'zombies' && isZombieHost) {
@@ -1828,9 +1975,9 @@ respawnBtn.addEventListener('click', respawnPlayer);
 const raycaster = new THREE.Raycaster();
 const screenCenter = new THREE.Vector2(0, 0);
 
-function selectWeapon(key, silent = false) {
+function selectWeapon(key, silent = false, force = false) {
   if (key !== 'rifle' && key !== 'pistol') return;
-  if (key === currentWeaponKey) return;
+  if (key === currentWeaponKey && !force) return;
   const old = curWepState();
   old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
   ammoWrap.classList.remove('reloading');
