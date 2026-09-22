@@ -663,14 +663,11 @@ function createRifleModel() {
   group.add(flash);
   // Grip marker: parte baja-centro, donde va la mano derecha en el gatillo
   const gripMarker = new THREE.Object3D();
-  // Punto de agarre trasero para los jugadores remotos: un poco a la derecha
-  // y por debajo del eje del rifle.
-  gripMarker.position.set(0.04, -0.13, 0.10);
+  gripMarker.position.set(0, -0.11, 0.10);
   group.add(gripMarker);
-  // Punto de agarre delantero para los jugadores remotos. Va por debajo del
-  // guardamanos y hacia la izquierda para que el brazo no atraviese el pecho.
+  // Handguard marker: parte delantera donde va la mano izquierda
   const handguardMarker = new THREE.Object3D();
-  handguardMarker.position.set(-0.10, -0.12, -0.22);
+  handguardMarker.position.set(0, 0.02, -0.22);
   group.add(handguardMarker);
   return { group, flash, gripMarker, handguardMarker, fbxModel: null };
 }
@@ -812,17 +809,6 @@ function cloneLoadedWeaponToRemote(remoteWeapon, sourceObj) {
       n.castShadow = true;
       n.receiveShadow = true;
       n.frustumCulled = false;
-      n.visible = true;
-      if (n.material) {
-        const mats = Array.isArray(n.material) ? n.material : [n.material];
-        for (const m of mats) {
-          if (!m) continue;
-          m.visible = true;
-          m.transparent = false;
-          m.depthTest = true;
-          m.depthWrite = true;
-        }
-      }
     }
   });
   remoteWeapon.fbxModel = clone;
@@ -969,12 +955,6 @@ function curWepDef()   { return WEAPONS[currentWeaponKey]; }
 function curWepState() { return weaponState[currentWeaponKey]; }
 function curWeaponGroup() { return currentWeaponKey === 'rifle' ? weaponRifle : weaponPistol; }
 function curWeaponFlash() { return currentWeaponKey === 'rifle' ? rifleModel.flash : pistolModel.flash; }
-
-function setFirstPersonWeaponsVisible(visible) {
-  weaponRifle.visible = !!visible && currentWeaponKey === 'rifle';
-  weaponPistol.visible = !!visible && currentWeaponKey === 'pistol';
-  grenadeViewModel.visible = !!visible && grenadeViewTimer > 0;
-}
 
 /* ═══════════════════════════════════════════
    GRANADA
@@ -2100,11 +2080,7 @@ function killPlayer() {
   deathPosition.copy(player.position);
   deathStartCamPos.copy(camera.position);
   deathCameraAngle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
-  setFirstPersonWeaponsVisible(false);
-  weaponRifle.visible = false;
-  weaponPistol.visible = false;
-  weaponRifle.traverse(o => { o.visible = false; });
-  weaponPistol.traverse(o => { o.visible = false; });
+  weaponRifle.visible = false; weaponPistol.visible = false;
   grenadeViewModel.visible = false;
   grenadeViewTimer = 0;
   setAiming(false); shootHeld = false;
@@ -2146,9 +2122,8 @@ function respawnPlayer() {
   cameraYaw = 0; cameraPitch = 0;
 
   selectWeapon('rifle', true, true);
-  weaponRifle.traverse(o => { o.visible = true; });
-  weaponPistol.traverse(o => { o.visible = false; });
-  setFirstPersonWeaponsVisible(true);
+  weaponRifle.visible  = (currentWeaponKey === 'rifle');
+  weaponPistol.visible = (currentWeaponKey === 'pistol');
 
   deathUI.classList.remove('active');
   playRespawnSound();
@@ -2815,7 +2790,7 @@ function updateZombieHUD() {
    JUGADORES REMOTOS
    ═══════════════════════════════════════════ */
 const remotePlayers = new Map();
-const REMOTE_AIM_POS = new THREE.Vector3(0.02, 1.52, -0.08);
+const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
 
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
@@ -2827,18 +2802,12 @@ function addRemotePlayer(id, data) {
   // Los remotos reciben sus propias instancias de arma para que siempre queden
   // sujetas a sus brazos y no dependan de la cámara local.
   const rifle = createRifleModel();
-  // El rifle debe quedar claramente por delante del torso. Con 0.28 el extremo
-  // trasero del FBX podía meterse dentro del pecho y parecer invisible.
-  // El frente del personaje es +Z. El FBX de la M4A1 apunta hacia -Z,
-  // por eso el arma remota se gira 180° y se coloca delante del pecho.
-  rifle.group.position.set(0.02, -0.08, 0.34);
-  rifle.group.rotation.set(0, Math.PI, 0);
+  rifle.group.position.set(0, -0.06, 0.28);
   if (rifleModel.fbxModel) cloneLoadedWeaponToRemote(rifle, rifleModel.fbxModel);
   aimPivot.add(rifle.group);
 
   const pistol = createPistolModel();
-  pistol.group.position.set(0.08, -0.06, 0.28);
-  pistol.group.rotation.set(0, Math.PI, 0);
+  pistol.group.position.set(0, -0.07, 0.22);
   if (pistolModel.fbxModel) cloneLoadedWeaponToRemote(pistol, pistolModel.fbxModel);
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
@@ -2888,8 +2857,6 @@ function removeRemotePlayer(id) {
 function startRemoteDeath(r) {
   if (r.dead) return;
   r.dead = true; r.deathTime = 0;
-  if (r.rifle) r.rifle.group.visible = false;
-  if (r.pistol) r.pistol.group.visible = false;
   const p = r.root.position;
   spawnBurst(new THREE.Vector3(p.x, p.y + 1.3, p.z), [0x990000, 0xdd1111, 0xff3333, 0x660000], 26, 2, 6);
 }
@@ -2900,8 +2867,6 @@ function reviveRemotePlayer(r) {
   r.parts.leftLeg.rotation.x = 0;
   r.parts.rightLeg.rotation.x = 0;
   r.aimPivot.visible = true;
-  if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
-  if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
   r.hitFlash = 0;
   if (r.rifle) r.rifle.flash.visible = false;
 }
@@ -2964,8 +2929,8 @@ function solveArmIK(arm, targetWorld, poleDir) {
   elbow.quaternion.copy(_ikQ);
 }
 
-const _poleRight = new THREE.Vector3(0.46, -0.85, 0.42);
-const _poleLeft = new THREE.Vector3(-0.48, -0.82, 0.48);
+const _poleRight = new THREE.Vector3(0.35, -1, -0.15);
+const _poleLeft = new THREE.Vector3(-0.35, -1, 0.0);
 const _gripWorldTmp = new THREE.Vector3();
 const _handguardWorldTmp = new THREE.Vector3();
 
@@ -3008,8 +2973,8 @@ function animateRemotePlayer(r, dt) {
     r.parts.leftLeg.rotation.x = s * amp;
     r.parts.rightLeg.rotation.x = -s * amp;
     r.body.position.y = Math.abs(Math.sin(r.walkPhase)) * 0.055;
-    r.body.rotation.y = Math.sin(r.walkPhase * 2) * 0.025;
-    r.body.rotation.z = Math.sin(r.walkPhase) * 0.018;
+    r.body.rotation.y = Math.sin(r.walkPhase * 2) * 0.05;
+    r.body.rotation.z = Math.sin(r.walkPhase) * 0.035;
   } else {
     r.walkPhase += dt * 1.6;
     const k = Math.min(1, dt * 8);
@@ -3024,16 +2989,6 @@ function animateRemotePlayer(r, dt) {
   r.aimPivot.rotation.x = r.pitchSmooth - r.recoil * 0.22;
   r.aimPivot.rotation.z = Math.sin(r.walkPhase) * (walking ? 0.05 : 0.012);
   r.aimPivot.position.set(REMOTE_AIM_POS.x, REMOTE_AIM_POS.y, REMOTE_AIM_POS.z - r.recoil * 0.07);
-  // Frente del personaje: +Z. Mantén las armas por delante del torso y
-  // orientadas en la misma dirección que mira el jugador remoto.
-  if (r.rifle) {
-    r.rifle.group.position.set(0.02, -0.08, 0.34);
-    r.rifle.group.rotation.set(0, Math.PI, 0);
-  }
-  if (r.pistol) {
-    r.pistol.group.position.set(0.08, -0.06, 0.28);
-    r.pistol.group.rotation.set(0, Math.PI, 0);
-  }
   r.parts.head.rotation.x = r.pitchSmooth * 0.45;
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
@@ -3526,16 +3481,8 @@ function animate() {
   }
 
   if (gameMode) {
-    if (playerDead) {
-      // Nunca mostrar el arma de primera persona durante la cámara de muerte.
-      setFirstPersonWeaponsVisible(false);
-      weaponRifle.visible = false;
-      weaponPistol.visible = false;
-      grenadeViewModel.visible = false;
-      updateDeathCamera(dt);
-    } else {
-      updatePlayer(dt); updateCamera(dt);
-    }
+    if (playerDead) updateDeathCamera(dt);
+    else { updatePlayer(dt); updateCamera(dt); }
 
     if (damageFlash > 0) {
       damageFlash = Math.max(0, damageFlash - dt * 1.6);
