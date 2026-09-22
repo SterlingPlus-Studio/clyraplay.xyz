@@ -141,7 +141,6 @@
   body.is-touch #jump-btn { right: 18px; bottom: 130px; width: 68px; height: 68px; font-size: 11px; }
   body.is-touch #swap-btn { right: 118px; bottom: 122px; width: 68px; height: 68px; font-size: 22px; }
 
-  /* ─── OCULTAR HUD DURANTE EL MENÚ ─── */
   body.in-menu #minimap-wrap,
   body.in-menu #health-wrap,
   body.in-menu #ammo-wrap,
@@ -641,170 +640,36 @@ function buildCharacter(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   M4A1 procedural (fallback)
+   MODELOS DE ARMA (contenedores vacíos que reciben el FBX)
    ═══════════════════════════════════════════ */
-function buildM4A1Model(opts = {}) {
-  const compact = !!opts.compact;
-  const scale   = opts.scale ?? 0.72;
-  const g = new THREE.Group();
-
-  const mat = {
-    body:  new THREE.MeshLambertMaterial({ color: 0x2a2a2a, flatShading: true }),
-    upper: new THREE.MeshLambertMaterial({ color: 0x262626, flatShading: true }),
-    dark:  new THREE.MeshLambertMaterial({ color: 0x101010, flatShading: true }),
-    metal: new THREE.MeshLambertMaterial({ color: 0x444444, flatShading: true }),
-    rail:  new THREE.MeshLambertMaterial({ color: 0x1a1a1a, flatShading: true }),
-    lens:  new THREE.MeshLambertMaterial({ color: 0x113355, emissive: 0x081a2a })
-  };
-
-  const lower = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.28), mat.body);
-  lower.position.set(0, -0.06, -0.03); lower.castShadow = true; g.add(lower);
-  const magwell = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.08, 0.14), mat.body);
-  magwell.position.set(0, -0.13, 0.01); g.add(magwell);
-  const upper = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.11, 0.52), mat.upper);
-  upper.position.set(0, 0.06, 0.01); upper.castShadow = true; g.add(upper);
-
-  for (let i = 0; i < 5; i++) {
-    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.014, 0.055), mat.rail);
-    tooth.position.set(0, 0.12, -0.18 + i * 0.09); g.add(tooth);
-  }
-  const charge = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, 0.06), mat.metal);
-  charge.position.set(0, 0.10, -0.20); g.add(charge);
-
-  const hgZ = compact ? 0.40 : 0.44;
-  const hgLen = compact ? 0.22 : 0.30;
-  const hg = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.095, hgLen), mat.body);
-  hg.position.set(0, 0.06, hgZ); hg.castShadow = true; g.add(hg);
-
-  for (let i = 0; i < 2; i++) for (const side of [-1, 1]) {
-    const slot = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.055, 0.07), mat.dark);
-    slot.position.set(side * 0.049, 0.06, hgZ - 0.06 + i * 0.12); g.add(slot);
-  }
-  for (let i = 0; i < 3; i++) {
-    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.012, 0.05), mat.rail);
-    tooth.position.set(0, 0.115, hgZ - hgLen / 2 + 0.05 + i * 0.075); g.add(tooth);
-  }
-
-  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.46, 8), mat.dark);
-  barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.06, hgZ + 0.36); g.add(barrel);
-  const fh = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.10, 8), mat.dark);
-  fh.rotation.x = Math.PI / 2; fh.position.set(0, 0.06, hgZ + 0.62); g.add(fh);
-  for (let i = 0; i < 2; i++) {
-    const slot = new THREE.Mesh(new THREE.BoxGeometry(0.060, 0.008, 0.026), mat.dark);
-    slot.position.set(0, 0.06, hgZ + 0.585 + i * 0.038); g.add(slot);
-  }
-
-  const fsBase = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.03), mat.body);
-  fsBase.position.set(0, 0.145, hgZ + 0.12); g.add(fsBase);
-  const fsL = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.06, 0.02), mat.body);
-  fsL.position.set(-0.022, 0.19, hgZ + 0.12); g.add(fsL);
-  const fsR = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.06, 0.02), mat.body);
-  fsR.position.set( 0.022, 0.19, hgZ + 0.12); g.add(fsR);
-
-  const ch = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.14), mat.upper);
-  ch.position.set(0, 0.165, -0.14); g.add(ch);
-  const ap = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.022, 0.02), mat.dark);
-  ap.position.set(0, 0.20, -0.14); g.add(ap);
-
-  const optBase = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.035, 0.13), mat.body);
-  optBase.position.set(0, 0.155, 0.02); g.add(optBase);
-  const optBody = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.11, 10), mat.dark);
-  optBody.rotation.x = Math.PI / 2; optBody.position.set(0, 0.215, 0.02); g.add(optBody);
-  const optLens = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.008, 10), mat.lens);
-  optLens.rotation.x = Math.PI / 2; optLens.position.set(0, 0.215, 0.08); g.add(optLens);
-
-  const m1 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.14, 0.10), mat.dark);
-  m1.position.set(0, -0.22, 0.02); m1.rotation.x = 0.05; g.add(m1);
-  const m2 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.10), mat.dark);
-  m2.position.set(0, -0.33, 0.05); m2.rotation.x = 0.30; g.add(m2);
-  const m3 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.10, 0.10), mat.dark);
-  m3.position.set(0, -0.42, 0.10); m3.rotation.x = 0.60; g.add(m3);
-
-  const tgFront = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.07, 0.015), mat.dark);
-  tgFront.position.set(0, -0.14, 0.05); g.add(tgFront);
-  const tgBack = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.02), mat.dark);
-  tgBack.position.set(0, -0.175, 0.00); g.add(tgBack);
-  const trig = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.045, 0.015), mat.metal);
-  trig.position.set(0, -0.11, 0.02); g.add(trig);
-  const pg = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.22, 0.11), mat.body);
-  pg.position.set(0, -0.20, -0.13); pg.rotation.x = 0.32; g.add(pg);
-
-  if (!compact) {
-    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.18, 10), mat.body);
-    tube.rotation.x = Math.PI / 2; tube.position.set(0, 0.055, -0.36); g.add(tube);
-    const stock = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.16), mat.body);
-    stock.position.set(0, 0.02, -0.48); stock.castShadow = true; g.add(stock);
-    const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.05, 0.12), mat.body);
-    cheek.position.set(0, 0.11, -0.48); g.add(cheek);
-    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.20, 0.04), mat.dark);
-    pad.position.set(0, 0.01, -0.58); g.add(pad);
-  }
-
-  // Subgroup para poder ocultarlo cuando llegue el FBX
-  const procGroup = new THREE.Group();
-  while (g.children.length > 0) procGroup.add(g.children[0]);
-  g.add(procGroup);
-
-  g.scale.setScalar(scale);
+function createFlash(radius, x, y, z, color) {
   const flash = new THREE.Mesh(
-    new THREE.SphereGeometry(0.16, 6, 4),
-    new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 })
+    new THREE.SphereGeometry(radius, 6, 4),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95 })
   );
-  flash.position.set(0, 0.06, hgZ + 0.72); flash.visible = false; g.add(flash);
-  const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.21, -0.14); g.add(gripMarker);
-  const handguardMarker = new THREE.Object3D(); handguardMarker.position.set(0, 0.06, hgZ); g.add(handguardMarker);
-  return { group: g, procGroup, flash, gripMarker, handguardMarker };
+  flash.position.set(x, y, z);
+  flash.visible = false;
+  return flash;
 }
 
-/* ═══════════════════════════════════════════
-   PISTOLA procedural (fallback)
-   ═══════════════════════════════════════════ */
-function buildPistolModel(opts = {}) {
-  const scale = opts.scale ?? 0.86;
-  const g = new THREE.Group();
-  const mat = {
-    slide: new THREE.MeshLambertMaterial({ color: 0x1a1a1a, flatShading: true }),
-    frame: new THREE.MeshLambertMaterial({ color: 0x222222, flatShading: true }),
-    dark:  new THREE.MeshLambertMaterial({ color: 0x0c0c0c, flatShading: true }),
-    metal: new THREE.MeshLambertMaterial({ color: 0x555555, flatShading: true })
-  };
-  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.50), mat.slide);
-  slide.position.set(0, 0.05, 0.10); slide.castShadow = true; g.add(slide);
-  const slideTop = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.50), mat.slide);
-  slideTop.position.set(0, 0.12, 0.10); g.add(slideTop);
-  for (let i = 0; i < 3; i++) for (const side of [-1, 1]) {
-    const serr = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.08, 0.020), mat.dark);
-    serr.position.set(side * 0.056, 0.05, -0.06 - i * 0.040); g.add(serr);
-  }
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.07, 0.40), mat.frame);
-  frame.position.set(0, -0.03, 0.05); g.add(frame);
-  const btip = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.05, 10), mat.metal);
-  btip.rotation.x = Math.PI / 2; btip.position.set(0, 0.05, 0.36); g.add(btip);
-  const fs = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.025, 0.016), mat.dark);
-  fs.position.set(0, 0.135, 0.30); g.add(fs);
-  const tg1 = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.10, 0.02), mat.frame);
-  tg1.position.set(0, -0.105, 0.02); g.add(tg1);
-  const tg2 = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.014, 0.02), mat.frame);
-  tg2.position.set(0, -0.155, -0.03); g.add(tg2);
-  const trg = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.048, 0.018), mat.metal);
-  trg.position.set(0, -0.09, -0.01); g.add(trg);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.28, 0.14), mat.frame);
-  grip.position.set(0, -0.235, -0.13); grip.rotation.x = 0.30; grip.castShadow = true; g.add(grip);
-  const fp = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.028, 0.14), mat.dark);
-  fp.position.set(0, -0.38, -0.195); fp.rotation.x = 0.30; g.add(fp);
+function createRifleModel() {
+  const group = new THREE.Group();
+  const flash = createFlash(0.16, 0, 0.06, 0.72, 0xffee88);
+  group.add(flash);
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(0, -0.21, -0.14);
+  group.add(gripMarker);
+  const handguardMarker = new THREE.Object3D();
+  handguardMarker.position.set(0, 0.06, 0.40);
+  group.add(handguardMarker);
+  return { group, flash, gripMarker, handguardMarker, fbxModel: null };
+}
 
-  // Subgroup para poder ocultarlo cuando llegue el FBX
-  const procGroup = new THREE.Group();
-  while (g.children.length > 0) procGroup.add(g.children[0]);
-  g.add(procGroup);
-
-  g.scale.setScalar(scale);
-  const flash = new THREE.Mesh(
-    new THREE.SphereGeometry(0.11, 6, 4),
-    new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 })
-  );
-  flash.position.set(0, 0.05, 0.44); flash.visible = false; g.add(flash);
-  return { group: g, procGroup, flash };
+function createPistolModel() {
+  const group = new THREE.Group();
+  const flash = createFlash(0.11, 0, 0.05, 0.44, 0xffdd66);
+  group.add(flash);
+  return { group, flash, fbxModel: null };
 }
 
 /* ═══════════════════════════════════════════
@@ -861,84 +726,71 @@ const weaponState = {
   pistol: { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 }
 };
 
-const rifleModel   = buildM4A1Model({ compact: true, scale: 0.72 });
-const pistolModel  = buildPistolModel({ scale: 0.86 });
+const rifleModel   = createRifleModel();
+const pistolModel  = createPistolModel();
 const weaponRifle  = rifleModel.group;
 const weaponPistol = pistolModel.group;
 
 /* ═══════════════════════════════════════════
-   CARGA DE MODELOS FBX (rifle + pistola)
+   CARGA DE MODELOS FBX
    ═══════════════════════════════════════════ */
-function attachFBXWeapon(weaponModel, url, opts = {}) {
-  const targetLen = opts.targetLen ?? 1.6;
-  const rotX = opts.rotX ?? 0;
-  const rotY = opts.rotY ?? -Math.PI / 2;   // 🔧 por defecto: cañón hacia -Z
-  const rotZ = opts.rotZ ?? 0;
-  const offX = opts.offX ?? 0;
-  const offY = opts.offY ?? 0;
-  const offZ = opts.offZ ?? 0;
+const _fbxLoader = new FBXLoader();
 
-  const loader = new FBXLoader();
-  loader.load(url, (obj) => {
-    try {
-      // 1) Rotar para alinear el cañón con -Z (frente de la cámara)
-      obj.rotation.set(rotX, rotY, rotZ);
+function loadFBXWeapon(url, targetLen, rotY = Math.PI / 2) {
+  return new Promise((resolve) => {
+    _fbxLoader.load(url, (obj) => {
+      try {
+        obj.rotation.set(0, rotY, 0);
 
-      // 2) Escalar al tamaño deseado
-      const box  = new THREE.Box3().setFromObject(obj);
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      obj.scale.setScalar(targetLen / maxDim);
+        const box  = new THREE.Box3().setFromObject(obj);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        obj.scale.setScalar(targetLen / maxDim);
 
-      // 3) Centrar en el origen del grupo
-      const box2 = new THREE.Box3().setFromObject(obj);
-      const c2   = box2.getCenter(new THREE.Vector3());
-      obj.position.sub(c2);
-      obj.position.x += offX;
-      obj.position.y += offY;
-      obj.position.z += offZ;
+        const box2 = new THREE.Box3().setFromObject(obj);
+        const c2   = box2.getCenter(new THREE.Vector3());
+        obj.position.sub(c2);
 
-      // 4) Sombras + materiales
-      obj.traverse(n => {
-        if (n.isMesh) {
-          n.castShadow = true;
-          n.receiveShadow = true;
-          n.frustumCulled = false;
-          if (n.material) {
-            const mats = Array.isArray(n.material) ? n.material : [n.material];
-            for (const m of mats) {
-              if (m && 'flatShading' in m) m.flatShading = true;
-              if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+        obj.traverse(n => {
+          if (n.isMesh) {
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.frustumCulled = false;
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) {
+                if (m && 'flatShading' in m) m.flatShading = true;
+                if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+              }
             }
           }
-        }
-      });
-
-      // 5) Ocultar procedural y añadir el FBX
-      weaponModel.procGroup.visible = false;
-      weaponModel.group.add(obj);
-      weaponModel.fbxModel = obj;
-    } catch (e) {
-      console.warn('Error procesando el FBX:', url, e);
-      weaponModel.procGroup.visible = true;
-    }
-  }, undefined, (err) => {
-    console.warn('No se pudo cargar', url, '- usando modelo procedural.', err);
-    weaponModel.procGroup.visible = true;
+        });
+        resolve(obj);
+      } catch (e) {
+        console.warn('Error procesando', url, e);
+        resolve(null);
+      }
+    }, undefined, (err) => {
+      console.warn('No se pudo cargar', url, err);
+      resolve(null);
+    });
   });
 }
 
-// 🔫 Rifle: rotado -90° Y para que el cañón apunte al frente (-Z)
-attachFBXWeapon(rifleModel, 'modelos3d/m4a1.fbx', {
-  targetLen: 1.6,
-  rotY: -Math.PI / 2
-});
+// Cargar FBX y aplicar a los modelos locales
+(async () => {
+  const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 1.15, Math.PI / 2);
+  if (r) {
+    rifleModel.fbxModel = r;
+    rifleModel.group.add(r);
+  }
 
-// 🔫 Pistola: misma orientación, longitud más corta
-attachFBXWeapon(pistolModel, 'modelos3d/pistol.fbx', {
-  targetLen: 1.0,
-  rotY: -Math.PI / 2
-});
+  const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.42, Math.PI / 2);
+  if (p) {
+    pistolModel.fbxModel = p;
+    pistolModel.group.add(p);
+  }
+})();
 
 /* Manos FPS del rifle */
 const _fpHandMat = new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true });
@@ -971,7 +823,6 @@ const WEAPON_POS = {
 weaponRifle.position.copy(WEAPON_POS.rifle);
 weaponPistol.position.copy(WEAPON_POS.pistol);
 
-// Ocultar armas mientras estamos en el menú
 weaponRifle.visible  = false;
 weaponPistol.visible = false;
 
@@ -2197,7 +2048,7 @@ let isZombieHost = false;
 const zombieHUD = document.getElementById('zombie-hud');
 const zombieStatusEl = document.getElementById('zombie-status');
 
-const ZOMBIE_CORPSE_LIFETIME = 4;  // ⏱ segundos que dura el cadáver antes de desaparecer
+const ZOMBIE_CORPSE_LIFETIME = 4;
 
 function buildZombieCharacter(variant = 0) {
   const palettes = [
@@ -2289,7 +2140,6 @@ function killZombie(z) {
   playZombieDeathSound();
   if (onlineMode && isZombieHost) {
     update(ref(db, `rooms/${ROOM}/zombies/${z.id}`), { dead: true, ts: Date.now() }).catch(() => {});
-    // 🔧 El cadáver se elimina de Firebase tras el mismo tiempo que localmente
     setTimeout(() => { remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {}); }, ZOMBIE_CORPSE_LIFETIME * 1000);
   }
 }
@@ -2352,9 +2202,7 @@ function updateZombiesHost(dt) {
       z.body.rotation.x = -e * Math.PI * 0.5;
       z.body.position.y = -e * 0.1;
 
-      // ⏱ ELIMINAR CADÁVER tras ZOMBIE_CORPSE_LIFETIME segundos
       if (z.deathTime > ZOMBIE_CORPSE_LIFETIME) {
-        // Desvanecer y eliminar
         const fade = (z.deathTime - ZOMBIE_CORPSE_LIFETIME) / 1.0;
         z.root.traverse(o => {
           if (o.isMesh && o.material) {
@@ -2451,7 +2299,6 @@ function updateZombiesClient(dt) {
       z.body.rotation.x = -e * Math.PI * 0.5;
       z.body.position.y = -e * 0.1;
 
-      // ⏱ Mismo efecto de fade que el host
       if (z.deathTime > ZOMBIE_CORPSE_LIFETIME) {
         const fade = (z.deathTime - ZOMBIE_CORPSE_LIFETIME) / 1.0;
         z.root.traverse(o => {
@@ -2555,15 +2402,31 @@ function updateZombieHUD() {
 const remotePlayers = new Map();
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
 
+function attachRifleToRemote(rifleObj) {
+  if (!rifleObj || !rifleObj.fbxModel) return;
+  const clone = rifleObj.fbxModel.clone();
+  clone.traverse(n => {
+    if (n.isMesh) {
+      n.castShadow = true;
+      n.receiveShadow = true;
+      n.frustumCulled = false;
+    }
+  });
+  rifleObj.group.add(clone);
+}
+
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
   const char = buildCharacter();
   const aimPivot = new THREE.Group();
   aimPivot.position.copy(REMOTE_AIM_POS);
   char.body.add(aimPivot);
-  const rifle = buildM4A1Model({ compact: true, scale: 0.72 });
+
+  const rifle = createRifleModel();
   rifle.group.position.set(0, -0.06, 0.28);
+  attachRifleToRemote(rifle);
   aimPivot.add(rifle.group);
+
   char.root.userData.remotePlayerId = id;
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
   char.root.rotation.y = (data.yaw ?? 0) + Math.PI;
@@ -3142,7 +3005,6 @@ function selectGameMode(mode) {
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
-  // Mostrar arma inicial
   weaponRifle.visible  = (currentWeaponKey === 'rifle');
   weaponPistol.visible = (currentWeaponKey === 'pistol');
 
