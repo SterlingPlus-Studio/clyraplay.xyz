@@ -12,7 +12,6 @@
   #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; }
   #hint.active { display: block; }
 
-  /* ─── MENÚ SOBRE EL MAPA ─── */
   #mode-menu { position: fixed; inset: 0; z-index: 500; color: #fff; cursor: default; overflow: hidden; pointer-events: none; }
   #mode-menu::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.78) 100%); pointer-events: none; }
   #mode-menu.hidden { display: none; }
@@ -156,7 +155,6 @@
 </head>
 <body class="in-menu">
 
-<!-- ═══════════ MENÚ DE MODO ═══════════ -->
 <div id="mode-menu">
   <div class="brand">
     <h1>LOW<br>POLY<br>FPS</h1>
@@ -253,9 +251,9 @@ let gameMode = null;
 let menuActive = true;
 let menuCamAngle = 0;
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    AUDIO
-   ═══════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════ */
 let audioCtx = null, masterGain = null, audioEnabled = true;
 function initAudio() {
   if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
@@ -409,9 +407,9 @@ function playZombieDeathSound() {
   osc.connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.45);
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    FIREBASE
-   ═══════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════ */
 const firebaseConfig = {
   apiKey: "AIzaSyBq-yKzsMLLBPVoxjagwZFfxMwqNNbNV5g",
   authDomain: "miniguerra-d9bc0.firebaseapp.com",
@@ -445,9 +443,9 @@ try {
   playerName = stored;
 } catch (e) { playerName = 'Jugador' + Math.floor(1000 + Math.random() * 9000); }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════
    RNG
-   ═══════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════ */
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
@@ -643,8 +641,7 @@ function buildCharacter(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   M4A1 (modelo procedural, ahora dentro de un subgroup
-   para poder reemplazarlo por el modelo FBX)
+   M4A1 procedural (fallback)
    ═══════════════════════════════════════════ */
 function buildM4A1Model(opts = {}) {
   const compact = !!opts.compact;
@@ -743,7 +740,7 @@ function buildM4A1Model(opts = {}) {
     pad.position.set(0, 0.01, -0.58); g.add(pad);
   }
 
-  // ⬇️ Mover todas las piezas procedurales a un subgroup para poder ocultarlas
+  // Subgroup para poder ocultarlo cuando llegue el FBX
   const procGroup = new THREE.Group();
   while (g.children.length > 0) procGroup.add(g.children[0]);
   g.add(procGroup);
@@ -760,7 +757,7 @@ function buildM4A1Model(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   PISTOLA
+   PISTOLA procedural (fallback)
    ═══════════════════════════════════════════ */
 function buildPistolModel(opts = {}) {
   const scale = opts.scale ?? 0.86;
@@ -795,13 +792,19 @@ function buildPistolModel(opts = {}) {
   grip.position.set(0, -0.235, -0.13); grip.rotation.x = 0.30; grip.castShadow = true; g.add(grip);
   const fp = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.028, 0.14), mat.dark);
   fp.position.set(0, -0.38, -0.195); fp.rotation.x = 0.30; g.add(fp);
+
+  // Subgroup para poder ocultarlo cuando llegue el FBX
+  const procGroup = new THREE.Group();
+  while (g.children.length > 0) procGroup.add(g.children[0]);
+  g.add(procGroup);
+
   g.scale.setScalar(scale);
   const flash = new THREE.Mesh(
     new THREE.SphereGeometry(0.11, 6, 4),
     new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 })
   );
   flash.position.set(0, 0.05, 0.44); flash.visible = false; g.add(flash);
-  return { group: g, flash };
+  return { group: g, procGroup, flash };
 }
 
 /* ═══════════════════════════════════════════
@@ -864,31 +867,43 @@ const weaponRifle  = rifleModel.group;
 const weaponPistol = pistolModel.group;
 
 /* ═══════════════════════════════════════════
-   CARGA DEL MODELO 3D REAL (modelos3d/m4a1.fbx)
+   CARGA DE MODELOS FBX (rifle + pistola)
    ═══════════════════════════════════════════ */
-function attachFBXRifle(rifleModel, url, targetLocalLength = 1.6) {
+function attachFBXWeapon(weaponModel, url, opts = {}) {
+  const targetLen = opts.targetLen ?? 1.6;
+  const rotX = opts.rotX ?? 0;
+  const rotY = opts.rotY ?? -Math.PI / 2;   // 🔧 por defecto: cañón hacia -Z
+  const rotZ = opts.rotZ ?? 0;
+  const offX = opts.offX ?? 0;
+  const offY = opts.offY ?? 0;
+  const offZ = opts.offZ ?? 0;
+
   const loader = new FBXLoader();
   loader.load(url, (obj) => {
     try {
-      // Escalar al tamaño correcto
+      // 1) Rotar para alinear el cañón con -Z (frente de la cámara)
+      obj.rotation.set(rotX, rotY, rotZ);
+
+      // 2) Escalar al tamaño deseado
       const box  = new THREE.Box3().setFromObject(obj);
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const s = targetLocalLength / maxDim;
-      obj.scale.setScalar(s);
+      obj.scale.setScalar(targetLen / maxDim);
 
-      // Recentrar el modelo en el origen
+      // 3) Centrar en el origen del grupo
       const box2 = new THREE.Box3().setFromObject(obj);
       const c2   = box2.getCenter(new THREE.Vector3());
       obj.position.sub(c2);
+      obj.position.x += offX;
+      obj.position.y += offY;
+      obj.position.z += offZ;
 
-      // Configurar sombras y culling
+      // 4) Sombras + materiales
       obj.traverse(n => {
         if (n.isMesh) {
           n.castShadow = true;
           n.receiveShadow = true;
           n.frustumCulled = false;
-          // Convertir materiales a Lambert si es posible (para consistencia de estilo)
           if (n.material) {
             const mats = Array.isArray(n.material) ? n.material : [n.material];
             for (const m of mats) {
@@ -899,24 +914,33 @@ function attachFBXRifle(rifleModel, url, targetLocalLength = 1.6) {
         }
       });
 
-      // Añadir al grupo del rifle y ocultar el procedural
-      rifleModel.procGroup.visible = false;
-      rifleModel.group.add(obj);
-      rifleModel.fbxModel = obj;
+      // 5) Ocultar procedural y añadir el FBX
+      weaponModel.procGroup.visible = false;
+      weaponModel.group.add(obj);
+      weaponModel.fbxModel = obj;
     } catch (e) {
-      console.warn('Error procesando el FBX, se usa el modelo procedural.', e);
-      rifleModel.procGroup.visible = true;
+      console.warn('Error procesando el FBX:', url, e);
+      weaponModel.procGroup.visible = true;
     }
   }, undefined, (err) => {
-    console.warn('No se pudo cargar modelos3d/m4a1.fbx, usando modelo procedural.', err);
-    rifleModel.procGroup.visible = true;
+    console.warn('No se pudo cargar', url, '- usando modelo procedural.', err);
+    weaponModel.procGroup.visible = true;
   });
 }
 
-// Intentar cargar el M4A1 real
-attachFBXRifle(rifleModel, 'modelos3d/m4a1.fbx', 1.6);
+// 🔫 Rifle: rotado -90° Y para que el cañón apunte al frente (-Z)
+attachFBXWeapon(rifleModel, 'modelos3d/m4a1.fbx', {
+  targetLen: 1.6,
+  rotY: -Math.PI / 2
+});
 
-/* Manos para FPS */
+// 🔫 Pistola: misma orientación, longitud más corta
+attachFBXWeapon(pistolModel, 'modelos3d/pistol.fbx', {
+  targetLen: 1.0,
+  rotY: -Math.PI / 2
+});
+
+/* Manos FPS del rifle */
 const _fpHandMat = new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true });
 const _fpArmMat  = new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true });
 
@@ -929,6 +953,7 @@ _fpLHand.position.set(0, 0.06, 0.38); weaponRifle.add(_fpLHand);
 const _fpLArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.34), _fpArmMat);
 _fpLArm.position.set(-0.04, -0.18, 0.18); _fpLArm.rotation.set(-0.42, 0, -0.20); weaponRifle.add(_fpLArm);
 
+/* Manos FPS de la pistola */
 const _fpPHand1 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.13), _fpHandMat);
 _fpPHand1.position.set(0, -0.20, -0.13); _fpPHand1.rotation.x = 0.30; weaponPistol.add(_fpPHand1);
 const _fpPHand2 = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.12), _fpHandMat);
@@ -946,7 +971,7 @@ const WEAPON_POS = {
 weaponRifle.position.copy(WEAPON_POS.rifle);
 weaponPistol.position.copy(WEAPON_POS.pistol);
 
-// 👇 Ocultar armas mientras estamos en el menú
+// Ocultar armas mientras estamos en el menú
 weaponRifle.visible  = false;
 weaponPistol.visible = false;
 
@@ -1537,7 +1562,6 @@ let joystickOrigin = { x: 0, y: 0 };
 const JOYSTICK_RADIUS = 45;
 
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-// NOTA: los controles táctiles no se activan aquí; se muestran al elegir modo.
 if (isTouch) {
   document.body.classList.add('is-touch');
 }
@@ -2173,6 +2197,8 @@ let isZombieHost = false;
 const zombieHUD = document.getElementById('zombie-hud');
 const zombieStatusEl = document.getElementById('zombie-status');
 
+const ZOMBIE_CORPSE_LIFETIME = 4;  // ⏱ segundos que dura el cadáver antes de desaparecer
+
 function buildZombieCharacter(variant = 0) {
   const palettes = [
     { skin: 0x7a9b6a, uniform: 0x4a3a2a, uniformDark: 0x332a1a, vest: 0x2a1f10, helmet: 0x2a1f10, boots: 0x1a1208, strap: 0x1c1408, pouch: 0x3a2a18, eye: 0x8b0000 },
@@ -2263,7 +2289,8 @@ function killZombie(z) {
   playZombieDeathSound();
   if (onlineMode && isZombieHost) {
     update(ref(db, `rooms/${ROOM}/zombies/${z.id}`), { dead: true, ts: Date.now() }).catch(() => {});
-    setTimeout(() => { remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {}); }, 2500);
+    // 🔧 El cadáver se elimina de Firebase tras el mismo tiempo que localmente
+    setTimeout(() => { remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {}); }, ZOMBIE_CORPSE_LIFETIME * 1000);
   }
 }
 
@@ -2312,7 +2339,8 @@ function updateZombiesHost(dt) {
     if (!r.dead) playerPositions.push({ id, x: r.root.position.x, z: r.root.position.z });
   }
 
-  for (const z of zombies) {
+  for (let i = zombies.length - 1; i >= 0; i--) {
+    const z = zombies[i];
     if (z.hitFlash > 0) {
       z.hitFlash = Math.max(0, z.hitFlash - dt * 3);
       for (const m of z.mats) m.emissive.setRGB(z.hitFlash * 0.8, 0, 0);
@@ -2323,6 +2351,23 @@ function updateZombiesHost(dt) {
       const e = 1 - Math.pow(1 - fall, 3);
       z.body.rotation.x = -e * Math.PI * 0.5;
       z.body.position.y = -e * 0.1;
+
+      // ⏱ ELIMINAR CADÁVER tras ZOMBIE_CORPSE_LIFETIME segundos
+      if (z.deathTime > ZOMBIE_CORPSE_LIFETIME) {
+        // Desvanecer y eliminar
+        const fade = (z.deathTime - ZOMBIE_CORPSE_LIFETIME) / 1.0;
+        z.root.traverse(o => {
+          if (o.isMesh && o.material) {
+            o.material.transparent = true;
+            o.material.opacity = Math.max(0, 1 - fade);
+          }
+        });
+        if (z.deathTime > ZOMBIE_CORPSE_LIFETIME + 1.0) {
+          scene.remove(z.root);
+          zombies.splice(i, 1);
+          updateZombieHUD();
+        }
+      }
       continue;
     }
 
@@ -2393,7 +2438,8 @@ function updateZombiesHost(dt) {
 }
 
 function updateZombiesClient(dt) {
-  for (const z of zombies) {
+  for (let i = zombies.length - 1; i >= 0; i--) {
+    const z = zombies[i];
     if (z.hitFlash > 0) {
       z.hitFlash = Math.max(0, z.hitFlash - dt * 3);
       for (const m of z.mats) m.emissive.setRGB(z.hitFlash * 0.8, 0, 0);
@@ -2404,10 +2450,21 @@ function updateZombiesClient(dt) {
       const e = 1 - Math.pow(1 - fall, 3);
       z.body.rotation.x = -e * Math.PI * 0.5;
       z.body.position.y = -e * 0.1;
-      if (z.deathTime > 4) {
-        scene.remove(z.root);
-        const idx = zombies.indexOf(z);
-        if (idx >= 0) zombies.splice(idx, 1);
+
+      // ⏱ Mismo efecto de fade que el host
+      if (z.deathTime > ZOMBIE_CORPSE_LIFETIME) {
+        const fade = (z.deathTime - ZOMBIE_CORPSE_LIFETIME) / 1.0;
+        z.root.traverse(o => {
+          if (o.isMesh && o.material) {
+            o.material.transparent = true;
+            o.material.opacity = Math.max(0, 1 - fade);
+          }
+        });
+        if (z.deathTime > ZOMBIE_CORPSE_LIFETIME + 1.0) {
+          scene.remove(z.root);
+          zombies.splice(i, 1);
+          updateZombieHUD();
+        }
       }
       continue;
     }
@@ -3082,14 +3139,13 @@ function selectGameMode(mode) {
   gameMode = mode;
   menuActive = false;
   modeMenu.classList.add('hidden');
-  document.body.classList.remove('in-menu');     // ⬅️ HUD vuelve a ser visible
+  document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
   // Mostrar arma inicial
   weaponRifle.visible  = (currentWeaponKey === 'rifle');
   weaponPistol.visible = (currentWeaponKey === 'pistol');
 
-  // Activar controles táctiles (si aplica)
   if (isTouch) {
     joystick.classList.add('active'); joystickZone.classList.add('active');
     jumpBtn.classList.add('active'); cameraZone.classList.add('active');
