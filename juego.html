@@ -640,11 +640,7 @@ function buildCharacter(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   MODELOS DE ARMA
-   El rifle FBX tiene el cañón alineado a -Z (hacia adelante en
-   espacio cámara). El personaje humanoide tiene los ojos mirando
-   a +Z, así que al añadir el arma a un jugador remoto hay que
-   rotarla 180° en Y para que el cañón apunte hacia delante.
+   ARMAS FPS (LOCAL — usa los FBX cargados)
    ═══════════════════════════════════════════ */
 function createFlash(radius, x, y, z, color) {
   const flash = new THREE.Mesh(
@@ -677,6 +673,91 @@ function createPistolModel() {
   gripMarker.position.set(0, -0.09, 0.06);
   group.add(gripMarker);
   return { group, flash, gripMarker, fbxModel: null };
+}
+
+/* ═══════════════════════════════════════════
+   ARMAS LOW-POLY PARA JUGADORES REMOTOS
+   (100% confiables, no dependen del FBX)
+   Orientación: el cañón apunta hacia -Z en el espacio del arma.
+   Al montarlo en el personaje remoto, se rota 180° en Y para que
+   el cañón apunte hacia +Z (frente del personaje).
+   ═══════════════════════════════════════════ */
+function createLowPolyRifleRemote() {
+  const g = new THREE.Group();
+  const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
+  const matDark = new THREE.MeshLambertMaterial({ color: 0x0a0a0a, flatShading: true });
+  const matMetal = new THREE.MeshLambertMaterial({ color: 0x3a3a35, flatShading: true });
+
+  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.11, 0.36), matBody);
+  receiver.position.set(0, 0, 0); g.add(receiver);
+
+  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.028, 0.30), matDark);
+  barrel.position.set(0, 0.028, -0.32); g.add(barrel);
+
+  const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.07, 0.22), matBody);
+  handguard.position.set(0, 0.010, -0.20); g.add(handguard);
+
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.20), matBody);
+  stock.position.set(0, -0.010, 0.27); g.add(stock);
+
+  const mag = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.15, 0.07), matDark);
+  mag.position.set(0, -0.135, 0.03); g.add(mag);
+
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.13, 0.055), matDark);
+  grip.position.set(0, -0.115, 0.15); grip.rotation.x = 0.35; g.add(grip);
+
+  const fs = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.05, 0.02), matMetal);
+  fs.position.set(0, 0.085, -0.44); g.add(fs);
+
+  const rs = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.045, 0.02), matMetal);
+  rs.position.set(0, 0.08, 0.09); g.add(rs);
+
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(0, -0.115, 0.15); g.add(gripMarker);
+
+  const handguardMarker = new THREE.Object3D();
+  handguardMarker.position.set(0, 0.01, -0.20); g.add(handguardMarker);
+
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.07, 6, 4),
+    new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 })
+  );
+  flash.position.set(0, 0.028, -0.49);
+  flash.visible = false; g.add(flash);
+
+  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  return { group: g, flash, gripMarker, handguardMarker };
+}
+
+function createLowPolyPistolRemote() {
+  const g = new THREE.Group();
+  const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
+  const matDark = new THREE.MeshLambertMaterial({ color: 0x0a0a0a, flatShading: true });
+
+  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.065, 0.26), matBody);
+  slide.position.set(0, 0.025, -0.02); g.add(slide);
+
+  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.026, 0.06), matDark);
+  barrel.position.set(0, 0.025, -0.17); g.add(barrel);
+
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.14, 0.055), matDark);
+  grip.position.set(0, -0.09, 0.07); grip.rotation.x = 0.28; g.add(grip);
+
+  const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 0.05), matDark);
+  trigger.position.set(0, -0.045, 0.02); g.add(trigger);
+
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(0, -0.085, 0.07); g.add(gripMarker);
+
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.05, 6, 4),
+    new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 })
+  );
+  flash.position.set(0, 0.025, -0.21);
+  flash.visible = false; g.add(flash);
+
+  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  return { group: g, flash, gripMarker };
 }
 
 /* ═══════════════════════════════════════════
@@ -739,7 +820,7 @@ const weaponRifle  = rifleModel.group;
 const weaponPistol = pistolModel.group;
 
 /* ═══════════════════════════════════════════
-   CARGA DE MODELOS FBX
+   CARGA DE MODELOS FBX (solo para el jugador local)
    ═══════════════════════════════════════════ */
 const _fbxLoader = new FBXLoader();
 
@@ -789,47 +870,17 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
   });
 }
 
-function cloneLoadedWeaponToRemote(remoteWeapon, sourceObj) {
-  if (!remoteWeapon || !sourceObj) return;
-  if (remoteWeapon.fbxModel) {
-    remoteWeapon.group.remove(remoteWeapon.fbxModel);
-    remoteWeapon.fbxModel = null;
-  }
-  const clone = sourceObj.clone(true);
-  clone.userData.remoteWeaponFBX = true;
-  clone.traverse(n => {
-    if (n.isMesh) {
-      n.castShadow = true;
-      n.receiveShadow = true;
-      n.frustumCulled = false;
-    }
-  });
-  remoteWeapon.fbxModel = clone;
-  remoteWeapon.group.add(clone);
-}
-
-function attachLoadedWeaponsToRemotePlayers(kind, sourceObj) {
-  for (const [, r] of remotePlayers) {
-    if (kind === 'rifle' && r.rifle) cloneLoadedWeaponToRemote(r.rifle, sourceObj);
-    if (kind === 'pistol' && r.pistol) cloneLoadedWeaponToRemote(r.pistol, sourceObj);
-  }
-}
-
 (async () => {
-  // M4A1: pequeño y SIN rotación Y (el cañón ya apunta a -Z)
   const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) {
     rifleModel.fbxModel = r;
     rifleModel.group.add(r);
-    attachLoadedWeaponsToRemotePlayers('rifle', r);
   }
 
-  // Pistola: pequeña y girada 90° en Y para que el cañón apunte al frente de la cámara
   const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) {
     pistolModel.fbxModel = p;
     pistolModel.group.add(p);
-    attachLoadedWeaponsToRemotePlayers('pistol', p);
   }
 })();
 
@@ -900,7 +951,6 @@ function makeFPSHand(side = 'right') {
   return g;
 }
 
-/* ─── M4A1: manos FPS ─── */
 const _fpHandR = makeFPSHand('right');
 _fpHandR.scale.setScalar(0.55);
 _fpHandR.position.set(0.01, -0.075, 0.075);
@@ -913,7 +963,6 @@ _fpHandL.position.set(0.015, -0.055, -0.205);
 _fpHandL.rotation.set(1.15, 0.02, -0.55);
 weaponRifle.add(_fpHandL);
 
-/* ─── Pistola: una sola mano ─── */
 const _fpPHandR = makeFPSHand('right');
 _fpPHandR.scale.setScalar(0.55);
 _fpPHandR.position.set(0.008, -0.055, 0.020);
@@ -924,6 +973,7 @@ const WEAPON_POS = {
   rifle:  new THREE.Vector3(0.15, -0.14, -0.34),
   pistol: new THREE.Vector3(0.13, -0.15, -0.32)
 };
+const WEAPON_HIDDEN_POS = new THREE.Vector3(0, -1000, 0);
 
 weaponRifle.position.copy(WEAPON_POS.rifle);
 weaponPistol.position.copy(WEAPON_POS.pistol);
@@ -942,6 +992,22 @@ function curWepDef()   { return WEAPONS[currentWeaponKey]; }
 function curWepState() { return weaponState[currentWeaponKey]; }
 function curWeaponGroup() { return currentWeaponKey === 'rifle' ? weaponRifle : weaponPistol; }
 function curWeaponFlash() { return currentWeaponKey === 'rifle' ? rifleModel.flash : pistolModel.flash; }
+
+/* Función que oculta o muestra las armas del jugador local de forma robusta */
+function setLocalWeaponsVisible(v) {
+  weaponRifle.visible  = v && currentWeaponKey === 'rifle';
+  weaponPistol.visible = v && currentWeaponKey === 'pistol';
+  if (!v) {
+    // Fallback: mover fuera de vista
+    weaponRifle.position.copy(WEAPON_HIDDEN_POS);
+    weaponPistol.position.copy(WEAPON_HIDDEN_POS);
+    grenadeViewModel.visible = false;
+  } else {
+    // Restaurar posiciones correctas
+    weaponRifle.position.copy(WEAPON_POS.rifle);
+    weaponPistol.position.copy(WEAPON_POS.pistol);
+  }
+}
 
 /* ═══════════════════════════════════════════
    GRANADA
@@ -978,6 +1044,7 @@ function updateGrenadeBar() {
 updateGrenadeBar();
 
 function updateGrenadeView(dt) {
+  if (playerDead) { grenadeViewModel.visible = false; return; }
   if (grenadeViewTimer <= 0) { grenadeViewModel.visible = false; return; }
   grenadeViewTimer -= dt;
   const t = 1 - Math.max(0, grenadeViewTimer) / GRENADE_VIEW_DUR;
@@ -1375,7 +1442,7 @@ function createHouse(x, z, rot, styleIdx) {
 }
 
 /* ═══════════════════════════════════════════
-   PUEBLO ORGANIZADO
+   PUEBLO
    ═══════════════════════════════════════════ */
 const houseLayout = [
   { x:   0, z: -26, rot:  0,             style: 0 },
@@ -1395,7 +1462,6 @@ const outerHouses = houseLayout;
 
 for (const h of houseLayout) scene.add(createHouse(h.x, h.z, h.rot, h.style));
 
-/* ─── Caminos ─── */
 const _pathMat = cachedMat(0x9c7a52);
 function createPath(fromX, fromZ, toX, toZ, width) {
   const dx = toX - fromX, dz = toZ - fromZ;
@@ -1428,7 +1494,6 @@ plaza.position.set(0, 0.025, 0);
 plaza.receiveShadow = true;
 scene.add(plaza);
 
-/* ─── Farolas ─── */
 const _lampPoleMat = cachedMat(0x1a1a1a);
 const _lampBaseMat = cachedMat(0x0a0a0a);
 const _lampBulbMat = new THREE.MeshBasicMaterial({ color: 0xffdd88 });
@@ -1452,9 +1517,6 @@ for (const [lx, lz] of [[11, 11], [-11, 11], [11, -11], [-11, -11]]) {
   scene.add(createLamp(lx, lz));
 }
 
-/* ═══════════════════════════════════════════
-   ÁRBOLES
-   ═══════════════════════════════════════════ */
 const _rockMat  = cachedMat(0x7f8c8d);
 
 function tooCloseToHouse(x, z, minDist) {
@@ -1529,7 +1591,6 @@ _fbxLoader.load('modelos3d/tree.fbx', (obj) => {
   } catch (e) { console.warn('Error preparando tree.fbx:', e); }
 }, undefined, err => console.warn('No se pudo cargar tree.fbx:', err));
 
-/* ─── Rocas ─── */
 for (let i = 0; i < 16; i++) {
   const size = 0.4 + mapRandom() * 0.9;
   let x, z, tries = 0;
@@ -1547,9 +1608,6 @@ for (let i = 0; i < 16; i++) {
   colliders.push({ x, z, r: size * 1.05, kind: 'rock' });
 }
 
-/* ═══════════════════════════════════════════
-   IGLESIA
-   ═══════════════════════════════════════════ */
 const CHURCH_POS = { x: 0, z: 0, rot: 0 };
 
 _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
@@ -1597,9 +1655,6 @@ _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
   } catch (e) { console.warn('Error preparando iglesia.fbx:', e); }
 }, undefined, err => console.warn('No se pudo cargar iglesia.fbx:', err));
 
-/* ═══════════════════════════════════════════
-   HIERBA
-   ═══════════════════════════════════════════ */
 _fbxLoader.load('modelos3d/Grass.fbx', (obj) => {
   try {
     obj.traverse(n => {
@@ -1677,8 +1732,6 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyR' && !e.repeat && !playerDead) startReload();
   if (e.code === 'KeyQ' && !e.repeat && !playerDead) swapWeapon();
   if (e.code === 'KeyG' && !e.repeat && !playerDead) throwGrenade();
-  // NUEVO: bloquear cambio de arma si estás muerto (evita que el arma
-  // reaparezca en la pantalla de muerte)
   if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon('rifle');
   if (e.code === 'Digit2' && !e.repeat && !playerDead) selectWeapon('pistol');
   if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
@@ -1933,9 +1986,6 @@ function resolveCollisions(entity, radius) {
 let walkPhase = 0, velocityY = 0, isGrounded = true;
 const GRAVITY = 26, JUMP_FORCE = 9;
 
-/* ═══════════════════════════════════════════
-   PIEZAS VOLADORAS Y PARTÍCULAS
-   ═══════════════════════════════════════════ */
 const playerPieces = [];
 const droppedPieces = [];
 function updatePieces(arr, dt) {
@@ -2050,7 +2100,7 @@ function spawnRemoteBulletHole(pos, normal) {
 }
 
 /* ═══════════════════════════════════════════
-   MUERTE
+   MUERTE / RESPAWN
    ═══════════════════════════════════════════ */
 function killPlayer() {
   if (playerDead) return;
@@ -2059,9 +2109,14 @@ function killPlayer() {
   deathPosition.copy(player.position);
   deathStartCamPos.copy(camera.position);
   deathCameraAngle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
-  weaponRifle.visible = false; weaponPistol.visible = false;
+
+  // Ocultar armas de forma AGRESIVA (visible + posición fuera de vista)
+  setLocalWeaponsVisible(false);
   grenadeViewModel.visible = false;
   grenadeViewTimer = 0;
+  // Desactivar el click-overlay por si acaso
+  clickOverlay.classList.remove('active');
+
   setAiming(false); shootHeld = false;
   curWepState().reloading = false; ammoWrap.classList.remove('reloading');
   player.updateMatrixWorld(true);
@@ -2101,8 +2156,8 @@ function respawnPlayer() {
   cameraYaw = 0; cameraPitch = 0;
 
   selectWeapon('rifle', true, true);
-  weaponRifle.visible  = (currentWeaponKey === 'rifle');
-  weaponPistol.visible = (currentWeaponKey === 'pistol');
+  // Restaurar armas visibles en su posición correcta
+  setLocalWeaponsVisible(true);
 
   deathUI.classList.remove('active');
   playRespawnSound();
@@ -2133,10 +2188,12 @@ function selectWeapon(key, silent = false, force = false) {
   old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
-  weaponRifle.visible = (key === 'rifle');
-  weaponPistol.visible = (key === 'pistol');
-  curWeaponGroup().position.copy(WEAPON_POS[key]);
-  curWeaponGroup().rotation.set(0, 0, 0);
+  if (!playerDead) {
+    weaponRifle.visible = (key === 'rifle');
+    weaponPistol.visible = (key === 'pistol');
+    curWeaponGroup().position.copy(WEAPON_POS[key]);
+    curWeaponGroup().rotation.set(0, 0, 0);
+  }
   updateAmmoBar();
   if (onlineMode) sendLocalPlayerState();
   if (!silent) playSwapSound();
@@ -2778,20 +2835,17 @@ function addRemotePlayer(id, data) {
   aimPivot.position.copy(REMOTE_AIM_POS);
   char.body.add(aimPivot);
 
-  // ─── NUEVO: el arma remota va rotada 180° en Y porque el FBX tiene
-  // el cañón a -Z, mientras que el personaje mira a +Z. Sin esta rotación
-  // el arma se ve invertida (cañón hacia dentro del cuerpo) y el IK tira
-  // de los brazos hacia el pecho.
-  const rifle = createRifleModel();
-  rifle.group.position.set(0, -0.06, 0.22);
+  // Arma low-poly del rifle para el jugador remoto.
+  // El grupo se rota 180° en Y para que el cañón (que va hacia -Z en el modelo)
+  // apunte hacia +Z del personaje (dirección en la que mira).
+  const rifle = createLowPolyRifleRemote();
+  rifle.group.position.set(0, -0.10, 0.24);
   rifle.group.rotation.y = Math.PI;
-  if (rifleModel.fbxModel) cloneLoadedWeaponToRemote(rifle, rifleModel.fbxModel);
   aimPivot.add(rifle.group);
 
-  const pistol = createPistolModel();
-  pistol.group.position.set(0, -0.07, 0.18);
+  const pistol = createLowPolyPistolRemote();
+  pistol.group.position.set(0, -0.09, 0.18);
   pistol.group.rotation.y = Math.PI;
-  if (pistolModel.fbxModel) cloneLoadedWeaponToRemote(pistol, pistolModel.fbxModel);
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
 
@@ -2976,7 +3030,6 @@ function animateRemotePlayer(r, dt) {
   r.parts.head.rotation.x = r.pitchSmooth * 0.45;
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
-    // NUEVO: apagar también el flash de la pistola (antes solo se apagaba el del rifle)
     if (r.flashTimer <= 0) {
       if (r.rifle)  r.rifle.flash.visible  = false;
       if (r.pistol) r.pistol.flash.visible = false;
@@ -3401,8 +3454,10 @@ function selectGameMode(mode) {
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
-  weaponRifle.visible  = (currentWeaponKey === 'rifle');
-  weaponPistol.visible = (currentWeaponKey === 'pistol');
+  if (!playerDead) {
+    weaponRifle.visible  = (currentWeaponKey === 'rifle');
+    weaponPistol.visible = (currentWeaponKey === 'pistol');
+  }
 
   if (isTouch) {
     joystick.classList.add('active'); joystickZone.classList.add('active');
@@ -3468,13 +3523,9 @@ function animate() {
 
   if (gameMode) {
     if (playerDead) {
-      // NUEVO: forzar ocultar el arma mientras estás muerto. Sin esto, si
-      // alguna parte del código vuelve a hacer visible el arma (o el arma
-      // nunca se ocultó correctamente), aparecería flotando en la cámara
-      // de muerte.
-      weaponRifle.visible  = false;
-      weaponPistol.visible = false;
-      grenadeViewModel.visible = false;
+      // Fix definitivo: cada frame, si estamos muertos, forzamos
+      // las armas fuera de vista (visible = false + posición Y = -1000).
+      setLocalWeaponsVisible(false);
       updateDeathCamera(dt);
     } else {
       updatePlayer(dt);
