@@ -411,20 +411,6 @@ if (onlineMode) {
   carNetRef = ref(db, `rooms/${ROOM}/car`);
 }
 
-/* ═══════════════════════════════════════════
-   RNG DETERMINISTA — el mapa es idéntico para todos
-   ═══════════════════════════════════════════ */
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const MAP_SEED = 20240921;
-const mapRand = mulberry32(MAP_SEED);
-
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
@@ -500,10 +486,10 @@ function buildCharacter(opts = {}) {
   const nose = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.07), mSkin);
   nose.position.set(0, 0.20, 0.29); head.add(nose);
 
-  // Brazos de 2 segmentos (hombro → codo → mano) — IK
-  const UPPER = 0.42;
-  const LOWER = 0.42;
-  const HAND_OFFSET = 0.56;
+  // Brazos de 2 segmentos (hombro → codo → mano) — pensados para IK
+  const UPPER = 0.40;
+  const LOWER = 0.40;
+  const HAND_OFFSET = 0.46;
 
   function makeArm(side) {
     const shoulder = new THREE.Group();
@@ -585,7 +571,7 @@ function buildRifleModel() {
     ring.rotation.x = Math.PI / 2; ring.position.set(0, 0.17, z); g.add(ring);
   }
 
-  g.scale.setScalar(0.68);
+  g.scale.setScalar(0.78);
 
   const flash = new THREE.Mesh(
     new THREE.SphereGeometry(0.16, 6, 4),
@@ -595,6 +581,7 @@ function buildRifleModel() {
   flash.visible = false;
   g.add(flash);
 
+  // Marcadores vacíos donde caen las manos
   const gripMarker = new THREE.Object3D();
   gripMarker.position.set(0, -0.21, -0.14);
   g.add(gripMarker);
@@ -1055,15 +1042,15 @@ function createTree(x, z) {
     cone.position.y = 2 + i * 0.85; cone.castShadow = true; g.add(cone);
   }
   g.position.set(x, 0, z);
-  g.rotation.y = mapRand() * Math.PI;
+  g.rotation.y = Math.random() * Math.PI;
   colliders.push({ x, z, r: 0.7, kind: 'tree' });
   return g;
 }
 for (let i = 0; i < 24; i++) {
   let x, z, tries = 0;
   do {
-    const a = mapRand() * Math.PI * 2;
-    const r = 14 + mapRand() * 40;
+    const a = Math.random() * Math.PI * 2;
+    const r = 14 + Math.random() * 40;
     x = Math.cos(a) * r;
     z = Math.sin(a) * r;
     tries++;
@@ -1073,11 +1060,11 @@ for (let i = 0; i < 24; i++) {
 
 const rockMat = new THREE.MeshLambertMaterial({ color: 0x7f8c8d, flatShading: true });
 for (let i = 0; i < 16; i++) {
-  const size = 0.4 + mapRand() * 0.9;
+  const size = 0.4 + Math.random() * 0.9;
   let x, z, tries = 0;
   do {
-    const a = mapRand() * Math.PI * 2;
-    const r = 10 + mapRand() * 44;
+    const a = Math.random() * Math.PI * 2;
+    const r = 10 + Math.random() * 44;
     x = Math.cos(a) * r;
     z = Math.sin(a) * r;
     tries++;
@@ -1085,7 +1072,7 @@ for (let i = 0; i < 16; i++) {
   if (tries >= 30) continue;
   const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), rockMat);
   rock.position.set(x, size * 0.55, z);
-  rock.rotation.set(mapRand() * Math.PI, mapRand() * Math.PI, mapRand() * Math.PI);
+  rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
   rock.castShadow = true; rock.receiveShadow = true;
   scene.add(rock);
   colliders.push({ x, z, r: size * 1.05, kind: 'rock' });
@@ -1695,6 +1682,7 @@ function spawnSmoke(pos) {
 }
 
 function updateSmoke(dt) {
+  // SOLO humo del auto (dañado). El jugador NO echa humo.
   if (!carDestroyed && carHealth < 60 && carHealth > 0) {
     const intensity = (1 - carHealth / 60);
     carSmokeAcc += intensity * 18 * dt;
@@ -1888,6 +1876,8 @@ function spawnBulletHole(hit, normal) {
   }
 }
 
+/* Marca de bala de un disparo remoto: hace raycast para localizar la
+   superficie exacta a partir de la posición + normal que envió el otro cliente. */
 const _remoteHoleRay = new THREE.Raycaster();
 const _remoteHoleOrigin = new THREE.Vector3();
 const _remoteHoleDir = new THREE.Vector3();
@@ -1914,6 +1904,7 @@ function spawnRemoteBulletHole(pos, normal) {
     return;
   }
 
+  // Fallback: no encontramos la superficie → colocar a mano en el suelo del mundo
   const fallback = new THREE.Mesh(bulletHoleGeo, bulletHoleMat);
   fallback.userData.isBulletHole = true;
   fallback.position.copy(pos).addScaledVector(normal, 0.02);
@@ -2116,6 +2107,7 @@ function finishReload() {
   ammoWrap.classList.remove('reloading');
 }
 
+// Envía la marca de bala a la red
 function broadcastBulletHole(point, normal) {
   if (!onlineMode) return;
   const id = 'b_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
@@ -2143,6 +2135,7 @@ function tryShoot() {
   muzzleLight.intensity = 3;
   setTimeout(() => { muzzleFlash.visible = false; muzzleLight.intensity = 0; }, 45);
 
+  // Avisar a los demás de que hemos disparado (muzzle flash remoto)
   if (onlineMode) {
     set(ref(db, `rooms/${ROOM}/shots/${playerId}`), {
       ts: Date.now(),
@@ -2167,6 +2160,7 @@ function tryShoot() {
       normal = raycaster.ray.direction.clone().negate();
     }
 
+    // Jugador remoto → daño + marca local + broadcast de marca
     const remoteId = getRemotePlayerId(hit.object);
     if (remoteId && !playerDead) {
       if (onlineMode) {
@@ -2179,6 +2173,7 @@ function tryShoot() {
       break;
     }
 
+    // Superficie normal → marca local + broadcast
     spawnBulletHole(hit, normal);
     broadcastBulletHole(hit.point, normal);
 
@@ -2454,8 +2449,7 @@ let remoteCarDriverId = null;
 let carNetTarget = null;
 let carNetData = {};
 
-// Rifle DELANTE del torso (torso ocupa z ∈ [-0.21, 0.21])
-const REMOTE_AIM_POS = new THREE.Vector3(0.16, 1.48, 0.42);
+const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
 
 function createNameTag(text) {
   const canvas = document.createElement('canvas');
@@ -2682,8 +2676,8 @@ function solveArmIK(arm, targetWorld, poleDir) {
   elbow.quaternion.copy(_ikQ);
 }
 
-const _poleRight = new THREE.Vector3( 0.55, -1, -0.25);
-const _poleLeft  = new THREE.Vector3(-0.35, -1,  0.10);
+const _poleRight = new THREE.Vector3( 0.35, -1, -0.15);
+const _poleLeft  = new THREE.Vector3(-0.35, -1,  0.0);
 const _gripWorldTmp = new THREE.Vector3();
 const _handguardWorldTmp = new THREE.Vector3();
 
@@ -2721,6 +2715,7 @@ function animateRemotePlayer(r, dt) {
     r.aimPivot.visible = false;
     r.nameTag.visible = false;
 
+    // Brazos colgando (reset suave y posición relajada)
     const k = Math.min(1, dt * 5);
     r.parts.leftArm.shoulder.quaternion.set(0,0,0,1);
     r.parts.rightArm.shoulder.quaternion.set(0,0,0,1);
@@ -2762,6 +2757,7 @@ function animateRemotePlayer(r, dt) {
     r.body.rotation.z += (0 - r.body.rotation.z) * k;
   }
 
+  // Apuntado + retroceso
   r.pitchSmooth += (r.targetPitch - r.pitchSmooth) * Math.min(1, dt * 12);
   if (r.recoil > 0) r.recoil = Math.max(0, r.recoil - dt * 7);
 
@@ -2779,13 +2775,14 @@ function animateRemotePlayer(r, dt) {
     if (r.flashTimer <= 0 && r.rifle) r.rifle.flash.visible = false;
   }
 
-  // IK de los brazos
+  // ★ IK de los brazos
   r.root.updateMatrixWorld(true);
 
   if (r.rifle && r.rifle.gripMarker && r.rifle.handguardMarker) {
     r.rifle.gripMarker.getWorldPosition(_gripWorldTmp);
     r.rifle.handguardMarker.getWorldPosition(_handguardWorldTmp);
 
+    // Ahorro de rendimiento: solo resolver IK si está razonablemente cerca
     const distToLocal = r.root.position.distanceTo(player.position);
     if (distToLocal < 40) {
       solveArmIK(r.parts.rightArm, _gripWorldTmp,     _poleRight);
@@ -2926,12 +2923,12 @@ async function initOnline() {
     }
   });
 
-  // Disparos remotos (muzzle flash)
+  // Disparos de otros jugadores (muzzle flash remoto)
   onValue(ref(db, `rooms/${ROOM}/shots`), snap => {
     handleRemoteShots(snap.val());
   });
 
-  // Marcas de bala de otros jugadores
+  // Marcas de bala de otros jugadores → aparecen en mi mundo
   const bulletHolesRef = ref(db, `rooms/${ROOM}/bulletHoles`);
   onChildAdded(bulletHolesRef, snap => {
     const h = snap.val();
@@ -2940,6 +2937,7 @@ async function initOnline() {
     const pos = new THREE.Vector3(h.x, h.y, h.z);
     const normal = new THREE.Vector3(h.nx || 0, h.ny || 1, h.nz || 0).normalize();
     try { spawnRemoteBulletHole(pos, normal); } catch (e) {}
+    // Auto-borrar de Firebase pasado un tiempo para no acumular
     setTimeout(() => remove(snap.ref).catch(() => {}), 25000);
   });
 
