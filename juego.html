@@ -880,9 +880,11 @@ _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
 const _fpHandL = makeFPSHand('left');
-_fpHandL.scale.set(0.52, 0.52, 0.72);
-_fpHandL.position.set(-0.105, -0.015, -0.225);
-_fpHandL.rotation.set(0.62, 0.04, -0.18);
+// Segunda mano de la M4A1: más gruesa y con el antebrazo entrando desde
+// la parte inferior-izquierda para que la unión quede más natural en cámara.
+_fpHandL.scale.set(0.66, 0.66, 0.92);
+_fpHandL.position.set(-0.17, -0.105, -0.205);
+_fpHandL.rotation.set(0.78, 0.12, -0.42);
 weaponRifle.add(_fpHandL);
 
 /* ─── Pistola: una sola mano ─── */
