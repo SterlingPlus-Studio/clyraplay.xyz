@@ -12,7 +12,6 @@
   #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; z-index: 40; }
   #hint.active { display: block; }
 
-  /* ═══════════ MENÚ DE MODOS ═══════════ */
   #mode-menu { position: fixed; inset: 0; z-index: 500; color: #fff; cursor: default; overflow: hidden; pointer-events: auto; }
   #mode-menu::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.78) 100%); pointer-events: none; }
   #mode-menu.hidden { display: none; }
@@ -53,35 +52,14 @@
   .mode-badge { display: inline-block; margin-top: 10px; padding: 3px 9px; background: rgba(80,220,140,0.18); border: 1px solid rgba(120,255,160,0.6); border-radius: 4px; font: bold 10px ui-monospace, monospace; color: #7cff9e; letter-spacing: 1.5px; }
   .mode-card.battle .mode-badge { background: rgba(255,140,80,0.18); border-color: rgba(255,180,120,0.6); color: #ffb76b; }
 
-  /* ═══ MÓVIL: layout más robusto, sin solapamientos ═══ */
   @media (max-width: 900px) {
     #mode-menu::before { background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.9) 100%); }
-    #mode-menu .brand {
-      position: absolute;
-      left: 0; right: 0;
-      top: 5vh;
-      transform: none;
-      text-align: center;
-      padding: 0 20px;
-    }
+    #mode-menu .brand { position: absolute; left: 0; right: 0; top: 5vh; transform: none; text-align: center; padding: 0 20px; }
     #mode-menu .brand h1 { font-size: clamp(26px, 9vw, 42px); letter-spacing: 5px; line-height: 1; }
     #mode-menu .brand .subtitle { font-size: 10px; letter-spacing: 4px; margin-top: 8px; }
     #mode-menu .brand .tag { font-size: 11px; letter-spacing: 1.5px; margin-top: 6px; }
-    #mode-menu .menu-stack {
-      position: absolute;
-      right: 0; left: 0;
-      bottom: max(20px, env(safe-area-inset-bottom, 20px));
-      top: auto;
-      transform: none;
-      padding: 0 16px;
-      gap: 12px;
-    }
-    .mode-card {
-      width: 100%;
-      min-width: 0;
-      padding: 16px 14px 16px 62px;
-      border-radius: 10px;
-    }
+    #mode-menu .menu-stack { position: absolute; right: 0; left: 0; bottom: max(20px, env(safe-area-inset-bottom, 20px)); top: auto; transform: none; padding: 0 16px; gap: 12px; }
+    .mode-card { width: 100%; min-width: 0; padding: 16px 14px 16px 62px; border-radius: 10px; }
     .mode-card:hover, .mode-card:active { transform: none; }
     .mode-card:active { background: rgba(60,80,120,0.9); }
     .mode-icon { left: 14px; font-size: 32px; }
@@ -98,18 +76,12 @@
     .mode-title { font-size: 15px; }
     .mode-desc { font-size: 10px; }
   }
-  /* Landscape móvil (poca altura) */
   @media (max-height: 520px) and (orientation: landscape) {
     #mode-menu .brand { top: 8px; }
     #mode-menu .brand h1 { font-size: 22px; letter-spacing: 3px; line-height: 1; }
     #mode-menu .brand .subtitle { font-size: 9px; margin-top: 4px; letter-spacing: 3px; }
     #mode-menu .brand .tag { display: none; }
-    #mode-menu .menu-stack {
-      flex-direction: row;
-      bottom: 12px;
-      gap: 10px;
-      padding: 0 12px;
-    }
+    #mode-menu .menu-stack { flex-direction: row; bottom: 12px; gap: 10px; padding: 0 12px; }
     .mode-card { padding: 10px 10px 10px 46px; flex: 1; }
     .mode-icon { left: 10px; font-size: 22px; }
     .mode-title { font-size: 13px; letter-spacing: 1px; }
@@ -1829,10 +1801,13 @@ function tryCrouchOrSlide() {
   if (playerDead || !gameMode) return;
   initAudio();
 
-  // Si está deslizándose → cancelar slide (se queda agachado)
+  // Si está deslizándose → cancelar slide y levantarse
   if (sliding) {
     sliding = false;
     slideTimer = 0;
+    crouching = false;
+    updateCrouchBtn();
+    playCrouchSound();
     return;
   }
 
@@ -1855,7 +1830,6 @@ function tryCrouchOrSlide() {
     const len = Math.hypot(ix, iz);
 
     if (len > 0.35) {
-      // Iniciar deslizamiento
       ix /= len; iz /= len;
       const camFwdX = -Math.sin(cameraYaw), camFwdZ = -Math.cos(cameraYaw);
       const camRightX = -camFwdZ, camRightZ = camFwdX;
@@ -2383,7 +2357,6 @@ function broadcastBulletHole(point, normal) {
 }
 function tryShoot() {
   if (playerDead || !gameMode) return;
-  if (crouching && !sliding) { /* se puede disparar agachado, sin penalización adicional */ }
   const ws = curWepState(), def = curWepDef();
   if (ws.reloading || ws.cooldown > 0) return;
   if (ws.ammo <= 0) { startReload(); return; }
@@ -2466,7 +2439,6 @@ function updatePlayer(dt) {
 
   // ── Movimiento ──
   if (sliding) {
-    // Deslizamiento: dirección fija, velocidad decreciente
     const t = 1 - Math.max(0, slideTimer) / SLIDE_DURATION;
     const slideSpeed = SLIDE_SPEED_START * (1 - t) + SLIDE_SPEED_END * t;
     player.position.x += slideDirX * slideSpeed * dt;
@@ -2474,6 +2446,9 @@ function updatePlayer(dt) {
     slideTimer -= dt;
     if (slideTimer <= 0) {
       sliding = false;
+      crouching = false;
+      updateCrouchBtn();
+      playCrouchSound();
     }
   } else if (moving) {
     const moveSpeed = crouching ? 3.6 : (aiming ? 4 : 8);
@@ -2486,11 +2461,10 @@ function updatePlayer(dt) {
   resolveCollisions(player, PLAYER_RADIUS);
   const groundY = computeGroundY(player.position.x, player.position.z, player.position.y);
 
-  // Saltar (cancela deslizamiento)
   if ((keys['Space'] || jumpQueued) && isGrounded) {
     velocityY = JUMP_FORCE;
     isGrounded = false;
-    if (sliding) { sliding = false; slideTimer = 0; }
+    if (sliding) { sliding = false; slideTimer = 0; crouching = false; updateCrouchBtn(); }
   }
   jumpQueued = false;
 
@@ -2506,11 +2480,9 @@ function updatePlayer(dt) {
     if (player.position.y <= groundY && velocityY <= 0) { player.position.y = groundY; velocityY = 0; isGrounded = true; }
   }
 
-  // ── Altura de ojos (crouch) ──
   const targetEye = crouching ? CROUCH_EYE_HEIGHT : EYE_HEIGHT;
   eyeHeightCurrent += (targetEye - eyeHeightCurrent) * Math.min(1, dt * 12);
 
-  // ── Bob / sway ──
   const movingNow = moving || sliding;
   if (movingNow && isGrounded) {
     walkPhase += dt * (sliding ? 15 : 11);
@@ -3015,7 +2987,7 @@ function updateZombieHUD() {
 }
 
 /* ═══════════════════════════════════════════
-   JUGADORES REMOTOS
+   JUGADORES REMOTOS  (con sincronización de CROUCH y SLIDE)
    ═══════════════════════════════════════════ */
 const remotePlayers = new Map();
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.28);
@@ -3051,6 +3023,8 @@ function addRemotePlayer(id, data) {
     aimPivot, rifle, pistol, weaponKey, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
+    crouch: !!data.crouch, slide: !!data.slide,
+    bodyYCurrent: 0, aimYCurrent: REMOTE_AIM_POS.y, aimZCurrent: REMOTE_AIM_POS.z,
     lastSeen: Date.now(), hp: data.hp ?? 100, dead: false, deathTime: 0,
     walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0
   });
@@ -3065,6 +3039,9 @@ function updateRemotePlayer(id, data) {
   r.targetYaw = (data.yaw ?? 0) + Math.PI;
   r.targetPitch = data.pitch ?? r.targetPitch;
   if (data.weapon === 'pistol' || data.weapon === 'rifle') r.weaponKey = data.weapon;
+  // ── Sincronizar postura ──
+  if (data.crouch !== undefined) r.crouch = !!data.crouch;
+  if (data.slide !== undefined)  r.slide  = !!data.slide;
   r.lastSeen = Date.now();
   const newHp = (typeof data.hp === 'number') ? data.hp : r.hp;
   if (newHp < r.hp) r.hitFlash = 1;
@@ -3094,6 +3071,8 @@ function reviveRemotePlayer(r) {
   r.parts.rightLeg.rotation.x = 0;
   r.aimPivot.visible = true;
   r.hitFlash = 0;
+  r.crouch = false; r.slide = false;
+  r.bodyYCurrent = 0; r.aimYCurrent = REMOTE_AIM_POS.y; r.aimZCurrent = REMOTE_AIM_POS.z;
   if (r.rifle) r.rifle.flash.visible = false;
   if (r.pistol) r.pistol.flash.visible = false;
 }
@@ -3191,31 +3170,83 @@ function animateRemotePlayer(r, dt) {
   r.aimPivot.visible = true;
   if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
   if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
+
   const walking = r.moveSpeed > 0.5;
+
+  // ─────────────────────────────────────────
+  // POSTURA: de pie / agachado / deslizándose
+  // ─────────────────────────────────────────
+  // Objetivos de altura del cuerpo (relativo al root) y del aimPivot
+  let targetBodyY = 0;
+  let targetAimY = REMOTE_AIM_POS.y;
+  let targetAimZ = REMOTE_AIM_POS.z;
+  let targetBodyRotX = 0; // inclinación hacia atrás al slide
+  let legBend = 0;        // cuánto se doblan las piernas
+
+  if (r.slide) {
+    targetBodyY = -0.30;          // cuerpo bien bajo
+    targetAimY = REMOTE_AIM_POS.y - 0.55;
+    targetAimZ = REMOTE_AIM_POS.z + 0.05;
+    targetBodyRotX = -0.35;       // inclinado hacia atrás
+    legBend = 1.0;
+  } else if (r.crouch) {
+    targetBodyY = -0.22;          // agachado normal
+    targetAimY = REMOTE_AIM_POS.y - 0.38;
+    targetAimZ = REMOTE_AIM_POS.z;
+    targetBodyRotX = 0.10;        // ligera inclinación hacia delante
+    legBend = 0.7;
+  } else {
+    targetBodyY = 0;
+    targetAimY = REMOTE_AIM_POS.y;
+    targetAimZ = REMOTE_AIM_POS.z;
+    targetBodyRotX = 0;
+    legBend = 0;
+  }
+
+  // Interpolar suavemente
+  const k = Math.min(1, dt * 12);
+  r.bodyYCurrent += (targetBodyY - r.bodyYCurrent) * k;
+  r.aimYCurrent += (targetAimY - r.aimYCurrent) * k;
+  r.aimZCurrent += (targetAimZ - r.aimZCurrent) * k;
+
+  // ── Piernas ──
   if (walking) {
-    r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
-    const amp = Math.min(0.85, 0.18 + r.moveSpeed * 0.075);
+    r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9) * (r.slide ? 1.6 : 1);
+    const amp = Math.min(0.85, 0.18 + r.moveSpeed * 0.075) * (1 - legBend * 0.4);
     const s = Math.sin(r.walkPhase);
-    r.parts.leftLeg.rotation.x = s * amp;
-    r.parts.rightLeg.rotation.x = -s * amp;
-    r.body.position.y = Math.abs(Math.sin(r.walkPhase)) * 0.055;
+    r.parts.leftLeg.rotation.x = s * amp - legBend * 0.55;
+    r.parts.rightLeg.rotation.x = -s * amp - legBend * 0.55;
+    // Offset vertical del cuerpo por el paso
+    r.body.position.y = Math.abs(Math.sin(r.walkPhase)) * 0.055 * (1 - legBend * 0.5) + r.bodyYCurrent;
     r.body.rotation.y = Math.sin(r.walkPhase * 2) * 0.05;
-    r.body.rotation.z = Math.sin(r.walkPhase) * 0.035;
+    r.body.rotation.z = Math.sin(r.walkPhase) * 0.035 + (r.slide ? 0.08 : 0);
   } else {
     r.walkPhase += dt * 1.6;
-    const k = Math.min(1, dt * 8);
-    r.parts.leftLeg.rotation.x += (0 - r.parts.leftLeg.rotation.x) * k;
-    r.parts.rightLeg.rotation.x += (0 - r.parts.rightLeg.rotation.x) * k;
-    r.body.position.y = Math.sin(r.walkPhase) * 0.015;
-    r.body.rotation.y += (0 - r.body.rotation.y) * k;
-    r.body.rotation.z += (0 - r.body.rotation.z) * k;
+    const kk = Math.min(1, dt * 8);
+    // Piernas dobladas si está agachado
+    const restLeft = -legBend * 0.55;
+    const restRight = -legBend * 0.55;
+    r.parts.leftLeg.rotation.x += (restLeft - r.parts.leftLeg.rotation.x) * kk;
+    r.parts.rightLeg.rotation.x += (restRight - r.parts.rightLeg.rotation.x) * kk;
+    r.body.position.y = Math.sin(r.walkPhase) * 0.015 + r.bodyYCurrent;
+    r.body.rotation.y += (0 - r.body.rotation.y) * kk;
+    r.body.rotation.z += ((r.slide ? 0.08 : 0) - r.body.rotation.z) * kk;
   }
+
+  // Inclinación del cuerpo (slide → hacia atrás)
+  r.body.rotation.x += (targetBodyRotX - r.body.rotation.x) * Math.min(1, dt * 10);
+
+  // Cabeza sigue pitch (menos marcado si está agachado)
+  const headPitchMul = r.slide ? 0.2 : (r.crouch ? 0.35 : 0.45);
+  r.parts.head.rotation.x = r.pitchSmooth * headPitchMul;
+
+  // ── AimPivot (arma + brazos) ──
   r.pitchSmooth += (r.targetPitch - r.pitchSmooth) * Math.min(1, dt * 12);
   if (r.recoil > 0) r.recoil = Math.max(0, r.recoil - dt * 7);
   r.aimPivot.rotation.x = r.pitchSmooth - r.recoil * 0.22;
   r.aimPivot.rotation.z = Math.sin(r.walkPhase) * (walking ? 0.05 : 0.012);
-  r.aimPivot.position.set(REMOTE_AIM_POS.x, REMOTE_AIM_POS.y, REMOTE_AIM_POS.z - r.recoil * 0.07);
-  r.parts.head.rotation.x = r.pitchSmooth * 0.45;
+  r.aimPivot.position.set(REMOTE_AIM_POS.x, r.aimYCurrent, r.aimZCurrent - r.recoil * 0.07);
+
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
     if (r.flashTimer <= 0) {
@@ -3260,7 +3291,10 @@ function sendLocalPlayerState() {
     name: playerName,
     x: +player.position.x.toFixed(2), y: +player.position.y.toFixed(2), z: +player.position.z.toFixed(2),
     yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: currentWeaponKey,
-    hp: Math.round(health), dead: playerDead, crouch: crouching, ts: Date.now()
+    hp: Math.round(health), dead: playerDead,
+    crouch: crouching,   // ← sincroniza agachado
+    slide: sliding,      // ← sincroniza deslizándose
+    ts: Date.now()
   }).catch(() => {});
 }
 
@@ -3302,7 +3336,8 @@ async function initOnline() {
 
   await set(playerNetRef, {
     name: playerName, x: player.position.x, y: player.position.y, z: player.position.z,
-    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false, mode: gameMode, ts: Date.now()
+    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false,
+    crouch: false, slide: false, mode: gameMode, ts: Date.now()
   });
   onDisconnect(playerNetRef).remove();
   onDisconnect(ref(db, `rooms/${ROOM}/shots/${playerId}`)).remove();
@@ -3530,7 +3565,8 @@ function drawMinimap() {
     for (const [, r] of remotePlayers) {
       const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
       if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-      ctx.fillStyle = r.dead ? '#666' : '#f39c12';
+      // Color según postura
+      ctx.fillStyle = r.dead ? '#666' : (r.slide ? '#4ecdc4' : (r.crouch ? '#3b7ec9' : '#f39c12'));
       ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
     }
@@ -3623,7 +3659,7 @@ function applyOptimizations() {
 }
 
 /* ═══════════════════════════════════════════
-   MENÚ (con fix Android: touchend + click)
+   MENÚ
    ═══════════════════════════════════════════ */
 const modeMenu = document.getElementById('mode-menu');
 
@@ -3638,11 +3674,9 @@ function bindModeCard(card) {
     selectGameMode(card.dataset.mode);
     setTimeout(() => { triggered = false; }, 800);
   };
-  // Android: touchend es más fiable que click
   card.addEventListener('touchend', trigger, { passive: false });
-  card.addEventListener('touchstart', (e) => { /* solo para feedback */ }, { passive: true });
+  card.addEventListener('touchstart', (e) => {}, { passive: true });
   card.addEventListener('click', trigger, false);
-  // Fallback para navegadores problemáticos
   card.addEventListener('pointerup', (e) => {
     if (e.pointerType === 'touch') trigger(e);
   });
