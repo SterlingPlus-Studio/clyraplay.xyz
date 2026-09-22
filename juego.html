@@ -676,7 +676,11 @@ function createPistolModel() {
   const group = new THREE.Group();
   const flash = createFlash(0.07, 0, 0.04, -0.20, 0xffdd66);
   group.add(flash);
-  return { group, flash, fbxModel: null };
+  // Punto de agarre para los jugadores remotos.
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(0, -0.09, 0.06);
+  group.add(gripMarker);
+  return { group, flash, gripMarker, fbxModel: null };
 }
 
 /* ═══════════════════════════════════════════
@@ -792,14 +796,48 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
   });
 }
 
+function cloneLoadedWeaponToRemote(remoteWeapon, sourceObj) {
+  if (!remoteWeapon || !sourceObj) return;
+  if (remoteWeapon.fbxModel) {
+    remoteWeapon.group.remove(remoteWeapon.fbxModel);
+    remoteWeapon.fbxModel = null;
+  }
+  const clone = sourceObj.clone(true);
+  clone.userData.remoteWeaponFBX = true;
+  clone.traverse(n => {
+    if (n.isMesh) {
+      n.castShadow = true;
+      n.receiveShadow = true;
+      n.frustumCulled = false;
+    }
+  });
+  remoteWeapon.fbxModel = clone;
+  remoteWeapon.group.add(clone);
+}
+
+function attachLoadedWeaponsToRemotePlayers(kind, sourceObj) {
+  for (const [, r] of remotePlayers) {
+    if (kind === 'rifle' && r.rifle) cloneLoadedWeaponToRemote(r.rifle, sourceObj);
+    if (kind === 'pistol' && r.pistol) cloneLoadedWeaponToRemote(r.pistol, sourceObj);
+  }
+}
+
 (async () => {
   // M4A1: pequeño y SIN rotación Y (el cañón ya apunta a -Z)
   const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 0.65, 0);
-  if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
+  if (r) {
+    rifleModel.fbxModel = r;
+    rifleModel.group.add(r);
+    attachLoadedWeaponsToRemotePlayers('rifle', r);
+  }
 
   // Pistola: pequeña y girada 90° en Y para que el cañón apunte al frente de la cámara
   const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
-  if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
+  if (p) {
+    pistolModel.fbxModel = p;
+    pistolModel.group.add(p);
+    attachLoadedWeaponsToRemotePlayers('pistol', p);
+  }
 })();
 
 /* ═══════════════════════════════════════════
@@ -2121,6 +2159,7 @@ function selectWeapon(key, silent = false, force = false) {
   curWeaponGroup().position.copy(WEAPON_POS[key]);
   curWeaponGroup().rotation.set(0, 0, 0);
   updateAmmoBar();
+  if (onlineMode) sendLocalPlayerState();
   if (!silent) playSwapSound();
 }
 function swapWeapon() { if (!playerDead) selectWeapon(currentWeaponKey === 'rifle' ? 'pistol' : 'rifle'); }
@@ -2753,19 +2792,6 @@ function updateZombieHUD() {
 const remotePlayers = new Map();
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
 
-function attachRifleToRemote(rifleObj) {
-  if (!rifleObj || !rifleObj.fbxModel) return;
-  const clone = rifleObj.fbxModel.clone();
-  clone.traverse(n => {
-    if (n.isMesh) {
-      n.castShadow = true;
-      n.receiveShadow = true;
-      n.frustumCulled = false;
-    }
-  });
-  rifleObj.group.add(clone);
-}
-
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
   const char = buildCharacter();
@@ -2773,10 +2799,22 @@ function addRemotePlayer(id, data) {
   aimPivot.position.copy(REMOTE_AIM_POS);
   char.body.add(aimPivot);
 
+  // Los remotos reciben sus propias instancias de arma para que siempre queden
+  // sujetas a sus brazos y no dependan de la cámara local.
   const rifle = createRifleModel();
   rifle.group.position.set(0, -0.06, 0.28);
-  attachRifleToRemote(rifle);
+  if (rifleModel.fbxModel) cloneLoadedWeaponToRemote(rifle, rifleModel.fbxModel);
   aimPivot.add(rifle.group);
+
+  const pistol = createPistolModel();
+  pistol.group.position.set(0, -0.07, 0.22);
+  if (pistolModel.fbxModel) cloneLoadedWeaponToRemote(pistol, pistolModel.fbxModel);
+  pistol.group.visible = false;
+  aimPivot.add(pistol.group);
+
+  const weaponKey = data.weapon === 'pistol' ? 'pistol' : 'rifle';
+  rifle.group.visible = weaponKey === 'rifle';
+  pistol.group.visible = weaponKey === 'pistol';
 
   char.root.userData.remotePlayerId = id;
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
@@ -2784,9 +2822,9 @@ function addRemotePlayer(id, data) {
   scene.add(char.root);
   remotePlayers.set(id, {
     id, root: char.root, body: char.body, parts: char.parts, mats: char.mats,
-    aimPivot, rifle, name: data.name || 'Jugador',
+    aimPivot, rifle, pistol, weaponKey, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
-    targetYaw: char.root.rotation.y, targetPitch: 0, pitchSmooth: 0,
+    targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
     lastSeen: Date.now(), hp: data.hp ?? 100, dead: false, deathTime: 0,
     walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0
   });
@@ -2800,6 +2838,7 @@ function updateRemotePlayer(id, data) {
   r.targetZ = data.z ?? r.targetZ;
   r.targetYaw = (data.yaw ?? 0) + Math.PI;
   r.targetPitch = data.pitch ?? r.targetPitch;
+  if (data.weapon === 'pistol' || data.weapon === 'rifle') r.weaponKey = data.weapon;
   r.lastSeen = Date.now();
   const newHp = (typeof data.hp === 'number') ? data.hp : r.hp;
   if (newHp < r.hp) r.hitFlash = 1;
@@ -2835,7 +2874,10 @@ function triggerRemoteShot(r) {
   if (r.dead) return;
   r.recoil = 1;
   r.flashTimer = 0.05;
-  if (r.rifle) r.rifle.flash.visible = true;
+  if (r.rifle) r.rifle.flash.visible = false;
+  if (r.pistol) r.pistol.flash.visible = false;
+  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
+  if (activeWeapon) activeWeapon.flash.visible = true;
 }
 
 /* IK */
@@ -2921,6 +2963,8 @@ function animateRemotePlayer(r, dt) {
   }
   r.body.rotation.x = 0;
   r.aimPivot.visible = true;
+  if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
+  if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
   const walking = r.moveSpeed > 0.5;
   if (walking) {
     r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
@@ -2951,13 +2995,15 @@ function animateRemotePlayer(r, dt) {
     if (r.flashTimer <= 0 && r.rifle) r.rifle.flash.visible = false;
   }
   r.root.updateMatrixWorld(true);
-  if (r.rifle && r.rifle.gripMarker && r.rifle.handguardMarker) {
-    r.rifle.gripMarker.getWorldPosition(_gripWorldTmp);
-    r.rifle.handguardMarker.getWorldPosition(_handguardWorldTmp);
+  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
+  if (activeWeapon && activeWeapon.gripMarker) {
+    activeWeapon.gripMarker.getWorldPosition(_gripWorldTmp);
     const distToLocal = r.root.position.distanceTo(player.position);
-    if (distToLocal < 40) {
-      solveArmIK(r.parts.rightArm, _gripWorldTmp, _poleRight);
-      solveArmIK(r.parts.leftArm, _handguardWorldTmp, _poleLeft);
+    if (distToLocal < 40) solveArmIK(r.parts.rightArm, _gripWorldTmp, _poleRight);
+
+    if (r.weaponKey === 'rifle' && r.rifle && r.rifle.handguardMarker) {
+      r.rifle.handguardMarker.getWorldPosition(_handguardWorldTmp);
+      if (distToLocal < 40) solveArmIK(r.parts.leftArm, _handguardWorldTmp, _poleLeft);
     }
   }
 }
@@ -2984,7 +3030,7 @@ function sendLocalPlayerState() {
   update(playerNetRef, {
     name: playerName,
     x: +player.position.x.toFixed(2), y: +player.position.y.toFixed(2), z: +player.position.z.toFixed(2),
-    yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3),
+    yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: currentWeaponKey,
     hp: Math.round(health), dead: playerDead, ts: Date.now()
   }).catch(() => {});
 }
@@ -3027,7 +3073,7 @@ async function initOnline() {
 
   await set(playerNetRef, {
     name: playerName, x: player.position.x, y: player.position.y, z: player.position.z,
-    yaw: 0, pitch: 0, hp: 100, dead: false, mode: gameMode, ts: Date.now()
+    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false, mode: gameMode, ts: Date.now()
   });
   onDisconnect(playerNetRef).remove();
   onDisconnect(ref(db, `rooms/${ROOM}/shots/${playerId}`)).remove();
