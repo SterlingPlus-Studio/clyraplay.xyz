@@ -34,15 +34,11 @@
   #ammo-wrap { position: fixed; top: 210px; left: 10px; width: 150px; z-index: 20; }
   #ammo-label { color: #fff; font: bold 11px ui-monospace, monospace; text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 3px; display: flex; justify-content: space-between; }
   #ammo-num { color: #ffd93d; }
+  #weapon-name { color: #a0e0ff; }
   #ammo-bar-outer { width: 100%; height: 22px; background: #1a1a1a; border: 3px solid #000; box-shadow: 0 0 0 2px #fff inset; box-sizing: border-box; padding: 2px; }
   #ammo-bar-inner { height: 100%; background: #f1c40f; width: 100%; transition: width 0.1s linear, background 0.15s; }
   #ammo-wrap.reloading #ammo-num { color: #ff8c00; animation: reloadPulse 0.5s ease-in-out infinite; }
   @keyframes reloadPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-  #car-health-wrap { position: fixed; top: 254px; left: 10px; width: 150px; z-index: 20; display: none; }
-  #car-health-wrap.active { display: block; }
-  #car-health-label { color: #fff; font: bold 11px ui-monospace, monospace; text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 3px; display: flex; justify-content: space-between; }
-  #car-health-bar-outer { width: 100%; height: 22px; background: #1a1a1a; border: 3px solid #000; box-shadow: 0 0 0 2px #fff inset; box-sizing: border-box; padding: 2px; }
-  #car-health-bar-inner { height: 100%; background: #2e86de; width: 100%; transition: width 0.15s linear, background 0.15s; }
   #debug { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #7cf47c; font: 11px/1.4 ui-monospace, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; z-index: 100; display: none; min-width: 220px; border: 2px solid rgba(124,244,124,0.5); max-height: 90vh; overflow: hidden; }
   #debug.active { display: block; }
   #debug .title { color: #fff; font-weight: bold; }
@@ -69,7 +65,7 @@
   #aim-btn { right: 140px; bottom: 55px; width: 75px; height: 75px; background: rgba(255,200,80,0.3); border-color: rgba(255,240,150,0.9); font-size: 30px; }
   #aim-btn.held { background: rgba(255,220,80,0.75); border-color: #fff; }
   #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; }
-  #action-btn { right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 30px; background: rgba(255,220,80,0.35); border-color: rgba(255,240,150,0.9); }
+  #swap-btn { right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px; background: rgba(120,200,255,0.3); border-color: rgba(180,230,255,0.9); }
   #debug-btn { top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px; background: rgba(50,220,100,0.3); border-color: rgba(150,255,150,0.9); }
   #online-panel { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; font: bold 12px ui-monospace, monospace; padding: 6px 12px; border: 2px solid rgba(100,220,150,0.7); border-radius: 5px; z-index: 22; pointer-events: none; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
   #online-panel.offline { border-color: rgba(220,80,80,0.7); }
@@ -79,20 +75,19 @@
   body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
   body.is-touch #minimap-wrap { top: 6px; left: 6px; width: 96px; height: 96px; border-width: 2px; }
   body.is-touch #health-wrap { top: 106px; left: 6px; width: 96px; }
-  body.is-touch #health-label, body.is-touch #ammo-label, body.is-touch #car-health-label { font-size: 9px; margin-bottom: 2px; }
-  body.is-touch #health-bar-outer, body.is-touch #ammo-bar-outer, body.is-touch #car-health-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
+  body.is-touch #health-label, body.is-touch #ammo-label { font-size: 9px; margin-bottom: 2px; }
+  body.is-touch #health-bar-outer, body.is-touch #ammo-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
   body.is-touch #ammo-wrap { top: 138px; left: 6px; width: 96px; }
-  body.is-touch #car-health-wrap { top: 170px; left: 6px; width: 96px; }
   body.is-touch #joystick { left: 20px; bottom: 20px; width: 110px; height: 110px; }
   body.is-touch #stick { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   body.is-touch #shoot-btn { right: 18px; bottom: 30px; width: 88px; height: 88px; font-size: 34px; }
   body.is-touch #aim-btn { right: 118px; bottom: 42px; width: 68px; height: 68px; font-size: 26px; }
   body.is-touch #jump-btn { right: 18px; bottom: 130px; width: 68px; height: 68px; font-size: 11px; }
-  body.is-touch #action-btn { right: 118px; bottom: 122px; width: 68px; height: 68px; font-size: 26px; }
+  body.is-touch #swap-btn { right: 118px; bottom: 122px; width: 68px; height: 68px; font-size: 22px; }
 </style>
 </head>
 <body>
-<div id="info">Click en pantalla para jugar · Click izq: disparar · Click der: apuntar · R: recargar · E: auto · F3: debug</div>
+<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel"><span id="online-status">🔌 Conectando...</span></div>
 <div id="click-overlay">
@@ -101,7 +96,7 @@
     <div class="sub">
       Modo <b>ONLINE</b> · Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
       <span class="key">Click der</span> apuntar · <span class="key">R</span> recargar ·
-      <span class="key">E</span> entrar al auto · <span class="key">ESC</span> liberar ratón
+      <span class="key">Q</span> cambiar arma · <span class="key">ESC</span> liberar ratón
     </div>
   </div>
 </div>
@@ -117,12 +112,8 @@
   <div id="health-bar-outer"><div id="health-bar-inner"></div></div>
 </div>
 <div id="ammo-wrap">
-  <div id="ammo-label"><span>🔫 BALAS</span><span><span id="ammo-num">30</span>/<span id="ammo-max">30</span></span></div>
+  <div id="ammo-label"><span id="weapon-name">🔫 M4A1</span><span><span id="ammo-num">30</span>/<span id="ammo-max">30</span></span></div>
   <div id="ammo-bar-outer"><div id="ammo-bar-inner"></div></div>
-</div>
-<div id="car-health-wrap">
-  <div id="car-health-label"><span>🚗 AUTO</span><span id="car-health-num">100</span></div>
-  <div id="car-health-bar-outer"><div id="car-health-bar-inner"></div></div>
 </div>
 <div id="debug"></div>
 <div id="crosshair">
@@ -136,7 +127,7 @@
 <div id="shoot-btn" class="btn">🔫</div>
 <div id="aim-btn" class="btn">🎯</div>
 <div id="jump-btn" class="btn">SALTAR</div>
-<div id="action-btn" class="btn">🚗</div>
+<div id="swap-btn" class="btn">🔄</div>
 <div id="debug-btn" class="btn">🐞</div>
 
 <script type="importmap">
@@ -152,21 +143,18 @@ import * as THREE from 'three';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, update, onValue, onChildAdded, onChildRemoved,
-  onDisconnect, remove, runTransaction
+  onDisconnect, remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 /* ═══════════════════════════════════════════════════════════
-   SISTEMA DE AUDIO (Web Audio API, sin archivos externos)
+   AUDIO
    ═══════════════════════════════════════════════════════════ */
 let audioCtx = null;
 let masterGain = null;
 let audioEnabled = true;
 
 function initAudio() {
-  if (audioCtx) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    return;
-  }
+  if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
@@ -174,23 +162,18 @@ function initAudio() {
     masterGain.connect(audioCtx.destination);
   } catch (e) { audioEnabled = false; }
 }
-
 function _noiseBuffer(duration, curve = 2) {
   const size = Math.max(1, Math.floor(audioCtx.sampleRate * duration));
   const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
   const d = buf.getChannelData(0);
-  for (let i = 0; i < size; i++) {
-    d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / size, curve);
-  }
+  for (let i = 0; i < size; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / size, curve);
   return buf;
 }
-
 function playGunshot(distance = 0) {
   if (!audioCtx || !audioEnabled) return;
   const vol = Math.max(0, 1 - distance / 45);
   if (vol <= 0.02) return;
   const t = audioCtx.currentTime;
-
   const src = audioCtx.createBufferSource();
   src.buffer = _noiseBuffer(0.14, 3);
   const filt = audioCtx.createBiquadFilter();
@@ -202,7 +185,6 @@ function playGunshot(distance = 0) {
   g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
   src.connect(filt).connect(g).connect(masterGain);
   src.start(t); src.stop(t + 0.16);
-
   const osc = audioCtx.createOscillator();
   osc.type = 'sine';
   osc.frequency.setValueAtTime(180, t);
@@ -213,7 +195,23 @@ function playGunshot(distance = 0) {
   osc.connect(g2).connect(masterGain);
   osc.start(t); osc.stop(t + 0.12);
 }
-
+function playPistolShot(distance = 0) {
+  if (!audioCtx || !audioEnabled) return;
+  const vol = Math.max(0, 1 - distance / 40);
+  if (vol <= 0.02) return;
+  const t = audioCtx.currentTime;
+  const src = audioCtx.createBufferSource();
+  src.buffer = _noiseBuffer(0.09, 4);
+  const filt = audioCtx.createBiquadFilter();
+  filt.type = 'lowpass';
+  filt.frequency.setValueAtTime(5000, t);
+  filt.frequency.exponentialRampToValueAtTime(400, t + 0.09);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.45 * vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+  src.connect(filt).connect(g).connect(masterGain);
+  src.start(t); src.stop(t + 0.11);
+}
 function playHitMarker() {
   if (!audioCtx || !audioEnabled) return;
   const t = audioCtx.currentTime;
@@ -227,7 +225,6 @@ function playHitMarker() {
   osc.connect(g).connect(masterGain);
   osc.start(t); osc.stop(t + 0.1);
 }
-
 function playDamageSound() {
   if (!audioCtx || !audioEnabled) return;
   const t = audioCtx.currentTime;
@@ -241,7 +238,6 @@ function playDamageSound() {
   osc.connect(g).connect(masterGain);
   osc.start(t); osc.stop(t + 0.24);
 }
-
 function playReloadSound() {
   if (!audioCtx || !audioEnabled) return;
   const base = audioCtx.currentTime;
@@ -260,36 +256,6 @@ function playReloadSound() {
     osc.start(tt); osc.stop(tt + 0.07);
   });
 }
-
-function playExplosionSound(distance = 0) {
-  if (!audioCtx || !audioEnabled) return;
-  const vol = Math.max(0, 1 - distance / 70);
-  if (vol <= 0.02) return;
-  const t = audioCtx.currentTime;
-
-  const src = audioCtx.createBufferSource();
-  src.buffer = _noiseBuffer(0.9, 2);
-  const filt = audioCtx.createBiquadFilter();
-  filt.type = 'lowpass';
-  filt.frequency.setValueAtTime(1000, t);
-  filt.frequency.exponentialRampToValueAtTime(60, t + 0.9);
-  const g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.65 * vol, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
-  src.connect(filt).connect(g).connect(masterGain);
-  src.start(t); src.stop(t + 0.95);
-
-  const osc = audioCtx.createOscillator();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(90, t);
-  osc.frequency.exponentialRampToValueAtTime(30, t + 0.5);
-  const g2 = audioCtx.createGain();
-  g2.gain.setValueAtTime(0.4 * vol, t);
-  g2.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-  osc.connect(g2).connect(masterGain);
-  osc.start(t); osc.stop(t + 0.55);
-}
-
 function playDeathSound() {
   if (!audioCtx || !audioEnabled) return;
   const t = audioCtx.currentTime;
@@ -303,7 +269,6 @@ function playDeathSound() {
   osc.connect(g).connect(masterGain);
   osc.start(t); osc.stop(t + 0.75);
 }
-
 function playRespawnSound() {
   if (!audioCtx || !audioEnabled) return;
   const t = audioCtx.currentTime;
@@ -317,9 +282,25 @@ function playRespawnSound() {
   osc.connect(g).connect(masterGain);
   osc.start(t); osc.stop(t + 0.32);
 }
+function playSwapSound() {
+  if (!audioCtx || !audioEnabled) return;
+  const t = audioCtx.currentTime;
+  for (let i = 0; i < 2; i++) {
+    const tt = t + i * 0.07;
+    const osc = audioCtx.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(i === 0 ? 500 : 750, tt);
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, tt);
+    g.gain.exponentialRampToValueAtTime(0.10, tt + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.001, tt + 0.05);
+    osc.connect(g).connect(masterGain);
+    osc.start(tt); osc.stop(tt + 0.06);
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════
-   FIREBASE / MULTIJUGADOR
+   FIREBASE
    ═══════════════════════════════════════════════════════════ */
 const firebaseConfig = {
   apiKey: "AIzaSyBq-yKzsMLLBPVoxjagwZFfxMwqNNbNV5g",
@@ -337,30 +318,25 @@ let db = null;
 let playerId = null;
 let playerName = null;
 let playerNetRef = null;
-let carNetRef = null;
 const ROOM = 'main';
 const NET_SEND_HZ = 10;
 const NET_STALE_MS = 10000;
-const BULLET_DAMAGE_TO_PLAYER = 20;
 
 const onlinePanel = document.getElementById('online-panel');
 const onlineStatus = document.getElementById('online-status');
-
 function setOnlineStatus(html, offline = false) {
   onlineStatus.innerHTML = html;
   onlinePanel.classList.toggle('offline', offline);
 }
-
 try {
   const app = initializeApp(firebaseConfig);
   db = getDatabase(app);
   onlineMode = true;
 } catch (err) {
-  console.warn('Firebase no disponible, modo offline:', err);
+  console.warn('Firebase no disponible:', err);
   onlineMode = false;
   setOnlineStatus('<span class="bad">🔌 Offline (sin Firebase)</span>', true);
 }
-
 playerId = 'p_' + Math.random().toString(36).substring(2, 10);
 try {
   let stored = sessionStorage.getItem('lp_name');
@@ -372,22 +348,33 @@ try {
 } catch (e) {
   playerName = 'Jugador' + Math.floor(1000 + Math.random() * 9000);
 }
+if (onlineMode) playerNetRef = ref(db, `rooms/${ROOM}/players/${playerId}`);
 
-if (onlineMode) {
-  playerNetRef = ref(db, `rooms/${ROOM}/players/${playerId}`);
-  carNetRef = ref(db, `rooms/${ROOM}/car`);
+/* ═══════════════════════════════════════════════════════════
+   RNG DETERMINISTA
+   ═══════════════════════════════════════════════════════════ */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), 1 | t);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
+const MAP_SEED = 20240617;
+const mapRandom = mulberry32(MAP_SEED);
 
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 50, 130);
+scene.fog = new THREE.Fog(0x87ceeb, 60, 150);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 300);
 scene.add(camera);
 
 const BASE_FOV = 70;
-const AIM_FOV  = 45;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
@@ -397,7 +384,6 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
-/* ─────────────── LUCES ─────────────── */
 scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.5));
 const sun = new THREE.DirectionalLight(0xfff2cc, 2.2);
 sun.position.set(25, 40, 15);
@@ -407,7 +393,7 @@ Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, n
 scene.add(sun);
 
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(140, 140, 1, 1),
+  new THREE.PlaneGeometry(160, 160, 1, 1),
   new THREE.MeshLambertMaterial({ color: 0x6ab04c, flatShading: true })
 );
 ground.rotation.x = -Math.PI / 2;
@@ -415,123 +401,307 @@ ground.receiveShadow = true;
 scene.add(ground);
 
 /* ═══════════════════════════════════════════
-   FÁBRICA DE PERSONAJES
+   SOLDADO MILITAR (con mochila y equipo táctico)
    ═══════════════════════════════════════════ */
-const CHAR_SKIN_COL  = 0xffcc99;
-const CHAR_SHIRT_COL = 0x3498db;
-const CHAR_PANTS_COL = 0x2c3e50;
-const CHAR_HAIR_COL  = 0x3d2314;
-
 function buildCharacter(opts = {}) {
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
 
-  const mSkin  = new THREE.MeshLambertMaterial({ color: opts.skin  ?? CHAR_SKIN_COL,  flatShading: true });
-  const mShirt = new THREE.MeshLambertMaterial({ color: opts.shirt ?? CHAR_SHIRT_COL, flatShading: true });
-  const mPants = new THREE.MeshLambertMaterial({ color: opts.pants ?? CHAR_PANTS_COL, flatShading: true });
-  const mHair  = new THREE.MeshLambertMaterial({ color: opts.hair  ?? CHAR_HAIR_COL,  flatShading: true });
-  const mDark  = new THREE.MeshLambertMaterial({ color: 0x111111, flatShading: true });
+  const skinCol   = opts.skin   ?? 0xc99a6b;
+  const uniCol    = opts.uniform     ?? 0x4a5238;   // olive drab
+  const uniCol2   = opts.uniformDark ?? 0x353d27;
+  const vestCol   = opts.vest  ?? 0x2a2f22;
+  const helmetCol = opts.helmet ?? 0x3d4530;
+  const bootsCol  = 0x1a1a17;
+  const strapCol  = 0x1c1c18;
+  const pouchCol  = 0x555c44;
 
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.9, 0.42), mShirt);
+  const mSkin   = new THREE.MeshLambertMaterial({ color: skinCol,   flatShading: true });
+  const mUni    = new THREE.MeshLambertMaterial({ color: uniCol,    flatShading: true });
+  const mUniD   = new THREE.MeshLambertMaterial({ color: uniCol2,   flatShading: true });
+  const mVest   = new THREE.MeshLambertMaterial({ color: vestCol,   flatShading: true });
+  const mHelmet = new THREE.MeshLambertMaterial({ color: helmetCol, flatShading: true });
+  const mBoot   = new THREE.MeshLambertMaterial({ color: bootsCol,  flatShading: true });
+  const mStrap  = new THREE.MeshLambertMaterial({ color: strapCol,  flatShading: true });
+  const mDark   = new THREE.MeshLambertMaterial({ color: 0x0a0a08,  flatShading: true });
+  const mPouch  = new THREE.MeshLambertMaterial({ color: pouchCol,  flatShading: true });
+
+  // ── Torso (uniforme)
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.9, 0.42), mUni);
   torso.position.y = 1.35; torso.castShadow = true; body.add(torso);
 
+  // ── Chaleco táctico
+  const vest = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.70, 0.48), mVest);
+  vest.position.y = 1.40; vest.castShadow = true; body.add(vest);
+
+  // Bolsillos frontales del chaleco (portacargadores)
+  const pouchGeo = new THREE.BoxGeometry(0.14, 0.16, 0.08);
+  const p1 = new THREE.Mesh(pouchGeo, mPouch); p1.position.set(-0.15, 1.28, 0.27); body.add(p1);
+  const p2 = new THREE.Mesh(pouchGeo, mPouch); p2.position.set( 0.15, 1.28, 0.27); body.add(p2);
+  const p3 = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.12, 0.08), mPouch); p3.position.set(0, 1.56, 0.27); body.add(p3);
+  const p4 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.10, 0.08), mPouch); p4.position.set(0, 1.15, 0.27); body.add(p4);
+
+  // Bolsillos laterales
+  const sp1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.12), mPouch); sp1.position.set(-0.44, 1.4, 0); body.add(sp1);
+  const sp2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.12), mPouch); sp2.position.set( 0.44, 1.4, 0); body.add(sp2);
+
+  // ── Mochila militar
+  const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.80, 0.26), mVest);
+  backpack.position.set(0, 1.40, -0.33); backpack.castShadow = true; body.add(backpack);
+  // Rollo superior de la mochila
+  const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.58, 8), mPouch);
+  roll.rotation.z = Math.PI / 2; roll.position.set(0, 1.85, -0.33); body.add(roll);
+  // Bolsillos laterales de la mochila
+  const bpL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.24, 0.09), mPouch); bpL.position.set(-0.36, 1.32, -0.33); body.add(bpL);
+  const bpR = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.24, 0.09), mPouch); bpR.position.set( 0.36, 1.32, -0.33); body.add(bpR);
+  // Correas de la mochila
+  const strapGeo = new THREE.BoxGeometry(0.07, 0.85, 0.04);
+  const strapL = new THREE.Mesh(strapGeo, mStrap); strapL.position.set(-0.22, 1.42, 0.23); body.add(strapL);
+  const strapR = new THREE.Mesh(strapGeo, mStrap); strapR.position.set( 0.22, 1.42, 0.23); body.add(strapR);
+
+  // ── Cabeza
   const head = new THREE.Group();
   head.position.y = 1.8;
   body.add(head);
-  const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.52, 0.52), mSkin);
-  headMesh.position.y = 0.26; headMesh.castShadow = true; head.add(headMesh);
-  const hair = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.16, 0.56), mHair);
-  hair.position.y = 0.52; head.add(hair);
-  const eyeGeo = new THREE.BoxGeometry(0.09, 0.11, 0.04);
-  const eyeL = new THREE.Mesh(eyeGeo, mDark); eyeL.position.set(-0.13, 0.30, 0.27); head.add(eyeL);
-  const eyeR = new THREE.Mesh(eyeGeo, mDark); eyeR.position.set( 0.13, 0.30, 0.27); head.add(eyeR);
-  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.07), mSkin);
-  nose.position.set(0, 0.20, 0.29); head.add(nose);
 
+  const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.48, 0.46), mSkin);
+  headMesh.position.y = 0.24; headMesh.castShadow = true; head.add(headMesh);
+
+  // Casco de combate
+  const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.28, 0.56), mHelmet);
+  helmet.position.y = 0.50; helmet.castShadow = true; head.add(helmet);
+  const helmetTop = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.06, 0.50), mHelmet);
+  helmetTop.position.y = 0.67; head.add(helmetTop);
+  const brimF = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.05, 0.08), mHelmet);
+  brimF.position.set(0, 0.40, 0.29); head.add(brimF);
+
+  // Montura NVG sobre el casco
+  const nvg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.10), mDark);
+  nvg.position.set(0, 0.55, 0.30); head.add(nvg);
+
+  // Correas del casco (mentonera)
+  const csL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.22, 0.04), mStrap);
+  csL.position.set(-0.22, 0.14, 0.02); head.add(csL);
+  const csR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.22, 0.04), mStrap);
+  csR.position.set( 0.22, 0.14, 0.02); head.add(csR);
+
+  // Ojos (líneas oscuras)
+  const eyeGeo = new THREE.BoxGeometry(0.06, 0.05, 0.02);
+  const eyeL = new THREE.Mesh(eyeGeo, mDark); eyeL.position.set(-0.10, 0.24, 0.235); head.add(eyeL);
+  const eyeR = new THREE.Mesh(eyeGeo, mDark); eyeR.position.set( 0.10, 0.24, 0.235); head.add(eyeR);
+
+  // Boca
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 0.02), mDark);
+  mouth.position.set(0, 0.13, 0.235); head.add(mouth);
+
+  // ── Brazos (mangas de uniforme + guantes)
   const UPPER = 0.40, LOWER = 0.40, HAND_OFFSET = 0.46;
-
   function makeArm(side) {
     const shoulder = new THREE.Group();
     shoulder.position.set(0.47 * side, 1.72, 0);
     body.add(shoulder);
-    const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.20, UPPER, 0.20), mShirt);
+    const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.20, UPPER, 0.20), mUni);
     upperArm.position.y = -UPPER / 2; upperArm.castShadow = true; shoulder.add(upperArm);
+    // Puño de la manga
+    const cuff = new THREE.Mesh(new THREE.BoxGeometry(0.205, 0.06, 0.205), mUniD);
+    cuff.position.y = -UPPER + 0.05; shoulder.add(cuff);
     const elbow = new THREE.Group();
     elbow.position.y = -UPPER; shoulder.add(elbow);
-    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.18, LOWER, 0.18), mSkin);
+    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.18, LOWER, 0.18), mUniD);
     forearm.position.y = -LOWER / 2; forearm.castShadow = true; elbow.add(forearm);
-    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.16, 0.17), mSkin);
+    // Guante
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.16, 0.17), mDark);
     hand.position.y = -HAND_OFFSET; elbow.add(hand);
     return { shoulder, elbow, upper: UPPER, lower: HAND_OFFSET };
   }
   const rightArm = makeArm(1);
   const leftArm  = makeArm(-1);
 
+  // ── Piernas (pantalón + rodillera + botas)
   function makeLeg(side) {
     const pivot = new THREE.Group();
     pivot.position.set(0.17 * side, 0.9, 0);
     body.add(pivot);
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.7, 0.24), mPants);
-    leg.position.y = -0.35; leg.castShadow = true; pivot.add(leg);
-    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.34), mDark);
-    shoe.position.set(0, -0.78, 0.05); pivot.add(shoe);
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.72, 0.26), mUniD);
+    leg.position.y = -0.36; leg.castShadow = true; pivot.add(leg);
+    // Rodillera
+    const knee = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.10), mVest);
+    knee.position.set(0, -0.32, 0.14); pivot.add(knee);
+    // Bota
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.40), mBoot);
+    boot.position.set(0, -0.80, 0.06); boot.castShadow = true; pivot.add(boot);
+    // Suela
+    const sole = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.04, 0.42), mDark);
+    sole.position.set(0, -0.90, 0.06); pivot.add(sole);
     return pivot;
   }
   const rightLeg = makeLeg(1);
   const leftLeg  = makeLeg(-1);
 
-  return { root, body, parts: { torso, head, leftArm, rightArm, leftLeg, rightLeg }, mats: [mSkin, mShirt, mPants, mHair, mDark] };
+  return {
+    root, body,
+    parts: { torso, head, leftArm, rightArm, leftLeg, rightLeg },
+    mats: [mSkin, mUni, mUniD, mVest, mHelmet, mBoot, mStrap, mDark, mPouch]
+  };
 }
 
-/* ★ MODIFICADO: buildRifleModel acepta "compact" para quitar la culata
-   (usado por jugadores remotos para que el arma no atraviese el pecho) */
-function buildRifleModel(opts = {}) {
-  const compact = opts.compact === true;
-  const modelScale = opts.scale ?? 0.78;
-  const hgZ = compact ? 0.28 : 0.42;
-
+/* ═══════════════════════════════════════════
+   M4A1 REALISTA
+   ═══════════════════════════════════════════ */
+function buildM4A1Model(opts = {}) {
+  const withHands = opts.withHands !== false;
+  const compact   = !!opts.compact;
+  const scale     = opts.scale ?? 0.78;
   const g = new THREE.Group();
-  const gunMat   = new THREE.MeshLambertMaterial({ color: 0x2c2c2c, flatShading: true });
-  const gunDark  = new THREE.MeshLambertMaterial({ color: 0x151515, flatShading: true });
-  const gunMetal = new THREE.MeshLambertMaterial({ color: 0x555555, flatShading: true });
 
-  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.2, 0.55), gunMat);
-  receiver.castShadow = true; g.add(receiver);
-  const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, compact ? 0.32 : 0.4), gunMat);
-  handguard.position.set(0, 0.02, hgZ); g.add(handguard);
-  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.75, 6), gunDark);
-  barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.04, 0.85); g.add(barrel);
-  const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.1, 6), gunDark);
-  muzzle.rotation.x = Math.PI / 2; muzzle.position.set(0, 0.04, 1.22); g.add(muzzle);
-  const mag = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.28, 0.13), gunDark);
-  mag.position.set(0, -0.2, 0.08); mag.rotation.x = 0.3; g.add(mag);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.22, 0.11), gunMat);
-  grip.position.set(0, -0.18, -0.15); grip.rotation.x = 0.35; g.add(grip);
+  const mat = {
+    body:  new THREE.MeshLambertMaterial({ color: 0x2a2a2a, flatShading: true }),
+    upper: new THREE.MeshLambertMaterial({ color: 0x262626, flatShading: true }),
+    dark:  new THREE.MeshLambertMaterial({ color: 0x101010, flatShading: true }),
+    metal: new THREE.MeshLambertMaterial({ color: 0x444444, flatShading: true }),
+    rail:  new THREE.MeshLambertMaterial({ color: 0x1a1a1a, flatShading: true }),
+    lens:  new THREE.MeshLambertMaterial({ color: 0x113355, emissive: 0x081a2a }),
+    glove: new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true }),
+    uni:   new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true })
+  };
 
-  /* ★ La culata y el butt SOLO se añaden si no es compact */
+  // ── Lower receiver
+  const lower = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.28), mat.body);
+  lower.position.set(0, -0.06, -0.03); lower.castShadow = true; g.add(lower);
+
+  // Magwell flare
+  const magwell = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.08, 0.14), mat.body);
+  magwell.position.set(0, -0.13, 0.01); g.add(magwell);
+
+  // ── Upper receiver
+  const upper = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.11, 0.52), mat.upper);
+  upper.position.set(0, 0.06, 0.01); upper.castShadow = true; g.add(upper);
+
+  // Riel Picatinny superior (segmentos)
+  for (let i = 0; i < 14; i++) {
+    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.012, 0.024), mat.rail);
+    tooth.position.set(0, 0.12, -0.22 + i * 0.033);
+    g.add(tooth);
+  }
+
+  // Charging handle
+  const charge = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, 0.06), mat.metal);
+  charge.position.set(0, 0.10, -0.20); g.add(charge);
+
+  // ── Handguard M-LOK
+  const hgZ = compact ? 0.38 : 0.44;
+  const hgLen = compact ? 0.26 : 0.34;
+  const hg = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.095, hgLen), mat.body);
+  hg.position.set(0, 0.06, hgZ); hg.castShadow = true; g.add(hg);
+  // Ranuras M-LOK laterales
+  for (let i = 0; i < 4; i++) {
+    for (const side of [-1, 1]) {
+      const slot = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.05, 0.05), mat.dark);
+      slot.position.set(side * 0.049, 0.06, hgZ - 0.11 + i * 0.075);
+      g.add(slot);
+    }
+  }
+  // Riel superior del handguard
+  for (let i = 0; i < 8; i++) {
+    const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.010, 0.020), mat.rail);
+    tooth.position.set(0, 0.115, hgZ - hgLen / 2 + 0.04 + i * 0.035);
+    g.add(tooth);
+  }
+
+  // ── Cañón
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.52, 8), mat.dark);
+  barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.06, hgZ + 0.42); g.add(barrel);
+
+  // ── Bocacha A2
+  const fh = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.10, 8), mat.dark);
+  fh.rotation.x = Math.PI / 2; fh.position.set(0, 0.06, hgZ + 0.70); g.add(fh);
+  for (let i = 0; i < 4; i++) {
+    const slot = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.006, 0.014), mat.dark);
+    slot.position.set(0, 0.06, hgZ + 0.66 + i * 0.022);
+    g.add(slot);
+  }
+  // Punto de mira frontal A-frame
+  const fsBase = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.03), mat.body);
+  fsBase.position.set(0, 0.145, hgZ + 0.14); g.add(fsBase);
+  const fsL = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.06, 0.02), mat.body);
+  fsL.position.set(-0.022, 0.19, hgZ + 0.14); g.add(fsL);
+  const fsR = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.06, 0.02), mat.body);
+  fsR.position.set( 0.022, 0.19, hgZ + 0.14); g.add(fsR);
+  const fsPost = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.045, 0.008), mat.dark);
+  fsPost.position.set(0, 0.20, hgZ + 0.14); g.add(fsPost);
+
+  // ── Carry handle / rear sight
+  const ch = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.14), mat.upper);
+  ch.position.set(0, 0.165, -0.14); g.add(ch);
+  const chRear = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.04, 0.02), mat.dark);
+  chRear.position.set(0, 0.19, -0.205); g.add(chRear);
+  const ap = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.022, 0.02), mat.dark);
+  ap.position.set(0, 0.20, -0.14); g.add(ap);
+
+  // ── Mira óptica (red dot)
+  const optBase = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.035, 0.13), mat.body);
+  optBase.position.set(0, 0.155, 0.02); g.add(optBase);
+  const optBody = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.11, 10), mat.dark);
+  optBody.rotation.x = Math.PI / 2; optBody.position.set(0, 0.215, 0.02); g.add(optBody);
+  const optLens = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.008, 10), mat.lens);
+  optLens.rotation.x = Math.PI / 2; optLens.position.set(0, 0.215, 0.08); g.add(optLens);
+  const optLensBack = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.008, 10), mat.lens);
+  optLensBack.rotation.x = Math.PI / 2; optLensBack.position.set(0, 0.215, -0.04); g.add(optLensBack);
+
+  // ── Cargador curvo tipo STANAG (3 segmentos)
+  const m1 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.14, 0.10), mat.dark);
+  m1.position.set(0, -0.22, 0.02); m1.rotation.x = 0.05; g.add(m1);
+  const m2 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.10), mat.dark);
+  m2.position.set(0, -0.33, 0.05); m2.rotation.x = 0.30; g.add(m2);
+  const m3 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.10, 0.10), mat.dark);
+  m3.position.set(0, -0.42, 0.10); m3.rotation.x = 0.60; g.add(m3);
+
+  // ── Guardamonte + gatillo
+  const tgFront = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.07, 0.015), mat.dark);
+  tgFront.position.set(0, -0.14, 0.05); g.add(tgFront);
+  const tgBack = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.02), mat.dark);
+  tgBack.position.set(0, -0.175, 0.00); g.add(tgBack);
+  const trig = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.045, 0.015), mat.metal);
+  trig.position.set(0, -0.11, 0.02); g.add(trig);
+
+  // ── Empuñadura A2
+  const pg = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.22, 0.11), mat.body);
+  pg.position.set(0, -0.20, -0.13); pg.rotation.x = 0.32; g.add(pg);
+
+  // ── Buffer tube + culata
   if (!compact) {
-    const stock = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.16, 0.4), gunMat);
-    stock.position.set(0, -0.02, -0.5); g.add(stock);
-    const butt = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.24, 0.08), gunDark);
-    butt.position.set(0, -0.04, -0.72); g.add(butt);
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.22, 10), mat.body);
+    tube.rotation.x = Math.PI / 2; tube.position.set(0, 0.055, -0.40); g.add(tube);
+    const stock = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.20), mat.body);
+    stock.position.set(0, 0.02, -0.54); stock.castShadow = true; g.add(stock);
+    const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.05, 0.14), mat.body);
+    cheek.position.set(0, 0.11, -0.54); g.add(cheek);
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.20, 0.04), mat.dark);
+    pad.position.set(0, 0.01, -0.66); g.add(pad);
+    const sling = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.04, 0.02), mat.dark);
+    sling.position.set(0, -0.06, -0.56); g.add(sling);
   }
 
-  const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.34, 8), gunDark);
-  scope.rotation.x = Math.PI / 2; scope.position.set(0, 0.17, 0); g.add(scope);
-  const ringGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.02, 8);
-  for (const z of [-0.1, 0.1]) {
-    const ring = new THREE.Mesh(ringGeo, gunMetal);
-    ring.rotation.x = Math.PI / 2; ring.position.set(0, 0.17, z); g.add(ring);
+  // ── Manos y brazos (opcional)
+  if (withHands) {
+    const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.10, 0.10), mat.glove);
+    rHand.position.set(0, -0.22, -0.14); g.add(rHand);
+    const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.09, 0.10), mat.glove);
+    lHand.position.set(0, 0.06, hgZ); g.add(lHand);
+    const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.42), mat.uni);
+    rArm.position.set(0.03, -0.33, -0.28); rArm.rotation.set(0.60, 0, 0.10); g.add(rArm);
+    const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.44), mat.uni);
+    lArm.position.set(-0.04, -0.18, 0.22); lArm.rotation.set(-0.42, 0, -0.20); g.add(lArm);
   }
 
-  g.scale.setScalar(modelScale);
+  g.scale.setScalar(scale);
 
   const flash = new THREE.Mesh(
     new THREE.SphereGeometry(0.16, 6, 4),
     new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 })
   );
-  flash.position.set(0, 0.04, 1.3);
+  flash.position.set(0, 0.06, hgZ + 0.82);
   flash.visible = false;
   g.add(flash);
 
@@ -539,89 +709,198 @@ function buildRifleModel(opts = {}) {
   gripMarker.position.set(0, -0.21, -0.14);
   g.add(gripMarker);
   const handguardMarker = new THREE.Object3D();
-  handguardMarker.position.set(0, 0.05, hgZ);
+  handguardMarker.position.set(0, 0.06, hgZ);
   g.add(handguardMarker);
 
   return { group: g, flash, gripMarker, handguardMarker };
 }
 
+/* ═══════════════════════════════════════════
+   PISTOLA REALISTA (estilo Glock/1911)
+   ═══════════════════════════════════════════ */
+function buildPistolModel(opts = {}) {
+  const withHands = opts.withHands !== false;
+  const scale     = opts.scale ?? 0.88;
+  const g = new THREE.Group();
+
+  const mat = {
+    slide: new THREE.MeshLambertMaterial({ color: 0x1a1a1a, flatShading: true }),
+    frame: new THREE.MeshLambertMaterial({ color: 0x222222, flatShading: true }),
+    dark:  new THREE.MeshLambertMaterial({ color: 0x0c0c0c, flatShading: true }),
+    metal: new THREE.MeshLambertMaterial({ color: 0x555555, flatShading: true }),
+    lens:  new THREE.MeshLambertMaterial({ color: 0x1a3a5c, emissive: 0x0a1a2a }),
+    glove: new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true }),
+    uni:   new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true })
+  };
+
+  // Corredera (slide)
+  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.56), mat.slide);
+  slide.position.set(0, 0.05, 0.13); slide.castShadow = true; g.add(slide);
+  const slideTop = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.56), mat.slide);
+  slideTop.position.set(0, 0.12, 0.13); g.add(slideTop);
+
+  // Serraciones traseras
+  for (let i = 0; i < 6; i++) {
+    for (const side of [-1, 1]) {
+      const serr = new THREE.Mesh(new THREE.BoxGeometry(0.010, 0.08, 0.010), mat.dark);
+      serr.position.set(side * 0.056, 0.05, -0.06 - i * 0.020);
+      g.add(serr);
+    }
+  }
+  // Serraciones frontales
+  for (let i = 0; i < 3; i++) {
+    for (const side of [-1, 1]) {
+      const serr = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.06, 0.008), mat.dark);
+      serr.position.set(side * 0.056, 0.05, 0.34 + i * 0.018);
+      g.add(serr);
+    }
+  }
+
+  // Puerto de expulsión
+  const ejp = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.03, 0.07), mat.dark);
+  ejp.position.set(0.014, 0.10, 0.14); g.add(ejp);
+  // Extractor
+  const ext = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.08), mat.metal);
+  ext.position.set(0.045, 0.10, 0.14); g.add(ext);
+
+  // Armazón (frame)
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.07, 0.44), mat.frame);
+  frame.position.set(0, -0.03, 0.06); g.add(frame);
+
+  // Riel de accesorios frontal
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.12), mat.dark);
+  rail.position.set(0, -0.075, 0.20); g.add(rail);
+
+  // Boca del cañón
+  const btip = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.05, 10), mat.metal);
+  btip.rotation.x = Math.PI / 2; btip.position.set(0, 0.05, 0.42); g.add(btip);
+  const bcap = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.01, 10), mat.dark);
+  bcap.rotation.x = Math.PI / 2; bcap.position.set(0, 0.05, 0.445); g.add(bcap);
+
+  // Mira frontal + punto
+  const fs = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.025, 0.016), mat.dark);
+  fs.position.set(0, 0.135, 0.36); g.add(fs);
+  const fsDot = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.008, 0.004), mat.metal);
+  fsDot.position.set(0, 0.135, 0.369); g.add(fsDot);
+
+  // Mira trasera de dos postes
+  const rsL = new THREE.Mesh(new THREE.BoxGeometry(0.020, 0.025, 0.022), mat.dark);
+  rsL.position.set(-0.028, 0.135, -0.075); g.add(rsL);
+  const rsR = new THREE.Mesh(new THREE.BoxGeometry(0.020, 0.025, 0.022), mat.dark);
+  rsR.position.set( 0.028, 0.135, -0.075); g.add(rsR);
+
+  // Guardamonte
+  const tg1 = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.10, 0.02), mat.frame);
+  tg1.position.set(0, -0.105, 0.02); g.add(tg1);
+  const tg2 = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.014, 0.02), mat.frame);
+  tg2.position.set(0, -0.155, -0.03); g.add(tg2);
+
+  // Gatillo
+  const trg = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.048, 0.018), mat.metal);
+  trg.position.set(0, -0.09, -0.01); g.add(trg);
+
+  // Empuñadura inclinada
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.30, 0.14), mat.frame);
+  grip.position.set(0, -0.245, -0.13); grip.rotation.x = 0.30; grip.castShadow = true; g.add(grip);
+  // Textura de la empuñadura
+  for (let i = 0; i < 4; i++) {
+    const line = new THREE.Mesh(new THREE.BoxGeometry(0.104, 0.006, 0.14), mat.dark);
+    line.position.set(0, -0.14 - i * 0.05, -0.10 - i * 0.015);
+    line.rotation.x = 0.30;
+    g.add(line);
+  }
+
+  // Base del cargador
+  const fp = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.028, 0.14), mat.dark);
+  fp.position.set(0, -0.40, -0.205); fp.rotation.x = 0.30; g.add(fp);
+
+  // Martillo
+  const hammer = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.055, 0.022), mat.dark);
+  hammer.position.set(0, 0.045, -0.185); hammer.rotation.x = -0.35; g.add(hammer);
+
+  if (withHands) {
+    const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.13), mat.glove);
+    rHand.position.set(0, -0.20, -0.13); rHand.rotation.x = 0.30; g.add(rHand);
+    const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.12), mat.glove);
+    lHand.position.set(0.010, -0.235, -0.145); lHand.rotation.x = 0.30; g.add(lHand);
+    const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.42), mat.uni);
+    rArm.position.set(0.03, -0.36, -0.32); rArm.rotation.set(0.70, 0, 0.10); g.add(rArm);
+    const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.10, 0.40), mat.uni);
+    lArm.position.set(-0.03, -0.39, -0.31); lArm.rotation.set(0.70, 0, -0.14); g.add(lArm);
+  }
+
+  g.scale.setScalar(scale);
+
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.11, 6, 4),
+    new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 })
+  );
+  flash.position.set(0, 0.05, 0.52);
+  flash.visible = false;
+  g.add(flash);
+
+  return { group: g, flash };
+}
+
+/* ═══════════════════════════════════════════
+   JUGADOR LOCAL
+   ═══════════════════════════════════════════ */
 const _localChar = buildCharacter();
 const player = _localChar.root;
 const playerBody = _localChar.body;
 player.visible = false;
 scene.add(player);
 
-/* ─────────────── M4A1 FPS ─────────────── */
-const weapon = new THREE.Group();
-const gunMat    = new THREE.MeshLambertMaterial({ color: 0x2c2c2c, flatShading: true });
-const gunDark   = new THREE.MeshLambertMaterial({ color: 0x151515, flatShading: true });
-const gunMetal  = new THREE.MeshLambertMaterial({ color: 0x555555, flatShading: true });
-const scopeMat  = new THREE.MeshLambertMaterial({ color: 0x101010, flatShading: true });
-const lensMat   = new THREE.MeshLambertMaterial({ color: 0x224466, emissive: 0x112244 });
-const skinMat   = new THREE.MeshLambertMaterial({ color: 0xffcc99, flatShading: true });
-const shirtMat  = new THREE.MeshLambertMaterial({ color: 0x3498db, flatShading: true });
+/* ═══════════════════════════════════════════
+   ARMAS FPS
+   ═══════════════════════════════════════════ */
+const WEAPONS = {
+  rifle: {
+    key: 'rifle', name: 'M4A1', icon: '🔫',
+    magSize: 30, fireRate: 0.1, reloadTime: 1.5,
+    damage: 20, aimFov: 45, auto: true
+  },
+  pistol: {
+    key: 'pistol', name: 'PISTOLA', icon: '🔫',
+    magSize: 12, fireRate: 0.18, reloadTime: 1.2,
+    damage: 30, aimFov: 55, auto: false
+  }
+};
 
-const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.2, 0.55), gunMat);
-receiver.castShadow = true; weapon.add(receiver);
-const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.4), gunMat);
-handguard.position.set(0, 0.02, 0.42); weapon.add(handguard);
-const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.75, 6), gunDark);
-barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.04, 0.85); weapon.add(barrel);
-const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.1, 6), gunDark);
-muzzle.rotation.x = Math.PI / 2; muzzle.position.set(0, 0.04, 1.22); weapon.add(muzzle);
-const mag1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 0.13), gunDark);
-mag1.position.set(0, -0.16, 0.08); mag1.rotation.x = 0.2; weapon.add(mag1);
-const mag2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.14, 0.12), gunDark);
-mag2.position.set(0, -0.3, 0.13); mag2.rotation.x = 0.55; weapon.add(mag2);
-const grip = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.22, 0.11), gunMat);
-grip.position.set(0, -0.18, -0.15); grip.rotation.x = 0.35; weapon.add(grip);
-const stock = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.16, 0.4), gunMat);
-stock.position.set(0, -0.02, -0.5); weapon.add(stock);
-const butt = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.24, 0.08), gunDark);
-butt.position.set(0, -0.04, -0.72); weapon.add(butt);
-const scopeBody = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.34, 8), scopeMat);
-scopeBody.rotation.x = Math.PI / 2; scopeBody.position.set(0, 0.17, 0); weapon.add(scopeBody);
-const lensFront = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.052, 0.015, 8), lensMat);
-lensFront.rotation.x = Math.PI / 2; lensFront.position.set(0, 0.17, 0.17); weapon.add(lensFront);
-const lensBack = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.052, 0.015, 8), lensMat);
-lensBack.rotation.x = Math.PI / 2; lensBack.position.set(0, 0.17, -0.17); weapon.add(lensBack);
-const ringGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.02, 8);
-for (const z of [-0.1, 0, 0.1]) {
-  const ring = new THREE.Mesh(ringGeo, gunMetal);
-  ring.rotation.x = Math.PI / 2; ring.position.set(0, 0.17, z); weapon.add(ring);
-}
-const mount1 = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.05), gunMat);
-mount1.position.set(0, 0.1, 0.1); weapon.add(mount1);
-const mount2 = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.05), gunMat);
-mount2.position.set(0, 0.1, -0.1); weapon.add(mount2);
-const carryHandle = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.15), gunMat);
-carryHandle.position.set(0, 0.12, 0.25); weapon.add(carryHandle);
-const frontSight = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.08, 0.03), gunMat);
-frontSight.position.set(0, 0.13, 0.55); weapon.add(frontSight);
-const gripHand = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.15, 0.13), skinMat);
-gripHand.position.set(0, -0.21, -0.14); weapon.add(gripHand);
-const guardHand = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.13, 0.14), skinMat);
-guardHand.position.set(0, 0.05, 0.42); weapon.add(guardHand);
-const rightForearm = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.13, 0.45), shirtMat);
-rightForearm.position.set(0.05, -0.35, -0.25); rightForearm.rotation.set(0.55, 0, 0.12); weapon.add(rightForearm);
-const leftForearm = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.13, 0.5), shirtMat);
-leftForearm.position.set(-0.06, -0.2, 0.2); leftForearm.rotation.set(-0.4, 0, -0.25); weapon.add(leftForearm);
+let currentWeaponKey = 'rifle';
+const weaponState = {
+  rifle:  { ammo: 30, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
+  pistol: { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 }
+};
 
-weapon.scale.setScalar(0.78);
-const WEAPON_POS = new THREE.Vector3(0.20, -0.19, -0.48);
-weapon.position.copy(WEAPON_POS);
-camera.add(weapon);
+const rifleModel  = buildM4A1Model({ withHands: true, compact: false, scale: 0.78 });
+const pistolModel = buildPistolModel({ withHands: true, scale: 0.90 });
+const weaponRifle = rifleModel.group;
+const weaponPistol = pistolModel.group;
 
-const muzzleFlash = new THREE.Mesh(
-  new THREE.SphereGeometry(0.16, 6, 4),
-  new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 })
-);
-muzzleFlash.position.set(0, 0.04, 1.3); muzzleFlash.visible = false; weapon.add(muzzleFlash);
+const WEAPON_POS = {
+  rifle:  new THREE.Vector3(0.20, -0.19, -0.48),
+  pistol: new THREE.Vector3(0.13, -0.21, -0.40)
+};
+
+weaponRifle.position.copy(WEAPON_POS.rifle);
+weaponPistol.position.copy(WEAPON_POS.pistol);
+weaponPistol.visible = false;
+
+camera.add(weaponRifle);
+camera.add(weaponPistol);
+
 const muzzleLight = new THREE.PointLight(0xffdd66, 0, 8);
-muzzleLight.position.set(0, 0.04, 1.3); weapon.add(muzzleLight);
+muzzleLight.position.set(0, -0.1, -0.3);
+camera.add(muzzleLight);
+
+function curWepDef()   { return WEAPONS[currentWeaponKey]; }
+function curWepState() { return weaponState[currentWeaponKey]; }
+function curWeaponGroup() { return currentWeaponKey === 'rifle' ? weaponRifle : weaponPistol; }
+function curWeaponFlash() { return currentWeaponKey === 'rifle' ? rifleModel.flash : pistolModel.flash; }
 
 /* ═══════════════════════════════════════════
-   SISTEMA DE COLISIONES
+   COLISIONES
    ═══════════════════════════════════════════ */
 const colliders = [];
 const boxColliders = [];
@@ -631,11 +910,6 @@ const PLAYER_RADIUS = 0.45;
 function localToWorld(lx, lz, ox, oz, rot) {
   const c = Math.cos(rot), s = Math.sin(rot);
   return { x: ox + lx * c + lz * s, z: oz - lx * s + lz * c };
-}
-function worldToLocal(wx, wz, ox, oz, rot) {
-  const c = Math.cos(rot), s = Math.sin(rot);
-  const dx = wx - ox, dz = wz - oz;
-  return { x: dx * c - dz * s, z: dx * s + dz * c };
 }
 function computeBoxPenetration(px, pz, radius, box) {
   const c = Math.cos(box.rot), s = Math.sin(box.rot);
@@ -693,11 +967,11 @@ function computeGroundY(x, z, currentY) {
 }
 
 /* ═══════════════════════════════════════════
-   CONSTRUCCIÓN DE CASAS
+   CASAS
    ═══════════════════════════════════════════ */
-const WALL_PALETTE = [0xd4a373, 0xe8b98a, 0xc9ada7, 0xf2cc8f, 0xa9b5a0, 0xcfb095, 0xbfa58a];
-const ROOF_PALETTE = [0xa0522d, 0x8b4513, 0x6b4423, 0xb22222, 0x4a4a4a, 0x3d5a3d, 0x5d4037];
-const CEILING_COLOR = 0xf0ebdc;
+const WALL_PALETTE = [0xd4a373, 0xe8b98a, 0xc9ada7, 0xf2cc8f, 0xa9b5a0, 0xcfb095, 0xbfa58a, 0xd9b8a0];
+const ROOF_PALETTE = [0xa0522d, 0x8b4513, 0x6b4423, 0xb22222, 0x4a4a4a, 0x3d5a3d, 0x5d4037, 0x7a3b1f];
+const TRIM_PALETTE = [0x4a3a2a, 0x3d2f20, 0x3a3530, 0x2c2418, 0x2f2a25, 0x352a20, 0x2a2520, 0x40342a];
 
 function buildWall(length, height, thickness, openings, mat) {
   const g = new THREE.Group();
@@ -740,6 +1014,7 @@ function createHouse(x, z, rot, styleIdx) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   g.rotation.y = rot;
+
   const W = 8.5, D = 7.5, WALL_H = 6, WALL_T = 0.3;
   const DOOR_W = 1.5, DOOR_H = 2.3;
   const SLAB_Y = 3.0, SLAB_T = 0.18;
@@ -749,12 +1024,15 @@ function createHouse(x, z, rot, styleIdx) {
   const STAIR_LEN = STAIR_Z_BOTTOM - STAIR_Z_TOP;
   const STAIR_H = SLAB_Y;
 
-  const wallMat = new THREE.MeshLambertMaterial({ color: WALL_PALETTE[styleIdx % WALL_PALETTE.length], flatShading: true });
-  const roofMat = new THREE.MeshLambertMaterial({ color: ROOF_PALETTE[styleIdx % ROOF_PALETTE.length], flatShading: true, side: THREE.DoubleSide });
+  const wallMat  = new THREE.MeshLambertMaterial({ color: WALL_PALETTE[styleIdx % WALL_PALETTE.length], flatShading: true });
+  const roofMat  = new THREE.MeshLambertMaterial({ color: ROOF_PALETTE[styleIdx % ROOF_PALETTE.length], flatShading: true, side: THREE.DoubleSide });
+  const trimMat  = new THREE.MeshLambertMaterial({ color: TRIM_PALETTE[styleIdx % TRIM_PALETTE.length], flatShading: true });
   const floorMat = new THREE.MeshLambertMaterial({ color: 0x8b6f47, flatShading: true });
   const doorMat  = new THREE.MeshLambertMaterial({ color: 0x4a2c1a, flatShading: true });
   const stairMat = new THREE.MeshLambertMaterial({ color: 0xa98862, flatShading: true });
-  const ceilMat  = new THREE.MeshLambertMaterial({ color: CEILING_COLOR, flatShading: true });
+  const ceilMat  = new THREE.MeshLambertMaterial({ color: 0xf0ebdc, flatShading: true });
+  const brickMat = new THREE.MeshLambertMaterial({ color: 0x8b3a2a, flatShading: true });
+  const brickDark = new THREE.MeshLambertMaterial({ color: 0x5c2418, flatShading: true });
 
   const FLOOR_TOP = 0.06;
   const interiorFloor = new THREE.Mesh(new THREE.BoxGeometry(W - WALL_T * 2, 0.06, D - WALL_T * 2), floorMat);
@@ -762,6 +1040,21 @@ function createHouse(x, z, rot, styleIdx) {
   interiorFloor.receiveShadow = true;
   g.add(interiorFloor);
   walkableSurfaces.push({ kind: 'slab', x, z, hw: (W - WALL_T * 2) / 2, hd: (D - WALL_T * 2) / 2, rot, y: FLOOR_TOP });
+
+  // Zócalo decorativo
+  const bandH = 0.55;
+  const bandMat = trimMat;
+  const bandFL = new THREE.Mesh(new THREE.BoxGeometry(W / 2 - DOOR_W / 2, bandH, 0.07), bandMat);
+  bandFL.position.set(-(DOOR_W / 2 + (W / 2 - DOOR_W / 2) / 2), bandH / 2, D / 2 + WALL_T / 2 + 0.005);
+  const bandFR = new THREE.Mesh(new THREE.BoxGeometry(W / 2 - DOOR_W / 2, bandH, 0.07), bandMat);
+  bandFR.position.set( (DOOR_W / 2 + (W / 2 - DOOR_W / 2) / 2), bandH / 2, D / 2 + WALL_T / 2 + 0.005);
+  g.add(bandFL); g.add(bandFR);
+  const bandB = new THREE.Mesh(new THREE.BoxGeometry(W + 0.14, bandH, 0.07), bandMat);
+  bandB.position.set(0, bandH / 2, -D / 2 - WALL_T / 2 - 0.005); g.add(bandB);
+  const bandL = new THREE.Mesh(new THREE.BoxGeometry(0.07, bandH, D + 0.14), bandMat);
+  bandL.position.set(-W / 2 - WALL_T / 2 - 0.005, bandH / 2, 0); g.add(bandL);
+  const bandR = new THREE.Mesh(new THREE.BoxGeometry(0.07, bandH, D + 0.14), bandMat);
+  bandR.position.set( W / 2 + WALL_T / 2 + 0.005, bandH / 2, 0); g.add(bandR);
 
   const frontOpenings = [
     { x: 0, w: DOOR_W, y0: FLOOR_TOP, y1: DOOR_H + FLOOR_TOP },
@@ -777,6 +1070,15 @@ function createHouse(x, z, rot, styleIdx) {
   const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W - 0.06, DOOR_H - 0.06, 0.06), doorMat);
   doorMesh.position.set((DOOR_W - 0.06) / 2, (DOOR_H - 0.06) / 2, 0);
   doorMesh.castShadow = true; doorHinge.add(doorMesh); g.add(doorHinge);
+
+  const frameT = 0.10, frameD = WALL_T + 0.05;
+  const dfL = new THREE.Mesh(new THREE.BoxGeometry(frameT, DOOR_H + 0.25, frameD), trimMat);
+  dfL.position.set(-DOOR_W / 2 - frameT / 2, (DOOR_H + 0.25) / 2 + FLOOR_TOP, D / 2);
+  const dfR = new THREE.Mesh(new THREE.BoxGeometry(frameT, DOOR_H + 0.25, frameD), trimMat);
+  dfR.position.set( DOOR_W / 2 + frameT / 2, (DOOR_H + 0.25) / 2 + FLOOR_TOP, D / 2);
+  const dfT = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W + frameT * 2, frameT, frameD), trimMat);
+  dfT.position.set(0, DOOR_H + FLOOR_TOP + frameT / 2, D / 2);
+  g.add(dfL); g.add(dfR); g.add(dfT);
 
   const backOpenings = [
     { x: -2.4, w: 1.3, y0: 1.3, y1: 2.5 }, { x: 2.4, w: 1.3, y0: 1.3, y1: 2.5 },
@@ -831,7 +1133,7 @@ function createHouse(x, z, rot, styleIdx) {
   ceiling.position.set(0, WALL_H + 0.05, 0);
   ceiling.receiveShadow = true; g.add(ceiling);
 
-  const roofH = 1.6, overhang = 0.4, halfW = W / 2 + overhang;
+  const roofH = 1.7, overhang = 0.5, halfW = W / 2 + overhang;
   const roofShape = new THREE.Shape();
   roofShape.moveTo(-halfW, 0); roofShape.lineTo(halfW, 0); roofShape.lineTo(0, roofH); roofShape.closePath();
   const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: D + overhang * 2, bevelEnabled: false, curveSegments: 1 });
@@ -839,6 +1141,32 @@ function createHouse(x, z, rot, styleIdx) {
   const roofMesh = new THREE.Mesh(roofGeo, roofMat);
   roofMesh.position.y = WALL_H + 0.1;
   roofMesh.castShadow = true; roofMesh.receiveShadow = true; g.add(roofMesh);
+
+  const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.10, D + overhang * 2), trimMat);
+  ridge.position.set(0, WALL_H + 0.1 + roofH - 0.02, 0);
+  ridge.castShadow = true; g.add(ridge);
+
+  const fasciaL = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.16, D + overhang * 2), trimMat);
+  fasciaL.position.set(-halfW, WALL_H + 0.18, 0); g.add(fasciaL);
+  const fasciaR = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.16, D + overhang * 2), trimMat);
+  fasciaR.position.set( halfW, WALL_H + 0.18, 0); g.add(fasciaR);
+
+  const chimneyX = -W / 2 + 1.6;
+  const chimneyZ = -D / 2 + 1.8;
+  const chimneyBase = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.4, 0.8), brickMat);
+  chimneyBase.position.set(chimneyX, WALL_H + 1.0, chimneyZ);
+  chimneyBase.castShadow = true; g.add(chimneyBase);
+  const chimneyCap = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.16, 0.95), brickDark);
+  chimneyCap.position.set(chimneyX, WALL_H + 2.28, chimneyZ);
+  chimneyCap.castShadow = true; g.add(chimneyCap);
+  const chimneyRim = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.08, 0.85), brickDark);
+  chimneyRim.position.set(chimneyX, WALL_H + 2.40, chimneyZ);
+  g.add(chimneyRim);
+
+  const stepMat = new THREE.MeshLambertMaterial({ color: 0x777777, flatShading: true });
+  const step = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W + 0.5, 0.10, 0.7), stepMat);
+  step.position.set(0, 0.05, D / 2 + 0.5);
+  step.receiveShadow = true; g.add(step);
 
   function addBoxColliderLocal(cx, cz, hw, hd, localRot, options = {}) {
     const wc = localToWorld(cx, cz, x, z, rot);
@@ -854,16 +1182,58 @@ function createHouse(x, z, rot, styleIdx) {
   return g;
 }
 
+/* ═══════════════════════════════════════════
+   LAYOUT FIJO: 6 casas exteriores + 1 central
+   ═══════════════════════════════════════════ */
 const houseLayout = [
-  { x: -22, z: -18, rot:  0.20, style: 0 },
-  { x: -30, z:  -6, rot: -0.40, style: 1 },
-  { x:  24, z: -20, rot:  0.60, style: 2 },
-  { x:  30, z:  -6, rot: -0.20, style: 3 },
-  { x: -22, z:  22, rot:  Math.PI * 0.85, style: 4 },
-  { x:  22, z:  24, rot: -Math.PI * 0.7,  style: 5 },
+  { x: 0,    z: 0,    rot: 0,                style: 6 },
+  { x: -22,  z: -18,  rot:  0.20,            style: 0 },
+  { x: -30,  z:  -6,  rot: -0.40,            style: 1 },
+  { x:  24,  z: -20,  rot:  0.60,            style: 2 },
+  { x:  30,  z:  -6,  rot: -0.20,            style: 3 },
+  { x: -22,  z:  22,  rot:  Math.PI * 0.85,  style: 4 },
+  { x:  22,  z:  24,  rot: -Math.PI * 0.7,   style: 5 },
 ];
+const outerHouses = houseLayout.slice(1);
+
 for (const h of houseLayout) scene.add(createHouse(h.x, h.z, h.rot, h.style));
 
+/* ═══════════════════════════════════════════
+   CAMINOS
+   ═══════════════════════════════════════════ */
+function createPath(fromX, fromZ, toX, toZ, width) {
+  const dx = toX - fromX, dz = toZ - fromZ;
+  const len = Math.hypot(dx, dz);
+  if (len < 0.1) return null;
+  const angle = Math.atan2(dx, dz);
+  const geo = new THREE.BoxGeometry(width, 0.06, len);
+  const mat = new THREE.MeshLambertMaterial({ color: 0x9c7a52, flatShading: true });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set((fromX + toX) / 2, 0.03, (fromZ + toZ) / 2);
+  mesh.rotation.y = angle;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+for (const h of outerHouses) {
+  const door = localToWorld(0, 3.75, h.x, h.z, h.rot);
+  const dLen = Math.hypot(h.x, h.z);
+  if (dLen < 0.1) continue;
+  const endX = (h.x / dLen) * 8;
+  const endZ = (h.z / dLen) * 8;
+  const path = createPath(door.x, door.z, endX, endZ, 1.9);
+  if (path) scene.add(path);
+}
+const plaza = new THREE.Mesh(
+  new THREE.CylinderGeometry(9, 9, 0.05, 24),
+  new THREE.MeshLambertMaterial({ color: 0x9c7a52, flatShading: true })
+);
+plaza.position.set(0, 0.025, 0);
+plaza.receiveShadow = true;
+scene.add(plaza);
+
+/* ═══════════════════════════════════════════
+   ÁRBOLES Y ROCAS
+   ═══════════════════════════════════════════ */
 function tooCloseToHouse(x, z, minDist) {
   for (const h of houseLayout) {
     const dx = x - h.x, dz = z - h.z;
@@ -871,7 +1241,7 @@ function tooCloseToHouse(x, z, minDist) {
   }
   return false;
 }
-function createTree(x, z) {
+function createTree(x, z, rotY) {
   const g = new THREE.Group();
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 2, 5), new THREE.MeshLambertMaterial({ color: 0x6b4a2b, flatShading: true }));
   trunk.position.y = 1; trunk.castShadow = true; g.add(trunk);
@@ -881,156 +1251,50 @@ function createTree(x, z) {
     cone.position.y = 2 + i * 0.85; cone.castShadow = true; g.add(cone);
   }
   g.position.set(x, 0, z);
-  g.rotation.y = Math.random() * Math.PI;
+  g.rotation.y = rotY;
   colliders.push({ x, z, r: 0.7, kind: 'tree' });
   return g;
 }
 for (let i = 0; i < 24; i++) {
   let x, z, tries = 0;
-  do { const a = Math.random() * Math.PI * 2; const r = 14 + Math.random() * 40; x = Math.cos(a) * r; z = Math.sin(a) * r; tries++; }
-  while (tooCloseToHouse(x, z, 8) && tries < 30);
-  if (tries < 30) scene.add(createTree(x, z));
+  do {
+    const a = mapRandom() * Math.PI * 2;
+    const r = 14 + mapRandom() * 42;
+    x = Math.cos(a) * r; z = Math.sin(a) * r;
+    tries++;
+  } while (tooCloseToHouse(x, z, 10) && tries < 30);
+  if (tries < 30) scene.add(createTree(x, z, mapRandom() * Math.PI));
 }
 const rockMat = new THREE.MeshLambertMaterial({ color: 0x7f8c8d, flatShading: true });
 for (let i = 0; i < 16; i++) {
-  const size = 0.4 + Math.random() * 0.9;
+  const size = 0.4 + mapRandom() * 0.9;
   let x, z, tries = 0;
-  do { const a = Math.random() * Math.PI * 2; const r = 10 + Math.random() * 44; x = Math.cos(a) * r; z = Math.sin(a) * r; tries++; }
-  while (tooCloseToHouse(x, z, 7) && tries < 30);
+  do {
+    const a = mapRandom() * Math.PI * 2;
+    const r = 12 + mapRandom() * 44;
+    x = Math.cos(a) * r; z = Math.sin(a) * r;
+    tries++;
+  } while (tooCloseToHouse(x, z, 9) && tries < 30);
   if (tries >= 30) continue;
   const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), rockMat);
   rock.position.set(x, size * 0.55, z);
-  rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+  rock.rotation.set(mapRandom() * Math.PI, mapRandom() * Math.PI, mapRandom() * Math.PI);
   rock.castShadow = true; rock.receiveShadow = true; scene.add(rock);
   colliders.push({ x, z, r: size * 1.05, kind: 'rock' });
 }
 
-/* ═══════════════════════════════════════════
-   AUTO
-   ═══════════════════════════════════════════ */
-const car = new THREE.Group();
-const bodyMat   = new THREE.MeshLambertMaterial({ color: 0x2e86de, flatShading: true });
-const trimMatC  = new THREE.MeshLambertMaterial({ color: 0x1b4f72, flatShading: true });
-const glassMat  = new THREE.MeshLambertMaterial({ color: 0x101820, flatShading: true });
-const wheelMat  = new THREE.MeshLambertMaterial({ color: 0x0d0d0d, flatShading: true });
-const rimMat    = new THREE.MeshLambertMaterial({ color: 0xd5dbdb, flatShading: true });
-const hubMat    = new THREE.MeshLambertMaterial({ color: 0x7f8c8d, flatShading: true });
-const lightMat  = new THREE.MeshLambertMaterial({ color: 0xfff7cc, emissive: 0xffdd44, flatShading: true });
-const tailMat   = new THREE.MeshLambertMaterial({ color: 0xff3b30, emissive: 0x661010, flatShading: true });
-const chromeMat = new THREE.MeshLambertMaterial({ color: 0xbdc3c7, flatShading: true });
-const blackMat  = new THREE.MeshLambertMaterial({ color: 0x1a1a1a, flatShading: true });
-
-const base = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 4.3), bodyMat);
-base.position.y = 0.62; base.castShadow = true; car.add(base);
-const hood = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.42, 1.3), bodyMat);
-hood.position.set(0, 1.05, 1.55); hood.castShadow = true; car.add(hood);
-const hoodFront = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.22, 0.15), trimMatC);
-hoodFront.position.set(0, 0.95, 2.18); car.add(hoodFront);
-const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.68, 0.72, 1.5), glassMat);
-cabin.position.set(0, 1.68, 0.05); cabin.castShadow = true; car.add(cabin);
-const roofCar = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.1, 1.55), bodyMat);
-roofCar.position.set(0, 2.09, 0.05); roofCar.castShadow = true; car.add(roofCar);
-const cabFrame = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.18, 1.55), bodyMat);
-cabFrame.position.set(0, 1.29, 0.05); car.add(cabFrame);
-const doorPanelL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.4, 1.6), bodyMat);
-doorPanelL.position.set(-0.87, 1.12, 0.05); car.add(doorPanelL);
-const doorPanelR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.4, 1.6), bodyMat);
-doorPanelR.position.set(0.87, 1.12, 0.05); car.add(doorPanelR);
-function makePillar(x, z) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.72, 0.08), trimMatC); p.position.set(x, 1.68, z); car.add(p); }
-makePillar(-0.85, 0.78); makePillar(0.85, 0.78); makePillar(-0.85, 0.05); makePillar(0.85, 0.05); makePillar(-0.85, -0.68); makePillar(0.85, -0.68);
-const bedFloor = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.06, 1.55), trimMatC);
-bedFloor.position.set(0, 0.95, -1.5); car.add(bedFloor);
-const bedSideL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 1.55), bodyMat);
-bedSideL.position.set(-0.86, 1.2, -1.5); car.add(bedSideL);
-const bedSideR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 1.55), bodyMat);
-bedSideR.position.set(0.86, 1.2, -1.5); car.add(bedSideR);
-const tailgate = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.55, 0.08), bodyMat);
-tailgate.position.set(0, 1.2, -2.24); car.add(tailgate);
-const bedFront = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.55, 0.08), bodyMat);
-bedFront.position.set(0, 1.2, -0.78); car.add(bedFront);
-const bumperF = new THREE.Mesh(new THREE.BoxGeometry(1.88, 0.25, 0.2), chromeMat);
-bumperF.position.set(0, 0.55, 2.25); car.add(bumperF);
-const bumperB = new THREE.Mesh(new THREE.BoxGeometry(1.88, 0.25, 0.2), chromeMat);
-bumperB.position.set(0, 0.55, -2.3); car.add(bumperB);
-const grill = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.35, 0.12), blackMat);
-grill.position.set(0, 0.85, 2.22); car.add(grill);
-const headL = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.12), lightMat);
-headL.position.set(-0.6, 0.95, 2.21); car.add(headL);
-const headR = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.12), lightMat);
-headR.position.set( 0.6, 0.95, 2.21); car.add(headR);
-const tailL = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.1), tailMat);
-tailL.position.set(-0.65, 1.1, -2.29); car.add(tailL);
-const tailR = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.28, 0.1), tailMat);
-tailR.position.set( 0.65, 1.1, -2.29); car.add(tailR);
-function makeMirror(side) {
-  const g = new THREE.Group();
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.05, 0.05), trimMatC); arm.position.x = side * 0.07; g.add(arm);
-  const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.16, 0.12), bodyMat); mirror.position.x = side * 0.16; g.add(mirror);
-  g.position.set(side * 0.87, 1.55, 0.8); return g;
-}
-car.add(makeMirror(-1)); car.add(makeMirror(1));
-function makeFender(x, z) { const f = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.95), trimMatC); f.position.set(x, 0.85, z); car.add(f); }
-makeFender(-0.95, 1.15); makeFender(0.95, 1.15); makeFender(-0.95, -1.15); makeFender(0.95, -1.15);
-const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.3, 6), chromeMat);
-exhaust.rotation.x = Math.PI / 2; exhaust.position.set(-0.6, 0.42, -2.35); car.add(exhaust);
-
-const tireGeo = new THREE.CylinderGeometry(0.44, 0.44, 0.32, 12); tireGeo.rotateZ(Math.PI / 2);
-const rimGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.36, 8); rimGeo.rotateZ(Math.PI / 2);
-const hubGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.4, 6); hubGeo.rotateZ(Math.PI / 2);
-const wheels = [];
-const wheelConfig = [
-  { x: -0.92, z:  1.15, front: true }, { x: 0.92, z: 1.15, front: true },
-  { x: -0.92, z: -1.15, front: false }, { x: 0.92, z: -1.15, front: false }
-];
-for (const cfg of wheelConfig) {
-  const pivot = new THREE.Group(); pivot.position.set(cfg.x, 0.44, cfg.z); car.add(pivot);
-  const spinner = new THREE.Group(); pivot.add(spinner);
-  const tire = new THREE.Mesh(tireGeo, wheelMat); tire.castShadow = true; spinner.add(tire);
-  spinner.add(new THREE.Mesh(rimGeo, rimMat)); spinner.add(new THREE.Mesh(hubGeo, hubMat));
-  wheels.push({ pivot, spinner, front: cfg.front });
-}
-const rollBarL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.06), chromeMat); rollBarL.position.set(-0.7, 1.6, -0.85); car.add(rollBarL);
-const rollBarR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.06), chromeMat); rollBarR.position.set(0.7, 1.6, -0.85); car.add(rollBarR);
-const rollBarTop = new THREE.Mesh(new THREE.BoxGeometry(1.46, 0.06, 0.06), chromeMat); rollBarTop.position.set(0, 1.85, -0.85); car.add(rollBarTop);
-const spotGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.12, 6);
-for (const x of [-0.5, 0, 0.5]) {
-  const spot = new THREE.Mesh(spotGeo, lightMat);
-  spot.position.set(x, 1.95, -0.85); spot.rotation.x = Math.PI / 2; car.add(spot);
-}
-scene.add(car);
-
-const carState = { speed: 0, angle: 0, maxSpeed: 32, maxReverse: -12, accel: 24, brake: 34, friction: 1.0, turnRate: 2.0 };
-car.position.set(8, 0, 8);
-car.rotation.y = carState.angle;
-
-const CAR_CIRCLES = [{ oz: 1.35, r: 0.85 }, { oz: 0.00, r: 0.95 }, { oz: -1.35, r: 0.85 }];
-
 /* ─────────────── ESTADO ─────────────── */
-let inCar = false;
 let aiming = false;
-const ENTER_DISTANCE = 4.0;
-let isCarDriver = false;
 
 let health = 100;
 const healthBarInner = document.getElementById('health-bar-inner');
 const healthNum = document.getElementById('health-num');
 
-const MAG_SIZE = 30;
-let ammo = MAG_SIZE;
-let reloading = false;
-let reloadTimer = 0;
-const RELOAD_TIME = 1.5;
 const ammoWrap = document.getElementById('ammo-wrap');
 const ammoBarInner = document.getElementById('ammo-bar-inner');
 const ammoNumEl = document.getElementById('ammo-num');
 const ammoMaxEl = document.getElementById('ammo-max');
-
-const CAR_MAX_HEALTH = 100;
-let carHealth = CAR_MAX_HEALTH;
-let carDestroyed = false;
-const carHealthWrap  = document.getElementById('car-health-wrap');
-const carHealthBarIn = document.getElementById('car-health-bar-inner');
-const carHealthNumEl = document.getElementById('car-health-num');
+const weaponNameEl = document.getElementById('weapon-name');
 
 let playerDead = false;
 const deathUI = document.getElementById('death-ui');
@@ -1047,8 +1311,10 @@ function showDamageFlash(amount = 0.7) {
 const keys = {};
 addEventListener('keydown', e => {
   keys[e.code] = true;
-  if (e.code === 'KeyE' && !e.repeat) toggleCar();
   if (e.code === 'KeyR' && !e.repeat) startReload();
+  if (e.code === 'KeyQ' && !e.repeat) swapWeapon();
+  if (e.code === 'Digit1' && !e.repeat) selectWeapon('rifle');
+  if (e.code === 'Digit2' && !e.repeat) selectWeapon('pistol');
   if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
 });
 addEventListener('keyup', e => keys[e.code] = false);
@@ -1057,7 +1323,7 @@ const joystick     = document.getElementById('joystick');
 const joystickZone = document.getElementById('joystick-zone');
 const stick        = document.getElementById('stick');
 const jumpBtn      = document.getElementById('jump-btn');
-const actionBtn    = document.getElementById('action-btn');
+const swapBtn      = document.getElementById('swap-btn');
 const debugBtn     = document.getElementById('debug-btn');
 const hint         = document.getElementById('hint');
 const cameraZone   = document.getElementById('camera-zone');
@@ -1077,7 +1343,8 @@ if (isTouch) {
   document.body.classList.add('is-touch');
   joystick.classList.add('active'); joystickZone.classList.add('active');
   jumpBtn.classList.add('active'); cameraZone.classList.add('active');
-  debugBtn.classList.add('active'); shootBtn.classList.add('active'); aimBtn.classList.add('active');
+  debugBtn.classList.add('active'); shootBtn.classList.add('active');
+  aimBtn.classList.add('active'); swapBtn.classList.add('active');
 } else {
   clickOverlay.classList.add('active');
   document.body.style.cursor = 'default';
@@ -1141,7 +1408,7 @@ addEventListener('touchcancel', handleTouchEnd);
 let jumpQueued = false;
 jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); jumpQueued = true; }, { passive: false });
 jumpBtn.addEventListener('pointerdown', e => { e.preventDefault(); jumpQueued = true; });
-actionBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleCar(); });
+swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); swapWeapon(); });
 debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
 
 let shootHeld = false;
@@ -1183,9 +1450,7 @@ document.addEventListener('mousemove', e => {
   const sens = aiming ? 0.0012 : 0.0022;
   cameraYaw   -= e.movementX * sens;
   cameraPitch += e.movementY * sens;
-  if (inCar) cameraPitch = Math.max(TP_PITCH_MIN, Math.min(TP_PITCH_MAX, cameraPitch));
-  else       cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
-  recenterDelay = 2.5;
+  cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
 });
 document.addEventListener('mousedown', e => {
   initAudio();
@@ -1220,9 +1485,7 @@ addEventListener('touchmove', e => {
       const sens = aiming ? 0.003 : 0.005;
       cameraYaw   -= dx * sens;
       cameraPitch += dy * sens;
-      if (inCar) cameraPitch = Math.max(TP_PITCH_MIN, Math.min(TP_PITCH_MAX, cameraPitch));
-      else       cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
-      recenterDelay = 2.5;
+      cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
     }
   }
 }, { passive: false });
@@ -1242,7 +1505,7 @@ function updateDebug(dt) {
   fpsSamples.push(1 / Math.max(dt, 0.0001));
   if (fpsSamples.length > 30) fpsSamples.shift();
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
-  const kmh = Math.abs(carState.speed * 3.6);
+  const ws = curWepState();
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
@@ -1253,12 +1516,12 @@ function updateDebug(dt) {
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no'}
 
 <span class="title">── Modo ──</span>
-<span class="val">Cámara:</span>    ${playerDead ? '💀' : (inCar ? '🚗 auto' : '👁 FPS')}
+<span class="val">Cámara:</span>    ${playerDead ? '💀' : '👁 FPS'}
 <span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
-<span class="val">Balas:</span>     ${ammo} / ${MAG_SIZE}${reloading ? ' (recargando)' : ''}
-<span class="val">Auto HP:</span>   ${carHealth.toFixed(0)} / 100
-<span class="val">Vel:</span>       ${carState.speed.toFixed(2)} m/s (${kmh.toFixed(0)} km/h)
+<span class="val">Arma:</span>      ${curWepDef().name}
+<span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
+<span class="val">Mapa:</span>      seed ${MAP_SEED}
   `.trim();
 }
 
@@ -1267,10 +1530,7 @@ let cameraYaw   = 0;
 let cameraPitch = 0;
 let bobOffset = 0;
 const FP_PITCH_MIN = -1.1, FP_PITCH_MAX = 1.2;
-const TP_PITCH_MIN = 0.15, TP_PITCH_MAX = 1.25;
 const EYE_HEIGHT = 1.75;
-const smoothTarget = new THREE.Vector3(0, 1.6, 0);
-let recenterDelay = 0;
 let deathTimer = 0;
 let deathCameraAngle = 0;
 const deathPosition = new THREE.Vector3();
@@ -1301,67 +1561,6 @@ function resolveCollisions(entity, radius) {
   }
 }
 
-function resolveCarCollisions() {
-  let hit = false;
-  for (let iter = 0; iter < 4; iter++) {
-    let anyHit = false;
-    const cosA = Math.cos(carState.angle), sinA = Math.sin(carState.angle);
-    for (const cc of CAR_CIRCLES) {
-      const wx = car.position.x + cc.oz * sinA;
-      const wz = car.position.z + cc.oz * cosA;
-      for (const o of colliders) {
-        const dx = wx - o.x, dz = wz - o.z;
-        const minDist = cc.r + o.r;
-        const d2 = dx * dx + dz * dz;
-        if (d2 < minDist * minDist) {
-          const d = Math.sqrt(d2) || 0.0001;
-          const overlap = minDist - d;
-          car.position.x += (dx / d) * overlap;
-          car.position.z += (dz / d) * overlap;
-          anyHit = true; hit = true;
-        }
-      }
-      for (const b of boxColliders) {
-        const pen = computeBoxPenetration(wx, wz, cc.r, b);
-        if (pen) { car.position.x += pen.dx; car.position.z += pen.dz; anyHit = true; hit = true; }
-      }
-    }
-    if (!anyHit) break;
-  }
-  return hit;
-}
-
-/* ─────────────── SUBIR / BAJAR DEL AUTO ─────────────── */
-function isNearCar() {
-  const dx = player.position.x - car.position.x;
-  const dz = player.position.z - car.position.z;
-  return (dx * dx + dz * dz) < ENTER_DISTANCE * ENTER_DISTANCE;
-}
-function toggleCar() {
-  if (playerDead || carDestroyed) return;
-  if (inCar) {
-    inCar = false; isCarDriver = false;
-    weapon.visible = true; setAiming(false);
-    const sideX = Math.cos(carState.angle) * 2.2, sideZ = -Math.sin(carState.angle) * 2.2;
-    player.position.set(car.position.x + sideX, 0, car.position.z + sideZ);
-    player.position.y = 0; velocityY = 0; isGrounded = true;
-    resolveCollisions(player, PLAYER_RADIUS);
-    cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
-    recenterDelay = 0;
-    if (onlineMode && carNetRef) update(carNetRef, { driver: null });
-  } else {
-    if (!isNearCar()) return;
-    if (remoteCarDriverId && remoteCarDriverId !== playerId) return;
-    inCar = true; isCarDriver = true;
-    weapon.visible = false; setAiming(false);
-    reloading = false; ammoWrap.classList.remove('reloading');
-    cameraYaw = carState.angle + Math.PI;
-    cameraPitch = Math.max(TP_PITCH_MIN, Math.min(TP_PITCH_MAX, cameraPitch));
-    recenterDelay = 0;
-    if (onlineMode && carNetRef) update(carNetRef, { driver: playerId, driverTs: Date.now() });
-  }
-}
-
 /* ─────────────── ANIMACIÓN JUGADOR ─────────────── */
 let walkPhase = 0;
 let velocityY = 0;
@@ -1370,63 +1569,15 @@ const GRAVITY = 26;
 const JUMP_FORCE = 9;
 
 /* ═══════════════════════════════════════════
-   SISTEMA DE HUMO
-   ═══════════════════════════════════════════ */
-const smokeParticles = [];
-let carSmokeAcc = 0;
-function spawnSmoke(pos) {
-  const size = 0.18 + Math.random() * 0.25;
-  const geo = new THREE.SphereGeometry(size, 4, 3);
-  const shade = 0.4 + Math.random() * 0.3;
-  const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(shade, shade, shade), transparent: true, opacity: 0.7, depthWrite: false });
-  const p = new THREE.Mesh(geo, mat);
-  p.position.copy(pos);
-  p.position.x += (Math.random() - 0.5) * 0.4;
-  p.position.z += (Math.random() - 0.5) * 0.4;
-  p.position.y += Math.random() * 0.3;
-  const vel = new THREE.Vector3((Math.random() - 0.5) * 0.6, 0.9 + Math.random() * 1.1, (Math.random() - 0.5) * 0.6);
-  scene.add(p);
-  smokeParticles.push({ mesh: p, vel, life: 1.4 + Math.random() * 0.8, maxLife: 1.4 + Math.random() * 0.8, spin: (Math.random() - 0.5) * 2 });
-}
-function updateSmoke(dt) {
-  if (!carDestroyed && carHealth < 60 && carHealth > 0) {
-    const intensity = (1 - carHealth / 60);
-    carSmokeAcc += intensity * 18 * dt;
-    while (carSmokeAcc >= 1) {
-      carSmokeAcc -= 1;
-      const front = Math.random() < 0.7;
-      const zOff = front ? 1.5 : -1.5;
-      const sx = Math.sin(carState.angle), cz = Math.cos(carState.angle);
-      const sp = new THREE.Vector3(car.position.x + sx * zOff, 1.1, car.position.z + cz * zOff);
-      spawnSmoke(sp);
-    }
-  } else carSmokeAcc = 0;
-  for (let i = smokeParticles.length - 1; i >= 0; i--) {
-    const p = smokeParticles[i];
-    p.life -= dt;
-    if (p.life <= 0) { scene.remove(p.mesh); p.mesh.geometry.dispose(); p.mesh.material.dispose(); smokeParticles.splice(i, 1); continue; }
-    p.vel.y += 0.4 * dt;
-    p.mesh.position.addScaledVector(p.vel, dt);
-    const t = p.life / p.maxLife;
-    p.mesh.material.opacity = t * 0.65;
-    p.mesh.scale.multiplyScalar(1 + dt * 0.5);
-    p.mesh.rotation.z += p.spin * dt;
-  }
-}
-
-/* ═══════════════════════════════════════════
    PIEZAS VOLADORAS
    ═══════════════════════════════════════════ */
-const carPieces = [];
 const playerPieces = [];
 const droppedPieces = [];
-function updatePieces(piecesArr, dt, permanent = false) {
+function updatePieces(piecesArr, dt) {
   for (let i = piecesArr.length - 1; i >= 0; i--) {
     const p = piecesArr[i];
-    if (!permanent) {
-      p.life -= dt;
-      if (p.life <= 0) { scene.remove(p.mesh); piecesArr.splice(i, 1); continue; }
-    } else if (p.settled) continue;
+    p.life -= dt;
+    if (p.life <= 0) { scene.remove(p.mesh); piecesArr.splice(i, 1); continue; }
     p.vel.y -= 22 * dt;
     p.mesh.position.addScaledVector(p.vel, dt);
     p.mesh.rotation.x += p.angVel.x * dt;
@@ -1437,9 +1588,6 @@ function updatePieces(piecesArr, dt, permanent = false) {
       p.vel.y = Math.abs(p.vel.y) * 0.25;
       p.vel.x *= 0.7; p.vel.z *= 0.7;
       p.angVel.multiplyScalar(0.7);
-      if (permanent && p.vel.lengthSq() < 0.02 && p.angVel.lengthSq() < 0.02) {
-        p.settled = true; p.vel.set(0, 0, 0); p.angVel.set(0, 0, 0);
-      }
     }
   }
 }
@@ -1487,9 +1635,8 @@ const bulletHoleGeo = new THREE.CircleGeometry(0.07, 8);
 const bulletHoleMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, side: THREE.DoubleSide });
 
 function getTopParent(obj) { let top = obj; while (top.parent && top.parent !== scene) top = top.parent; return top; }
-function isPartOfCar(obj) { let p = obj; while (p) { if (p === car) return true; p = p.parent; } return false; }
 function isPartOfPlayer(obj) { let p = obj; while (p) { if (p === player) return true; p = p.parent; } return false; }
-function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weapon) return true; p = p.parent; } return false; }
+function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weaponRifle || p === weaponPistol) return true; p = p.parent; } return false; }
 function getRemotePlayerId(obj) { let p = obj; while (p) { if (p.userData && p.userData.remotePlayerId) return p.userData.remotePlayerId; p = p.parent; } return null; }
 
 function spawnBulletHole(hit, normal) {
@@ -1545,59 +1692,6 @@ function spawnRemoteBulletHole(pos, normal) {
 }
 
 /* ═══════════════════════════════════════════
-   DESTRUCCIÓN DEL AUTO
-   ═══════════════════════════════════════════ */
-const burntMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a, flatShading: true });
-function disassembleCar() {
-  const topChildren = [...car.children];
-  for (const child of topChildren) {
-    if (child.userData.isBulletHole) {
-      car.remove(child);
-      const idx = bulletHoles.indexOf(child);
-      if (idx >= 0) bulletHoles.splice(idx, 1);
-      continue;
-    }
-    scene.attach(child);
-    const vel = new THREE.Vector3((Math.random() - 0.5) * 14, Math.random() * 9 + 4, (Math.random() - 0.5) * 14);
-    const angVel = new THREE.Vector3((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
-    carPieces.push({ mesh: child, vel, angVel, life: Infinity, settled: false });
-  }
-}
-const BLAST_RADIUS = 7.0;
-function destroyCar(broadcast = true) {
-  if (carDestroyed) return;
-  carDestroyed = true;
-  if (isCarDriver) {
-    isCarDriver = false;
-    if (onlineMode && carNetRef) update(carNetRef, { driver: null });
-  }
-  const centerPos = new THREE.Vector3(car.position.x, 1.2, car.position.z);
-  spawnBurst(centerPos, [0xff6600, 0xffcc00, 0xff2200, 0xffaa00], 55, 5, 13);
-  const flash = new THREE.PointLight(0xff6600, 12, 30);
-  flash.position.copy(centerPos);
-  scene.add(flash);
-  setTimeout(() => scene.remove(flash), 350);
-
-  const distToLocal = player.position.distanceTo(car.position);
-  playExplosionSound(distToLocal);
-
-  const dxp = player.position.x - car.position.x, dzp = player.position.z - car.position.z;
-  const distSq = dxp * dxp + dzp * dzp;
-  if (inCar) {
-    inCar = false; weapon.visible = false;
-    player.position.set(car.position.x, 0, car.position.z);
-    player.position.y = 0; velocityY = 0;
-    killPlayer();
-  } else if (!playerDead && distSq < BLAST_RADIUS * BLAST_RADIUS) {
-    killPlayer();
-  }
-  car.traverse(obj => { if (obj.isMesh && !obj.userData.isBulletHole) obj.material = burntMat; });
-  disassembleCar();
-  carState.speed = 0;
-  if (broadcast && onlineMode && carNetRef) update(carNetRef, { destroyed: true, health: 0 });
-}
-
-/* ═══════════════════════════════════════════
    MUERTE DEL JUGADOR
    ═══════════════════════════════════════════ */
 function killPlayer() {
@@ -1607,8 +1701,9 @@ function killPlayer() {
   deathPosition.copy(player.position);
   deathStartCamPos.copy(camera.position);
   deathCameraAngle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
-  weapon.visible = false; setAiming(false); shootHeld = false;
-  reloading = false; ammoWrap.classList.remove('reloading');
+  weaponRifle.visible = false; weaponPistol.visible = false;
+  setAiming(false); shootHeld = false;
+  curWepState().reloading = false; ammoWrap.classList.remove('reloading');
   player.updateMatrixWorld(true);
   for (const child of [...playerBody.children]) {
     const clone = child.clone();
@@ -1635,22 +1730,19 @@ function respawnPlayer() {
   playerDead = false; deathTimer = 0;
   for (const p of playerPieces) scene.remove(p.mesh);
   playerPieces.length = 0;
-  for (let i = smokeParticles.length - 1; i >= 0; i--) {
-    const sp = smokeParticles[i];
-    scene.remove(sp.mesh); sp.mesh.geometry.dispose(); sp.mesh.material.dispose();
-    smokeParticles.splice(i, 1);
-  }
   health = 100; updateHealthBar();
-  ammo = MAG_SIZE; reloading = false; reloadTimer = 0;
+  weaponState.rifle.ammo = WEAPONS.rifle.magSize;
+  weaponState.pistol.ammo = WEAPONS.pistol.magSize;
+  for (const k in weaponState) { weaponState[k].reloading = false; weaponState[k].reloadTimer = 0; weaponState[k].cooldown = 0; weaponState[k].recoil = 0; }
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
-  const dist = 6 + Math.random() * 10;
+  const dist = 20 + Math.random() * 15;
   player.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
-  cameraYaw = 0; cameraPitch = 0; recenterDelay = 0;
-  weapon.visible = true; setAiming(false);
+  cameraYaw = 0; cameraPitch = 0;
+  selectWeapon('rifle', true);
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
@@ -1658,24 +1750,45 @@ function respawnPlayer() {
 }
 respawnBtn.addEventListener('click', respawnPlayer);
 
-/* ─────────────── DISPARO ─────────────── */
-let shootCooldown = 0;
-const FIRE_RATE = 0.1;
-const BULLET_DAMAGE_TO_CAR = 6;
-let recoil = 0;
+/* ─────────────── DISPARO / RECARGA / CAMBIO DE ARMA ─────────────── */
 const raycaster = new THREE.Raycaster();
 const screenCenter = new THREE.Vector2(0, 0);
 
+function selectWeapon(key, silent = false) {
+  if (key !== 'rifle' && key !== 'pistol') return;
+  if (key === currentWeaponKey) return;
+  const old = curWepState();
+  old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
+  ammoWrap.classList.remove('reloading');
+  currentWeaponKey = key;
+  weaponRifle.visible = (key === 'rifle');
+  weaponPistol.visible = (key === 'pistol');
+  const pos = WEAPON_POS[key];
+  curWeaponGroup().position.copy(pos);
+  curWeaponGroup().rotation.set(0, 0, 0);
+  updateAmmoBar();
+  if (!silent) playSwapSound();
+}
+function swapWeapon() {
+  if (playerDead) return;
+  selectWeapon(currentWeaponKey === 'rifle' ? 'pistol' : 'rifle');
+}
 function startReload() {
-  if (reloading || playerDead || inCar) return;
-  if (ammo >= MAG_SIZE) return;
-  reloading = true; reloadTimer = RELOAD_TIME;
+  if (playerDead) return;
+  const ws = curWepState();
+  const def = curWepDef();
+  if (ws.reloading || ws.ammo >= def.magSize) return;
+  ws.reloading = true; ws.reloadTimer = def.reloadTime;
   ammoWrap.classList.add('reloading');
   playReloadSound();
 }
 function finishReload() {
-  reloading = false; ammo = MAG_SIZE;
-  updateAmmoBar(); ammoWrap.classList.remove('reloading');
+  const ws = curWepState();
+  const def = curWepDef();
+  ws.reloading = false;
+  ws.ammo = def.magSize;
+  updateAmmoBar();
+  ammoWrap.classList.remove('reloading');
 }
 function broadcastBulletHole(point, normal) {
   if (!onlineMode) return;
@@ -1687,17 +1800,28 @@ function broadcastBulletHole(point, normal) {
   }).catch(() => {});
 }
 function tryShoot() {
-  if (inCar || playerDead || reloading) return;
-  if (shootCooldown > 0) return;
-  if (ammo <= 0) { startReload(); return; }
-  shootCooldown = FIRE_RATE;
-  ammo--; updateAmmoBar();
-  recoil = 1;
-  muzzleFlash.visible = true; muzzleLight.intensity = 3;
-  setTimeout(() => { muzzleFlash.visible = false; muzzleLight.intensity = 0; }, 45);
-  playGunshot(0);
+  if (playerDead) return;
+  const ws = curWepState();
+  const def = curWepDef();
+  if (ws.reloading || ws.cooldown > 0) return;
+  if (ws.ammo <= 0) { startReload(); return; }
+  ws.cooldown = def.fireRate;
+  ws.ammo--;
+  ws.recoil = def.key === 'pistol' ? 1.6 : 1;
+  updateAmmoBar();
+
+  const flash = curWeaponFlash();
+  flash.visible = true;
+  muzzleLight.intensity = 3;
+  setTimeout(() => { flash.visible = false; muzzleLight.intensity = 0; }, 45);
+
+  if (def.key === 'pistol') playPistolShot(0);
+  else playGunshot(0);
+
   if (onlineMode) {
-    set(ref(db, `rooms/${ROOM}/shots/${playerId}`), { ts: Date.now(), yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3) }).catch(() => {});
+    set(ref(db, `rooms/${ROOM}/shots/${playerId}`), {
+      ts: Date.now(), yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: def.key
+    }).catch(() => {});
   }
   raycaster.setFromCamera(screenCenter, camera);
   const hits = raycaster.intersectObjects(scene.children, true);
@@ -1714,7 +1838,7 @@ function tryShoot() {
     if (remoteId && !playerDead) {
       if (onlineMode) {
         const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-        set(ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`), { damage: BULLET_DAMAGE_TO_PLAYER, from: playerId, ts: Date.now() });
+        set(ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`), { damage: def.damage, from: playerId, ts: Date.now() });
       }
       spawnBulletHole(hit, normal);
       broadcastBulletHole(hit.point, normal);
@@ -1723,30 +1847,16 @@ function tryShoot() {
     }
     spawnBulletHole(hit, normal);
     broadcastBulletHole(hit.point, normal);
-    if (isPartOfCar(hit.object) && !carDestroyed) {
-      if (onlineMode && carNetRef) {
-        runTransaction(ref(db, `rooms/${ROOM}/car/health`), h => {
-          const base = (typeof h === 'number') ? h : 100;
-          return Math.max(0, base - BULLET_DAMAGE_TO_CAR);
-        }).then(r => {
-          const newH = r.snapshot.val();
-          carHealth = newH;
-          updateCarHealthBar();
-          if (newH <= 0 && !carDestroyed) destroyCar(true);
-        });
-      } else {
-        carHealth = Math.max(0, carHealth - BULLET_DAMAGE_TO_CAR);
-        updateCarHealthBar();
-        if (carHealth <= 0) destroyCar(true);
-      }
-    }
     break;
   }
-  if (ammo <= 0 && !reloading) startReload();
+  if (ws.ammo <= 0 && !ws.reloading) startReload();
 }
 
 /* ─────────────── UPDATE JUGADOR ─────────────── */
 function updatePlayer(dt) {
+  const def = curWepDef();
+  const ws = curWepState();
+
   let ix = 0, iz = 0;
   if (keys['KeyW'] || keys['ArrowUp']) iz += 1;
   if (keys['KeyS'] || keys['ArrowDown']) iz -= 1;
@@ -1785,134 +1895,48 @@ function updatePlayer(dt) {
     const targetBob = Math.abs(Math.sin(walkPhase)) * (aiming ? 0.025 : 0.055);
     bobOffset += (targetBob - bobOffset) * Math.min(1, dt * 10);
   } else bobOffset *= Math.max(0, 1 - dt * 8);
-  player.position.x = THREE.MathUtils.clamp(player.position.x, -60, 60);
-  player.position.z = THREE.MathUtils.clamp(player.position.z, -60, 60);
-  if (reloading) {
-    reloadTimer -= dt;
-    const t = 1 - Math.max(0, reloadTimer) / RELOAD_TIME;
-    const dip = Math.sin(t * Math.PI);
-    weapon.position.y = WEAPON_POS.y - dip * 0.35;
-    weapon.position.z = WEAPON_POS.z;
-    weapon.rotation.x = -dip * 0.3;
-    weapon.rotation.z = dip * 0.9;
-    if (reloadTimer <= 0) finishReload();
-  } else if (recoil > 0) {
-    recoil = Math.max(0, recoil - dt * 10);
-    weapon.position.z = WEAPON_POS.z + recoil * 0.07;
-    weapon.position.y += (WEAPON_POS.y - weapon.position.y) * Math.min(1, dt * 12);
-    weapon.rotation.x = recoil * 0.18;
-    weapon.rotation.z *= 0.85;
-  } else {
-    weapon.rotation.x *= 0.85; weapon.rotation.z *= 0.85;
-    weapon.position.y += (WEAPON_POS.y - weapon.position.y) * Math.min(1, dt * 12);
-    weapon.position.z += (WEAPON_POS.z - weapon.position.z) * Math.min(1, dt * 15);
-  }
-  if (shootHeld && shootCooldown <= 0 && !reloading) tryShoot();
-  if (shootCooldown > 0) shootCooldown -= dt;
-}
+  player.position.x = THREE.MathUtils.clamp(player.position.x, -70, 70);
+  player.position.z = THREE.MathUtils.clamp(player.position.z, -70, 70);
 
-/* ─────────────── UPDATE AUTO ─────────────── */
-let visualSteer = 0;
-function updateCar(dt) {
-  if (!isCarDriver && remoteCarDriverId) return;
-  let throttle = 0, steer = 0;
-  if (keys['KeyW'] || keys['ArrowUp']) throttle += 1;
-  if (keys['KeyS'] || keys['ArrowDown']) throttle -= 1;
-  if (keys['KeyD'] || keys['ArrowRight']) steer -= 1;
-  if (keys['KeyA'] || keys['ArrowLeft']) steer += 1;
-  throttle += -touchInput.y;
-  steer    -=  touchInput.x;
-  throttle = Math.max(-1, Math.min(1, throttle));
-  steer    = Math.max(-1, Math.min(1, steer));
-  if (throttle > 0) carState.speed += throttle * carState.accel * dt;
-  else if (throttle < 0) {
-    if (carState.speed > 0) carState.speed += throttle * carState.brake * dt;
-    else carState.speed += throttle * carState.accel * 0.7 * dt;
+  const g = curWeaponGroup();
+  const basePos = WEAPON_POS[currentWeaponKey];
+
+  if (ws.reloading) {
+    ws.reloadTimer -= dt;
+    const t = 1 - Math.max(0, ws.reloadTimer) / def.reloadTime;
+    const dip = Math.sin(t * Math.PI);
+    g.position.y = basePos.y - dip * 0.35;
+    g.position.z = basePos.z;
+    g.rotation.x = -dip * 0.3;
+    g.rotation.z = dip * 0.9;
+    if (ws.reloadTimer <= 0) finishReload();
+  } else if (ws.recoil > 0) {
+    ws.recoil = Math.max(0, ws.recoil - dt * 10);
+    g.position.z = basePos.z + ws.recoil * 0.07;
+    g.position.y += (basePos.y - g.position.y) * Math.min(1, dt * 12);
+    g.rotation.x = ws.recoil * 0.18;
+    g.rotation.z *= 0.85;
+  } else {
+    g.rotation.x *= 0.85; g.rotation.z *= 0.85;
+    g.position.y += (basePos.y - g.position.y) * Math.min(1, dt * 12);
+    g.position.z += (basePos.z - g.position.z) * Math.min(1, dt * 15);
   }
-  carState.speed -= carState.speed * carState.friction * dt;
-  carState.speed = Math.max(carState.maxReverse, Math.min(carState.maxSpeed, carState.speed));
-  if (Math.abs(carState.speed) > 0.2) {
-    const speedFactor = Math.min(1, Math.abs(carState.speed) / 8);
-    carState.angle += steer * carState.turnRate * speedFactor * Math.sign(carState.speed) * dt;
-  }
-  car.rotation.y = carState.angle;
-  const fwdX = Math.sin(carState.angle), fwdZ = Math.cos(carState.angle);
-  const speedBefore = carState.speed;
-  car.position.x += fwdX * carState.speed * dt;
-  car.position.z += fwdZ * carState.speed * dt;
-  if (resolveCarCollisions()) {
-    const impact = Math.abs(speedBefore) * 0.5;
-    if (impact > 4 && !carDestroyed) {
-      if (onlineMode && carNetRef) {
-        runTransaction(ref(db, `rooms/${ROOM}/car/health`), h => {
-          const base = (typeof h === 'number') ? h : 100;
-          return Math.max(0, base - impact * 0.8);
-        }).then(r => {
-          const newH = r.snapshot.val();
-          carHealth = newH;
-          updateCarHealthBar();
-          if (newH <= 0 && !carDestroyed) destroyCar(true);
-        });
-      } else {
-        carHealth = Math.max(0, carHealth - impact * 0.8);
-        updateCarHealthBar();
-        if (carHealth <= 0) destroyCar(true);
-      }
-    }
-    if (impact > 6 && !playerDead && inCar) {
-      health = Math.max(0, health - impact * 0.35);
-      updateHealthBar();
-      showDamageFlash(Math.min(1, impact * 0.06));
-      if (health <= 0 && !carDestroyed) {
-        const sideX = Math.cos(carState.angle) * 2, sideZ = -Math.sin(carState.angle) * 2;
-        player.position.set(car.position.x + sideX, 0, car.position.z + sideZ);
-        inCar = false; weapon.visible = false;
-        killPlayer();
-      }
-    }
-    carState.speed *= 0.55;
-  }
-  car.position.x = THREE.MathUtils.clamp(car.position.x, -60, 60);
-  car.position.z = THREE.MathUtils.clamp(car.position.z, -60, 60);
-  const spin = carState.speed * dt * 2.2;
-  const targetSteerVisual = steer * 0.45;
-  visualSteer += (targetSteerVisual - visualSteer) * Math.min(1, dt * 14);
-  for (const w of wheels) {
-    if (w.front) w.pivot.rotation.y = visualSteer;
-    w.spinner.rotation.x += spin;
-  }
+
+  if (shootHeld && def.auto && ws.cooldown <= 0 && !ws.reloading) tryShoot();
+  if (ws.cooldown > 0) ws.cooldown -= dt;
 }
 
 /* ─────────────── CÁMARA ─────────────── */
 function updateCamera(dt) {
-  if (recenterDelay > 0) recenterDelay = Math.max(0, recenterDelay - dt);
-  if (inCar && recenterDelay === 0 && Math.abs(carState.speed) > 2) {
-    const targetYaw = carState.angle + Math.PI;
-    let diff = targetYaw - cameraYaw;
-    diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-    cameraYaw += diff * Math.min(1, dt * 1.2);
-  }
-  const desiredFov = aiming && !inCar ? AIM_FOV : BASE_FOV;
+  const def = curWepDef();
+  const desiredFov = aiming ? def.aimFov : BASE_FOV;
   camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 10);
   camera.updateProjectionMatrix();
-  if (inCar) {
-    const desired = new THREE.Vector3(car.position.x, 1.4, car.position.z);
-    smoothTarget.lerp(desired, 1 - Math.pow(0.0001, dt));
-    const CAM_DIST = 16;
-    const cosP = Math.cos(cameraPitch), sinP = Math.sin(cameraPitch);
-    const cx = smoothTarget.x + Math.sin(cameraYaw) * cosP * CAM_DIST;
-    const cy = smoothTarget.y + sinP * CAM_DIST;
-    const cz = smoothTarget.z + Math.cos(cameraYaw) * cosP * CAM_DIST;
-    camera.position.set(cx, cy, cz);
-    camera.lookAt(smoothTarget);
-  } else {
-    const eyeX = player.position.x, eyeY = player.position.y + EYE_HEIGHT + bobOffset, eyeZ = player.position.z;
-    camera.position.set(eyeX, eyeY, eyeZ);
-    const cosP = Math.cos(cameraPitch), sinP = Math.sin(cameraPitch);
-    const lookX = -Math.sin(cameraYaw) * cosP, lookY = -sinP, lookZ = -Math.cos(cameraYaw) * cosP;
-    camera.lookAt(eyeX + lookX, eyeY + lookY, eyeZ + lookZ);
-    smoothTarget.set(player.position.x, eyeY, player.position.z);
-  }
+  const eyeX = player.position.x, eyeY = player.position.y + EYE_HEIGHT + bobOffset, eyeZ = player.position.z;
+  camera.position.set(eyeX, eyeY, eyeZ);
+  const cosP = Math.cos(cameraPitch), sinP = Math.sin(cameraPitch);
+  const lookX = -Math.sin(cameraYaw) * cosP, lookY = -sinP, lookZ = -Math.cos(cameraYaw) * cosP;
+  camera.lookAt(eyeX + lookX, eyeY + lookY, eyeZ + lookZ);
 }
 
 function updateDeathCamera(dt) {
@@ -1935,34 +1959,10 @@ function updateDeathCamera(dt) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MULTIJUGADOR ONLINE
+   MULTIJUGADOR
    ═══════════════════════════════════════════════════════════ */
 const remotePlayers = new Map();
-let remoteCarDriverId = null;
-let carNetTarget = null;
-let carNetData = {};
-
-/* ★ MODIFICADO: posición del pivote de apuntado del jugador remoto.
-   Mantenemos x e y similares pero el rifle en sí (compacto) se desplaza
-   hacia adelante en el eje Z para no atravesar el pecho. */
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
-
-function createNameTag(text) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256; canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, 256, 64);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 32px system-ui, sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(text, 128, 32);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.minFilter = THREE.LinearFilter;
-  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(2.2, 0.55, 1);
-  sprite.position.y = 2.85;
-  return sprite;
-}
 
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
@@ -1971,28 +1971,23 @@ function addRemotePlayer(id, data) {
   aimPivot.position.copy(REMOTE_AIM_POS);
   char.body.add(aimPivot);
 
-  /* ★ Rifle compacto (sin culata) y desplazado hacia adelante para
-     que no atraviese el torso del personaje */
-  const rifle = buildRifleModel({ compact: true, scale: 0.70 });
+  const rifle = buildM4A1Model({ withHands: false, compact: true, scale: 0.72 });
   rifle.group.position.set(0, -0.06, 0.28);
   aimPivot.add(rifle.group);
 
   char.root.userData.remotePlayerId = id;
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
   char.root.rotation.y = (data.yaw ?? 0) + Math.PI;
-  const tag = createNameTag(data.name || 'Jugador');
-  char.root.add(tag);
   scene.add(char.root);
   remotePlayers.set(id, {
     id, root: char.root, body: char.body, parts: char.parts, mats: char.mats,
-    aimPivot, rifle, nameTag: tag, name: data.name || 'Jugador',
+    aimPivot, rifle, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: 0, pitchSmooth: 0,
     lastSeen: Date.now(), hp: data.hp ?? 100, dead: false, deathTime: 0,
     walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0
   });
 }
-
 function updateRemotePlayer(id, data) {
   if (data.ts && Date.now() - data.ts > NET_STALE_MS) return;
   let r = remotePlayers.get(id);
@@ -2009,26 +2004,14 @@ function updateRemotePlayer(id, data) {
   const isDead = (data.dead !== undefined) ? !!data.dead : (r.hp <= 0);
   if (isDead && !r.dead) startRemoteDeath(r);
   else if (!isDead && r.dead) reviveRemotePlayer(r);
-  if (data.name && data.name !== r.name) {
-    r.name = data.name;
-    r.root.remove(r.nameTag);
-    r.nameTag.material.map.dispose();
-    r.nameTag.material.dispose();
-    const newTag = createNameTag(data.name);
-    r.root.add(newTag);
-    r.nameTag = newTag;
-  }
+  if (data.name) r.name = data.name;
 }
-
 function removeRemotePlayer(id) {
   const r = remotePlayers.get(id);
   if (!r) return;
   scene.remove(r.root);
-  r.nameTag.material.map.dispose();
-  r.nameTag.material.dispose();
   remotePlayers.delete(id);
 }
-
 function startRemoteDeath(r) {
   if (r.dead) return;
   r.dead = true; r.deathTime = 0;
@@ -2052,7 +2035,6 @@ function startRemoteDeath(r) {
     r.rifle.flash.visible = false;
   }
 }
-
 function reviveRemotePlayer(r) {
   r.dead = false; r.deathTime = 0;
   r.body.rotation.set(0, 0, 0);
@@ -2060,11 +2042,9 @@ function reviveRemotePlayer(r) {
   r.parts.leftLeg.rotation.x = 0;
   r.parts.rightLeg.rotation.x = 0;
   r.aimPivot.visible = true;
-  r.nameTag.visible = true;
   r.hitFlash = 0;
   r.rifle.flash.visible = false;
 }
-
 function triggerRemoteShot(r) {
   if (r.dead) return;
   r.recoil = 1;
@@ -2153,7 +2133,6 @@ function animateRemotePlayer(r, dt) {
     r.body.rotation.z = Math.sin(r.deathTime * 7) * 0.07 * (1 - e);
     r.body.position.y = -e * 0.08;
     r.aimPivot.visible = false;
-    r.nameTag.visible = false;
     const k = Math.min(1, dt * 5);
     r.parts.leftArm.shoulder.quaternion.set(0, 0, 0, 1);
     r.parts.rightArm.shoulder.quaternion.set(0, 0, 0, 1);
@@ -2169,7 +2148,6 @@ function animateRemotePlayer(r, dt) {
     return;
   }
   r.body.rotation.x = 0;
-  r.nameTag.visible = true;
   r.aimPivot.visible = true;
   const walking = r.moveSpeed > 0.5;
   if (walking) {
@@ -2210,7 +2188,6 @@ function animateRemotePlayer(r, dt) {
       solveArmIK(r.parts.leftArm,  _handguardWorldTmp, _poleLeft);
     }
   }
-  r.nameTag.material.opacity = 1;
 }
 
 function handleRemoteShots(all) {
@@ -2224,9 +2201,9 @@ function handleRemoteShots(all) {
     if (d.ts <= (r.lastShotTs || 0)) continue;
     r.lastShotTs = d.ts;
     triggerRemoteShot(r);
-    /* ★ Sonido del disparo remoto atenuado por distancia */
     const dist = r.root.position.distanceTo(player.position);
-    playGunshot(dist);
+    if (d.weapon === 'pistol') playPistolShot(dist);
+    else playGunshot(dist);
   }
 }
 
@@ -2236,15 +2213,7 @@ function sendLocalPlayerState() {
     name: playerName,
     x: +player.position.x.toFixed(2), y: +player.position.y.toFixed(2), z: +player.position.z.toFixed(2),
     yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3),
-    hp: Math.round(health), dead: playerDead, inCar: inCar, ts: Date.now()
-  }).catch(() => {});
-}
-function sendCarState() {
-  if (!onlineMode || !carNetRef || !isCarDriver) return;
-  update(carNetRef, {
-    driver: playerId, driverTs: Date.now(),
-    x: +car.position.x.toFixed(2), z: +car.position.z.toFixed(2),
-    angle: +carState.angle.toFixed(3), speed: +carState.speed.toFixed(2)
+    hp: Math.round(health), dead: playerDead, ts: Date.now()
   }).catch(() => {});
 }
 
@@ -2255,22 +2224,11 @@ function updateNetwork(dt) {
   if (netSendAcc >= 1 / NET_SEND_HZ) {
     netSendAcc = 0;
     sendLocalPlayerState();
-    if (isCarDriver) sendCarState();
   }
   const now = Date.now();
   for (const [id, r] of remotePlayers) {
     if (now - r.lastSeen > NET_STALE_MS) { removeRemotePlayer(id); continue; }
     animateRemotePlayer(r, dt);
-  }
-  if (carNetTarget && !isCarDriver) {
-    const t = Math.min(1, dt * 10);
-    car.position.x += (carNetTarget.x - car.position.x) * t;
-    car.position.z += (carNetTarget.z - car.position.z) * t;
-    let dy = carNetTarget.angle - carState.angle;
-    while (dy > Math.PI) dy -= Math.PI * 2;
-    while (dy < -Math.PI) dy += Math.PI * 2;
-    carState.angle += dy * t;
-    car.rotation.y = carState.angle;
   }
   updateOnlineUI();
 }
@@ -2283,14 +2241,13 @@ function updateOnlineUI() {
   setOnlineStatus(`<span class="ok">🟢 ONLINE</span> · <span class="name">${playerName}</span> · ${n} jugador${n === 1 ? '' : 'es'}`);
 }
 
-/* ─────────────── INICIALIZACIÓN ONLINE ─────────────── */
 async function initOnline() {
   if (!onlineMode) return;
   onValue(ref(db, '.info/connected'), snap => {
     if (snap.val() === true) setOnlineStatus(`<span class="ok">🟢 Conectado</span> · ${playerName}`);
     else setOnlineStatus(`<span class="bad">🔴 Reconectando...</span>`, true);
   });
-  await set(playerNetRef, { name: playerName, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, hp: 100, dead: false, inCar: false, ts: Date.now() });
+  await set(playerNetRef, { name: playerName, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, hp: 100, dead: false, ts: Date.now() });
   onDisconnect(playerNetRef).remove();
   onDisconnect(ref(db, `rooms/${ROOM}/shots/${playerId}`)).remove();
 
@@ -2319,34 +2276,16 @@ async function initOnline() {
     const hit = snap.val();
     if (!hit) return;
     if (!playerDead) {
-      const dmg = hit.damage || BULLET_DAMAGE_TO_PLAYER;
+      const dmg = hit.damage || 20;
       health = Math.max(0, health - dmg);
       updateHealthBar();
-      showDamageFlash(0.35 + (dmg / BULLET_DAMAGE_TO_PLAYER) * 0.5);
+      showDamageFlash(0.35 + Math.min(0.5, dmg / 40));
       if (health <= 0) killPlayer();
       sendLocalPlayerState();
     }
     remove(snap.ref);
   });
 
-  onValue(carNetRef, snap => {
-    if (!snap.exists()) {
-      set(carNetRef, { health: 100, destroyed: false, driver: null, driverTs: 0, x: 8, z: 8, angle: 0, speed: 0 });
-      return;
-    }
-    carNetData = snap.val() || {};
-    if (typeof carNetData.health === 'number' && !isCarDriver) { carHealth = carNetData.health; updateCarHealthBar(); }
-    if (carNetData.destroyed && !carDestroyed) destroyCar(false);
-    const now = Date.now();
-    const driverFresh = carNetData.driver && (now - (carNetData.driverTs || 0) < 3000);
-    if (carNetData.driver && carNetData.driver !== playerId && driverFresh && !carDestroyed) {
-      remoteCarDriverId = carNetData.driver;
-      if (!isCarDriver) carNetTarget = { x: carNetData.x ?? 8, z: carNetData.z ?? 8, angle: carNetData.angle ?? 0 };
-    } else {
-      remoteCarDriverId = null;
-      if (carNetData.driver === null) carNetTarget = null;
-    }
-  });
   sendLocalPlayerState();
   setInterval(() => { if (!playerDead) sendLocalPlayerState(); }, 5000);
 }
@@ -2359,8 +2298,8 @@ const MM_RANGE = 55;
 const MM_SCALE = MM_W / (MM_RANGE * 2);
 function drawMinimap() {
   const ctx = mmCtx;
-  const cxWorld = inCar ? car.position.x : player.position.x;
-  const czWorld = inCar ? car.position.z : player.position.z;
+  const cxWorld = player.position.x;
+  const czWorld = player.position.z;
   ctx.fillStyle = '#0f2010'; ctx.fillRect(0, 0, MM_W, MM_H);
   ctx.strokeStyle = 'rgba(120,180,120,0.15)'; ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
@@ -2370,6 +2309,9 @@ function drawMinimap() {
   }
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + MM_W / 2;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + MM_H / 2;
+  const plx = wx2mm(0), ply = wz2mm(0);
+  ctx.fillStyle = 'rgba(156,122,82,0.5)';
+  ctx.beginPath(); ctx.arc(plx, ply, 9 * MM_SCALE, 0, Math.PI * 2); ctx.fill();
   for (const h of houseLayout) {
     const px = wx2mm(h.x), py = wz2mm(h.z), r = 9;
     if (px < -20 || px > MM_W + 20 || py < -20 || py > MM_H + 20) continue;
@@ -2385,24 +2327,17 @@ function drawMinimap() {
     ctx.fillStyle = c.kind === 'tree' ? '#2f8f3e' : '#7f8c8d';
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
   }
-  const carPx = wx2mm(car.position.x), carPy = wz2mm(car.position.z);
-  ctx.save(); ctx.translate(carPx, carPy); ctx.rotate(-carState.angle);
-  ctx.fillStyle = carDestroyed ? '#333' : '#2e86de'; ctx.fillRect(-4, -7, 8, 14);
-  ctx.fillStyle = carDestroyed ? '#111' : '#bdc3c7'; ctx.fillRect(-3, 4, 6, 2);
-  ctx.restore();
-  for (const [id, r] of remotePlayers) {
+  for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
     ctx.fillStyle = r.dead ? '#666' : '#f39c12';
     ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
-  if (!inCar) {
-    ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(cameraYaw + Math.PI);
-    ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
-    ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
-    ctx.restore();
-  }
+  ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(cameraYaw + Math.PI);
+  ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
+  ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
+  ctx.restore();
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, MM_W - 2, MM_H - 2);
   ctx.fillStyle = '#ffd93d'; ctx.font = 'bold 11px ui-monospace, monospace';
@@ -2419,55 +2354,45 @@ function updateHealthBar() {
   else healthBarInner.style.background = '#e74c3c';
 }
 function updateAmmoBar() {
-  const pct = Math.max(0, Math.min(100, ammo / MAG_SIZE * 100));
+  const ws = curWepState();
+  const def = curWepDef();
+  const pct = Math.max(0, Math.min(100, ws.ammo / def.magSize * 100));
   ammoBarInner.style.width = pct + '%';
-  ammoNumEl.textContent = ammo;
-  ammoMaxEl.textContent = MAG_SIZE;
+  ammoNumEl.textContent = ws.ammo;
+  ammoMaxEl.textContent = def.magSize;
+  weaponNameEl.textContent = `${def.icon} ${def.name}`;
   if (pct > 60) ammoBarInner.style.background = '#f1c40f';
   else if (pct > 30) ammoBarInner.style.background = '#e67e22';
   else ammoBarInner.style.background = '#e74c3c';
 }
-function updateCarHealthBar() {
-  const pct = Math.max(0, Math.min(100, carHealth));
-  carHealthBarIn.style.width = pct + '%';
-  carHealthNumEl.textContent = Math.round(pct);
-  if (pct > 60) carHealthBarIn.style.background = '#2e86de';
-  else if (pct > 30) carHealthBarIn.style.background = '#f39c12';
-  else carHealthBarIn.style.background = '#e74c3c';
-}
-updateHealthBar(); updateAmmoBar(); updateCarHealthBar();
+updateHealthBar(); updateAmmoBar();
 
 /* ─────────────── UI ─────────────── */
 function updateUI() {
-  const near = isNearCar();
-  const showAction = (inCar || (near && !remoteCarDriverId)) && !carDestroyed && !playerDead;
-  actionBtn.classList.toggle('active', showAction);
-  actionBtn.textContent = inCar ? '🚪' : '🚗';
   if (isTouch) {
-    jumpBtn.classList.toggle('active', !inCar && !playerDead);
-    shootBtn.classList.toggle('active', !inCar && !playerDead);
-    aimBtn.classList.toggle('active', !inCar && !playerDead);
+    jumpBtn.classList.toggle('active', !playerDead);
+    shootBtn.classList.toggle('active', !playerDead);
+    aimBtn.classList.toggle('active', !playerDead);
+    swapBtn.classList.toggle('active', !playerDead);
   }
-  crosshair.classList.toggle('active', !inCar && !playerDead);
-  carHealthWrap.classList.toggle('active', inCar && !playerDead);
+  crosshair.classList.toggle('active', !playerDead);
+  const ws = curWepState();
   if (playerDead) hint.classList.remove('active');
-  else if (reloading) { hint.textContent = '🔄 Recargando...'; hint.classList.add('active'); }
-  else if (inCar) { hint.textContent = 'E o 🚪 para bajar · Mueve el ratón para mirar'; hint.classList.add('active'); }
-  else if (near && remoteCarDriverId) { hint.textContent = '🚗 Ocupado por otro jugador'; hint.classList.add('active'); }
-  else if (carDestroyed && near) { hint.textContent = '🚨 Auto destruido'; hint.classList.add('active'); }
-  else if (near) { hint.textContent = 'E o 🚗 para conducir'; hint.classList.add('active'); }
-  else if (ammo === 0) { hint.textContent = '🔫 Sin balas · Pulsa R para recargar'; hint.classList.add('active'); }
+  else if (ws.reloading) { hint.textContent = '🔄 Recargando...'; hint.classList.add('active'); }
+  else if (ws.ammo === 0) { hint.textContent = '🔫 Sin balas · Pulsa R para recargar'; hint.classList.add('active'); }
   else hint.classList.remove('active');
 }
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
+player.position.set(0, 0, 14);
+
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.1);
   if (playerDead) updateDeathCamera(dt);
   else {
-    if (inCar) updateCar(dt); else updatePlayer(dt);
+    updatePlayer(dt);
     updateCamera(dt);
   }
   if (damageFlash > 0) {
@@ -2477,10 +2402,8 @@ function animate() {
     damageOverlay.style.opacity = '0';
   }
   updateNetwork(dt);
-  updateSmoke(dt);
-  updatePieces(carPieces, dt, true);
-  updatePieces(playerPieces, dt, false);
-  updatePieces(droppedPieces, dt, false);
+  updatePieces(playerPieces, dt);
+  updatePieces(droppedPieces, dt);
   updateExplosionParticles(dt);
   updateUI();
   updateDebug(dt);
@@ -2488,7 +2411,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-/* ─────────────── ARRANQUE ─────────────── */
 initOnline().catch(err => {
   console.warn('Error inicializando online:', err);
   setOnlineStatus('<span class="bad">⚠ Error de conexión</span>', true);
