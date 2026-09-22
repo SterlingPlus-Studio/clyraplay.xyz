@@ -663,11 +663,14 @@ function createRifleModel() {
   group.add(flash);
   // Grip marker: parte baja-centro, donde va la mano derecha en el gatillo
   const gripMarker = new THREE.Object3D();
-  gripMarker.position.set(0, -0.11, 0.10);
+  // Punto de agarre trasero para los jugadores remotos: un poco a la derecha
+  // y por debajo del eje del rifle.
+  gripMarker.position.set(0.04, -0.13, 0.10);
   group.add(gripMarker);
-  // Handguard marker: parte delantera donde va la mano izquierda
+  // Punto de agarre delantero para los jugadores remotos. Va por debajo del
+  // guardamanos y hacia la izquierda para que el brazo no atraviese el pecho.
   const handguardMarker = new THREE.Object3D();
-  handguardMarker.position.set(0, 0.02, -0.22);
+  handguardMarker.position.set(-0.10, -0.12, -0.22);
   group.add(handguardMarker);
   return { group, flash, gripMarker, handguardMarker, fbxModel: null };
 }
@@ -2790,7 +2793,7 @@ function updateZombieHUD() {
    JUGADORES REMOTOS
    ═══════════════════════════════════════════ */
 const remotePlayers = new Map();
-const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
+const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.48, 0.15);
 
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
@@ -2802,12 +2805,14 @@ function addRemotePlayer(id, data) {
   // Los remotos reciben sus propias instancias de arma para que siempre queden
   // sujetas a sus brazos y no dependan de la cámara local.
   const rifle = createRifleModel();
-  rifle.group.position.set(0, -0.06, 0.28);
+  // El rifle debe quedar claramente por delante del torso. Con 0.28 el extremo
+  // trasero del FBX podía meterse dentro del pecho y parecer invisible.
+  rifle.group.position.set(0.02, -0.06, 0.44);
   if (rifleModel.fbxModel) cloneLoadedWeaponToRemote(rifle, rifleModel.fbxModel);
   aimPivot.add(rifle.group);
 
   const pistol = createPistolModel();
-  pistol.group.position.set(0, -0.07, 0.22);
+  pistol.group.position.set(0.10, -0.07, 0.30);
   if (pistolModel.fbxModel) cloneLoadedWeaponToRemote(pistol, pistolModel.fbxModel);
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
@@ -2973,8 +2978,8 @@ function animateRemotePlayer(r, dt) {
     r.parts.leftLeg.rotation.x = s * amp;
     r.parts.rightLeg.rotation.x = -s * amp;
     r.body.position.y = Math.abs(Math.sin(r.walkPhase)) * 0.055;
-    r.body.rotation.y = Math.sin(r.walkPhase * 2) * 0.05;
-    r.body.rotation.z = Math.sin(r.walkPhase) * 0.035;
+    r.body.rotation.y = Math.sin(r.walkPhase * 2) * 0.025;
+    r.body.rotation.z = Math.sin(r.walkPhase) * 0.018;
   } else {
     r.walkPhase += dt * 1.6;
     const k = Math.min(1, dt * 8);
