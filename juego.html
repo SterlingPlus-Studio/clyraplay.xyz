@@ -797,8 +797,8 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
   const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
 
-  // Pistola: pequeña y sin rotación
-  const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, 0);
+  // Pistola: pequeña y girada 90° en Y para que el cañón apunte al frente de la cámara
+  const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
 })();
 
@@ -880,8 +880,10 @@ _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
 const _fpHandL = makeFPSHand('left');
-_fpHandL.scale.setScalar(0.55);
-_fpHandL.position.set(-0.01, 0.005, -0.185);
+// Mano delantera de la M4A1: un poco más a la izquierda y alargada
+// en la dirección del brazo para que su extremo quede fuera de la vista.
+_fpHandL.scale.set(0.55, 0.55, 0.90);
+_fpHandL.position.set(-0.05, 0.005, -0.185);
 _fpHandL.rotation.set(0.40, 0, -0.08);
 weaponRifle.add(_fpHandL);
 
