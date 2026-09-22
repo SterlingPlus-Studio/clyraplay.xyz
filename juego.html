@@ -646,7 +646,7 @@ function buildCharacter(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   ARMAS FPS (LOCAL — usa los FBX cargados)
+   ARMAS FPS (LOCAL)
    ═══════════════════════════════════════════ */
 function createFlash(radius, x, y, z, color) {
   const flash = new THREE.Mesh(
@@ -1765,14 +1765,6 @@ function startSlide(ix, iz) {
   if (onlineMode) sendLocalPlayerState();
 }
 
-function tryCrouchInput() {
-  crouchKeyHeld = true;
-  if (playerDead || crouching || sliding) return;
-  const { ix, iz, moving } = getInputAxes();
-  if (moving && isGrounded && !aiming) startSlide(ix, iz);
-  else crouching = true;
-}
-
 function releaseCrouchInput() {
   crouchKeyHeld = false;
   if (!sliding) crouching = false;
@@ -1789,15 +1781,20 @@ addEventListener('keydown', e => {
   if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon('rifle');
   if (e.code === 'Digit2' && !e.repeat && !playerDead) selectWeapon('pistol');
   if ((e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') && !e.repeat && !playerDead) {
-    tryCrouchInput();
+    // Toggle de agachado en teclado
+    const { ix, iz, moving } = getInputAxes();
+    if (moving && isGrounded && !aiming && !crouching && !sliding) {
+      startSlide(ix, iz);
+    } else {
+      crouching = !crouching;
+      crouchKeyHeld = crouching;
+      if (onlineMode) sendLocalPlayerState();
+    }
   }
   if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
 });
 addEventListener('keyup', e => {
   keys[e.code] = false;
-  if (e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') {
-    releaseCrouchInput();
-  }
 });
 
 const joystick = document.getElementById('joystick');
@@ -1885,24 +1882,26 @@ swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDe
 debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
 grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); throwGrenade(); });
 
+// Botón táctil de agacharse/deslizarse: TOGGLE cuando está quieto, SLIDE cuando camina
 crouchBtn.addEventListener('pointerdown', e => {
   e.preventDefault();
   if (playerDead || !gameMode) return;
-  crouchBtn.classList.add('held');
-  crouchKeyHeld = true;
-  if (crouching || sliding) return;
+
   const { ix, iz, moving } = getInputAxes();
-  if (moving && isGrounded && !aiming) startSlide(ix, iz);
-  else crouching = true;
+
+  if (moving && isGrounded && !aiming && !crouching && !sliding) {
+    // Camina + toca → deslizamiento (termina de pie)
+    startSlide(ix, iz);
+    crouchBtn.classList.add('held');
+    crouchKeyHeld = true;
+  } else {
+    // Toggle: agachado ↔ de pie
+    crouching = !crouching;
+    crouchKeyHeld = crouching;
+    crouchBtn.classList.toggle('held', crouching);
+    if (onlineMode) sendLocalPlayerState();
+  }
 });
-function releaseCrouchBtn(e) {
-  if (e) e.preventDefault();
-  crouchBtn.classList.remove('held');
-  releaseCrouchInput();
-}
-crouchBtn.addEventListener('pointerup', releaseCrouchBtn);
-crouchBtn.addEventListener('pointercancel', releaseCrouchBtn);
-crouchBtn.addEventListener('pointerleave', releaseCrouchBtn);
 
 let shootHeld = false;
 shootBtn.addEventListener('pointerdown', e => { e.preventDefault(); shootHeld = true; tryShoot(); });
@@ -2244,6 +2243,7 @@ function respawnPlayer() {
   sliding = false; slideTimer = 0; slideSpeed = 0;
   crouching = false; crouchKeyHeld = false;
   currentEyeHeight = STAND_EYE_HEIGHT;
+  crouchBtn.classList.remove('held');
 
   selectWeapon('rifle', true, true);
   setLocalWeaponsVisible(true);
@@ -2259,6 +2259,7 @@ function respawnPlayer() {
     zombiesToSpawn = 0;
     waveActive = false;
     waveIntermission = 3;
+    hasHadOtherPlayers = false;
     updateZombieHUD();
   }
   if (!isTouch) setTimeout(() => requestLock(), 100);
@@ -2401,8 +2402,8 @@ function updatePlayer(dt) {
     if (slideTimer <= 0 || !isGrounded) {
       sliding = false;
       slideSpeed = 0;
-      // ← No se queda agachado después de deslizarse
       crouching = false;
+      crouchBtn.classList.remove('held');
       if (onlineMode) sendLocalPlayerState();
     }
   } else if (moving) {
@@ -2418,8 +2419,8 @@ function updatePlayer(dt) {
 
   if ((keys['Space'] || jumpQueued) && isGrounded) {
     velocityY = JUMP_FORCE; isGrounded = false;
-    if (sliding) { sliding = false; slideSpeed = 0; crouching = false; if (onlineMode) sendLocalPlayerState(); }
-    else if (crouching) crouching = false;
+    if (sliding) { sliding = false; slideSpeed = 0; crouching = false; crouchBtn.classList.remove('held'); if (onlineMode) sendLocalPlayerState(); }
+    else if (crouching) { crouching = false; crouchBtn.classList.remove('held'); }
   }
   jumpQueued = false;
 
@@ -2500,7 +2501,7 @@ function updateCamera(dt) {
 
   // ─── Altura de ojos según agachado / deslizándose ───
   let targetEye = STAND_EYE_HEIGHT;
-  if (sliding) targetEye = CROUCH_EYE_HEIGHT - 0.15;
+  if (sliding) targetEye = CROUCH_EYE_HEIGHT - 0.20;
   else if (crouching) targetEye = CROUCH_EYE_HEIGHT;
   currentEyeHeight += (targetEye - currentEyeHeight) * Math.min(1, dt * 14);
 
@@ -2546,12 +2547,13 @@ let waveActive = false, waveIntermission = 3, zombieSpawnTimer = 0;
 let isZombieHost = false;
 const MAX_ZOMBIES = 25;
 let soloTimer = 0;
+let hasHadOtherPlayers = false;
 const SOLO_RESET_SECS = 5;
 
 const zombieHUD = document.getElementById('zombie-hud');
 const zombieStatusEl = document.getElementById('zombie-status');
 
-const ZOMBIE_CORPSE_LIFETIME = 4;
+const ZOMBIE_CORPSE_LIFETIME = 1.2;
 
 function buildZombieCharacter(variant = 0) {
   const palettes = [
@@ -2643,7 +2645,7 @@ function killZombie(z) {
   playZombieDeathSound();
   if (onlineMode && isZombieHost) {
     update(ref(db, `rooms/${ROOM}/zombies/${z.id}`), { dead: true, ts: Date.now() }).catch(() => {});
-    setTimeout(() => { remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {}); }, ZOMBIE_CORPSE_LIFETIME * 1000);
+    setTimeout(() => { remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {}); }, 1200);
   }
 }
 
@@ -2705,24 +2707,25 @@ function updateZombiesHost(dt) {
     }
     if (z.dead) {
       z.deathTime += dt;
-      const fall = Math.min(1, z.deathTime / 0.6);
+      const fall = Math.min(1, z.deathTime / 0.35);
       const e = 1 - Math.pow(1 - fall, 3);
-      z.body.rotation.x = -e * Math.PI * 0.5;
-      z.body.position.y = -e * 0.1;
+      z.body.rotation.x = -e * Math.PI * 0.55;
+      z.body.position.y = -e * 0.15;
 
-      if (z.deathTime > ZOMBIE_CORPSE_LIFETIME) {
-        const fade = (z.deathTime - ZOMBIE_CORPSE_LIFETIME) / 1.0;
+      const fadeStart = 0.5;
+      if (z.deathTime > fadeStart) {
+        const fade = (z.deathTime - fadeStart) / 0.7;
         z.root.traverse(o => {
           if (o.isMesh && o.material) {
             o.material.transparent = true;
             o.material.opacity = Math.max(0, 1 - fade);
           }
         });
-        if (z.deathTime > ZOMBIE_CORPSE_LIFETIME + 1.0) {
-          scene.remove(z.root);
-          zombies.splice(i, 1);
-          updateZombieHUD();
-        }
+      }
+      if (z.deathTime > fadeStart + 0.7) {
+        scene.remove(z.root);
+        zombies.splice(i, 1);
+        updateZombieHUD();
       }
       continue;
     }
@@ -2802,24 +2805,25 @@ function updateZombiesClient(dt) {
     }
     if (z.dead) {
       z.deathTime += dt;
-      const fall = Math.min(1, z.deathTime / 0.6);
+      const fall = Math.min(1, z.deathTime / 0.35);
       const e = 1 - Math.pow(1 - fall, 3);
-      z.body.rotation.x = -e * Math.PI * 0.5;
-      z.body.position.y = -e * 0.1;
+      z.body.rotation.x = -e * Math.PI * 0.55;
+      z.body.position.y = -e * 0.15;
 
-      if (z.deathTime > ZOMBIE_CORPSE_LIFETIME) {
-        const fade = (z.deathTime - ZOMBIE_CORPSE_LIFETIME) / 1.0;
+      const fadeStart = 0.5;
+      if (z.deathTime > fadeStart) {
+        const fade = (z.deathTime - fadeStart) / 0.7;
         z.root.traverse(o => {
           if (o.isMesh && o.material) {
             o.material.transparent = true;
             o.material.opacity = Math.max(0, 1 - fade);
           }
         });
-        if (z.deathTime > ZOMBIE_CORPSE_LIFETIME + 1.0) {
-          scene.remove(z.root);
-          zombies.splice(i, 1);
-          updateZombieHUD();
-        }
+      }
+      if (z.deathTime > fadeStart + 0.7) {
+        scene.remove(z.root);
+        zombies.splice(i, 1);
+        updateZombieHUD();
       }
       continue;
     }
@@ -2868,13 +2872,23 @@ function resetZombieSession() {
 
 function updateSoloReset(dt) {
   if (!isZombieHost) { soloTimer = 0; return; }
-  if (remotePlayers.size === 0) {
+
+  if (remotePlayers.size > 0) {
+    // Hay otros jugadores → recordamos que hubo compañía y reseteamos el timer
+    hasHadOtherPlayers = true;
+    soloTimer = 0;
+  } else if (hasHadOtherPlayers) {
+    // Antes hubo otros, pero se fueron → cuenta atrás para resetear
     soloTimer += dt;
-    if (soloTimer >= SOLO_RESET_SECS && (zombieWave > 0 || zombies.length > 0 || waveActive)) {
+    if (soloTimer >= SOLO_RESET_SECS) {
       soloTimer = 0;
-      resetZombieSession();
+      hasHadOtherPlayers = false;
+      if (zombieWave > 0 || zombies.length > 0 || waveActive) {
+        resetZombieSession();
+      }
     }
   } else {
+    // Nunca hubo otros → NO resetear. Es una partida legítima en solitario.
     soloTimer = 0;
   }
 }
@@ -2926,6 +2940,7 @@ function startZombieMode() {
   waveActive = false; waveIntermission = 3;
   zombiesToSpawn = 0;
   soloTimer = 0;
+  hasHadOtherPlayers = false;
   for (const z of zombies) scene.remove(z.root);
   zombies.length = 0;
   updateZombieHUD();
@@ -3156,27 +3171,36 @@ function animateRemotePlayer(r, dt) {
   const crouchC = r.crouchBlend * (1 - r.slideBlend);
   const slideC  = r.slideBlend;
 
-  if (crouchC > 0.01 || slideC > 0.01) {
+  if (crouchC > 0.005 || slideC > 0.005) {
     // Bajar el cuerpo
-    r.body.position.y += -0.35 * crouchC - 0.55 * slideC;
+    r.body.position.y += -0.45 * crouchC - 0.75 * slideC;
 
-    // Piernas: agachado → abiertas; deslizando → extendidas al frente
-    r.parts.leftLeg.rotation.x  += 0.55 * crouchC;
-    r.parts.rightLeg.rotation.x -= 0.55 * crouchC;
-    if (slideC > 0.01) {
-      r.parts.leftLeg.rotation.x  = r.parts.leftLeg.rotation.x  * (1 - slideC) + 1.25 * slideC;
-      r.parts.rightLeg.rotation.x = r.parts.rightLeg.rotation.x * (1 - slideC) + 0.85 * slideC;
+    // Agachado: rodillas hacia adelante (rotación NEGATIVA en X)
+    const kneeBend = -0.55 * crouchC;
+    r.parts.leftLeg.rotation.x  += kneeBend;
+    r.parts.rightLeg.rotation.x += kneeBend;
+
+    // Deslizamiento: piernas extendidas al frente
+    if (slideC > 0.005) {
+      r.parts.leftLeg.rotation.x  = r.parts.leftLeg.rotation.x  * (1 - slideC) + (-1.45) * slideC;
+      r.parts.rightLeg.rotation.x = r.parts.rightLeg.rotation.x * (1 - slideC) + (-1.05) * slideC;
     }
-    // Cabeza ligeramente inclinada
-    r.parts.head.rotation.x += 0.12 * crouchC - 0.05 * slideC;
+
+    // Cabeza
+    r.parts.head.rotation.x += 0.18 * crouchC - 0.22 * slideC;
+
+    // Torso
+    r.body.rotation.x = 0.22 * crouchC - 0.35 * slideC;
+  } else {
+    r.body.rotation.x = 0;
   }
 
   r.pitchSmooth += (r.targetPitch - r.pitchSmooth) * Math.min(1, dt * 12);
   if (r.recoil > 0) r.recoil = Math.max(0, r.recoil - dt * 7);
   r.aimPivot.rotation.x = r.pitchSmooth - r.recoil * 0.22;
   r.aimPivot.rotation.z = Math.sin(r.walkPhase) * (walking ? 0.05 : 0.012);
-  r.aimPivot.position.set(REMOTE_AIM_POS.x, REMOTE_AIM_POS.y, REMOTE_AIM_POS.z - r.recoil * 0.07);
-  r.parts.head.rotation.x = r.pitchSmooth * 0.45;
+  r.aimPivot.position.set(REMOTE_AIM_POS.x, REMOTE_AIM_POS.y - (0.45 * crouchC + 0.75 * slideC), REMOTE_AIM_POS.z - r.recoil * 0.07);
+  r.parts.head.rotation.x += r.pitchSmooth * 0.45;
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
     if (r.flashTimer <= 0) {
