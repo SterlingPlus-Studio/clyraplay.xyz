@@ -2,17 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Low Poly FPS - Online</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
   body { margin: 0; overflow: hidden; background: #87ceeb; touch-action: none; user-select: none; font-family: system-ui, sans-serif; cursor: none; }
   #info { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 14px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; pointer-events: none; text-align: center; transition: opacity 0.4s; padding: 0 12px; }
   #info.hidden { opacity: 0; }
-  #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; z-index: 40; }
+  #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; }
   #hint.active { display: block; }
 
-  #mode-menu { position: fixed; inset: 0; z-index: 500; color: #fff; cursor: default; overflow: hidden; pointer-events: auto; }
+  #mode-menu { position: fixed; inset: 0; z-index: 500; color: #fff; cursor: default; overflow: hidden; pointer-events: none; }
   #mode-menu::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.78) 100%); pointer-events: none; }
   #mode-menu.hidden { display: none; }
   #mode-menu .brand { position: absolute; left: 6vw; top: 50%; transform: translateY(-50%); pointer-events: none; }
@@ -20,30 +20,12 @@
   #mode-menu .brand .subtitle { font: bold clamp(11px, 1.1vw, 15px) system-ui, sans-serif; letter-spacing: 6px; color: #ffb76b; text-shadow: 2px 2px 0 #000; margin-top: 18px; opacity: 0.9; }
   #mode-menu .brand .tag { font: 500 13px system-ui, sans-serif; color: #b0c0d0; letter-spacing: 2px; margin-top: 8px; text-shadow: 1px 1px 0 #000; }
   #mode-menu .menu-stack { position: absolute; right: 5vw; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 20px; pointer-events: none; }
-  .mode-card {
-    position: relative;
-    width: min(340px, 34vw);
-    min-width: 260px;
-    padding: 26px 24px 24px 84px;
-    background: rgba(14,18,30,0.82);
-    border: 3px solid rgba(120,140,180,0.55);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-    pointer-events: auto;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    text-align: left;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
+  .mode-card { position: relative; width: min(340px, 34vw); min-width: 260px; padding: 26px 24px 24px 84px; background: rgba(14,18,30,0.82); border: 3px solid rgba(120,140,180,0.55); border-radius: 12px; cursor: pointer; transition: all 0.22s ease; pointer-events: auto; backdrop-filter: blur(6px); text-align: left; }
   .mode-card:hover { transform: translateX(-10px) scale(1.03); }
   .mode-card.battle:hover { border-color: #ff8c42; box-shadow: -10px 0 40px rgba(255,120,60,0.45), 0 0 30px rgba(255,120,60,0.35); background: rgba(40,18,10,0.88); }
   .mode-card.zombie:hover { border-color: #7cf47c; box-shadow: -10px 0 40px rgba(120,255,120,0.45), 0 0 30px rgba(120,255,120,0.35); background: rgba(14,32,14,0.88); }
   .mode-card:active { transform: translateX(-6px) scale(1.01); }
-  .mode-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); font-size: 46px; line-height: 1; filter: drop-shadow(0 0 12px rgba(255,200,80,0.5)); pointer-events: none; }
+  .mode-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); font-size: 46px; line-height: 1; filter: drop-shadow(0 0 12px rgba(255,200,80,0.5)); }
   .mode-card.zombie .mode-icon { filter: drop-shadow(0 0 12px rgba(120,255,120,0.6)); }
   .mode-title { font: 900 22px system-ui, sans-serif; letter-spacing: 3px; margin-bottom: 6px; text-shadow: 2px 2px 0 #000; }
   .mode-card.battle .mode-title { color: #ff9a5a; }
@@ -51,42 +33,16 @@
   .mode-desc { font: 500 12px system-ui, sans-serif; color: #b0c0d0; line-height: 1.45; }
   .mode-badge { display: inline-block; margin-top: 10px; padding: 3px 9px; background: rgba(80,220,140,0.18); border: 1px solid rgba(120,255,160,0.6); border-radius: 4px; font: bold 10px ui-monospace, monospace; color: #7cff9e; letter-spacing: 1.5px; }
   .mode-card.battle .mode-badge { background: rgba(255,140,80,0.18); border-color: rgba(255,180,120,0.6); color: #ffb76b; }
-
   @media (max-width: 900px) {
-    #mode-menu::before { background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.7) 45%, rgba(0,0,0,0.9) 100%); }
-    #mode-menu .brand { position: absolute; left: 0; right: 0; top: 5vh; transform: none; text-align: center; padding: 0 20px; }
-    #mode-menu .brand h1 { font-size: clamp(26px, 9vw, 42px); letter-spacing: 5px; line-height: 1; }
-    #mode-menu .brand .subtitle { font-size: 10px; letter-spacing: 4px; margin-top: 8px; }
-    #mode-menu .brand .tag { font-size: 11px; letter-spacing: 1.5px; margin-top: 6px; }
-    #mode-menu .menu-stack { position: absolute; right: 0; left: 0; bottom: max(20px, env(safe-area-inset-bottom, 20px)); top: auto; transform: none; padding: 0 16px; gap: 12px; }
-    .mode-card { width: 100%; min-width: 0; padding: 16px 14px 16px 62px; border-radius: 10px; }
-    .mode-card:hover, .mode-card:active { transform: none; }
-    .mode-card:active { background: rgba(60,80,120,0.9); }
-    .mode-icon { left: 14px; font-size: 32px; }
-    .mode-title { font-size: 17px; letter-spacing: 2px; margin-bottom: 4px; }
-    .mode-desc { font-size: 11px; line-height: 1.35; }
-    .mode-badge { font-size: 9px; padding: 2px 7px; margin-top: 6px; }
-  }
-  @media (max-width: 500px) {
-    #mode-menu .brand { top: 3vh; }
-    #mode-menu .brand h1 { font-size: clamp(22px, 8vw, 34px); letter-spacing: 4px; }
-    #mode-menu .brand .subtitle { font-size: 9px; letter-spacing: 3px; }
-    .mode-card { padding: 13px 12px 13px 56px; }
-    .mode-icon { left: 12px; font-size: 28px; }
-    .mode-title { font-size: 15px; }
-    .mode-desc { font-size: 10px; }
-  }
-  @media (max-height: 520px) and (orientation: landscape) {
-    #mode-menu .brand { top: 8px; }
-    #mode-menu .brand h1 { font-size: 22px; letter-spacing: 3px; line-height: 1; }
-    #mode-menu .brand .subtitle { font-size: 9px; margin-top: 4px; letter-spacing: 3px; }
-    #mode-menu .brand .tag { display: none; }
-    #mode-menu .menu-stack { flex-direction: row; bottom: 12px; gap: 10px; padding: 0 12px; }
-    .mode-card { padding: 10px 10px 10px 46px; flex: 1; }
-    .mode-icon { left: 10px; font-size: 22px; }
-    .mode-title { font-size: 13px; letter-spacing: 1px; }
-    .mode-desc { display: none; }
-    .mode-badge { font-size: 8px; padding: 1px 5px; margin-top: 4px; }
+    #mode-menu::before { background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.85) 100%); }
+    #mode-menu .brand { position: relative; left: auto; top: 40px; transform: none; text-align: center; padding: 0 20px; }
+    #mode-menu .brand h1 { font-size: 34px; letter-spacing: 4px; }
+    #mode-menu .brand .subtitle { font-size: 11px; letter-spacing: 4px; margin-top: 10px; }
+    #mode-menu .menu-stack { position: absolute; right: 0; left: 0; bottom: 30px; top: auto; transform: none; padding: 0 20px; gap: 12px; }
+    .mode-card { width: 100%; min-width: 0; padding: 18px 16px 18px 66px; }
+    .mode-icon { left: 16px; font-size: 34px; }
+    .mode-title { font-size: 18px; letter-spacing: 2px; }
+    .mode-desc { font-size: 11px; }
   }
 
   #click-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 200; cursor: pointer; color: #fff; text-align: center; }
@@ -127,6 +83,9 @@
   #grenade-btn { right: 235px; bottom: 55px; width: 75px; height: 75px; font-size: 30px; background: rgba(150,110,255,0.30); border-color: rgba(200,180,255,0.9); }
   #grenade-btn.cooling { opacity: 0.35; }
 
+  #crouch-btn { right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px; background: rgba(120,200,150,0.3); border-color: rgba(180,255,200,0.9); }
+  #crouch-btn.held { background: rgba(150,240,180,0.75); border-color: #fff; }
+
   #zombie-hud { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(20,0,0,0.85); color: #fff; font: bold 14px ui-monospace, monospace; padding: 8px 18px; border: 3px solid #8b2020; border-radius: 6px; z-index: 22; pointer-events: none; white-space: nowrap; text-shadow: 1px 1px 0 #000; display: none; text-align: center; letter-spacing: 2px; }
   #zombie-hud.active { display: block; }
   #zombie-hud .wave { color: #ff5555; font-size: 20px; }
@@ -146,14 +105,14 @@
   #crosshair .l-left   { left: 0;   top: 50%; height: 2px; width: 12px; transform: translateX(-50%) translateY(-50%); }
   #crosshair .l-right  { right: 0;  top: 50%; height: 2px; width: 12px; transform: translateX(50%) translateY(-50%); }
   #crosshair .dot { position: absolute; top: 50%; left: 50%; width: 3px; height: 3px; background: #ff3b30; transform: translate(-50%, -50%); box-shadow: 0 0 3px #000; }
-  #joystick { position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); display: none; touch-action: none; z-index: 10; border-radius: 50%; }
+  #joystick { position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); display: none; touch-action: none; z-index: 10; }
   #joystick.active { display: block; }
-  #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: rgba(255,255,255,0.7); border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); pointer-events: none; border-radius: 50%; }
+  #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: rgba(255,255,255,0.7); border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); pointer-events: none; }
   #joystick-zone { position: fixed; left: 0; bottom: 0; width: 50%; height: 55%; display: none; z-index: 9; touch-action: none; }
   #joystick-zone.active { display: block; }
   #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; }
   #camera-zone.active { display: block; }
-  .btn { position: fixed; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); color: #fff; font: bold 14px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; display: none; align-items: center; justify-content: center; z-index: 10; touch-action: none; cursor: pointer; border-radius: 50%; }
+  .btn { position: fixed; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); color: #fff; font: bold 14px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; display: none; align-items: center; justify-content: center; z-index: 10; touch-action: none; cursor: pointer; }
   .btn.active { display: flex; }
   .btn:active { background: rgba(255,255,255,0.45); }
   #shoot-btn { right: 25px; bottom: 40px; width: 100px; height: 100px; background: rgba(230,60,60,0.35); border-color: rgba(255,120,120,0.9); font-size: 40px; }
@@ -161,8 +120,6 @@
   #aim-btn.held { background: rgba(255,220,80,0.75); border-color: #fff; }
   #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; }
   #swap-btn { right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px; background: rgba(120,200,255,0.3); border-color: rgba(180,230,255,0.9); }
-  #crouch-btn { right: 235px; bottom: 145px; width: 75px; height: 75px; font-size: 30px; background: rgba(100,180,255,0.30); border-color: rgba(180,220,255,0.9); }
-  #crouch-btn.active-mode { background: rgba(80,180,255,0.75); border-color: #fff; box-shadow: 0 0 18px rgba(80,180,255,0.9); }
   #debug-btn { top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px; background: rgba(50,220,100,0.3); border-color: rgba(150,255,150,0.9); }
   #online-panel { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; font: bold 12px ui-monospace, monospace; padding: 6px 12px; border: 2px solid rgba(100,220,150,0.7); border-radius: 5px; z-index: 22; pointer-events: none; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
   #online-panel.offline { border-color: rgba(220,80,80,0.7); }
@@ -180,13 +137,13 @@
   body.is-touch #grenade-label { font-size: 9px; margin-bottom: 2px; }
   body.is-touch #grenade-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
   body.is-touch #grenade-btn { right: 200px; bottom: 42px; width: 68px; height: 68px; font-size: 26px; }
+  body.is-touch #crouch-btn { right: 275px; bottom: 42px; width: 68px; height: 68px; font-size: 24px; }
   body.is-touch #joystick { left: 20px; bottom: 20px; width: 110px; height: 110px; }
   body.is-touch #stick { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   body.is-touch #shoot-btn { right: 18px; bottom: 30px; width: 88px; height: 88px; font-size: 34px; }
   body.is-touch #aim-btn { right: 118px; bottom: 42px; width: 68px; height: 68px; font-size: 26px; }
   body.is-touch #jump-btn { right: 18px; bottom: 130px; width: 68px; height: 68px; font-size: 11px; }
   body.is-touch #swap-btn { right: 118px; bottom: 122px; width: 68px; height: 68px; font-size: 22px; }
-  body.is-touch #crouch-btn { right: 200px; bottom: 122px; width: 68px; height: 68px; font-size: 26px; }
 
   body.in-menu #minimap-wrap,
   body.in-menu #health-wrap,
@@ -223,7 +180,7 @@
   </div>
 </div>
 
-<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C: agacharse · F3: debug</div>
+<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
 <div id="zombie-hud">
@@ -237,7 +194,7 @@
       Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
       <span class="key">Click der</span> apuntar · <span class="key">R</span> recargar ·
       <span class="key">Q</span> cambiar arma · <span class="key">G</span> granada ·
-      <span class="key">C</span> agacharse · <span class="key">ESC</span> liberar ratón
+      <span class="key">C</span> agacharse/deslizar · <span class="key">ESC</span> liberar ratón
     </div>
   </div>
 </div>
@@ -273,8 +230,8 @@
 <div id="aim-btn" class="btn">🎯</div>
 <div id="jump-btn" class="btn">SALTAR</div>
 <div id="swap-btn" class="btn">🔄</div>
-<div id="crouch-btn" class="btn">⬇</div>
 <div id="grenade-btn" class="btn">💣</div>
+<div id="crouch-btn" class="btn">⬇</div>
 <div id="debug-btn" class="btn">🐞</div>
 
 <script type="importmap">
@@ -453,24 +410,6 @@ function playZombieDeathSound() {
   osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(60, t + 0.4);
   const g = audioCtx.createGain(); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
   osc.connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.45);
-}
-function playCrouchSound() {
-  if (!audioCtx || !audioEnabled) return;
-  const t = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator(); osc.type = 'triangle';
-  osc.frequency.setValueAtTime(180, t); osc.frequency.exponentialRampToValueAtTime(90, t + 0.08);
-  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-  osc.connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.12);
-}
-function playSlideSound() {
-  if (!audioCtx || !audioEnabled) return;
-  const t = audioCtx.currentTime;
-  const src = audioCtx.createBufferSource(); src.buffer = _noiseBuffer(0.45, 1.5);
-  const filt = audioCtx.createBiquadFilter(); filt.type = 'bandpass';
-  filt.frequency.setValueAtTime(800, t); filt.frequency.exponentialRampToValueAtTime(300, t + 0.45);
-  filt.Q.value = 1.2;
-  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-  src.connect(filt).connect(g).connect(masterGain); src.start(t); src.stop(t + 0.5);
 }
 
 /* ═══════════════════════════════════════════
@@ -707,7 +646,7 @@ function buildCharacter(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   ARMAS FPS (LOCAL)
+   ARMAS FPS (LOCAL — usa los FBX cargados)
    ═══════════════════════════════════════════ */
 function createFlash(radius, x, y, z, color) {
   const flash = new THREE.Mesh(
@@ -742,6 +681,9 @@ function createPistolModel() {
   return { group, flash, gripMarker, fbxModel: null };
 }
 
+/* ═══════════════════════════════════════════
+   ARMAS LOW-POLY PARA JUGADORES REMOTOS
+   ═══════════════════════════════════════════ */
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -879,6 +821,9 @@ const pistolModel  = createPistolModel();
 const weaponRifle  = rifleModel.group;
 const weaponPistol = pistolModel.group;
 
+/* ═══════════════════════════════════════════
+   CARGA DE MODELOS FBX
+   ═══════════════════════════════════════════ */
 const _fbxLoader = new FBXLoader();
 
 function loadFBXWeapon(url, targetLen, rotY = 0) {
@@ -1778,82 +1723,59 @@ function showDamageFlash(amount = 0.7) {
   playDamageSound();
 }
 
-/* ═══════════════════════════════════════════
-   AGACHARSE / DESLIZARSE
-   ═══════════════════════════════════════════ */
+/* ─────────────── AGACHARSE / DESLIZARSE ─────────────── */
+const SLIDE_DURATION = 0.85;
+const SLIDE_INITIAL_SPEED = 13;
+const CROUCH_EYE_HEIGHT = 1.05;
+const STAND_EYE_HEIGHT = 1.75;
 let crouching = false;
 let sliding = false;
 let slideTimer = 0;
-let slideDirX = 0, slideDirZ = 0;
-const SLIDE_DURATION = 0.85;
-const SLIDE_SPEED_START = 14.0;
-const SLIDE_SPEED_END = 4.5;
-const EYE_HEIGHT = 1.75;
-const CROUCH_EYE_HEIGHT = 1.05;
-let eyeHeightCurrent = EYE_HEIGHT;
+let slideSpeed = 0;
+let crouchKeyHeld = false;
+let currentEyeHeight = STAND_EYE_HEIGHT;
+const slideDir = new THREE.Vector3(0, 0, -1);
 const crouchBtn = document.getElementById('crouch-btn');
 
-function updateCrouchBtn() {
-  crouchBtn.classList.toggle('active-mode', crouching);
+function getInputAxes() {
+  let ix = 0, iz = 0;
+  if (keys['KeyW'] || keys['ArrowUp']) iz += 1;
+  if (keys['KeyS'] || keys['ArrowDown']) iz -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) ix += 1;
+  if (keys['KeyA'] || keys['ArrowLeft']) ix -= 1;
+  ix += touchInput.x; iz -= touchInput.y;
+  const l = Math.hypot(ix, iz);
+  if (l > 1) { ix /= l; iz /= l; }
+  return { ix, iz, moving: (ix * ix + iz * iz) > 0.01 };
 }
 
-function tryCrouchOrSlide() {
-  if (playerDead || !gameMode) return;
-  initAudio();
+function startSlide(ix, iz) {
+  if (sliding) return;
+  const camFwdX = -Math.sin(cameraYaw), camFwdZ = -Math.cos(cameraYaw);
+  const camRightX = -camFwdZ, camRightZ = camFwdX;
+  let mx = camFwdX * iz + camRightX * ix;
+  let mz = camFwdZ * iz + camRightZ * ix;
+  const l = Math.hypot(mx, mz);
+  if (l > 0.01) slideDir.set(mx / l, 0, mz / l);
+  else slideDir.set(camFwdX, 0, camFwdZ);
+  sliding = true;
+  slideTimer = SLIDE_DURATION;
+  slideSpeed = SLIDE_INITIAL_SPEED;
+  crouching = false;
+  if (onlineMode) sendLocalPlayerState();
+}
 
-  // Si está deslizándose → cancelar slide y levantarse
-  if (sliding) {
-    sliding = false;
-    slideTimer = 0;
-    crouching = false;
-    updateCrouchBtn();
-    playCrouchSound();
-    return;
-  }
+function tryCrouchInput() {
+  crouchKeyHeld = true;
+  if (playerDead || crouching || sliding) return;
+  const { ix, iz, moving } = getInputAxes();
+  if (moving && isGrounded && !aiming) startSlide(ix, iz);
+  else crouching = true;
+}
 
-  // Si ya está agachado → levantarse
-  if (crouching) {
-    crouching = false;
-    updateCrouchBtn();
-    playCrouchSound();
-    return;
-  }
-
-  // Intenta deslizarse si se mueve y está en el suelo
-  if (isGrounded && !aiming) {
-    let ix = 0, iz = 0;
-    if (keys['KeyW'] || keys['ArrowUp']) iz += 1;
-    if (keys['KeyS'] || keys['ArrowDown']) iz -= 1;
-    if (keys['KeyD'] || keys['ArrowRight']) ix += 1;
-    if (keys['KeyA'] || keys['ArrowLeft']) ix -= 1;
-    ix += touchInput.x; iz -= touchInput.y;
-    const len = Math.hypot(ix, iz);
-
-    if (len > 0.35) {
-      ix /= len; iz /= len;
-      const camFwdX = -Math.sin(cameraYaw), camFwdZ = -Math.cos(cameraYaw);
-      const camRightX = -camFwdZ, camRightZ = camFwdX;
-      let mx = camFwdX * iz + camRightX * ix;
-      let mz = camFwdZ * iz + camRightZ * ix;
-      const ml = Math.hypot(mx, mz);
-      if (ml > 0.01) {
-        slideDirX = mx / ml;
-        slideDirZ = mz / ml;
-        sliding = true;
-        slideTimer = SLIDE_DURATION;
-        crouching = true;
-        updateCrouchBtn();
-        playSlideSound();
-        showTempHint('💨 ¡Deslizamiento!', 0.7);
-        return;
-      }
-    }
-  }
-
-  // Solo agacharse
-  crouching = true;
-  updateCrouchBtn();
-  playCrouchSound();
+function releaseCrouchInput() {
+  crouchKeyHeld = false;
+  if (!sliding) crouching = false;
 }
 
 /* ─────────────── CONTROLES ─────────────── */
@@ -1864,12 +1786,19 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyR' && !e.repeat && !playerDead) startReload();
   if (e.code === 'KeyQ' && !e.repeat && !playerDead) swapWeapon();
   if (e.code === 'KeyG' && !e.repeat && !playerDead) throwGrenade();
-  if (e.code === 'KeyC' && !e.repeat && !playerDead) tryCrouchOrSlide();
   if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon('rifle');
   if (e.code === 'Digit2' && !e.repeat && !playerDead) selectWeapon('pistol');
+  if ((e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') && !e.repeat && !playerDead) {
+    tryCrouchInput();
+  }
   if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
 });
-addEventListener('keyup', e => keys[e.code] = false);
+addEventListener('keyup', e => {
+  keys[e.code] = false;
+  if (e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') {
+    releaseCrouchInput();
+  }
+});
 
 const joystick = document.getElementById('joystick');
 const joystickZone = document.getElementById('joystick-zone');
@@ -1955,8 +1884,25 @@ jumpBtn.addEventListener('pointerdown', e => { e.preventDefault(); jumpQueued = 
 swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDead) swapWeapon(); });
 debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
 grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); throwGrenade(); });
-crouchBtn.addEventListener('pointerdown', e => { e.preventDefault(); tryCrouchOrSlide(); });
-crouchBtn.addEventListener('touchstart', e => { e.preventDefault(); tryCrouchOrSlide(); }, { passive: false });
+
+crouchBtn.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (playerDead || !gameMode) return;
+  crouchBtn.classList.add('held');
+  crouchKeyHeld = true;
+  if (crouching || sliding) return;
+  const { ix, iz, moving } = getInputAxes();
+  if (moving && isGrounded && !aiming) startSlide(ix, iz);
+  else crouching = true;
+});
+function releaseCrouchBtn(e) {
+  if (e) e.preventDefault();
+  crouchBtn.classList.remove('held');
+  releaseCrouchInput();
+}
+crouchBtn.addEventListener('pointerup', releaseCrouchBtn);
+crouchBtn.addEventListener('pointercancel', releaseCrouchBtn);
+crouchBtn.addEventListener('pointerleave', releaseCrouchBtn);
 
 let shootHeld = false;
 shootBtn.addEventListener('pointerdown', e => { e.preventDefault(); shootHeld = true; tryShoot(); });
@@ -2070,10 +2016,10 @@ function updateDebug(dt) {
 <span class="val">Cámara:</span>    ${playerDead ? '💀' : '👁 FPS'}
 <span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
-<span class="val">Postura:</span>   ${sliding ? '💨 SLIDE' : crouching ? '⬇ AGACHADO' : '🚶 DE PIE'}
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
 <span class="val">Granada:</span>   ${grenadeCooldown > 0 ? grenadeCooldown.toFixed(1) + 's' : 'LISTA'}
+<span class="val">Postura:</span>   ${sliding ? '🛷 DESLIZÁNDOSE' : (crouching ? '⬇ AGACHADO' : '⬆ DE PIE')}
 ${zinfo}
 <span class="val">Mapa:</span>      seed ${MAP_SEED}
   `.trim();
@@ -2090,6 +2036,7 @@ function showTempHint(text, dur = 1.4) {
   hintTimer = dur;
 }
 const FP_PITCH_MIN = -1.1, FP_PITCH_MAX = 1.2;
+const EYE_HEIGHT = 1.75;
 let deathTimer = 0, deathCameraAngle = 0;
 const deathPosition = new THREE.Vector3();
 const deathStartCamPos = new THREE.Vector3();
@@ -2252,7 +2199,12 @@ function killPlayer() {
 
   setAiming(false); shootHeld = false;
   curWepState().reloading = false; ammoWrap.classList.remove('reloading');
-  crouching = false; sliding = false; updateCrouchBtn();
+
+  sliding = false; slideTimer = 0; slideSpeed = 0;
+  crouching = false; crouchKeyHeld = false;
+  currentEyeHeight = STAND_EYE_HEIGHT;
+  crouchBtn.classList.remove('held');
+
   player.updateMatrixWorld(true);
   for (const child of [...playerBody.children]) {
     const clone = child.clone();
@@ -2288,7 +2240,10 @@ function respawnPlayer() {
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
-  crouching = false; sliding = false; eyeHeightCurrent = EYE_HEIGHT; updateCrouchBtn();
+
+  sliding = false; slideTimer = 0; slideSpeed = 0;
+  crouching = false; crouchKeyHeld = false;
+  currentEyeHeight = STAND_EYE_HEIGHT;
 
   selectWeapon('rifle', true, true);
   setLocalWeaponsVisible(true);
@@ -2437,23 +2392,23 @@ function updatePlayer(dt) {
   const camFwdX = -Math.sin(cameraYaw), camFwdZ = -Math.cos(cameraYaw);
   const camRightX = -camFwdZ, camRightZ = camFwdX;
 
-  // ── Movimiento ──
+  // ─── DESLIZAMIENTO ───
   if (sliding) {
-    const t = 1 - Math.max(0, slideTimer) / SLIDE_DURATION;
-    const slideSpeed = SLIDE_SPEED_START * (1 - t) + SLIDE_SPEED_END * t;
-    player.position.x += slideDirX * slideSpeed * dt;
-    player.position.z += slideDirZ * slideSpeed * dt;
     slideTimer -= dt;
-    if (slideTimer <= 0) {
+    slideSpeed = Math.max(3, slideSpeed - 15 * dt);
+    player.position.x += slideDir.x * slideSpeed * dt;
+    player.position.z += slideDir.z * slideSpeed * dt;
+    if (slideTimer <= 0 || !isGrounded) {
       sliding = false;
+      slideSpeed = 0;
+      // ← No se queda agachado después de deslizarse
       crouching = false;
-      updateCrouchBtn();
-      playCrouchSound();
+      if (onlineMode) sendLocalPlayerState();
     }
   } else if (moving) {
-    const moveSpeed = crouching ? 3.6 : (aiming ? 4 : 8);
     const moveX = camFwdX * iz + camRightX * ix;
     const moveZ = camFwdZ * iz + camRightZ * ix;
+    const moveSpeed = aiming ? 4 : (crouching ? 3.5 : 8);
     player.position.x += moveX * moveSpeed * dt;
     player.position.z += moveZ * moveSpeed * dt;
   }
@@ -2462,9 +2417,9 @@ function updatePlayer(dt) {
   const groundY = computeGroundY(player.position.x, player.position.z, player.position.y);
 
   if ((keys['Space'] || jumpQueued) && isGrounded) {
-    velocityY = JUMP_FORCE;
-    isGrounded = false;
-    if (sliding) { sliding = false; slideTimer = 0; crouching = false; updateCrouchBtn(); }
+    velocityY = JUMP_FORCE; isGrounded = false;
+    if (sliding) { sliding = false; slideSpeed = 0; crouching = false; if (onlineMode) sendLocalPlayerState(); }
+    else if (crouching) crouching = false;
   }
   jumpQueued = false;
 
@@ -2480,28 +2435,21 @@ function updatePlayer(dt) {
     if (player.position.y <= groundY && velocityY <= 0) { player.position.y = groundY; velocityY = 0; isGrounded = true; }
   }
 
-  const targetEye = crouching ? CROUCH_EYE_HEIGHT : EYE_HEIGHT;
-  eyeHeightCurrent += (targetEye - eyeHeightCurrent) * Math.min(1, dt * 12);
-
-  const movingNow = moving || sliding;
-  if (movingNow && isGrounded) {
-    walkPhase += dt * (sliding ? 15 : 11);
-    weaponWalkPhase += dt * (aiming ? 6.8 : 8.2);
-    const crouchMul = crouching ? 0.55 : 1;
-    const targetBob = Math.abs(Math.sin(walkPhase)) * (aiming ? 0.025 : 0.055) * crouchMul;
+  if (moving && isGrounded && !sliding) {
+    walkPhase += dt * (crouching ? 7 : 11);
+    weaponWalkPhase += dt * (aiming ? 6.8 : (crouching ? 6 : 8.2));
+    const targetBob = Math.abs(Math.sin(walkPhase)) * (aiming || crouching ? 0.025 : 0.055);
     bobOffset += (targetBob - bobOffset) * Math.min(1, dt * 10);
     weaponMoveBlend += (1 - weaponMoveBlend) * Math.min(1, dt * 6);
   } else {
     bobOffset *= Math.max(0, 1 - dt * 8);
     weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 5);
   }
-
   player.position.x = THREE.MathUtils.clamp(player.position.x, -70, 70);
   player.position.z = THREE.MathUtils.clamp(player.position.z, -70, 70);
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
-  const crouchWeaponDrop = crouching ? 0.04 : 0;
   const swayMul = currentWeaponKey === 'rifle' ? 1.0 : 0.82;
   const swayX = Math.sin(weaponWalkPhase) * 0.012 * swayMul * weaponMoveBlend;
   const swayY = (1 - Math.cos(weaponWalkPhase * 2)) * 0.0045 * swayMul * weaponMoveBlend;
@@ -2510,7 +2458,7 @@ function updatePlayer(dt) {
   const swayRotY = Math.sin(weaponWalkPhase * 0.5) * 0.008 * swayMul * weaponMoveBlend;
   const swayRotZ = Math.sin(weaponWalkPhase) * 0.016 * swayMul * weaponMoveBlend;
   const targetX = basePos.x + swayX;
-  const targetY = basePos.y + swayY - crouchWeaponDrop;
+  const targetY = basePos.y + swayY;
   const targetZ = basePos.z + swayZ;
 
   if (ws.reloading) {
@@ -2549,7 +2497,16 @@ function updateCamera(dt) {
   const desiredFov = aiming ? def.aimFov : BASE_FOV;
   camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 10);
   camera.updateProjectionMatrix();
-  const eyeX = player.position.x, eyeY = player.position.y + eyeHeightCurrent + bobOffset, eyeZ = player.position.z;
+
+  // ─── Altura de ojos según agachado / deslizándose ───
+  let targetEye = STAND_EYE_HEIGHT;
+  if (sliding) targetEye = CROUCH_EYE_HEIGHT - 0.15;
+  else if (crouching) targetEye = CROUCH_EYE_HEIGHT;
+  currentEyeHeight += (targetEye - currentEyeHeight) * Math.min(1, dt * 14);
+
+  const eyeX = player.position.x;
+  const eyeY = player.position.y + currentEyeHeight + bobOffset;
+  const eyeZ = player.position.z;
   camera.position.set(eyeX, eyeY, eyeZ);
   const cosP = Math.cos(cameraPitch), sinP = Math.sin(cameraPitch);
   const lookX = -Math.sin(cameraYaw) * cosP, lookY = -sinP, lookZ = -Math.cos(cameraYaw) * cosP;
@@ -2987,7 +2944,7 @@ function updateZombieHUD() {
 }
 
 /* ═══════════════════════════════════════════
-   JUGADORES REMOTOS  (con sincronización de CROUCH y SLIDE)
+   JUGADORES REMOTOS
    ═══════════════════════════════════════════ */
 const remotePlayers = new Map();
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.28);
@@ -3023,10 +2980,11 @@ function addRemotePlayer(id, data) {
     aimPivot, rifle, pistol, weaponKey, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
-    crouch: !!data.crouch, slide: !!data.slide,
-    bodyYCurrent: 0, aimYCurrent: REMOTE_AIM_POS.y, aimZCurrent: REMOTE_AIM_POS.z,
     lastSeen: Date.now(), hp: data.hp ?? 100, dead: false, deathTime: 0,
-    walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0
+    walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0,
+    crouchBlend: 0, slideBlend: 0,
+    targetCrouch: data.crouch ? 1 : 0,
+    targetSlide: data.slide ? 1 : 0
   });
 }
 function updateRemotePlayer(id, data) {
@@ -3039,10 +2997,9 @@ function updateRemotePlayer(id, data) {
   r.targetYaw = (data.yaw ?? 0) + Math.PI;
   r.targetPitch = data.pitch ?? r.targetPitch;
   if (data.weapon === 'pistol' || data.weapon === 'rifle') r.weaponKey = data.weapon;
-  // ── Sincronizar postura ──
-  if (data.crouch !== undefined) r.crouch = !!data.crouch;
-  if (data.slide !== undefined)  r.slide  = !!data.slide;
   r.lastSeen = Date.now();
+  r.targetCrouch = data.crouch ? 1 : 0;
+  r.targetSlide  = data.slide  ? 1 : 0;
   const newHp = (typeof data.hp === 'number') ? data.hp : r.hp;
   if (newHp < r.hp) r.hitFlash = 1;
   r.hp = newHp;
@@ -3071,8 +3028,10 @@ function reviveRemotePlayer(r) {
   r.parts.rightLeg.rotation.x = 0;
   r.aimPivot.visible = true;
   r.hitFlash = 0;
-  r.crouch = false; r.slide = false;
-  r.bodyYCurrent = 0; r.aimYCurrent = REMOTE_AIM_POS.y; r.aimZCurrent = REMOTE_AIM_POS.z;
+  r.crouchBlend = 0;
+  r.slideBlend = 0;
+  r.targetCrouch = 0;
+  r.targetSlide = 0;
   if (r.rifle) r.rifle.flash.visible = false;
   if (r.pistol) r.pistol.flash.visible = false;
 }
@@ -3086,6 +3045,7 @@ function triggerRemoteShot(r) {
   if (activeWeapon) activeWeapon.flash.visible = true;
 }
 
+/* IK */
 const _ikShoulderWorld = new THREE.Vector3();
 const _ikToTarget = new THREE.Vector3();
 const _ikTargetDir = new THREE.Vector3();
@@ -3170,83 +3130,53 @@ function animateRemotePlayer(r, dt) {
   r.aimPivot.visible = true;
   if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
   if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
-
   const walking = r.moveSpeed > 0.5;
-
-  // ─────────────────────────────────────────
-  // POSTURA: de pie / agachado / deslizándose
-  // ─────────────────────────────────────────
-  // Objetivos de altura del cuerpo (relativo al root) y del aimPivot
-  let targetBodyY = 0;
-  let targetAimY = REMOTE_AIM_POS.y;
-  let targetAimZ = REMOTE_AIM_POS.z;
-  let targetBodyRotX = 0; // inclinación hacia atrás al slide
-  let legBend = 0;        // cuánto se doblan las piernas
-
-  if (r.slide) {
-    targetBodyY = -0.30;          // cuerpo bien bajo
-    targetAimY = REMOTE_AIM_POS.y - 0.55;
-    targetAimZ = REMOTE_AIM_POS.z + 0.05;
-    targetBodyRotX = -0.35;       // inclinado hacia atrás
-    legBend = 1.0;
-  } else if (r.crouch) {
-    targetBodyY = -0.22;          // agachado normal
-    targetAimY = REMOTE_AIM_POS.y - 0.38;
-    targetAimZ = REMOTE_AIM_POS.z;
-    targetBodyRotX = 0.10;        // ligera inclinación hacia delante
-    legBend = 0.7;
-  } else {
-    targetBodyY = 0;
-    targetAimY = REMOTE_AIM_POS.y;
-    targetAimZ = REMOTE_AIM_POS.z;
-    targetBodyRotX = 0;
-    legBend = 0;
-  }
-
-  // Interpolar suavemente
-  const k = Math.min(1, dt * 12);
-  r.bodyYCurrent += (targetBodyY - r.bodyYCurrent) * k;
-  r.aimYCurrent += (targetAimY - r.aimYCurrent) * k;
-  r.aimZCurrent += (targetAimZ - r.aimZCurrent) * k;
-
-  // ── Piernas ──
   if (walking) {
-    r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9) * (r.slide ? 1.6 : 1);
-    const amp = Math.min(0.85, 0.18 + r.moveSpeed * 0.075) * (1 - legBend * 0.4);
+    r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
+    const amp = Math.min(0.85, 0.18 + r.moveSpeed * 0.075);
     const s = Math.sin(r.walkPhase);
-    r.parts.leftLeg.rotation.x = s * amp - legBend * 0.55;
-    r.parts.rightLeg.rotation.x = -s * amp - legBend * 0.55;
-    // Offset vertical del cuerpo por el paso
-    r.body.position.y = Math.abs(Math.sin(r.walkPhase)) * 0.055 * (1 - legBend * 0.5) + r.bodyYCurrent;
+    r.parts.leftLeg.rotation.x = s * amp;
+    r.parts.rightLeg.rotation.x = -s * amp;
+    r.body.position.y = Math.abs(Math.sin(r.walkPhase)) * 0.055;
     r.body.rotation.y = Math.sin(r.walkPhase * 2) * 0.05;
-    r.body.rotation.z = Math.sin(r.walkPhase) * 0.035 + (r.slide ? 0.08 : 0);
+    r.body.rotation.z = Math.sin(r.walkPhase) * 0.035;
   } else {
     r.walkPhase += dt * 1.6;
-    const kk = Math.min(1, dt * 8);
-    // Piernas dobladas si está agachado
-    const restLeft = -legBend * 0.55;
-    const restRight = -legBend * 0.55;
-    r.parts.leftLeg.rotation.x += (restLeft - r.parts.leftLeg.rotation.x) * kk;
-    r.parts.rightLeg.rotation.x += (restRight - r.parts.rightLeg.rotation.x) * kk;
-    r.body.position.y = Math.sin(r.walkPhase) * 0.015 + r.bodyYCurrent;
-    r.body.rotation.y += (0 - r.body.rotation.y) * kk;
-    r.body.rotation.z += ((r.slide ? 0.08 : 0) - r.body.rotation.z) * kk;
+    const k = Math.min(1, dt * 8);
+    r.parts.leftLeg.rotation.x += (0 - r.parts.leftLeg.rotation.x) * k;
+    r.parts.rightLeg.rotation.x += (0 - r.parts.rightLeg.rotation.x) * k;
+    r.body.position.y = Math.sin(r.walkPhase) * 0.015;
+    r.body.rotation.y += (0 - r.body.rotation.y) * k;
+    r.body.rotation.z += (0 - r.body.rotation.z) * k;
   }
 
-  // Inclinación del cuerpo (slide → hacia atrás)
-  r.body.rotation.x += (targetBodyRotX - r.body.rotation.x) * Math.min(1, dt * 10);
+  // ─── Pose de agachado / deslizamiento ───
+  r.crouchBlend += (r.targetCrouch - r.crouchBlend) * Math.min(1, dt * 10);
+  r.slideBlend  += (r.targetSlide  - r.slideBlend)  * Math.min(1, dt * 12);
+  const crouchC = r.crouchBlend * (1 - r.slideBlend);
+  const slideC  = r.slideBlend;
 
-  // Cabeza sigue pitch (menos marcado si está agachado)
-  const headPitchMul = r.slide ? 0.2 : (r.crouch ? 0.35 : 0.45);
-  r.parts.head.rotation.x = r.pitchSmooth * headPitchMul;
+  if (crouchC > 0.01 || slideC > 0.01) {
+    // Bajar el cuerpo
+    r.body.position.y += -0.35 * crouchC - 0.55 * slideC;
 
-  // ── AimPivot (arma + brazos) ──
+    // Piernas: agachado → abiertas; deslizando → extendidas al frente
+    r.parts.leftLeg.rotation.x  += 0.55 * crouchC;
+    r.parts.rightLeg.rotation.x -= 0.55 * crouchC;
+    if (slideC > 0.01) {
+      r.parts.leftLeg.rotation.x  = r.parts.leftLeg.rotation.x  * (1 - slideC) + 1.25 * slideC;
+      r.parts.rightLeg.rotation.x = r.parts.rightLeg.rotation.x * (1 - slideC) + 0.85 * slideC;
+    }
+    // Cabeza ligeramente inclinada
+    r.parts.head.rotation.x += 0.12 * crouchC - 0.05 * slideC;
+  }
+
   r.pitchSmooth += (r.targetPitch - r.pitchSmooth) * Math.min(1, dt * 12);
   if (r.recoil > 0) r.recoil = Math.max(0, r.recoil - dt * 7);
   r.aimPivot.rotation.x = r.pitchSmooth - r.recoil * 0.22;
   r.aimPivot.rotation.z = Math.sin(r.walkPhase) * (walking ? 0.05 : 0.012);
-  r.aimPivot.position.set(REMOTE_AIM_POS.x, r.aimYCurrent, r.aimZCurrent - r.recoil * 0.07);
-
+  r.aimPivot.position.set(REMOTE_AIM_POS.x, REMOTE_AIM_POS.y, REMOTE_AIM_POS.z - r.recoil * 0.07);
+  r.parts.head.rotation.x = r.pitchSmooth * 0.45;
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
     if (r.flashTimer <= 0) {
@@ -3291,10 +3221,8 @@ function sendLocalPlayerState() {
     name: playerName,
     x: +player.position.x.toFixed(2), y: +player.position.y.toFixed(2), z: +player.position.z.toFixed(2),
     yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: currentWeaponKey,
-    hp: Math.round(health), dead: playerDead,
-    crouch: crouching,   // ← sincroniza agachado
-    slide: sliding,      // ← sincroniza deslizándose
-    ts: Date.now()
+    hp: Math.round(health), dead: playerDead, ts: Date.now(),
+    crouch: crouching, slide: sliding
   }).catch(() => {});
 }
 
@@ -3336,8 +3264,8 @@ async function initOnline() {
 
   await set(playerNetRef, {
     name: playerName, x: player.position.x, y: player.position.y, z: player.position.z,
-    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false,
-    crouch: false, slide: false, mode: gameMode, ts: Date.now()
+    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false, mode: gameMode, ts: Date.now(),
+    crouch: false, slide: false
   });
   onDisconnect(playerNetRef).remove();
   onDisconnect(ref(db, `rooms/${ROOM}/shots/${playerId}`)).remove();
@@ -3565,14 +3493,13 @@ function drawMinimap() {
     for (const [, r] of remotePlayers) {
       const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
       if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-      // Color según postura
-      ctx.fillStyle = r.dead ? '#666' : (r.slide ? '#4ecdc4' : (r.crouch ? '#3b7ec9' : '#f39c12'));
+      ctx.fillStyle = r.dead ? '#666' : '#f39c12';
       ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
     }
   }
   ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(cameraYaw + Math.PI);
-  ctx.fillStyle = playerDead ? '#666' : (crouching ? '#3b7ec9' : '#e74c3c');
+  ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
   ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
   ctx.restore();
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
@@ -3611,8 +3538,8 @@ function updateUI(dt = 0) {
     aimBtn.classList.toggle('active', show);
     swapBtn.classList.toggle('active', show);
     grenadeBtn.classList.toggle('active', show);
-    crouchBtn.classList.toggle('active', show);
     grenadeBtn.classList.toggle('cooling', grenadeCooldown > 0);
+    crouchBtn.classList.toggle('active', show);
   }
   crosshair.classList.toggle('active', !playerDead && !!gameMode);
   if (hintTimer > 0) {
@@ -3663,25 +3590,13 @@ function applyOptimizations() {
    ═══════════════════════════════════════════ */
 const modeMenu = document.getElementById('mode-menu');
 
-function bindModeCard(card) {
-  let triggered = false;
-  const trigger = (e) => {
-    if (triggered) return;
-    triggered = true;
-    if (e && e.cancelable) e.preventDefault();
-    if (e && e.stopPropagation) e.stopPropagation();
+document.querySelectorAll('.mode-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const mode = card.dataset.mode;
     initAudio();
-    selectGameMode(card.dataset.mode);
-    setTimeout(() => { triggered = false; }, 800);
-  };
-  card.addEventListener('touchend', trigger, { passive: false });
-  card.addEventListener('touchstart', (e) => {}, { passive: true });
-  card.addEventListener('click', trigger, false);
-  card.addEventListener('pointerup', (e) => {
-    if (e.pointerType === 'touch') trigger(e);
+    selectGameMode(mode);
   });
-}
-document.querySelectorAll('.mode-card').forEach(bindModeCard);
+});
 
 function selectGameMode(mode) {
   if (gameMode) return;
@@ -3701,7 +3616,8 @@ function selectGameMode(mode) {
     jumpBtn.classList.add('active'); cameraZone.classList.add('active');
     debugBtn.classList.add('active'); shootBtn.classList.add('active');
     aimBtn.classList.add('active'); swapBtn.classList.add('active');
-    grenadeBtn.classList.add('active'); crouchBtn.classList.add('active');
+    grenadeBtn.classList.add('active');
+    crouchBtn.classList.add('active');
   }
 
   try {
