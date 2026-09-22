@@ -641,6 +641,10 @@ function buildCharacter(opts = {}) {
 
 /* ═══════════════════════════════════════════
    MODELOS DE ARMA
+   NOTA: el rifle ahora se normaliza a 0.65 unidades y sin rotación Y
+   porque el FBX original tiene el cañón alineado a -Z (hacia adelante
+   en espacio cámara). Antes con Math.PI/2 el cañón quedaba apuntando
+   hacia la izquierda (-X) y por eso se veía cruzado y enorme.
    ═══════════════════════════════════════════ */
 function createFlash(radius, x, y, z, color) {
   const flash = new THREE.Mesh(
@@ -654,20 +658,23 @@ function createFlash(radius, x, y, z, color) {
 
 function createRifleModel() {
   const group = new THREE.Group();
-  const flash = createFlash(0.16, 0, 0.06, 0.72, 0xffee88);
+  // Flash del cañón: al frente (-Z) y a la altura del cañón del M4
+  const flash = createFlash(0.10, 0, 0.025, -0.35, 0xffee88);
   group.add(flash);
+  // Grip marker: parte baja-centro, donde va la mano derecha en el gatillo
   const gripMarker = new THREE.Object3D();
-  gripMarker.position.set(0, -0.21, -0.14);
+  gripMarker.position.set(0, -0.11, 0.10);
   group.add(gripMarker);
+  // Handguard marker: parte delantera donde va la mano izquierda
   const handguardMarker = new THREE.Object3D();
-  handguardMarker.position.set(0, 0.06, 0.40);
+  handguardMarker.position.set(0, 0.02, -0.22);
   group.add(handguardMarker);
   return { group, flash, gripMarker, handguardMarker, fbxModel: null };
 }
 
 function createPistolModel() {
   const group = new THREE.Group();
-  const flash = createFlash(0.11, 0, 0.05, 0.44, 0xffdd66);
+  const flash = createFlash(0.07, 0, 0.04, -0.20, 0xffdd66);
   group.add(flash);
   return { group, flash, fbxModel: null };
 }
@@ -736,18 +743,29 @@ const weaponPistol = pistolModel.group;
    ═══════════════════════════════════════════ */
 const _fbxLoader = new FBXLoader();
 
-function loadFBXWeapon(url, targetLen, rotY = Math.PI / 2) {
+function loadFBXWeapon(url, targetLen, rotY = 0) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
       try {
+        // Limpiar transformaciones por si el FBX trae algo raro
+        obj.position.set(0, 0, 0);
+        obj.scale.setScalar(1);
         obj.rotation.set(0, rotY, 0);
+        obj.updateMatrixWorld(true);
+
+        // Escalar: la dimensión más grande se ajusta a targetLen
         const box  = new THREE.Box3().setFromObject(obj);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
         obj.scale.setScalar(targetLen / maxDim);
+        obj.updateMatrixWorld(true);
+
+        // Centrar en el origen local
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2   = box2.getCenter(new THREE.Vector3());
-        obj.position.sub(c2);
+        obj.position.set(-c2.x, -c2.y, -c2.z);
+        obj.updateMatrixWorld(true);
+
         obj.traverse(n => {
           if (n.isMesh) {
             n.castShadow = true;
@@ -775,9 +793,12 @@ function loadFBXWeapon(url, targetLen, rotY = Math.PI / 2) {
 }
 
 (async () => {
-  const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 1.15, Math.PI / 2);
+  // M4A1: pequeño y SIN rotación Y (el cañón ya apunta a -Z)
+  const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
-  const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.42, Math.PI / 2);
+
+  // Pistola: pequeña y sin rotación
+  const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, 0);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
 })();
 
@@ -848,35 +869,38 @@ function makeFPSHand(side = 'right') {
   return g;
 }
 
-/* ─── M4A1: manos más bajas y más pequeñas ─── */
+/* ─── M4A1: manos ajustadas al arma más pequeña ───
+   El arma ahora ocupa de -0.32 a +0.32 en Z (0.65 de largo).
+   El grip está cerca de (0, -0.11, +0.10) y el handguard en (0, 0.02, -0.22).
+   Las manos van ancladas a esas posiciones para que "agarren" bien. */
 const _fpHandR = makeFPSHand('right');
-_fpHandR.scale.setScalar(0.78);
-_fpHandR.position.set(0.006, -0.36, -0.042);
+_fpHandR.scale.setScalar(0.55);
+_fpHandR.position.set(0.01, -0.075, 0.075);
 _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
 const _fpHandL = makeFPSHand('left');
-_fpHandL.scale.setScalar(0.78);
-_fpHandL.position.set(-0.008, -0.07, 0.315);
-_fpHandL.rotation.set(0.42, 0, -0.08);
+_fpHandL.scale.setScalar(0.55);
+_fpHandL.position.set(-0.01, 0.005, -0.185);
+_fpHandL.rotation.set(0.40, 0, -0.08);
 weaponRifle.add(_fpHandL);
 
-/* ─── Pistola: manos un poco más pequeñas también ─── */
+/* ─── Pistola: manos chicas también ─── */
 const _fpPHandR = makeFPSHand('right');
-_fpPHandR.scale.setScalar(0.82);
-_fpPHandR.position.set(0.006, -0.285, -0.030);
+_fpPHandR.scale.setScalar(0.55);
+_fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
 const _fpPHandL = makeFPSHand('left');
-_fpPHandL.scale.setScalar(0.82);
-_fpPHandL.position.set(-0.010, -0.32, -0.075);
+_fpPHandL.scale.setScalar(0.55);
+_fpPHandL.position.set(-0.008, -0.065, -0.030);
 _fpPHandL.rotation.set(0.58, 0, -0.14);
 weaponPistol.add(_fpPHandL);
 
 const WEAPON_POS = {
-  rifle:  new THREE.Vector3(0.17, -0.15, -0.42),
-  pistol: new THREE.Vector3(0.14, -0.17, -0.38)
+  rifle:  new THREE.Vector3(0.15, -0.14, -0.34),
+  pistol: new THREE.Vector3(0.13, -0.15, -0.32)
 };
 
 weaponRifle.position.copy(WEAPON_POS.rifle);
@@ -889,7 +913,7 @@ camera.add(weaponRifle);
 camera.add(weaponPistol);
 
 const muzzleLight = new THREE.PointLight(0xffdd66, 0, 8);
-muzzleLight.position.set(0, -0.10, -0.32);
+muzzleLight.position.set(0.15, -0.10, -0.62);
 camera.add(muzzleLight);
 
 function curWepDef()   { return WEAPONS[currentWeaponKey]; }
@@ -1329,30 +1353,33 @@ function createHouse(x, z, rot, styleIdx) {
 }
 
 /* ═══════════════════════════════════════════
-   LAYOUT MEJORADO DE LA CIUDAD
+   PUEBLO ORGANIZADO — Iglesia en el centro,
+   12 casas en 3 anillos concéntricos.
    ═══════════════════════════════════════════ */
 const houseLayout = [
-  // Casa central + 6 originales
-  { x: 0,    z: 0,    rot: 0,                style: 6 },
-  { x: -22,  z: -18,  rot:  0.20,            style: 0 },
-  { x: -30,  z:  -6,  rot: -0.40,            style: 1 },
-  { x:  24,  z: -20,  rot:  0.60,            style: 2 },
-  { x:  30,  z:  -6,  rot: -0.20,            style: 3 },
-  { x: -22,  z:  22,  rot:  Math.PI * 0.85,  style: 4 },
-  { x:  22,  z:  24,  rot: -Math.PI * 0.7,   style: 5 },
-  // Ampliación de la ciudad
-  { x: -14,  z: -34,  rot:  0.15,            style: 7 },
-  { x:  14,  z: -34,  rot: -0.15,            style: 0 },
-  { x: -34,  z:  14,  rot:  Math.PI * 0.55,  style: 1 },
-  { x:  34,  z:  14,  rot: -Math.PI * 0.55,  style: 2 },
-  { x: -14,  z:  34,  rot:  Math.PI * 0.85,  style: 3 },
-  { x:  14,  z:  34,  rot: -Math.PI * 0.85,  style: 4 }
+  // Anillo 1 — cardinales (r = 26), orientadas hacia el centro
+  { x:   0, z: -26, rot:  0,             style: 0 },
+  { x:   0, z:  26, rot:  Math.PI,       style: 1 },
+  { x: -26, z:   0, rot:  Math.PI / 2,   style: 2 },
+  { x:  26, z:   0, rot: -Math.PI / 2,   style: 3 },
+
+  // Anillo 2 — diagonales (r ≈ 38)
+  { x: -27, z: -27, rot:  Math.PI / 4,   style: 4 },
+  { x:  27, z: -27, rot: -Math.PI / 4,   style: 5 },
+  { x: -27, z:  27, rot:  3 * Math.PI / 4, style: 6 },
+  { x:  27, z:  27, rot: -3 * Math.PI / 4, style: 7 },
+
+  // Anillo 3 — cardinales exteriores (r = 50)
+  { x:   0, z: -50, rot:  0,             style: 0 },
+  { x:   0, z:  50, rot:  Math.PI,       style: 2 },
+  { x: -50, z:   0, rot:  Math.PI / 2,   style: 5 },
+  { x:  50, z:   0, rot: -Math.PI / 2,   style: 7 }
 ];
-const outerHouses = houseLayout.slice(1);
+const outerHouses = houseLayout;
 
 for (const h of houseLayout) scene.add(createHouse(h.x, h.z, h.rot, h.style));
 
-/* ─── Caminos ─── */
+/* ─── Caminos desde cada casa hacia el centro ─── */
 const _pathMat = cachedMat(0x9c7a52);
 function createPath(fromX, fromZ, toX, toZ, width) {
   const dx = toX - fromX, dz = toZ - fromZ;
@@ -1366,15 +1393,24 @@ function createPath(fromX, fromZ, toX, toZ, width) {
   mesh.receiveShadow = true;
   return mesh;
 }
-for (const h of outerHouses) {
-  const door = localToWorld(0, 3.75, h.x, h.z, h.rot);
-  const dLen = Math.hypot(h.x, h.z);
+for (const h of houseLayout) {
+  // Puerta exterior de la casa (frente en +Z local → hacia el centro)
+  const doorLocal = { x: 0, z: 4.0 };
+  const c = Math.cos(h.rot), s = Math.sin(h.rot);
+  const door = {
+    x: h.x + doorLocal.x * c + doorLocal.z * s,
+    z: h.z - doorLocal.x * s + doorLocal.z * c
+  };
+  // En lugar de ir al origen (dentro de la iglesia), vamos a un punto intermedio
+  const dLen = Math.hypot(door.x, door.z);
   if (dLen < 0.1) continue;
-  const endX = (h.x / dLen) * 8, endZ = (h.z / dLen) * 8;
+  const endX = (door.x / dLen) * 12;
+  const endZ = (door.z / dLen) * 12;
   const path = createPath(door.x, door.z, endX, endZ, 1.9);
   if (path) scene.add(path);
 }
-const plaza = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 0.05, 24), _pathMat);
+// Plaza circular central (delante de la iglesia)
+const plaza = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 0.05, 28), _pathMat);
 plaza.position.set(0, 0.025, 0);
 plaza.receiveShadow = true;
 scene.add(plaza);
@@ -1399,7 +1435,7 @@ function createLamp(x, z) {
   colliders.push({ x, z, r: 0.25, kind: 'lamp' });
   return g;
 }
-for (const [lx, lz] of [[9, 9], [-9, 9], [9, -9], [-9, -9]]) {
+for (const [lx, lz] of [[11, 11], [-11, 11], [11, -11], [-11, -11]]) {
   scene.add(createLamp(lx, lz));
 }
 
@@ -1416,7 +1452,7 @@ function tooCloseToHouse(x, z, minDist) {
   return false;
 }
 function tooCloseToChurch(x, z, minDist) {
-  const dx = x - (-40), dz = z - (-40);
+  const dx = x - 0, dz = z - 0;
   return dx * dx + dz * dz < minDist * minDist;
 }
 
@@ -1425,10 +1461,10 @@ for (let i = 0; i < 24; i++) {
   let x, z, tries = 0;
   do {
     const a = mapRandom() * Math.PI * 2;
-    const r = 14 + mapRandom() * 42;
+    const r = 30 + mapRandom() * 35;
     x = Math.cos(a) * r; z = Math.sin(a) * r;
     tries++;
-  } while (tooCloseToHouse(x, z, 10) && tries < 30);
+  } while ((tooCloseToHouse(x, z, 10) || tooCloseToChurch(x, z, 18)) && tries < 30);
   if (tries < 30) treePlacements.push({ x, z, rot: mapRandom() * Math.PI });
 }
 
@@ -1486,10 +1522,10 @@ for (let i = 0; i < 16; i++) {
   let x, z, tries = 0;
   do {
     const a = mapRandom() * Math.PI * 2;
-    const r = 12 + mapRandom() * 44;
+    const r = 25 + mapRandom() * 40;
     x = Math.cos(a) * r; z = Math.sin(a) * r;
     tries++;
-  } while (tooCloseToHouse(x, z, 9) && tries < 30);
+  } while ((tooCloseToHouse(x, z, 9) || tooCloseToChurch(x, z, 16)) && tries < 30);
   if (tries >= 30) continue;
   const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), _rockMat);
   rock.position.set(x, size * 0.55, z);
@@ -1499,9 +1535,9 @@ for (let i = 0; i < 16; i++) {
 }
 
 /* ═══════════════════════════════════════════
-   IGLESIA — iglesia.fbx
+   IGLESIA — iglesia.fbx EN EL CENTRO DEL PUEBLO
    ═══════════════════════════════════════════ */
-const CHURCH_POS = { x: -40, z: -40, rot: Math.PI / 4 };
+const CHURCH_POS = { x: 0, z: 0, rot: 0 };
 
 _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
   try {
@@ -1521,7 +1557,7 @@ _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
     obj.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(obj);
     const size = box.getSize(new THREE.Vector3());
-    const targetH = 14;
+    const targetH = 13;
     const s = targetH / Math.max(size.y, 0.001);
     obj.scale.setScalar(s);
     obj.updateMatrixWorld(true);
@@ -1537,23 +1573,20 @@ _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
     churchGroup.rotation.y = CHURCH_POS.rot;
     scene.add(churchGroup);
 
-    // Bounding box final para el collider aproximado
     churchGroup.updateMatrixWorld(true);
     const finalBox = new THREE.Box3().setFromObject(churchGroup);
     const finalSize = finalBox.getSize(new THREE.Vector3());
-    boxColliders.push({
-      x: CHURCH_POS.x, z: CHURCH_POS.z,
-      hw: finalSize.x / 2 * 0.72,
-      hd: finalSize.z / 2 * 0.72,
-      rot: 0, kind: 'wall'
-    });
+    // Collider en cruz: nave central + un poco más ancho para las torres
+    const hw = Math.max(4, finalSize.x * 0.35);
+    const hd = Math.max(4, finalSize.z * 0.35);
+    boxColliders.push({ x: CHURCH_POS.x, z: CHURCH_POS.z, hw, hd, rot: 0, kind: 'wall' });
 
     try { applyOptimizations(); } catch (e) {}
   } catch (e) { console.warn('Error preparando iglesia.fbx:', e); }
 }, undefined, err => console.warn('No se pudo cargar iglesia.fbx:', err));
 
 /* ═══════════════════════════════════════════
-   HIERBA — Grass.fbx (esparcida por el mapa)
+   HIERBA — Grass.fbx
    ═══════════════════════════════════════════ */
 _fbxLoader.load('modelos3d/Grass.fbx', (obj) => {
   try {
@@ -1582,15 +1615,14 @@ _fbxLoader.load('modelos3d/Grass.fbx', (obj) => {
     template.add(obj);
 
     let placed = 0;
-    const MAX_GRASS = 180;
+    const MAX_GRASS = 200;
     for (let i = 0; i < MAX_GRASS * 3 && placed < MAX_GRASS; i++) {
       const a = mapRandom() * Math.PI * 2;
-      const r = 3 + mapRandom() * 62;
+      const r = 14 + mapRandom() * 58;
       const x = Math.cos(a) * r;
       const z = Math.sin(a) * r;
       if (tooCloseToHouse(x, z, 5)) continue;
-      if (tooCloseToChurch(x, z, 12)) continue;
-      if (Math.hypot(x, z) < 10) continue; // dejar la plaza libre
+      if (tooCloseToChurch(x, z, 10)) continue;
 
       const clone = template.clone(true);
       clone.position.set(x, 0, z);
@@ -2046,7 +2078,7 @@ function respawnPlayer() {
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
-  const dist = 20 + Math.random() * 15;
+  const dist = 22 + Math.random() * 12;
   player.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
@@ -2294,7 +2326,7 @@ const zombies = [];
 let zombieWave = 0, zombiePoints = 0, zombiesToSpawn = 0;
 let waveActive = false, waveIntermission = 3, zombieSpawnTimer = 0;
 let isZombieHost = false;
-const MAX_ZOMBIES = 25;   // ← límite duro de zombies vivos
+const MAX_ZOMBIES = 25;
 let soloTimer = 0;
 const SOLO_RESET_SECS = 5;
 
@@ -2401,7 +2433,6 @@ let zombieSyncAcc = 0;
 const ZOMBIE_SYNC_HZ = 5;
 
 function updateZombiesHost(dt) {
-  // Spawn respetando el límite de 25 vivos
   if (waveActive && zombiesToSpawn > 0) {
     zombieSpawnTimer -= dt;
     if (zombieSpawnTimer <= 0) {
@@ -2597,7 +2628,6 @@ function updateZombiesClient(dt) {
   }
 }
 
-/* ─── Reset automático si no hay más jugadores ─── */
 function resetZombieSession() {
   for (const z of zombies) {
     scene.remove(z.root);
@@ -3163,9 +3193,9 @@ function drawMinimap() {
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + MM_H / 2;
   const plx = wx2mm(0), ply = wz2mm(0);
   ctx.fillStyle = 'rgba(156,122,82,0.5)';
-  ctx.beginPath(); ctx.arc(plx, ply, 11 * MM_SCALE, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(plx, ply, 13 * MM_SCALE, 0, Math.PI * 2); ctx.fill();
 
-  // Iglesia
+  // Iglesia (centro)
   const chpx = wx2mm(CHURCH_POS.x), chpy = wz2mm(CHURCH_POS.z);
   if (chpx > -30 && chpx < MM_W + 30 && chpy > -30 && chpy < MM_H + 30) {
     ctx.save(); ctx.translate(chpx, chpy); ctx.rotate(-CHURCH_POS.rot);
@@ -3357,19 +3387,20 @@ function selectGameMode(mode) {
 /* ─────────────── CÁMARA DEL MENÚ ─────────────── */
 function updateMenuCamera(dt) {
   menuCamAngle += dt * 0.13;
-  const r = 62;
+  const r = 68;
   const cx = Math.cos(menuCamAngle) * r;
   const cz = Math.sin(menuCamAngle) * r;
-  const cy = 26 + Math.sin(menuCamAngle * 0.7) * 6;
+  const cy = 28 + Math.sin(menuCamAngle * 0.7) * 6;
   camera.position.set(cx, cy, cz);
-  camera.lookAt(0, 4, 0);
+  camera.lookAt(0, 5, 0);
   camera.fov = 62;
   camera.updateProjectionMatrix();
 }
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(0, 0, 14);
+// Spawn inicial: al Este del pueblo, fuera de la iglesia central
+player.position.set(22, 0, 0);
 
 function animate() {
   requestAnimationFrame(animate);
