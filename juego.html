@@ -2826,7 +2826,8 @@ function updateZombieHUD() {
    JUGADORES REMOTOS
    ═══════════════════════════════════════════ */
 const remotePlayers = new Map();
-const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.15);
+// ▲▲▲ AJUSTE: aimPivot movido hacia adelante (Z=0.28 en vez de 0.15) para que las manos no atraviesen el pecho.
+const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.28);
 
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
@@ -2839,12 +2840,14 @@ function addRemotePlayer(id, data) {
   // El grupo se rota 180° en Y para que el cañón (que va hacia -Z en el modelo)
   // apunte hacia +Z del personaje (dirección en la que mira).
   const rifle = createLowPolyRifleRemote();
-  rifle.group.position.set(0, -0.10, 0.24);
+  // ▲▲▲ AJUSTE: rifle más adelante (Z=0.40 en vez de 0.24) para separarlo del pecho.
+  rifle.group.position.set(0, -0.10, 0.40);
   rifle.group.rotation.y = Math.PI;
   aimPivot.add(rifle.group);
 
   const pistol = createLowPolyPistolRemote();
-  pistol.group.position.set(0, -0.09, 0.18);
+  // ▲▲▲ AJUSTE: pistola más adelante (Z=0.30 en vez de 0.18).
+  pistol.group.position.set(0, -0.09, 0.30);
   pistol.group.rotation.y = Math.PI;
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
