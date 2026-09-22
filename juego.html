@@ -33,10 +33,8 @@
   #click-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.55);
-    display: none;
-    align-items: center; justify-content: center;
-    z-index: 200; cursor: pointer;
-    color: #fff; text-align: center;
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; cursor: pointer; color: #fff; text-align: center;
   }
   #click-overlay.active { display: flex; }
   #click-overlay .inner {
@@ -80,9 +78,7 @@
     cursor: pointer; letter-spacing: 3px; transition: all 0.15s;
     text-shadow: 2px 2px 0 #000;
   }
-  #respawn-btn:hover {
-    background: #fff; color: #000; text-shadow: none; transform: scale(1.05);
-  }
+  #respawn-btn:hover { background: #fff; color: #000; text-shadow: none; transform: scale(1.05); }
   #respawn-btn:active { transform: scale(0.98); }
   #minimap-wrap {
     position: fixed; top: 10px; left: 10px;
@@ -92,10 +88,7 @@
     background: #1a1a1a; z-index: 20;
   }
   #minimap { display: block; width: 100%; height: 100%; }
-  #health-wrap {
-    position: fixed; top: 166px; left: 10px;
-    width: 150px; z-index: 20;
-  }
+  #health-wrap { position: fixed; top: 166px; left: 10px; width: 150px; z-index: 20; }
   #health-label {
     color: #fff; font: bold 11px ui-monospace, monospace;
     text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 3px;
@@ -110,10 +103,7 @@
     height: 100%; background: #2ecc71; width: 100%;
     transition: width 0.15s linear, background 0.15s;
   }
-  #ammo-wrap {
-    position: fixed; top: 210px; left: 10px;
-    width: 150px; z-index: 20;
-  }
+  #ammo-wrap { position: fixed; top: 210px; left: 10px; width: 150px; z-index: 20; }
   #ammo-label {
     color: #fff; font: bold 11px ui-monospace, monospace;
     text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 3px;
@@ -129,17 +119,9 @@
     height: 100%; background: #f1c40f; width: 100%;
     transition: width 0.1s linear, background 0.15s;
   }
-  #ammo-wrap.reloading #ammo-num {
-    color: #ff8c00;
-    animation: reloadPulse 0.5s ease-in-out infinite;
-  }
-  @keyframes reloadPulse {
-    0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
-  }
-  #car-health-wrap {
-    position: fixed; top: 254px; left: 10px;
-    width: 150px; z-index: 20; display: none;
-  }
+  #ammo-wrap.reloading #ammo-num { color: #ff8c00; animation: reloadPulse 0.5s ease-in-out infinite; }
+  @keyframes reloadPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  #car-health-wrap { position: fixed; top: 254px; left: 10px; width: 150px; z-index: 20; display: none; }
   #car-health-wrap.active { display: block; }
   #car-health-label {
     color: #fff; font: bold 11px ui-monospace, monospace;
@@ -174,10 +156,7 @@
     pointer-events: none; display: none; z-index: 15;
   }
   #crosshair.active { display: block; }
-  #crosshair .line {
-    position: absolute; background: #fff;
-    box-shadow: 0 0 3px #000, 0 0 1px #000;
-  }
+  #crosshair .line { position: absolute; background: #fff; box-shadow: 0 0 3px #000, 0 0 1px #000; }
   #crosshair .l-top    { top: 0;    left: 50%; width: 2px; height: 12px; transform: translateX(-50%); }
   #crosshair .l-bottom { bottom: 0; left: 50%; width: 2px; height: 12px; transform: translateX(-50%); }
   #crosshair .l-left   { left: 0;   top: 50%; height: 2px; width: 12px; transform: translateX(-50%) translateY(-50%); }
@@ -240,11 +219,8 @@
     border-color: rgba(255,240,150,0.9);
     font-size: 30px;
   }
-  #aim-btn.held { background: rgba(255,220,80,0.7); }
-  #jump-btn {
-    right: 25px; bottom: 155px;
-    width: 75px; height: 75px; font-size: 12px;
-  }
+  #aim-btn.held { background: rgba(255,220,80,0.75); border-color: #fff; }
+  #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; }
   #action-btn {
     right: 140px; bottom: 145px;
     width: 75px; height: 75px; font-size: 30px;
@@ -256,6 +232,68 @@
     width: 50px; height: 50px; font-size: 22px;
     background: rgba(50,220,100,0.3);
     border-color: rgba(150,255,150,0.9);
+  }
+
+  /* ══════════ AJUSTES PARA TÁCTIL / ANDROID ══════════ */
+  body.is-touch #minimap-wrap {
+    top: 6px; left: 6px;
+    width: 96px; height: 96px;
+    border-width: 2px;
+  }
+  body.is-touch #health-wrap {
+    top: 106px; left: 6px;
+    width: 96px;
+  }
+  body.is-touch #health-label,
+  body.is-touch #ammo-label,
+  body.is-touch #car-health-label {
+    font-size: 9px;
+    margin-bottom: 2px;
+  }
+  body.is-touch #health-bar-outer,
+  body.is-touch #ammo-bar-outer,
+  body.is-touch #car-health-bar-outer {
+    height: 14px;
+    border-width: 2px;
+    padding: 1px;
+  }
+  body.is-touch #ammo-wrap {
+    top: 138px; left: 6px;
+    width: 96px;
+  }
+  body.is-touch #car-health-wrap {
+    top: 170px; left: 6px;
+    width: 96px;
+  }
+  /* Joystick más pequeño */
+  body.is-touch #joystick {
+    left: 20px; bottom: 20px;
+    width: 110px; height: 110px;
+  }
+  body.is-touch #stick {
+    width: 46px; height: 46px;
+    margin: -23px 0 0 -23px;
+  }
+  /* Botones un poco más compactos */
+  body.is-touch #shoot-btn {
+    right: 18px; bottom: 30px;
+    width: 88px; height: 88px;
+    font-size: 34px;
+  }
+  body.is-touch #aim-btn {
+    right: 118px; bottom: 42px;
+    width: 68px; height: 68px;
+    font-size: 26px;
+  }
+  body.is-touch #jump-btn {
+    right: 18px; bottom: 130px;
+    width: 68px; height: 68px;
+    font-size: 11px;
+  }
+  body.is-touch #action-btn {
+    right: 118px; bottom: 122px;
+    width: 68px; height: 68px;
+    font-size: 26px;
   }
 </style>
 </head>
@@ -550,6 +588,7 @@ function computeGroundY(x, z, currentY) {
       if (Math.abs(lx) <= s.hw && Math.abs(lz) <= s.hd) {
         const t = (s.hd - lz) / (2 * s.hd);
         const y = Math.max(0, Math.min(s.height, t * s.height));
+        if (Math.abs(currentY - y) > 0.9) continue;
         if (y > bestY) bestY = y;
       }
     }
@@ -629,28 +668,37 @@ function createHouse(x, z, rot, styleIdx) {
   const trimMat   = new THREE.MeshLambertMaterial({ color: 0x3d2314, flatShading: true });
   const ceilMat   = new THREE.MeshLambertMaterial({ color: CEILING_COLOR, flatShading: true });
 
-  // Suelo interior de madera (top al ras de y=0)
+  // Suelo interior de madera elevado (no atraviesa el suelo del map)
+  const FLOOR_TOP = 0.06;
   const interiorFloor = new THREE.Mesh(
-    new THREE.BoxGeometry(W - WALL_T * 2, 0.1, D - WALL_T * 2),
+    new THREE.BoxGeometry(W - WALL_T * 2, 0.06, D - WALL_T * 2),
     floorMat
   );
-  interiorFloor.position.y = -0.05;
+  interiorFloor.position.y = FLOOR_TOP / 2;
   interiorFloor.receiveShadow = true;
   g.add(interiorFloor);
 
-  // ── FRONT WALL (z = +D/2) ──
+  walkableSurfaces.push({
+    kind: 'slab',
+    x: x, z: z,
+    hw: (W - WALL_T * 2) / 2,
+    hd: (D - WALL_T * 2) / 2,
+    rot: rot,
+    y: FLOOR_TOP
+  });
+
+  // FRONT WALL
   const frontOpenings = [
-    { x: 0,      w: DOOR_W, y0: 0,   y1: DOOR_H },
-    { x: -2.65,  w: 1.4,    y0: 3.7, y1: 4.9 },
-    { x:  2.65,  w: 1.4,    y0: 3.7, y1: 4.9 },
+    { x: 0,      w: DOOR_W, y0: FLOOR_TOP,   y1: DOOR_H + FLOOR_TOP },
+    { x: -2.65,  w: 1.4,    y0: 3.7,         y1: 4.9 },
+    { x:  2.65,  w: 1.4,    y0: 3.7,         y1: 4.9 },
   ];
   const frontWall = buildWall(W, WALL_H, WALL_T, frontOpenings, wallMat);
   frontWall.position.set(0, 0, D / 2);
   g.add(frontWall);
 
-  // Puerta abierta
   const doorHinge = new THREE.Group();
-  doorHinge.position.set(-DOOR_W / 2, 0, D / 2 + WALL_T / 2);
+  doorHinge.position.set(-DOOR_W / 2, FLOOR_TOP, D / 2 + WALL_T / 2);
   doorHinge.rotation.y = -Math.PI / 2 - 0.35;
   const doorMesh = new THREE.Mesh(
     new THREE.BoxGeometry(DOOR_W - 0.06, DOOR_H - 0.06, 0.06),
@@ -661,7 +709,7 @@ function createHouse(x, z, rot, styleIdx) {
   doorHinge.add(doorMesh);
   g.add(doorHinge);
 
-  // ── BACK WALL (z = -D/2) ──
+  // BACK WALL
   const backOpenings = [
     { x: -2.4, w: 1.3, y0: 1.3, y1: 2.5 },
     { x:  2.4, w: 1.3, y0: 1.3, y1: 2.5 },
@@ -673,7 +721,7 @@ function createHouse(x, z, rot, styleIdx) {
   backWall.rotation.y = Math.PI;
   g.add(backWall);
 
-  // ── LEFT WALL (x = -W/2) ──
+  // LEFT WALL
   const leftOpenings = [
     { x: -1.5, w: 1.3, y0: 1.3, y1: 2.5 },
     { x:  1.5, w: 1.3, y0: 1.3, y1: 2.5 },
@@ -685,7 +733,7 @@ function createHouse(x, z, rot, styleIdx) {
   leftWall.rotation.y = Math.PI / 2;
   g.add(leftWall);
 
-  // ── RIGHT WALL (x = +W/2) ──
+  // RIGHT WALL
   const rightOpenings = [
     { x: -2.8, w: 1.3, y0: 1.3, y1: 2.5 },
     { x:  0.0, w: 1.3, y0: 3.7, y1: 4.9 },
@@ -696,8 +744,7 @@ function createHouse(x, z, rot, styleIdx) {
   rightWall.rotation.y = -Math.PI / 2;
   g.add(rightWall);
 
-  // ── SEGUNDO PISO (losa con hueco para escaleras) ──
-  // El hueco coincide EXACTAMENTE con la huella de las escaleras (sin margen → sin gap)
+  // SEGUNDO PISO
   const holeXMin = STAIR_X - STAIR_W / 2;
   const holeZMin = STAIR_Z_TOP;
   const holeZMax = STAIR_Z_BOTTOM;
@@ -715,14 +762,12 @@ function createHouse(x, z, rot, styleIdx) {
     });
   }
 
-  // Losa principal (izquierda y centro, todo el fondo)
   {
     const pw = holeXMin - (-W / 2);
     const pd = D;
     const px = (-W / 2 + holeXMin) / 2;
     addSlabPiece(px, 0, pw, pd);
   }
-  // Losa frontal-derecha (delante del hueco)
   {
     const pw = (W / 2) - holeXMin;
     const pd = (D / 2) - holeZMax;
@@ -730,7 +775,6 @@ function createHouse(x, z, rot, styleIdx) {
     const pz = (holeZMax + D / 2) / 2;
     addSlabPiece(px, pz, pw, pd);
   }
-  // Losa trasera-derecha (detrás del hueco)
   {
     const pw = (W / 2) - holeXMin;
     const pd = holeZMin - (-D / 2);
@@ -739,7 +783,7 @@ function createHouse(x, z, rot, styleIdx) {
     addSlabPiece(px, pz, pw, pd);
   }
 
-  // ── ESCALERAS ──
+  // ESCALERAS
   const numSteps = 10;
   const stepRise = STAIR_H / numSteps;
   const stepRun = STAIR_LEN / numSteps;
@@ -754,7 +798,6 @@ function createHouse(x, z, rot, styleIdx) {
     step.castShadow = true; step.receiveShadow = true;
     g.add(step);
   }
-  // Escaleras como superficie transitable
   {
     const stairCenterZ = (STAIR_Z_BOTTOM + STAIR_Z_TOP) / 2;
     const wc = localToWorld(STAIR_X, stairCenterZ, x, z, rot);
@@ -763,15 +806,8 @@ function createHouse(x, z, rot, styleIdx) {
       hw: STAIR_W / 2, hd: STAIR_LEN / 2, rot, height: STAIR_H
     });
   }
-  // Pasamanos
-  const railL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.9, 0.06), trimMat);
-  railL.position.set(STAIR_X - STAIR_W / 2 - 0.05, 0.45, STAIR_Z_BOTTOM);
-  g.add(railL);
-  const railL2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.9, 0.06), trimMat);
-  railL2.position.set(STAIR_X - STAIR_W / 2 - 0.05, STAIR_H + 0.45, STAIR_Z_TOP);
-  g.add(railL2);
 
-  // ── TECHO INTERIOR PLANO (para que el interior tenga cielo raso) ──
+  // TECHO INTERIOR
   const ceiling = new THREE.Mesh(
     new THREE.BoxGeometry(W - WALL_T, 0.1, D - WALL_T),
     ceilMat
@@ -780,7 +816,7 @@ function createHouse(x, z, rot, styleIdx) {
   ceiling.receiveShadow = true;
   g.add(ceiling);
 
-  // ── TECHO A DOS AGUAS (vista exterior) ──
+  // TEJADO A DOS AGUAS
   const roofH = 1.6;
   const overhang = 0.4;
   const halfW = W / 2 + overhang;
@@ -798,15 +834,15 @@ function createHouse(x, z, rot, styleIdx) {
   roofMesh.castShadow = true; roofMesh.receiveShadow = true;
   g.add(roofMesh);
 
-  // ── COLISIONADORES DE PAREDES ──
-  function addBoxColliderLocal(cx, cz, hw, hd, localRot) {
+  // COLISIONADORES
+  function addBoxColliderLocal(cx, cz, hw, hd, localRot, options = {}) {
     const wc = localToWorld(cx, cz, x, z, rot);
     boxColliders.push({
       x: wc.x, z: wc.z, hw, hd,
-      rot: rot + localRot, kind: 'wall'
+      rot: rot + localRot, kind: 'wall',
+      ...options
     });
   }
-  // Front wall (2 segmentos por la puerta)
   {
     const segStart = -W / 2;
     const segEnd = -DOOR_W / 2;
@@ -821,17 +857,31 @@ function createHouse(x, z, rot, styleIdx) {
     const cx = (segStart + segEnd) / 2;
     addBoxColliderLocal(cx, D / 2, cw / 2, WALL_T / 2, 0);
   }
-  // Back wall
   addBoxColliderLocal(0, -D / 2, W / 2, WALL_T / 2, 0);
-  // Left wall
   addBoxColliderLocal(-W / 2, 0, D / 2, WALL_T / 2, Math.PI / 2);
-  // Right wall
   addBoxColliderLocal(W / 2, 0, D / 2, WALL_T / 2, Math.PI / 2);
+
+  // Colisionador lateral izquierdo de la escalera
+  addBoxColliderLocal(
+    STAIR_X - STAIR_W / 2 - 0.08,
+    0,
+    0.08,
+    STAIR_LEN / 2,
+    0
+  );
+  // Colisionador trasero de la escalera (bloquea solo desde abajo)
+  addBoxColliderLocal(
+    STAIR_X,
+    STAIR_Z_TOP,
+    STAIR_W / 2,
+    0.05,
+    0,
+    { blockBelowY: 2.5 }
+  );
 
   return g;
 }
 
-/* ─── Colocar casas ─── */
 const houseLayout = [
   { x: -22, z: -18, rot:  0.20, style: 0 },
   { x: -30, z:  -6, rot: -0.40, style: 1 },
@@ -852,7 +902,6 @@ function tooCloseToHouse(x, z, minDist) {
   return false;
 }
 
-/* ─────────────── ÁRBOLES ─────────────── */
 function createTree(x, z) {
   const g = new THREE.Group();
   const trunk = new THREE.Mesh(
@@ -882,7 +931,6 @@ for (let i = 0; i < 24; i++) {
   if (tries < 30) scene.add(createTree(x, z));
 }
 
-/* ─────────────── ROCAS ─────────────── */
 const rockMat = new THREE.MeshLambertMaterial({ color: 0x7f8c8d, flatShading: true });
 for (let i = 0; i < 16; i++) {
   const size = 0.4 + Math.random() * 0.9;
@@ -1097,10 +1145,11 @@ const clickOverlay = document.getElementById('click-overlay');
 const touchInput = { x: 0, y: 0 };
 let joystickActiveId = null;
 let joystickOrigin = { x: 0, y: 0 };
-const JOYSTICK_RADIUS = 50;
+const JOYSTICK_RADIUS = 45;
 
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (isTouch) {
+  document.body.classList.add('is-touch');
   joystick.classList.add('active');
   joystickZone.classList.add('active');
   jumpBtn.classList.add('active');
@@ -1143,13 +1192,26 @@ function endJoystick() {
   touchInput.x = 0; touchInput.y = 0;
 }
 
+function isPointInJoystick(cx, cy, margin = 40) {
+  const rect = joystick.getBoundingClientRect();
+  return cx >= rect.left - margin && cx <= rect.right + margin &&
+         cy >= rect.top - margin && cy <= rect.bottom + margin;
+}
+
 joystickZone.addEventListener('touchstart', e => {
   e.preventDefault();
-  const t = e.changedTouches[0];
-  startJoystick(t.clientX, t.clientY, t.identifier);
+  if (joystickActiveId !== null) return;
+  for (const t of e.changedTouches) {
+    // Solo capturar si el toque cae cerca del joystick visual
+    if (isPointInJoystick(t.clientX, t.clientY, 80)) {
+      startJoystick(t.clientX, t.clientY, t.identifier);
+      break;
+    }
+  }
 }, { passive: false });
 joystick.addEventListener('touchstart', e => {
   e.preventDefault(); e.stopPropagation();
+  if (joystickActiveId !== null) return;
   const t = e.changedTouches[0];
   startJoystick(t.clientX, t.clientY, t.identifier);
 }, { passive: false });
@@ -1183,15 +1245,20 @@ shootBtn.addEventListener('pointerup',   e => { e.preventDefault(); shootHeld = 
 shootBtn.addEventListener('pointerleave',e => { shootHeld = false; });
 shootBtn.addEventListener('pointercancel',e => { shootHeld = false; });
 
+/* ═══════════════════════════════════════════
+   BOTÓN DE APUNTAR — TOGGLE
+   ═══════════════════════════════════════════ */
+function setAiming(v) {
+  aiming = v;
+  aimBtn.classList.toggle('held', aiming);
+}
+
 aimBtn.addEventListener('pointerdown', e => {
   e.preventDefault();
-  aiming = true;
-  aimBtn.classList.add('held');
+  setAiming(!aiming);
 });
-const releaseAim = () => { aiming = false; aimBtn.classList.remove('held'); };
-aimBtn.addEventListener('pointerup', releaseAim);
-aimBtn.addEventListener('pointerleave', releaseAim);
-aimBtn.addEventListener('pointercancel', releaseAim);
+// Evitar que el click del pointerdown se duplique en navegadores viejos
+aimBtn.addEventListener('click', e => e.preventDefault());
 
 /* ─────────────── POINTER LOCK ─────────────── */
 let pointerLocked = false;
@@ -1238,25 +1305,38 @@ document.addEventListener('mousemove', e => {
 document.addEventListener('mousedown', e => {
   if (isTouch || !pointerLocked || playerDead) return;
   if (e.button === 0) { shootHeld = true; tryShoot(); }
-  else if (e.button === 2) { aiming = true; }
+  else if (e.button === 2) { setAiming(true); }
 });
 
 document.addEventListener('mouseup', e => {
   if (isTouch) return;
   if (e.button === 0) shootHeld = false;
-  else if (e.button === 2) aiming = false;
+  else if (e.button === 2) { setAiming(false); }
 });
 
+/* ═══════════════════════════════════════════
+   CÁMARA TÁCTIL — GLOBAL (funciona aunque toques botones)
+   ═══════════════════════════════════════════ */
 let cameraTouchId = null;
 let lastTouchX = 0, lastTouchY = 0;
 
-cameraZone.addEventListener('touchstart', e => {
-  e.preventDefault();
-  if (cameraTouchId !== null || playerDead) return;
-  const t = e.changedTouches[0];
-  cameraTouchId = t.identifier;
-  lastTouchX = t.clientX; lastTouchY = t.clientY;
-}, { passive: false });
+addEventListener('touchstart', e => {
+  if (playerDead) return;
+  for (const t of e.changedTouches) {
+    // Si este toque pertenece al joystick, ignorar
+    if (t.identifier === joystickActiveId) continue;
+    // Si el toque empieza cerca del joystick, ignorar
+    if (isPointInJoystick(t.clientX, t.clientY, 60)) continue;
+
+    // El primer toque "libre" se convierte en la referencia de cámara
+    if (cameraTouchId === null) {
+      cameraTouchId = t.identifier;
+      lastTouchX = t.clientX;
+      lastTouchY = t.clientY;
+    }
+  }
+}, { passive: true });
+
 addEventListener('touchmove', e => {
   if (cameraTouchId === null || playerDead) return;
   for (const t of e.changedTouches) {
@@ -1264,7 +1344,8 @@ addEventListener('touchmove', e => {
       e.preventDefault();
       const dx = t.clientX - lastTouchX;
       const dy = t.clientY - lastTouchY;
-      lastTouchX = t.clientX; lastTouchY = t.clientY;
+      lastTouchX = t.clientX;
+      lastTouchY = t.clientY;
       const sens = aiming ? 0.003 : 0.005;
       cameraYaw   -= dx * sens;
       cameraPitch += dy * sens;
@@ -1277,6 +1358,7 @@ addEventListener('touchmove', e => {
     }
   }
 }, { passive: false });
+
 function handleCamEnd(e) {
   if (cameraTouchId === null) return;
   for (const t of e.changedTouches) {
@@ -1313,11 +1395,9 @@ function updateDebug(dt) {
 <span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
 <span class="val">Balas:</span>     ${ammo} / ${MAG_SIZE}${reloading ? ' (recargando)' : ''}
+<span class="val">Apuntando:</span> ${aiming ? 'SÍ' : 'no'}
 <span class="val">Auto HP:</span>   ${carHealth.toFixed(0)} / 100
-<span class="val">Humo:</span>      ${smokeParticles.length} part.
 <span class="val">Piezas:</span>    auto:${carPieces.length} jug:${playerPieces.length}
-<span class="val">Boxes:</span>     ${boxColliders.length}
-<span class="val">Suelos:</span>    ${walkableSurfaces.length}
 
 <span class="title">── Auto ──</span>
 <span class="val">Vel:</span>       ${carState.speed.toFixed(2)} m/s (${kmh.toFixed(0)} km/h)
@@ -1363,6 +1443,7 @@ function resolveCollisions(entity, radius) {
       }
     }
     for (const b of boxColliders) {
+      if (b.blockBelowY !== undefined && entity.position.y > b.blockBelowY) continue;
       const pen = computeBoxPenetration(entity.position.x, entity.position.z, radius, b);
       if (pen) {
         entity.position.x += pen.dx;
@@ -1423,7 +1504,7 @@ function toggleCar() {
   if (inCar) {
     inCar = false;
     weapon.visible = true;
-    aiming = false;
+    setAiming(false);
     const sideX = Math.cos(carState.angle) * 2.2;
     const sideZ = -Math.sin(carState.angle) * 2.2;
     player.position.set(car.position.x + sideX, 0, car.position.z + sideZ);
@@ -1437,7 +1518,7 @@ function toggleCar() {
     if (!isNearCar()) return;
     inCar = true;
     weapon.visible = false;
-    aiming = false;
+    setAiming(false);
     reloading = false;
     ammoWrap.classList.remove('reloading');
     cameraYaw = carState.angle + Math.PI;
@@ -1764,7 +1845,7 @@ function killPlayer() {
   );
 
   weapon.visible = false;
-  aiming = false;
+  setAiming(false);
   shootHeld = false;
   reloading = false;
   ammoWrap.classList.remove('reloading');
@@ -1827,6 +1908,7 @@ function respawnPlayer() {
   cameraPitch = 0;
   recenterDelay = 0;
   weapon.visible = true;
+  setAiming(false);
   deathUI.classList.remove('active');
   if (!isTouch) setTimeout(() => requestLock(), 100);
 }
@@ -1925,7 +2007,6 @@ function updatePlayer(dt) {
 
   resolveCollisions(player, PLAYER_RADIUS);
 
-  // ─── Sistema de suelo / gravedad ───
   const groundY = computeGroundY(player.position.x, player.position.z, player.position.y);
 
   if ((keys['Space'] || jumpQueued) && isGrounded) {
@@ -1936,15 +2017,12 @@ function updatePlayer(dt) {
 
   if (isGrounded) {
     const diff = groundY - player.position.y;
-    // Solo hacemos "snap" si la diferencia es pequeña (escalón/suelo continuo)
     if (diff >= -0.55 && diff <= 0.55) {
       player.position.y = groundY;
       velocityY = 0;
     } else if (diff > 0.55) {
-      // Suelo muy por encima: estamos debajo de un techo/losa, no subir
       velocityY = 0;
     } else {
-      // Suelo muy por debajo: empezar a caer
       isGrounded = false;
     }
   }
