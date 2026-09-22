@@ -869,26 +869,28 @@ function makeFPSHand(side = 'right') {
   return g;
 }
 
-/* ─── M4A1: manos ajustadas al arma más pequeña ───
-   El arma ahora ocupa de -0.32 a +0.32 en Z (0.65 de largo).
-   El grip está cerca de (0, -0.11, +0.10) y el handguard en (0, 0.02, -0.22).
-   Las manos van ancladas a esas posiciones para que "agarren" bien. */
+/* ─── M4A1: manos FPS ───
+   La mano trasera se queda en el grip y la segunda mano se coloca debajo del
+   guardamanos, un poco hacia la izquierda, con el antebrazo alargado para que
+   no se vea un corte artificial en el extremo de la mano. */
 const _fpHandR = makeFPSHand('right');
 _fpHandR.scale.setScalar(0.55);
 _fpHandR.position.set(0.01, -0.075, 0.075);
 _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
-// Segunda mano de la M4A1 eliminada de la cámara en primera persona.
+const _fpHandL = makeFPSHand('left');
+_fpHandL.scale.set(0.52, 0.52, 0.72);
+_fpHandL.position.set(-0.105, -0.015, -0.225);
+_fpHandL.rotation.set(0.62, 0.04, -0.18);
+weaponRifle.add(_fpHandL);
 
-/* ─── Pistola: manos chicas también ─── */
+/* ─── Pistola: una sola mano ─── */
 const _fpPHandR = makeFPSHand('right');
 _fpPHandR.scale.setScalar(0.55);
 _fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
-
-// Segunda mano de la pistola eliminada de la cámara en primera persona.
 
 const WEAPON_POS = {
   rifle:  new THREE.Vector3(0.15, -0.14, -0.34),
@@ -1871,6 +1873,8 @@ ${zinfo}
 /* ─────────────── CÁMARA ─────────────── */
 let cameraYaw = 0, cameraPitch = 0;
 let bobOffset = 0, shakeAmount = 0, hintTimer = 0;
+let weaponWalkPhase = 0;
+let weaponMoveBlend = 0;
 function showTempHint(text, dur = 1.4) {
   hint.textContent = text;
   hint.classList.add('active');
@@ -2243,33 +2247,56 @@ function updatePlayer(dt) {
   }
   if (moving && isGrounded) {
     walkPhase += dt * 11;
+    weaponWalkPhase += dt * (aiming ? 8.5 : 10.5);
     const targetBob = Math.abs(Math.sin(walkPhase)) * (aiming ? 0.025 : 0.055);
     bobOffset += (targetBob - bobOffset) * Math.min(1, dt * 10);
-  } else bobOffset *= Math.max(0, 1 - dt * 8);
+    weaponMoveBlend += (1 - weaponMoveBlend) * Math.min(1, dt * 9);
+  } else {
+    bobOffset *= Math.max(0, 1 - dt * 8);
+    weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 8);
+  }
   player.position.x = THREE.MathUtils.clamp(player.position.x, -70, 70);
   player.position.z = THREE.MathUtils.clamp(player.position.z, -70, 70);
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
+  const swayMul = currentWeaponKey === 'rifle' ? 1.0 : 0.82;
+  const swayX = Math.sin(weaponWalkPhase) * 0.018 * swayMul * weaponMoveBlend;
+  const swayY = Math.abs(Math.sin(weaponWalkPhase * 2)) * 0.012 * swayMul * weaponMoveBlend;
+  const swayZ = Math.cos(weaponWalkPhase) * 0.008 * swayMul * weaponMoveBlend;
+  const swayRotX = Math.cos(weaponWalkPhase) * 0.022 * swayMul * weaponMoveBlend;
+  const swayRotY = Math.sin(weaponWalkPhase * 0.5) * 0.014 * swayMul * weaponMoveBlend;
+  const swayRotZ = Math.sin(weaponWalkPhase) * 0.030 * swayMul * weaponMoveBlend;
+  const targetX = basePos.x + swayX;
+  const targetY = basePos.y + swayY;
+  const targetZ = basePos.z + swayZ;
+
   if (ws.reloading) {
     ws.reloadTimer -= dt;
     const t = 1 - Math.max(0, ws.reloadTimer) / def.reloadTime;
     const dip = Math.sin(t * Math.PI);
-    g.position.y = basePos.y - dip * 0.35;
-    g.position.z = basePos.z;
-    g.rotation.x = -dip * 0.3;
-    g.rotation.z = dip * 0.9;
+    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 12);
+    g.position.y += (targetY - dip * 0.35 - g.position.y) * Math.min(1, dt * 14);
+    g.position.z += (targetZ - g.position.z) * Math.min(1, dt * 14);
+    g.rotation.x += (-dip * 0.3 + swayRotX - g.rotation.x) * Math.min(1, dt * 14);
+    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 10);
+    g.rotation.z += (dip * 0.9 + swayRotZ - g.rotation.z) * Math.min(1, dt * 14);
     if (ws.reloadTimer <= 0) finishReload();
   } else if (ws.recoil > 0) {
     ws.recoil = Math.max(0, ws.recoil - dt * 10);
-    g.position.z = basePos.z + ws.recoil * 0.07;
-    g.position.y += (basePos.y - g.position.y) * Math.min(1, dt * 12);
-    g.rotation.x = ws.recoil * 0.18;
-    g.rotation.z *= 0.85;
+    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 14);
+    g.position.y += (targetY - g.position.y) * Math.min(1, dt * 14);
+    g.position.z += (targetZ + ws.recoil * 0.07 - g.position.z) * Math.min(1, dt * 14);
+    g.rotation.x += (ws.recoil * 0.18 + swayRotX - g.rotation.x) * Math.min(1, dt * 16);
+    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 10);
+    g.rotation.z += (swayRotZ - g.rotation.z) * Math.min(1, dt * 16);
   } else {
-    g.rotation.x *= 0.85; g.rotation.z *= 0.85;
-    g.position.y += (basePos.y - g.position.y) * Math.min(1, dt * 12);
-    g.position.z += (basePos.z - g.position.z) * Math.min(1, dt * 15);
+    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 12);
+    g.position.y += (targetY - g.position.y) * Math.min(1, dt * 12);
+    g.position.z += (targetZ - g.position.z) * Math.min(1, dt * 15);
+    g.rotation.x += (swayRotX - g.rotation.x) * Math.min(1, dt * 12);
+    g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 10);
+    g.rotation.z += (swayRotZ - g.rotation.z) * Math.min(1, dt * 12);
   }
   if (shootHeld && def.auto && ws.cooldown <= 0 && !ws.reloading) tryShoot();
   if (ws.cooldown > 0) ws.cooldown -= dt;
