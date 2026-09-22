@@ -880,11 +880,12 @@ _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
 
 const _fpHandL = makeFPSHand('left');
-// Segunda mano: queda directamente DEBAJO del guardamanos, con el antebrazo
-// entrando desde abajo-izquierda y sin sobresalir demasiado por debajo.
-_fpHandL.scale.set(0.54, 0.54, 0.62);
-_fpHandL.position.set(-0.055, -0.115, -0.205);
-_fpHandL.rotation.set(0.92, 0.02, -0.22);
+// Segunda mano: queda pegada a la parte INFERIOR del guardamanos.
+// El brazo entra desde abajo-izquierda, la palma queda bajo el cañón
+// y se evita que aparezca separada o demasiado vertical.
+_fpHandL.scale.set(0.58, 0.58, 0.74);
+_fpHandL.position.set(0.015, -0.055, -0.205);
+_fpHandL.rotation.set(1.15, 0.02, -0.55);
 weaponRifle.add(_fpHandL);
 
 /* ─── Pistola: una sola mano ─── */
