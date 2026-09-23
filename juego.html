@@ -1255,6 +1255,34 @@ Promise.all([
 const vehicleFbxStatus = { military: false, pickup: false, cart: false };
 const vehicleMeshCounts = { military: 0, pickup: 0, cart: 0 };
 
+/* ⚠️ NUEVO: fuerza un material a ser completamente opaco.
+   Esto arregla el problema de la camioneta transparente: los FBX exportados
+   desde Blender suelen traer `transparent: true` con `opacity < 1` y blend mode
+   "Alpha Blend". Forzamos todo a opaco.
+*/
+function forceMaterialOpaque(mat) {
+  if (!mat) return;
+  mat.transparent = false;
+  mat.opacity = 1;
+  mat.alphaTest = 0;
+  mat.alphaMap = null;
+  mat.depthWrite = true;
+  mat.depthTest = true;
+  // Evita que un PNG con alpha canal deje el mesh invisible
+  if (mat.map) {
+    mat.map.colorSpace = THREE.SRGBColorSpace;
+    // Forzar que la textura se lea sin alpha
+    mat.map.format = THREE.RGBAFormat;
+  }
+  mat.needsUpdate = true;
+}
+
+/* Cargador robusto de vehículos:
+   - Fuerza visible=true en TODOS los nodos
+   - Fuerza TODOS los materiales a opacos (arregla camioneta transparente)
+   - Auto-detecta Z-up (Blender) y rota -90° en X
+   - Escala y centra
+*/
 function loadVehicleFBX(url, targetLen) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
@@ -1265,6 +1293,17 @@ function loadVehicleFBX(url, targetLen) {
         obj.updateMatrixWorld(true);
         obj.traverse(n => { n.visible = true; });
 
+        // 1) Forzar opacidad ANTES de cualquier otra cosa
+        obj.traverse(n => {
+          if (n.isMesh || n.isSkinnedMesh) {
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) forceMaterialOpaque(m);
+            }
+          }
+        });
+
+        // 2) Detectar orientación
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
         if (size.y < size.x * 0.7 && size.y < size.z * 0.7) {
@@ -1274,11 +1313,13 @@ function loadVehicleFBX(url, targetLen) {
           size = box.getSize(new THREE.Vector3());
         }
 
+        // 3) Escala uniforme al targetLen
         const maxHorizontal = Math.max(size.x, size.z);
         const s = targetLen / Math.max(maxHorizontal, 0.001);
         obj.scale.setScalar(s);
         obj.updateMatrixWorld(true);
 
+        // 4) Centrar XZ, poner base en Y=0
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2 = box2.getCenter(new THREE.Vector3());
         obj.position.x -= c2.x;
@@ -1286,6 +1327,7 @@ function loadVehicleFBX(url, targetLen) {
         obj.position.y -= box2.min.y;
         obj.updateMatrixWorld(true);
 
+        // 5) Procesar mallas final (opacidad de nuevo por si acaso)
         let meshCount = 0;
         obj.traverse(n => {
           n.visible = true;
@@ -1302,22 +1344,11 @@ function loadVehicleFBX(url, targetLen) {
               n.material = new THREE.MeshLambertMaterial({ color: 0x666666, flatShading: true });
             } else {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
-              for (const m of mats) {
-                if (!m) continue;
-                if ('flatShading' in m) m.flatShading = true;
-                if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-                if (m.transparent && typeof m.opacity === 'number' && m.opacity < 0.15) {
-                  m.transparent = false;
-                  m.opacity = 1;
-                }
-                if (typeof m.opacity === 'number' && m.opacity < 0.05) m.opacity = 1;
-                if (m.alphaTest && m.alphaTest > 0.9) m.alphaTest = 0;
-                m.needsUpdate = true;
-              }
+              for (const m of mats) forceMaterialOpaque(m);
             }
           }
         });
-        console.log(`[FBX] ${url}: ${meshCount} mallas cargadas`);
+        console.log(`[FBX] ${url}: ${meshCount} mallas cargadas (materiales forzados a opacos)`);
         resolve({ obj, meshCount });
       } catch (e) {
         logFbxError('vehicle ' + url + ': ' + e.message);
@@ -1352,16 +1383,12 @@ function buildVehicleFallback(type) {
   return g;
 }
 
-/* Distribución de vehículos:
-   - Carrito: sin fallback y AÚN MÁS GRANDE (4.0)
-*/
 const vehicleSpawns = [
   { type: 'military', x: -12, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
   { type: 'military', x:  14, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
   { type: 'pickup',   x: -44, z:  25, rot:  Math.PI / 2, len: 5.5, collR: 2.2 },
   { type: 'pickup',   x:  44, z:  28, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
   { type: 'pickup',   x:  44, z:  35, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
-  // Carritos de carga: MÁS GRANDES (4.0)
   { type: 'cart',     x: -30, z:  12, rot:  Math.PI / 3, len: 4.0, collR: 1.6 },
   { type: 'cart',     x:  -8, z: -12, rot: -Math.PI / 5, len: 4.0, collR: 1.6 },
   { type: 'cart',     x:  24, z:  12, rot:  Math.PI / 6, len: 4.0, collR: 1.6 },
@@ -1387,6 +1414,13 @@ function rescaleToLength(template, targetLen) {
   t.position.z -= c.z;
   t.position.y -= b2.min.y;
   t.updateMatrixWorld(true);
+  // Forzar opacidad también en la plantilla clonada
+  t.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) {
+      const mats = Array.isArray(n.material) ? n.material : [n.material];
+      for (const m of mats) forceMaterialOpaque(m);
+    }
+  });
   return t;
 }
 
@@ -1409,13 +1443,12 @@ Promise.all([
   const templates = {
     military: milBase  ? rescaleToLength(milBase,  6.5) : null,
     pickup:   pickBase ? rescaleToLength(pickBase, 5.5) : null,
-    cart:     cartBase ? rescaleToLength(cartBase, 4.0) : null,  // ← MÁS GRANDE
+    cart:     cartBase ? rescaleToLength(cartBase, 4.0) : null,
   };
 
   for (const spawn of vehicleSpawns) {
     const tmpl = templates[spawn.type];
     if (!tmpl) {
-      // Carrito sin fallback
       if (spawn.type === 'cart') continue;
       const v = buildVehicleFallback(spawn.type);
       v.position.set(spawn.x, 0, spawn.z);
@@ -1445,6 +1478,9 @@ Promise.all([
         n.castShadow = true;
         n.receiveShadow = true;
         n.frustumCulled = false;
+        // ⚠️ Forzar opacidad también en cada clon
+        const mats = Array.isArray(n.material) ? n.material : [n.material];
+        for (const m of mats) forceMaterialOpaque(m);
       }
     });
     scene.add(wrapper);
@@ -1462,11 +1498,6 @@ Promise.all([
     colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
   }
 });
-
-/* ═══════════════════════════════════════════
-   ⚠️ MONTACARGAS PROCEDURAL ELIMINADO
-   (antes: createForklift → vehículo amarillo visto en la captura)
-   ═══════════════════════════════════════════ */
 
 /* ─────────────── ALMACÉN NORTE ─────────────── */
 function createWarehouse(x, z, w, d, h) {
