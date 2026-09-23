@@ -223,13 +223,13 @@ let menuActive = true;
 let menuCamAngle = 0;
 
 /* ═══════════════════════════════════════════
-   LOG DE ERRORES (visible en debug F3)
+   LOG DE ERRORES
    ═══════════════════════════════════════════ */
 const fbxErrors = [];
 function logFbxError(msg) {
   const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
   fbxErrors.push(line);
-  if (fbxErrors.length > 6) fbxErrors.shift();
+  if (fbxErrors.length > 8) fbxErrors.shift();
   console.warn(line);
 }
 
@@ -374,7 +374,7 @@ let onlineMode = false, db = null;
 let playerId = null, playerName = null, playerNetRef = null;
 const ROOM = 'main';
 const NET_SEND_HZ = 10;
-const NET_STALE_MS = 15000; // más permisivo
+const NET_STALE_MS = 15000;
 
 const onlinePanel = document.getElementById('online-panel');
 const onlineStatus = document.getElementById('online-status');
@@ -1143,7 +1143,6 @@ function loadContainerFBX(url) {
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
 
-        // Si el FBX viene Z-up (Blender), rotar
         if (size.y < size.x && size.y < size.z) {
           obj.rotation.x = -Math.PI / 2;
           obj.updateMatrixWorld(true);
@@ -1246,6 +1245,199 @@ Promise.all([
   logFbxError('Error general contenedores: ' + err.message);
   for (const { def, group } of containerGroups) {
     group.add(buildProceduralStack(def.colors));
+  }
+});
+
+/* ═══════════════════════════════════════════
+   VEHÍCULOS FBX
+   ═══════════════════════════════════════════ */
+const vehicleFbxStatus = { military: false, pickup: false, cart: false };
+
+/* Cargador genérico de vehículos */
+function loadVehicleFBX(url, targetLen) {
+  return new Promise((resolve) => {
+    _fbxLoader.load(url, (obj) => {
+      try {
+        obj.position.set(0, 0, 0);
+        obj.rotation.set(0, 0, 0);
+        obj.scale.setScalar(1);
+        obj.updateMatrixWorld(true);
+
+        let box = new THREE.Box3().setFromObject(obj);
+        let size = box.getSize(new THREE.Vector3());
+
+        // Auto-detección Z-up: si Y es la dimensión más pequeña, probablemente viene con Z-arriba
+        if (size.y < size.x * 0.75 && size.y < size.z * 0.75) {
+          obj.rotation.x = -Math.PI / 2;
+          obj.updateMatrixWorld(true);
+          box = new THREE.Box3().setFromObject(obj);
+          size = box.getSize(new THREE.Vector3());
+        }
+
+        // Escalar al target length usando la dimensión horizontal más grande
+        const maxHorizontal = Math.max(size.x, size.z);
+        const s = targetLen / Math.max(maxHorizontal, 0.001);
+        obj.scale.setScalar(s);
+        obj.updateMatrixWorld(true);
+
+        // Centrar XZ, base en Y=0
+        const box2 = new THREE.Box3().setFromObject(obj);
+        const c2 = box2.getCenter(new THREE.Vector3());
+        obj.position.x -= c2.x;
+        obj.position.z -= c2.z;
+        obj.position.y -= box2.min.y;
+        obj.updateMatrixWorld(true);
+
+        obj.traverse(n => {
+          if (n.isMesh) {
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.frustumCulled = false;
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) {
+                if (!m) continue;
+                if ('flatShading' in m) m.flatShading = true;
+                if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+                m.needsUpdate = true;
+              }
+            }
+          }
+        });
+        resolve(obj);
+      } catch (e) {
+        logFbxError('vehicle ' + url + ': ' + e.message);
+        resolve(null);
+      }
+    }, undefined, () => {
+      logFbxError('No se pudo cargar ' + url);
+      resolve(null);
+    });
+  });
+}
+
+/* Fallback procedural simple para vehículo */
+function buildVehicleFallback(type) {
+  const g = new THREE.Group();
+  const cols = { military: 0x4a5a3a, pickup: 0x8a2b1e, cart: 0xc0392b };
+  const mBody = cachedMat(cols[type] || 0x555555);
+  const mDark = cachedMat(0x111111);
+  const mGlass = cachedMat(0x1a2a3a);
+  let L = 5.5, W = 2.2, H = 0.9;
+  if (type === 'cart') { L = 2.2; W = 1.2; H = 1.0; }
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), mBody);
+  body.position.y = H / 2 + 0.35; body.castShadow = true; g.add(body);
+
+  if (type === 'cart') {
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(L * 0.9, H * 0.6, W * 0.9), mDark);
+    frame.position.y = H / 2 + 1.0; g.add(frame);
+  } else {
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(L * 0.5, 0.7, W * 0.95), mGlass);
+    cabin.position.set(-L * 0.05, H + 0.7, 0); cabin.castShadow = true; g.add(cabin);
+  }
+
+  const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 8);
+  const w = type === 'cart' ? 0.2 : 0.35;
+  for (const [wx, wz] of [[-L*0.35, -W*0.5], [L*0.35, -W*0.5], [-L*0.35, W*0.5], [L*0.35, W*0.5]]) {
+    const wm = new THREE.Mesh(wGeo, mDark);
+    wm.rotation.x = Math.PI / 2;
+    wm.scale.setScalar(w / 0.35);
+    wm.position.set(wx, w, wz);
+    wm.castShadow = true;
+    g.add(wm);
+  }
+  return g;
+}
+
+/* Distribución de vehículos en el mapa */
+const vehicleSpawns = [
+  // Auto militar: en la zona de carga, frente al almacén
+  { type: 'military', x: -12, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
+  { type: 'military', x:  14, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
+  // Camionetas: en los laterales del recinto
+  { type: 'pickup',   x: -44, z:  25, rot:  Math.PI / 2, len: 5.5, collR: 2.2 },
+  { type: 'pickup',   x:  44, z:  28, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
+  { type: 'pickup',   x:  44, z:  35, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
+  // Carritos de carga: entre contenedores, cerca de los montacargas
+  { type: 'cart',     x: -30, z:  12, rot:  Math.PI / 3, len: 2.2, collR: 0.9 },
+  { type: 'cart',     x:  -8, z: -12, rot: -Math.PI / 5, len: 2.2, collR: 0.9 },
+  { type: 'cart',     x:  24, z:  12, rot:  Math.PI / 6, len: 2.2, collR: 0.9 },
+  { type: 'cart',     x:  -8, z:  12, rot:  Math.PI,     len: 2.2, collR: 0.9 },
+];
+
+/* Cargar los 3 FBX y colocar vehículos */
+Promise.all([
+  loadVehicleFBX('modelos3d/auto militar.fbx', 1),  // escala se aplica por instancia
+  loadVehicleFBX('modelos3d/camioneta.fbx', 1),
+  loadVehicleFBX('modelos3d/Carrito de carga.fbx', 1)
+]).then(([milBase, pickBase, cartBase]) => {
+  vehicleFbxStatus.military = !!milBase;
+  vehicleFbxStatus.pickup   = !!pickBase;
+  vehicleFbxStatus.cart     = !!cartBase;
+
+  // Escalar las plantillas a la longitud deseada (ahora medimos de nuevo)
+  function rescaleToLength(template, targetLen) {
+    if (!template) return null;
+    const t = template.clone(true);
+    t.scale.setScalar(1);
+    t.updateMatrixWorld(true);
+    const b = new THREE.Box3().setFromObject(t);
+    const s = b.getSize(new THREE.Vector3());
+    const maxH = Math.max(s.x, s.z);
+    if (maxH < 0.001) return t;
+    t.scale.setScalar(targetLen / maxH);
+    return t;
+  }
+
+  const templates = {
+    military: milBase  ? rescaleToLength(milBase,  6.5) : null,
+    pickup:   pickBase ? rescaleToLength(pickBase, 5.5) : null,
+    cart:     cartBase ? rescaleToLength(cartBase, 2.2) : null,
+  };
+
+  for (const spawn of vehicleSpawns) {
+    const tmpl = templates[spawn.type];
+    let v;
+    if (tmpl) {
+      v = tmpl.clone(true);
+      // Recalcular bounding box tras rotación de spawn, para re-centrar
+      v.position.set(0, 0, 0);
+      v.rotation.set(0, 0, 0);
+      v.updateMatrixWorld(true);
+      const b = new THREE.Box3().setFromObject(v);
+      const c = b.getCenter(new THREE.Vector3());
+      v.position.x -= c.x;
+      v.position.z -= c.z;
+      v.position.y -= b.min.y;
+      // Envolver en un grupo que recibe rotación + posición final
+      const wrapper = new THREE.Group();
+      wrapper.add(v);
+      wrapper.position.set(spawn.x, 0, spawn.z);
+      wrapper.rotation.y = spawn.rot;
+      wrapper.traverse(n => {
+        if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; }
+      });
+      scene.add(wrapper);
+    } else {
+      // Fallback procedural
+      v = buildVehicleFallback(spawn.type);
+      v.position.set(spawn.x, 0, spawn.z);
+      v.rotation.y = spawn.rot;
+      scene.add(v);
+    }
+    // Collider
+    colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
+  }
+  try { applyOptimizations(); } catch (e) {}
+}).catch(err => {
+  logFbxError('Error general vehículos: ' + err.message);
+  for (const spawn of vehicleSpawns) {
+    const v = buildVehicleFallback(spawn.type);
+    v.position.set(spawn.x, 0, spawn.z);
+    v.rotation.y = spawn.rot;
+    scene.add(v);
+    colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
   }
 });
 
@@ -1376,31 +1568,7 @@ scene.add(createFence(-FENCE_X, -FENCE_Z, -FENCE_X, FENCE_Z));
 scene.add(createFence(-FENCE_X, FENCE_Z, -ENTRY_GAP / 2, FENCE_Z));
 scene.add(createFence( ENTRY_GAP / 2, FENCE_Z, FENCE_X, FENCE_Z));
 
-/* ─────────────── COCHE APARCADO ─────────────── */
-function createParkedCar(x, z, rot, color) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  g.rotation.y = rot;
-  const mBody = cachedMat(color);
-  const mDark = cachedMat(0x111111);
-  const mGlass = cachedMat(0x1a2a3a);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.7, 4.2), mBody);
-  body.position.y = 0.75; body.castShadow = true; g.add(body);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 2.2), mGlass);
-  cabin.position.set(0, 1.4, 0.1); cabin.castShadow = true; g.add(cabin);
-  const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8);
-  for (const [wx, wz] of [[-1.0, -1.3], [1.0, -1.3], [-1.0, 1.3], [1.0, 1.3]]) {
-    const w = new THREE.Mesh(wGeo, mDark);
-    w.rotation.z = Math.PI / 2;
-    w.position.set(wx, 0.35, wz);
-    w.castShadow = true;
-    g.add(w);
-  }
-  colliders.push({ x, z, r: 1.6, kind: 'lamp' });
-  return g;
-}
-
-/* ─────────────── PUERTA DE ENTRADA ─────────────── */
+/* ─────────────── PUERTA DE ENTRADA (sin coches procedurales) ─────────────── */
 function createEntryGate(x, z) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
@@ -1442,11 +1610,6 @@ function createEntryGate(x, z) {
   const stripe = new THREE.Mesh(new THREE.BoxGeometry(ENTRY_GAP, 0.02, 1.4), mYellow);
   stripe.position.set(0, 0.03, 0);
   g.add(stripe);
-  const carColors = [0x2c3e50, 0x7f8c8d];
-  for (let i = 0; i < 2; i++) {
-    const car = createParkedCar(FENCE_X - 4 - i * 3.2, FENCE_Z - 5, 0, carColors[i]);
-    scene.add(car);
-  }
   boxColliders.push({ x: -ENTRY_GAP / 2 - 2.5, z: 1.5, hw: 1.5, hd: 1.5, rot: 0, kind: 'wall' });
   boxColliders.push({ x: ENTRY_GAP / 2 - 0.6, z: 0, hw: 0.35, hd: 0.35, rot: 0, kind: 'wall' });
   return g;
@@ -1911,7 +2074,10 @@ function updateDebug(dt) {
 
 <span class="title">── Modelos FBX ──</span>
 <span class="val">Container1:</span> ${containerFbxStatus.c1 ? '✅' : '❌'}
-<span class="val">Container2:</span> ${containerFbxStatus.c2 ? '✅' : '❌'}${errLines}
+<span class="val">Container2:</span> ${containerFbxStatus.c2 ? '✅' : '❌'}
+<span class="val">Auto militar:</span> ${vehicleFbxStatus.military ? '✅' : '❌'}
+<span class="val">Camioneta:</span>  ${vehicleFbxStatus.pickup ? '✅' : '❌'}
+<span class="val">Carrito:</span>    ${vehicleFbxStatus.cart ? '✅' : '❌'}${errLines}
   `.trim();
 }
 
@@ -2417,9 +2583,7 @@ function addRemotePlayer(id, data) {
     targetSlide: data.slide ? 1 : 0
   });
 }
-
 function updateRemotePlayer(id, data) {
-  // ⚠️ FIX: eliminado el early-return por stale. Ahora siempre añadimos/actualizamos.
   let r = remotePlayers.get(id);
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
@@ -2562,7 +2726,6 @@ function animateRemotePlayer(r, dt) {
   r.aimPivot.visible = true;
   if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
   if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
-
   const walking = r.moveSpeed > 0.5;
   if (walking) {
     r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
@@ -2582,12 +2745,10 @@ function animateRemotePlayer(r, dt) {
     r.body.rotation.y += (0 - r.body.rotation.y) * k;
     r.body.rotation.z += (0 - r.body.rotation.z) * k;
   }
-
   r.crouchBlend += (r.targetCrouch - r.crouchBlend) * Math.min(1, dt * 10);
   r.slideBlend  += (r.targetSlide  - r.slideBlend)  * Math.min(1, dt * 12);
   const crouchC = r.crouchBlend * (1 - r.slideBlend);
   const slideC  = r.slideBlend;
-
   if (crouchC > 0.005 || slideC > 0.005) {
     r.body.position.y += -0.45 * crouchC - 0.75 * slideC;
     const kneeBend = -0.55 * crouchC;
@@ -2599,9 +2760,6 @@ function animateRemotePlayer(r, dt) {
     }
     r.body.rotation.x = 0.22 * crouchC - 0.35 * slideC;
   }
-
-  // ⚠️ FIX: la rotación de la cabeza se calcula UNA VEZ con asignación (=) y no acumula.
-  // Combina pitch (mirar arriba/abajo) + offset por agachado/deslizamiento.
   r.pitchSmooth += (r.targetPitch - r.pitchSmooth) * Math.min(1, dt * 12);
   if (r.recoil > 0) r.recoil = Math.max(0, r.recoil - dt * 7);
   r.aimPivot.rotation.x = r.pitchSmooth - r.recoil * 0.22;
@@ -2611,10 +2769,7 @@ function animateRemotePlayer(r, dt) {
     REMOTE_AIM_POS.y - (0.45 * crouchC + 0.75 * slideC),
     REMOTE_AIM_POS.z - r.recoil * 0.07
   );
-
-  // Head: pitch total + inclinación por postura. ¡No acumular!
   r.parts.head.rotation.x = r.pitchSmooth * 0.45 + 0.18 * crouchC - 0.22 * slideC;
-
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
     if (r.flashTimer <= 0) {
@@ -2622,7 +2777,6 @@ function animateRemotePlayer(r, dt) {
       if (r.pistol) r.pistol.flash.visible = false;
     }
   }
-
   r.root.updateMatrixWorld(true);
   const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
   if (activeWeapon && activeWeapon.gripMarker) {
