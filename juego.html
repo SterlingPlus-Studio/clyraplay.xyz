@@ -29,6 +29,71 @@
   @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
   @media (max-height: 500px) { #mode-menu .menu-content { gap: 16px; } #mode-menu h1 { font-size: clamp(30px, 7.5vh, 52px); letter-spacing: 5px; } #mode-menu .subtitle { margin-top: 6px; font-size: 10px; letter-spacing: 3px; } #mode-menu .divider { margin-top: 10px; width: 50px; } .play-btn { min-height: 58px; padding: 14px 22px; font-size: clamp(16px, 4.5vh, 22px); } .player-chip { padding: 7px 14px; font-size: 11px; } }
 
+  /* ═══════════ MENÚ DE SELECCIÓN DE ARSENAL ═══════════ */
+  #loadout-menu {
+    position: fixed; inset: 0; z-index: 490;
+    display: none; align-items: center; justify-content: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+    box-sizing: border-box;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(30,45,85,0.5) 0%, rgba(5,8,18,0.95) 70%),
+      linear-gradient(180deg, rgba(8,12,24,0.75) 0%, rgba(8,12,24,0.95) 100%);
+    color: #fff; cursor: default; opacity: 0; transition: opacity 0.3s ease;
+  }
+  #loadout-menu.active { display: flex; opacity: 1; }
+  #loadout-menu .loadout-content {
+    display: flex; flex-direction: column; align-items: center;
+    gap: clamp(20px, 4vh, 40px);
+    width: 100%; max-width: 780px; text-align: center;
+    animation: menuFadeIn 0.5s ease both;
+  }
+  #loadout-menu h2 {
+    font: 900 clamp(22px, 5vw, 36px)/1 system-ui, sans-serif;
+    letter-spacing: clamp(3px, 1vw, 6px);
+    margin: 0;
+    color: #ffd93d;
+    text-shadow: 3px 3px 0 #000, 0 0 30px rgba(255,200,80,0.5);
+  }
+  #loadout-menu .loadout-sub {
+    font: bold clamp(11px, 2.6vw, 14px) system-ui, sans-serif;
+    letter-spacing: 2px; color: #ffb76b;
+    text-shadow: 2px 2px 0 #000; opacity: 0.9;
+  }
+  .loadout-options {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: clamp(14px, 3vw, 28px);
+    width: 100%;
+  }
+  @media (max-width: 560px) { .loadout-options { grid-template-columns: 1fr; } }
+  .loadout-btn {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    min-height: 200px;
+    padding: 24px 18px;
+    background: linear-gradient(180deg, rgba(60,80,110,0.6), rgba(20,30,50,0.9));
+    border: 3px solid rgba(180,200,240,0.6);
+    border-radius: 16px;
+    color: #fff;
+    font: bold clamp(16px, 3vw, 22px)/1.2 system-ui, sans-serif;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 30px rgba(0,0,0,0.4);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, border-color 0.15s ease;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .loadout-btn .loadout-icon { font-size: clamp(40px, 8vw, 64px); filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5)); }
+  .loadout-btn .loadout-name { font-size: clamp(18px, 3.4vw, 24px); letter-spacing: 3px; }
+  .loadout-btn .loadout-side { font-size: clamp(11px, 2.2vw, 13px); color: #ffd93d; letter-spacing: 2px; font-weight: bold; }
+  .loadout-btn .loadout-desc { font-size: clamp(10px, 2vw, 12px); color: #a8c0e0; font-weight: normal; letter-spacing: 1px; }
+  .loadout-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.55); }
+  @media (hover: hover) and (pointer: fine) {
+    .loadout-btn:hover { border-color: #ffd93d; filter: brightness(1.1); box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 40px rgba(255,200,80,0.35); }
+  }
+  .loadout-btn[data-primary="rifle"]:hover { border-color: #6fb8ff; box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 40px rgba(100,180,255,0.4); }
+  .loadout-btn[data-primary="shotgun"]:hover { border-color: #ff8c50; box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 40px rgba(255,140,80,0.4); }
+
   #click-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 200; cursor: pointer; color: #fff; text-align: center; }
   #click-overlay.active { display: flex; }
   #click-overlay .inner { border: 3px solid #fff; padding: 26px 40px; background: rgba(0,0,0,0.6); font: bold 22px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; line-height: 1.5; margin: 0 16px; }
@@ -151,6 +216,28 @@
   </div>
 </div>
 
+<!-- ═══════════ SELECCIÓN DE ARSENAL ═══════════ -->
+<div id="loadout-menu">
+  <div class="loadout-content">
+    <h2>ELEGÍ TU ARSENAL</h2>
+    <div class="loadout-sub">— PRIMARIA + PISTOLA —</div>
+    <div class="loadout-options">
+      <button class="loadout-btn" data-primary="rifle" type="button">
+        <span class="loadout-icon">🔫</span>
+        <span class="loadout-name">M4A1</span>
+        <span class="loadout-side">+ PISTOLA</span>
+        <span class="loadout-desc">Automática · Rápida · 30 balas</span>
+      </button>
+      <button class="loadout-btn" data-primary="shotgun" type="button">
+        <span class="loadout-icon">💥</span>
+        <span class="loadout-name">ESCOPETA</span>
+        <span class="loadout-side">+ PISTOLA</span>
+        <span class="loadout-desc">Daño masivo · Lenta · 7 cartuchos</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
@@ -267,6 +354,21 @@ function playGunshot(distance = 0) {
   osc.frequency.setValueAtTime(180, t); osc.frequency.exponentialRampToValueAtTime(55, t + 0.1);
   const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.35 * vol, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
   osc.connect(g2).connect(masterGain); osc.start(t); osc.stop(t + 0.12);
+}
+function playShotgunShot(distance = 0) {
+  if (!audioCtx || !audioEnabled) return;
+  const vol = Math.max(0, 1 - distance / 55); if (vol <= 0.02) return;
+  const t = audioCtx.currentTime;
+  // Cuerpo grave y potente
+  const src = audioCtx.createBufferSource(); src.buffer = _noiseBuffer(0.28, 2.2);
+  const filt = audioCtx.createBiquadFilter(); filt.type = 'lowpass';
+  filt.frequency.setValueAtTime(2200, t); filt.frequency.exponentialRampToValueAtTime(140, t + 0.28);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.75 * vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  src.connect(filt).connect(g).connect(masterGain); src.start(t); src.stop(t + 0.3);
+  const osc = audioCtx.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(140, t); osc.frequency.exponentialRampToValueAtTime(32, t + 0.22);
+  const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.7 * vol, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  osc.connect(g2).connect(masterGain); osc.start(t); osc.stop(t + 0.24);
 }
 function playPistolShot(distance = 0) {
   if (!audioCtx || !audioEnabled) return;
@@ -639,6 +741,18 @@ function createPistolModel() {
   group.add(gripMarker);
   return { group, flash, gripMarker, fbxModel: null };
 }
+function createShotgunModel() {
+  const group = new THREE.Group();
+  const flash = createFlash(0.12, 0, 0.03, -0.42, 0xffcc55);
+  group.add(flash);
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(0, -0.11, 0.12);
+  group.add(gripMarker);
+  const pumpMarker = new THREE.Object3D();
+  pumpMarker.position.set(0, 0.01, -0.22);
+  group.add(pumpMarker);
+  return { group, flash, gripMarker, pumpMarker, fbxModel: null };
+}
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -658,6 +772,24 @@ function createLowPolyRifleRemote() {
   flash.position.set(0, 0.028, -0.49); flash.visible = false; g.add(flash);
   g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker, handguardMarker };
+}
+function createLowPolyShotgunRemote() {
+  const g = new THREE.Group();
+  const matBody = new THREE.MeshLambertMaterial({ color: 0x3a2a20, flatShading: true });
+  const matDark = new THREE.MeshLambertMaterial({ color: 0x0a0a0a, flatShading: true });
+  const matMetal = new THREE.MeshLambertMaterial({ color: 0x4a4a45, flatShading: true });
+  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.13, 0.34), matBody); g.add(receiver);
+  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.045, 0.46), matMetal); barrel.position.set(0, 0.04, -0.38); g.add(barrel);
+  const magTube = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 0.38), matMetal); magTube.position.set(0, -0.005, -0.34); g.add(magTube);
+  const pump = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.075, 0.16), matBody); pump.position.set(0, 0.01, -0.22); g.add(pump);
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 0.24), matBody); stock.position.set(0, -0.02, 0.28); g.add(stock);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, 0.06), matDark); grip.position.set(0, -0.13, 0.16); grip.rotation.x = 0.35; g.add(grip);
+  const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.13, 0.16); g.add(gripMarker);
+  const pumpMarker = new THREE.Object3D(); pumpMarker.position.set(0, 0.01, -0.22); g.add(pumpMarker);
+  const flash = new THREE.Mesh(new THREE.SphereGeometry(0.10, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffcc55, transparent: true, opacity: 0.95 }));
+  flash.position.set(0, 0.04, -0.62); flash.visible = false; g.add(flash);
+  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  return { group: g, flash, gripMarker, pumpMarker };
 }
 function createLowPolyPistolRemote() {
   const g = new THREE.Group();
@@ -705,21 +837,30 @@ player.visible = false;
 scene.add(player);
 
 /* ═══════════════════════════════════════════
-   ARMAS
+   ARMAS — DEFINICIONES
    ═══════════════════════════════════════════ */
 const WEAPONS = {
-  rifle:  { key: 'rifle',  name: 'M4A1',    icon: '🔫', magSize: 30, fireRate: 0.1,  reloadTime: 1.5, damage: 20, aimFov: 45, auto: true },
-  pistol: { key: 'pistol', name: 'PISTOLA', icon: '🔫', magSize: 12, fireRate: 0.18, reloadTime: 1.2, damage: 30, aimFov: 55, auto: false }
+  rifle:   { key: 'rifle',   name: 'M4A1',     icon: '🔫', magSize: 30, fireRate: 0.10, reloadTime: 1.5, damage: 20, aimFov: 45, auto: true  },
+  shotgun: { key: 'shotgun', name: 'ESCOPETA', icon: '💥', magSize: 7,  fireRate: 0.85, reloadTime: 2.6, damage: 14, aimFov: 55, auto: false, pellets: 8, spread: 0.09 },
+  pistol:  { key: 'pistol',  name: 'PISTOLA',  icon: '🔫', magSize: 12, fireRate: 0.18, reloadTime: 1.2, damage: 30, aimFov: 55, auto: false }
 };
+
+/* Loadout del jugador (se asigna al elegir en el menú) */
+const playerLoadout = { primary: 'rifle', secondary: 'pistol' };
 let currentWeaponKey = 'rifle';
+
 const weaponState = {
-  rifle:  { ammo: 30, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
-  pistol: { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 }
+  rifle:   { ammo: 30, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
+  shotgun: { ammo: 7,  reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
+  pistol:  { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 }
 };
+
 const rifleModel   = createRifleModel();
 const pistolModel  = createPistolModel();
-const weaponRifle  = rifleModel.group;
-const weaponPistol = pistolModel.group;
+const shotgunModel = createShotgunModel();
+const weaponRifle   = rifleModel.group;
+const weaponPistol  = pistolModel.group;
+const weaponShotgun = shotgunModel.group;
 
 const _fbxLoader = new FBXLoader();
 
@@ -746,6 +887,8 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
               for (const m of mats) {
                 if (m && 'flatShading' in m) m.flatShading = true;
                 if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+                // Forzar opaco en armas
+                if (m) { m.transparent = false; m.opacity = 1; m.alphaTest = 0; m.needsUpdate = true; }
               }
             }
           }
@@ -761,6 +904,8 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
   const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
+  const s = await loadFBXWeapon('modelos3d/escopeta.fbx', 0.72, 0);
+  if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
 })();
 
 /* ─────────────── MANOS FPS ─────────────── */
@@ -805,22 +950,39 @@ _fpHandL.scale.set(0.58, 0.58, 0.74);
 _fpHandL.position.set(0.015, -0.055, -0.205);
 _fpHandL.rotation.set(1.15, 0.02, -0.55);
 weaponRifle.add(_fpHandL);
+
 const _fpPHandR = makeFPSHand('right');
 _fpPHandR.scale.setScalar(0.55);
 _fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
+// Manos para escopeta
+const _fpSHandR = makeFPSHand('right');
+_fpSHandR.scale.setScalar(0.55);
+_fpSHandR.position.set(0.01, -0.08, 0.08);
+_fpSHandR.rotation.set(0.55, 0, 0.10);
+weaponShotgun.add(_fpSHandR);
+const _fpSHandL = makeFPSHand('left');
+_fpSHandL.scale.set(0.58, 0.58, 0.74);
+_fpSHandL.position.set(0.015, -0.055, -0.19);
+_fpSHandL.rotation.set(1.15, 0.02, -0.55);
+weaponShotgun.add(_fpSHandL);
+
 const WEAPON_POS = {
-  rifle:  new THREE.Vector3(0.15, -0.14, -0.34),
-  pistol: new THREE.Vector3(0.13, -0.15, -0.32)
+  rifle:   new THREE.Vector3(0.15, -0.14, -0.34),
+  shotgun: new THREE.Vector3(0.15, -0.15, -0.36),
+  pistol:  new THREE.Vector3(0.13, -0.15, -0.32)
 };
 const WEAPON_HIDDEN_POS = new THREE.Vector3(0, -1000, 0);
 weaponRifle.position.copy(WEAPON_POS.rifle);
+weaponShotgun.position.copy(WEAPON_POS.shotgun);
 weaponPistol.position.copy(WEAPON_POS.pistol);
 weaponRifle.visible  = false;
+weaponShotgun.visible = false;
 weaponPistol.visible = false;
 camera.add(weaponRifle);
+camera.add(weaponShotgun);
 camera.add(weaponPistol);
 
 const muzzleLight = new THREE.PointLight(0xffdd66, 0, 8);
@@ -829,17 +991,28 @@ camera.add(muzzleLight);
 
 function curWepDef()   { return WEAPONS[currentWeaponKey]; }
 function curWepState() { return weaponState[currentWeaponKey]; }
-function curWeaponGroup() { return currentWeaponKey === 'rifle' ? weaponRifle : weaponPistol; }
-function curWeaponFlash() { return currentWeaponKey === 'rifle' ? rifleModel.flash : pistolModel.flash; }
+function curWeaponGroup() {
+  if (currentWeaponKey === 'rifle')   return weaponRifle;
+  if (currentWeaponKey === 'shotgun') return weaponShotgun;
+  return weaponPistol;
+}
+function curWeaponFlash() {
+  if (currentWeaponKey === 'rifle')   return rifleModel.flash;
+  if (currentWeaponKey === 'shotgun') return shotgunModel.flash;
+  return pistolModel.flash;
+}
 function setLocalWeaponsVisible(v) {
-  weaponRifle.visible  = v && currentWeaponKey === 'rifle';
-  weaponPistol.visible = v && currentWeaponKey === 'pistol';
+  weaponRifle.visible   = v && currentWeaponKey === 'rifle';
+  weaponShotgun.visible = v && currentWeaponKey === 'shotgun';
+  weaponPistol.visible  = v && currentWeaponKey === 'pistol';
   if (!v) {
     weaponRifle.position.copy(WEAPON_HIDDEN_POS);
+    weaponShotgun.position.copy(WEAPON_HIDDEN_POS);
     weaponPistol.position.copy(WEAPON_HIDDEN_POS);
     grenadeViewModel.visible = false;
   } else {
     weaponRifle.position.copy(WEAPON_POS.rifle);
+    weaponShotgun.position.copy(WEAPON_POS.shotgun);
     weaponPistol.position.copy(WEAPON_POS.pistol);
   }
 }
@@ -1033,7 +1206,6 @@ function darkenHex(hex, f) {
 
 const CONT_L = 6.0, CONT_W = 2.5, CONT_H = 2.6, CONT_GAP = 0.15;
 
-/* ─────────── CONTENEDOR PROCEDURAL (fallback) ─────────── */
 function createSingleContainer(color) {
   const g = new THREE.Group();
   const mBody = cachedMat(color);
@@ -1086,7 +1258,6 @@ function buildProceduralStack(colors) {
   return g;
 }
 
-/* ─────────── PALETAS ─────────── */
 const C_RED    = [0xb03a2e, 0xc0453a, 0x8b2c20, 0xa33a2e];
 const C_RED2   = [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e];
 const C_GREEN  = [0x2e7d4f, 0x35935c, 0x24774a, 0x2a8a52];
@@ -1096,7 +1267,6 @@ const C_BLUE2  = [0x1f5d8a, 0x2874a6, 0x184a70, 0x2d7cb8];
 const C_BROWN  = [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a];
 const C_BROWN2 = [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a];
 
-/* ─────────── LAYOUT DE STACKS ─────────── */
 const containerLayout = [
   { x: -38, z: -20, rot: 0, type: 1, colors: C_RED },
   { x: -38, z:   2, rot: 0, type: 2, colors: C_RED2 },
@@ -1113,7 +1283,6 @@ const containerLayout = [
   { x:  34, z:  24, rot: 0, type: 2, colors: C_BROWN },
 ];
 
-/* ─────────── GRUPOS + COLISIONES ─────────── */
 const containerGroups = [];
 for (const def of containerLayout) {
   const g = new THREE.Group();
@@ -1129,7 +1298,6 @@ for (const def of containerLayout) {
   });
 }
 
-/* ─────────── CARGA DE CONTENEDORES FBX ─────────── */
 const containerFbxStatus = { c1: false, c2: false };
 
 function loadContainerFBX(url) {
@@ -1173,6 +1341,7 @@ function loadContainerFBX(url) {
                 if (!m) continue;
                 if ('flatShading' in m) m.flatShading = true;
                 if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+                m.transparent = false; m.opacity = 1; m.alphaTest = 0;
                 m.needsUpdate = true;
               }
             }
@@ -1255,11 +1424,6 @@ Promise.all([
 const vehicleFbxStatus = { military: false, pickup: false, cart: false };
 const vehicleMeshCounts = { military: 0, pickup: 0, cart: 0 };
 
-/* ⚠️ NUEVO: fuerza un material a ser completamente opaco.
-   Esto arregla el problema de la camioneta transparente: los FBX exportados
-   desde Blender suelen traer `transparent: true` con `opacity < 1` y blend mode
-   "Alpha Blend". Forzamos todo a opaco.
-*/
 function forceMaterialOpaque(mat) {
   if (!mat) return;
   mat.transparent = false;
@@ -1268,21 +1432,13 @@ function forceMaterialOpaque(mat) {
   mat.alphaMap = null;
   mat.depthWrite = true;
   mat.depthTest = true;
-  // Evita que un PNG con alpha canal deje el mesh invisible
   if (mat.map) {
     mat.map.colorSpace = THREE.SRGBColorSpace;
-    // Forzar que la textura se lea sin alpha
     mat.map.format = THREE.RGBAFormat;
   }
   mat.needsUpdate = true;
 }
 
-/* Cargador robusto de vehículos:
-   - Fuerza visible=true en TODOS los nodos
-   - Fuerza TODOS los materiales a opacos (arregla camioneta transparente)
-   - Auto-detecta Z-up (Blender) y rota -90° en X
-   - Escala y centra
-*/
 function loadVehicleFBX(url, targetLen) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
@@ -1293,7 +1449,6 @@ function loadVehicleFBX(url, targetLen) {
         obj.updateMatrixWorld(true);
         obj.traverse(n => { n.visible = true; });
 
-        // 1) Forzar opacidad ANTES de cualquier otra cosa
         obj.traverse(n => {
           if (n.isMesh || n.isSkinnedMesh) {
             if (n.material) {
@@ -1303,7 +1458,6 @@ function loadVehicleFBX(url, targetLen) {
           }
         });
 
-        // 2) Detectar orientación
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
         if (size.y < size.x * 0.7 && size.y < size.z * 0.7) {
@@ -1313,13 +1467,11 @@ function loadVehicleFBX(url, targetLen) {
           size = box.getSize(new THREE.Vector3());
         }
 
-        // 3) Escala uniforme al targetLen
         const maxHorizontal = Math.max(size.x, size.z);
         const s = targetLen / Math.max(maxHorizontal, 0.001);
         obj.scale.setScalar(s);
         obj.updateMatrixWorld(true);
 
-        // 4) Centrar XZ, poner base en Y=0
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2 = box2.getCenter(new THREE.Vector3());
         obj.position.x -= c2.x;
@@ -1327,7 +1479,6 @@ function loadVehicleFBX(url, targetLen) {
         obj.position.y -= box2.min.y;
         obj.updateMatrixWorld(true);
 
-        // 5) Procesar mallas final (opacidad de nuevo por si acaso)
         let meshCount = 0;
         obj.traverse(n => {
           n.visible = true;
@@ -1414,7 +1565,6 @@ function rescaleToLength(template, targetLen) {
   t.position.z -= c.z;
   t.position.y -= b2.min.y;
   t.updateMatrixWorld(true);
-  // Forzar opacidad también en la plantilla clonada
   t.traverse(n => {
     if (n.isMesh || n.isSkinnedMesh) {
       const mats = Array.isArray(n.material) ? n.material : [n.material];
@@ -1478,7 +1628,6 @@ Promise.all([
         n.castShadow = true;
         n.receiveShadow = true;
         n.frustumCulled = false;
-        // ⚠️ Forzar opacidad también en cada clon
         const mats = Array.isArray(n.material) ? n.material : [n.material];
         for (const m of mats) forceMaterialOpaque(m);
       }
@@ -1862,7 +2011,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyR' && !e.repeat && !playerDead) startReload();
   if (e.code === 'KeyQ' && !e.repeat && !playerDead) swapWeapon();
   if (e.code === 'KeyG' && !e.repeat && !playerDead) throwGrenade();
-  if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon('rifle');
+  if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon(playerLoadout.primary);
   if (e.code === 'Digit2' && !e.repeat && !playerDead) selectWeapon('pistol');
   if ((e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') && !e.repeat && !playerDead) {
     const { ix, iz, moving } = getInputAxes();
@@ -2086,6 +2235,7 @@ function updateDebug(dt) {
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no'}
 
 <span class="title">── Jugador ──</span>
+<span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
 <span class="val">Arma:</span>      ${curWepDef().name}
@@ -2206,7 +2356,7 @@ const bulletHoleMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent
 
 function getTopParent(obj) { let top = obj; while (top.parent && top.parent !== scene) top = top.parent; return top; }
 function isPartOfPlayer(obj) { let p = obj; while (p) { if (p === player) return true; p = p.parent; } return false; }
-function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weaponRifle || p === weaponPistol || p === grenadeViewModel) return true; p = p.parent; } return false; }
+function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weaponRifle || p === weaponPistol || p === weaponShotgun || p === grenadeViewModel) return true; p = p.parent; } return false; }
 function getRemotePlayerId(obj) { let p = obj; while (p) { if (p.userData && p.userData.remotePlayerId) return p.userData.remotePlayerId; p = p.parent; } return null; }
 
 function spawnBulletHole(hit, normal) {
@@ -2305,6 +2455,7 @@ function respawnPlayer() {
   playerPieces.length = 0;
   health = 100; updateHealthBar();
   weaponState.rifle.ammo = WEAPONS.rifle.magSize;
+  weaponState.shotgun.ammo = WEAPONS.shotgun.magSize;
   weaponState.pistol.ammo = WEAPONS.pistol.magSize;
   for (const k in weaponState) { weaponState[k].reloading = false; weaponState[k].reloadTimer = 0; weaponState[k].cooldown = 0; weaponState[k].recoil = 0; }
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
@@ -2319,7 +2470,7 @@ function respawnPlayer() {
   crouching = false; crouchKeyHeld = false;
   currentEyeHeight = STAND_EYE_HEIGHT;
   crouchBtn.classList.remove('held');
-  selectWeapon('rifle', true, true);
+  selectWeapon(playerLoadout.primary, true, true);
   setLocalWeaponsVisible(true);
   deathUI.classList.remove('active');
   playRespawnSound();
@@ -2333,15 +2484,16 @@ const raycaster = new THREE.Raycaster();
 const screenCenter = new THREE.Vector2(0, 0);
 
 function selectWeapon(key, silent = false, force = false) {
-  if (key !== 'rifle' && key !== 'pistol') return;
+  if (key !== 'rifle' && key !== 'pistol' && key !== 'shotgun') return;
   if (key === currentWeaponKey && !force) return;
   const old = curWepState();
   old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
   if (!playerDead) {
-    weaponRifle.visible = (key === 'rifle');
-    weaponPistol.visible = (key === 'pistol');
+    weaponRifle.visible   = (key === 'rifle');
+    weaponShotgun.visible = (key === 'shotgun');
+    weaponPistol.visible  = (key === 'pistol');
     curWeaponGroup().position.copy(WEAPON_POS[key]);
     curWeaponGroup().rotation.set(0, 0, 0);
   }
@@ -2349,7 +2501,11 @@ function selectWeapon(key, silent = false, force = false) {
   if (onlineMode) sendLocalPlayerState();
   if (!silent) playSwapSound();
 }
-function swapWeapon() { if (!playerDead) selectWeapon(currentWeaponKey === 'rifle' ? 'pistol' : 'rifle'); }
+function swapWeapon() {
+  if (playerDead) return;
+  if (currentWeaponKey === 'pistol') selectWeapon(playerLoadout.primary);
+  else selectWeapon('pistol');
+}
 function startReload() {
   if (playerDead) return;
   const ws = curWepState(), def = curWepDef();
@@ -2372,27 +2528,20 @@ function broadcastBulletHole(point, normal) {
     ts: Date.now()
   }).catch(() => {});
 }
-function tryShoot() {
-  if (playerDead || !gameMode) return;
-  const ws = curWepState(), def = curWepDef();
-  if (ws.reloading || ws.cooldown > 0) return;
-  if (ws.ammo <= 0) { startReload(); return; }
-  ws.cooldown = def.fireRate;
-  ws.ammo--;
-  ws.recoil = def.key === 'pistol' ? 1.6 : 1;
-  updateAmmoBar();
-  const flash = curWeaponFlash();
-  flash.visible = true;
-  muzzleLight.intensity = 3;
-  setTimeout(() => { flash.visible = false; muzzleLight.intensity = 0; }, 45);
-  if (def.key === 'pistol') playPistolShot(0);
-  else playGunshot(0);
-  if (onlineMode) {
-    set(ref(db, `rooms/${ROOM}/shots/${playerId}`), {
-      ts: Date.now(), yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: def.key
-    }).catch(() => {});
+
+/* Dispara UN proyectil desde el origen con dirección dada.
+   Devuelve true si impactó a un jugador remoto. */
+function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
+  const finalDir = dir.clone();
+  if (spreadRad > 0) {
+    const sx = (Math.random() - 0.5) * 2;
+    const sy = (Math.random() - 0.5) * 2;
+    const sz = (Math.random() - 0.5) * 2;
+    const perp = new THREE.Vector3(sx, sy, sz).normalize().multiplyScalar(Math.tan(spreadRad));
+    finalDir.add(perp).normalize();
   }
-  raycaster.setFromCamera(screenCenter, camera);
+  raycaster.set(origin, finalDir);
+  raycaster.far = 120;
   const hits = raycaster.intersectObjects(scene.children, true);
   for (const hit of hits) {
     if (hit.object.userData.isBulletHole) continue;
@@ -2402,22 +2551,75 @@ function tryShoot() {
     if (hit.face) {
       const nm = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
       normal = hit.face.normal.clone().applyMatrix3(nm).normalize();
-    } else normal = raycaster.ray.direction.clone().negate();
+    } else normal = finalDir.clone().negate();
     const remoteId = getRemotePlayerId(hit.object);
     if (remoteId && !playerDead) {
       if (onlineMode) {
         const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-        set(ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`), { damage: def.damage, from: playerId, ts: Date.now() }).catch(() => {});
+        set(ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`), { damage: damage, from: playerId, ts: Date.now() }).catch(() => {});
       }
       spawnBulletHole(hit, normal);
       broadcastBulletHole(hit.point, normal);
-      playHitMarker();
-      break;
+      return true; // impactó jugador
     }
     spawnBulletHole(hit, normal);
     broadcastBulletHole(hit.point, normal);
-    break;
+    return false;
   }
+  return false;
+}
+
+function tryShoot() {
+  if (playerDead || !gameMode) return;
+  const ws = curWepState(), def = curWepDef();
+  if (ws.reloading || ws.cooldown > 0) return;
+  if (ws.ammo <= 0) { startReload(); return; }
+  ws.cooldown = def.fireRate;
+  ws.ammo--;
+  ws.recoil = def.key === 'pistol' ? 1.6 : (def.key === 'shotgun' ? 2.4 : 1);
+  updateAmmoBar();
+  const flash = curWeaponFlash();
+  flash.visible = true;
+  muzzleLight.intensity = def.key === 'shotgun' ? 5 : 3;
+  setTimeout(() => { flash.visible = false; muzzleLight.intensity = 0; }, def.key === 'shotgun' ? 80 : 45);
+
+  // Sonido
+  if (def.key === 'pistol') playPistolShot(0);
+  else if (def.key === 'shotgun') playShotgunShot(0);
+  else playGunshot(0);
+
+  if (onlineMode) {
+    set(ref(db, `rooms/${ROOM}/shots/${playerId}`), {
+      ts: Date.now(), yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: def.key
+    }).catch(() => {});
+  }
+
+  // Dirección base desde la cámara
+  const origin = camera.position.clone();
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+
+  if (def.key === 'shotgun') {
+    // Disparo múltiple con dispersión
+    const pelletCount = def.pellets ?? 8;
+    const spread = def.spread ?? 0.09;
+    let hitPlayer = false;
+    for (let i = 0; i < pelletCount; i++) {
+      const hit = fireProjectile(origin, dir, def, def.damage, spread);
+      if (hit) hitPlayer = true;
+    }
+    if (hitPlayer) playHitMarker();
+  } else {
+    // Disparo único
+    const hit = fireProjectile(origin, dir, def, def.damage, 0);
+    if (hit) playHitMarker();
+  }
+
+  // Pequeño empujón hacia arriba (recoil de cámara) para escopeta
+  if (def.key === 'shotgun') {
+    cameraPitch = Math.min(FP_PITCH_MAX, cameraPitch + 0.06);
+  }
+
   if (ws.ammo <= 0 && !ws.reloading) startReload();
 }
 
@@ -2485,7 +2687,7 @@ function updatePlayer(dt) {
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
-  const swayMul = currentWeaponKey === 'rifle' ? 1.0 : 0.82;
+  const swayMul = currentWeaponKey === 'rifle' ? 1.0 : (currentWeaponKey === 'shotgun' ? 1.15 : 0.82);
   const swayX = Math.sin(weaponWalkPhase) * 0.012 * swayMul * weaponMoveBlend;
   const swayY = (1 - Math.cos(weaponWalkPhase * 2)) * 0.0045 * swayMul * weaponMoveBlend;
   const swayZ = Math.cos(weaponWalkPhase) * 0.004 * swayMul * weaponMoveBlend;
@@ -2507,11 +2709,11 @@ function updatePlayer(dt) {
     g.rotation.z += (dip * 0.9 + swayRotZ - g.rotation.z) * Math.min(1, dt * 14);
     if (ws.reloadTimer <= 0) finishReload();
   } else if (ws.recoil > 0) {
-    ws.recoil = Math.max(0, ws.recoil - dt * 10);
+    ws.recoil = Math.max(0, ws.recoil - dt * (currentWeaponKey === 'shotgun' ? 6 : 10));
     g.position.x += (targetX - g.position.x) * Math.min(1, dt * 14);
     g.position.y += (targetY - g.position.y) * Math.min(1, dt * 14);
-    g.position.z += (targetZ + ws.recoil * 0.07 - g.position.z) * Math.min(1, dt * 14);
-    g.rotation.x += (ws.recoil * 0.18 + swayRotX - g.rotation.x) * Math.min(1, dt * 16);
+    g.position.z += (targetZ + ws.recoil * 0.1 - g.position.z) * Math.min(1, dt * 14);
+    g.rotation.x += (ws.recoil * 0.22 + swayRotX - g.rotation.x) * Math.min(1, dt * 16);
     g.rotation.y += (swayRotY - g.rotation.y) * Math.min(1, dt * 14);
     g.rotation.z += (swayRotZ - g.rotation.z) * Math.min(1, dt * 16);
   } else {
@@ -2584,21 +2786,27 @@ function addRemotePlayer(id, data) {
   rifle.group.position.set(0, -0.10, 0.40);
   rifle.group.rotation.y = Math.PI;
   aimPivot.add(rifle.group);
+  const shotgun = createLowPolyShotgunRemote();
+  shotgun.group.position.set(0, -0.10, 0.42);
+  shotgun.group.rotation.y = Math.PI;
+  shotgun.group.visible = false;
+  aimPivot.add(shotgun.group);
   const pistol = createLowPolyPistolRemote();
   pistol.group.position.set(0, -0.09, 0.30);
   pistol.group.rotation.y = Math.PI;
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
-  const weaponKey = data.weapon === 'pistol' ? 'pistol' : 'rifle';
-  rifle.group.visible = weaponKey === 'rifle';
-  pistol.group.visible = weaponKey === 'pistol';
+  const weaponKey = (data.weapon === 'pistol' || data.weapon === 'shotgun') ? data.weapon : 'rifle';
+  rifle.group.visible   = weaponKey === 'rifle';
+  shotgun.group.visible = weaponKey === 'shotgun';
+  pistol.group.visible  = weaponKey === 'pistol';
   char.root.userData.remotePlayerId = id;
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
   char.root.rotation.y = (data.yaw ?? 0) + Math.PI;
   scene.add(char.root);
   remotePlayers.set(id, {
     id, root: char.root, body: char.body, parts: char.parts, mats: char.mats,
-    aimPivot, rifle, pistol, weaponKey, name: data.name || 'Jugador',
+    aimPivot, rifle, shotgun, pistol, weaponKey, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
     lastSeen: Date.now(), hp: data.hp ?? 100, dead: false, deathTime: 0,
@@ -2617,7 +2825,7 @@ function updateRemotePlayer(id, data) {
   if (typeof data.z === 'number') r.targetZ = data.z;
   if (typeof data.yaw === 'number') r.targetYaw = data.yaw + Math.PI;
   if (typeof data.pitch === 'number') r.targetPitch = data.pitch;
-  if (data.weapon === 'pistol' || data.weapon === 'rifle') r.weaponKey = data.weapon;
+  if (data.weapon === 'pistol' || data.weapon === 'rifle' || data.weapon === 'shotgun') r.weaponKey = data.weapon;
   r.lastSeen = Date.now();
   r.targetCrouch = data.crouch ? 1 : 0;
   r.targetSlide  = data.slide  ? 1 : 0;
@@ -2655,15 +2863,17 @@ function reviveRemotePlayer(r) {
   r.targetCrouch = 0;
   r.targetSlide = 0;
   if (r.rifle) r.rifle.flash.visible = false;
+  if (r.shotgun) r.shotgun.flash.visible = false;
   if (r.pistol) r.pistol.flash.visible = false;
 }
 function triggerRemoteShot(r) {
   if (r.dead) return;
-  r.recoil = 1;
+  r.recoil = r.weaponKey === 'shotgun' ? 1.8 : 1;
   r.flashTimer = 0.05;
   if (r.rifle) r.rifle.flash.visible = false;
+  if (r.shotgun) r.shotgun.flash.visible = false;
   if (r.pistol) r.pistol.flash.visible = false;
-  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
+  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : (r.weaponKey === 'shotgun' ? r.shotgun : r.rifle);
   if (activeWeapon) activeWeapon.flash.visible = true;
 }
 
@@ -2749,8 +2959,9 @@ function animateRemotePlayer(r, dt) {
   }
   r.body.rotation.x = 0;
   r.aimPivot.visible = true;
-  if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
-  if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
+  if (r.rifle)   r.rifle.group.visible   = r.weaponKey === 'rifle';
+  if (r.shotgun) r.shotgun.group.visible = r.weaponKey === 'shotgun';
+  if (r.pistol)  r.pistol.group.visible  = r.weaponKey === 'pistol';
   const walking = r.moveSpeed > 0.5;
   if (walking) {
     r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
@@ -2798,18 +3009,22 @@ function animateRemotePlayer(r, dt) {
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
     if (r.flashTimer <= 0) {
-      if (r.rifle)  r.rifle.flash.visible  = false;
-      if (r.pistol) r.pistol.flash.visible = false;
+      if (r.rifle)   r.rifle.flash.visible   = false;
+      if (r.shotgun) r.shotgun.flash.visible = false;
+      if (r.pistol)  r.pistol.flash.visible  = false;
     }
   }
   r.root.updateMatrixWorld(true);
-  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
+  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : (r.weaponKey === 'shotgun' ? r.shotgun : r.rifle);
   if (activeWeapon && activeWeapon.gripMarker) {
     activeWeapon.gripMarker.getWorldPosition(_gripWorldTmp);
     const distToLocal = r.root.position.distanceTo(player.position);
     if (distToLocal < 40) solveArmIK(r.parts.rightArm, _gripWorldTmp, _poleRight);
-    if (r.weaponKey === 'rifle' && r.rifle && r.rifle.handguardMarker) {
-      r.rifle.handguardMarker.getWorldPosition(_handguardWorldTmp);
+    const fwdMarker = (r.weaponKey === 'shotgun' && r.shotgun && r.shotgun.pumpMarker) ? r.shotgun.pumpMarker
+                    : (r.weaponKey === 'rifle' && r.rifle && r.rifle.handguardMarker) ? r.rifle.handguardMarker
+                    : null;
+    if (fwdMarker) {
+      fwdMarker.getWorldPosition(_handguardWorldTmp);
       if (distToLocal < 40) solveArmIK(r.parts.leftArm, _handguardWorldTmp, _poleLeft);
     }
   }
@@ -2825,9 +3040,12 @@ function handleRemoteShots(all) {
     if (!r || r.dead) continue;
     if (d.ts <= (r.lastShotTs || 0)) continue;
     r.lastShotTs = d.ts;
+    // Sincronizar arma del remoto antes del flash
+    if (d.weapon === 'pistol' || d.weapon === 'rifle' || d.weapon === 'shotgun') r.weaponKey = d.weapon;
     triggerRemoteShot(r);
     const dist = r.root.position.distanceTo(player.position);
     if (d.weapon === 'pistol') playPistolShot(dist);
+    else if (d.weapon === 'shotgun') playShotgunShot(dist);
     else playGunshot(dist);
   }
 }
@@ -3068,7 +3286,7 @@ function updateUI(dt = 0) {
    OPTIMIZACIÓN
    ═══════════════════════════════════════════ */
 function applyOptimizations() {
-  const dynamicRoots = new Set([player, camera, weaponRifle, weaponPistol, grenadeViewModel, sun]);
+  const dynamicRoots = new Set([player, camera, weaponRifle, weaponShotgun, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
   scene.traverse(obj => {
     let p = obj, isDynamic = false;
@@ -3094,30 +3312,57 @@ function applyOptimizations() {
 }
 
 /* ═══════════════════════════════════════════
-   MENÚ
+   MENÚ + SELECCIÓN DE ARSENAL
    ═══════════════════════════════════════════ */
 const modeMenu = document.getElementById('mode-menu');
 const playBtn = document.getElementById('play-btn');
+const loadoutMenu = document.getElementById('loadout-menu');
 
+/* Al pulsar JUGAR: mostrar el menú de selección de arsenal */
 function handlePlay() {
   if (gameMode) return;
   initAudio();
-  selectGameMode('battle');
+  modeMenu.classList.add('hidden');
+  loadoutMenu.classList.add('active');
 }
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
+
+/* Botones de selección de loadout */
+document.querySelectorAll('.loadout-btn').forEach(btn => {
+  const applyLoadout = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (gameMode) return;
+    const primary = btn.getAttribute('data-primary');
+    if (primary !== 'rifle' && primary !== 'shotgun') return;
+    playerLoadout.primary = primary;
+    playerLoadout.secondary = 'pistol';
+    currentWeaponKey = primary;
+    loadoutMenu.classList.remove('active');
+    selectGameMode('battle');
+  };
+  btn.addEventListener('click', applyLoadout);
+  btn.addEventListener('touchend', applyLoadout, { passive: false });
+});
 
 function selectGameMode(mode) {
   if (gameMode) return;
   gameMode = mode;
   menuActive = false;
   modeMenu.classList.add('hidden');
+  loadoutMenu.classList.remove('active');
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
+
+  // Activar el arma primaria elegida
+  currentWeaponKey = playerLoadout.primary;
   if (!playerDead) {
-    weaponRifle.visible  = (currentWeaponKey === 'rifle');
-    weaponPistol.visible = (currentWeaponKey === 'pistol');
+    weaponRifle.visible   = currentWeaponKey === 'rifle';
+    weaponShotgun.visible = currentWeaponKey === 'shotgun';
+    weaponPistol.visible  = currentWeaponKey === 'pistol';
   }
+  updateAmmoBar();
+
   if (isTouch) {
     joystick.classList.add('active'); joystickZone.classList.add('active');
     jumpBtn.classList.add('active'); cameraZone.classList.add('active');
