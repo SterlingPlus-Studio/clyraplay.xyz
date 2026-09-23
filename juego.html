@@ -558,10 +558,6 @@ function cachedMat(color, opts = {}) {
   return m;
 }
 
-/* ⚠️ NUEVO: fuerza un material a ser completamente opaco y visible.
-   Arregla materiales FBX con alpha blend, opacity < 1, alphaTest agresivo, etc.
-   Mantiene los mapas de textura (color map) pero descarta los alpha map.
-*/
 function forceMaterialOpaque(mat) {
   if (!mat) return;
   mat.transparent = false;
@@ -570,8 +566,6 @@ function forceMaterialOpaque(mat) {
   if ('alphaMap' in mat) mat.alphaMap = null;
   mat.depthWrite = true;
   mat.depthTest = true;
-  // Si el material es de un tipo que soporta color base, asegurar que el color no sea negro puro
-  // (algunos FBX exportan color=0x000000 como "placeholder" esperando al map)
   if (mat.color && mat.map && mat.color.r === 0 && mat.color.g === 0 && mat.color.b === 0) {
     mat.color.setHex(0xffffff);
   }
@@ -580,6 +574,18 @@ function forceMaterialOpaque(mat) {
     mat.map.needsUpdate = true;
   }
   mat.needsUpdate = true;
+}
+
+/* ⚠️ NUEVO: quita las sombras (cast) y la recepción de sombras a un objeto.
+   Se usa para el personaje local y sus armas FPS para que no proyecten sombra sobre el suelo. */
+function disableShadows(obj) {
+  if (!obj) return;
+  obj.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) {
+      n.castShadow = false;
+      n.receiveShadow = false;
+    }
+  });
 }
 
 /* ─────────────── SUELO ─────────────── */
@@ -629,10 +635,10 @@ function buildCharacter(opts = {}) {
   const mPouch  = new THREE.MeshLambertMaterial({ color: pouchCol,  flatShading: true });
 
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.9, 0.42), mUni);
-  torso.position.y = 1.35; torso.castShadow = true; body.add(torso);
+  torso.position.y = 1.35; body.add(torso);
 
   const vest = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.70, 0.48), mVest);
-  vest.position.y = 1.40; vest.castShadow = true; body.add(vest);
+  vest.position.y = 1.40; body.add(vest);
 
   const pouchGeo = new THREE.BoxGeometry(0.14, 0.16, 0.08);
   const p1 = new THREE.Mesh(pouchGeo, mPouch); p1.position.set(-0.15, 1.28, 0.27); body.add(p1);
@@ -644,7 +650,7 @@ function buildCharacter(opts = {}) {
   const sp2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.14, 0.12), mPouch); sp2.position.set( 0.44, 1.4, 0); body.add(sp2);
 
   const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.80, 0.26), mVest);
-  backpack.position.set(0, 1.40, -0.33); backpack.castShadow = true; body.add(backpack);
+  backpack.position.set(0, 1.40, -0.33); body.add(backpack);
   const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.58, 8), mPouch);
   roll.rotation.z = Math.PI / 2; roll.position.set(0, 1.85, -0.33); body.add(roll);
   const bpL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.24, 0.09), mPouch); bpL.position.set(-0.36, 1.32, -0.33); body.add(bpL);
@@ -658,10 +664,10 @@ function buildCharacter(opts = {}) {
   body.add(head);
 
   const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.48, 0.46), mSkin);
-  headMesh.position.y = 0.24; headMesh.castShadow = true; head.add(headMesh);
+  headMesh.position.y = 0.24; head.add(headMesh);
 
   const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.28, 0.56), mHelmet);
-  helmet.position.y = 0.50; helmet.castShadow = true; head.add(helmet);
+  helmet.position.y = 0.50; head.add(helmet);
   const helmetTop = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.06, 0.50), mHelmet);
   helmetTop.position.y = 0.67; head.add(helmetTop);
   const brimF = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.05, 0.08), mHelmet);
@@ -688,13 +694,13 @@ function buildCharacter(opts = {}) {
     shoulder.position.set(0.47 * side, 1.72, 0);
     body.add(shoulder);
     const upperArm = new THREE.Mesh(new THREE.BoxGeometry(0.20, UPPER, 0.20), mUni);
-    upperArm.position.y = -UPPER / 2; upperArm.castShadow = true; shoulder.add(upperArm);
+    upperArm.position.y = -UPPER / 2; shoulder.add(upperArm);
     const cuff = new THREE.Mesh(new THREE.BoxGeometry(0.205, 0.06, 0.205), mUniD);
     cuff.position.y = -UPPER + 0.05; shoulder.add(cuff);
     const elbow = new THREE.Group();
     elbow.position.y = -UPPER; shoulder.add(elbow);
     const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.18, LOWER, 0.18), mUniD);
-    forearm.position.y = -LOWER / 2; forearm.castShadow = true; elbow.add(forearm);
+    forearm.position.y = -LOWER / 2; elbow.add(forearm);
     const hand = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.16, 0.17), mDark);
     hand.position.y = -HAND_OFFSET; elbow.add(hand);
     return { shoulder, elbow, upper: UPPER, lower: HAND_OFFSET };
@@ -707,11 +713,11 @@ function buildCharacter(opts = {}) {
     pivot.position.set(0.17 * side, 0.9, 0);
     body.add(pivot);
     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.72, 0.26), mUniD);
-    leg.position.y = -0.36; leg.castShadow = true; pivot.add(leg);
+    leg.position.y = -0.36; pivot.add(leg);
     const knee = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.14, 0.10), mVest);
     knee.position.set(0, -0.32, 0.14); pivot.add(knee);
     const boot = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.40), mBoot);
-    boot.position.set(0, -0.80, 0.06); boot.castShadow = true; pivot.add(boot);
+    boot.position.set(0, -0.80, 0.06); pivot.add(boot);
     const sole = new THREE.Mesh(new THREE.BoxGeometry(0.30, 0.04, 0.42), mDark);
     sole.position.set(0, -0.90, 0.06); pivot.add(sole);
     return pivot;
@@ -832,7 +838,7 @@ function buildGrenadeModel(opts = {}) {
   const mDark  = cachedMat(0x141414);
   const mGlove = cachedMat(0x1a1a17);
   const mUni   = cachedMat(0x4a5238);
-  const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.085, 0), mBody); body.castShadow = true; g.add(body);
+  const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.085, 0), mBody); body.castShadow = false; g.add(body);
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.038, 0.05, 6), mMetal); neck.position.y = 0.095; g.add(neck);
   const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.022, 6), mDark); cap.position.y = 0.128; g.add(cap);
   const lever = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.10, 0.026), mMetal); lever.position.set(0.042, 0.075, 0); lever.rotation.z = -0.16; g.add(lever);
@@ -842,6 +848,7 @@ function buildGrenadeModel(opts = {}) {
     const arm = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.36), mUni); arm.position.set(0.04, -0.27, -0.20); arm.rotation.set(0.55, 0, 0.12); g.add(arm);
   }
   g.scale.setScalar(scale);
+  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; } });
   return g;
 }
 
@@ -853,6 +860,8 @@ const player = _localChar.root;
 const playerBody = _localChar.body;
 player.visible = false;
 scene.add(player);
+// ⚠️ El jugador local no proyecta sombra ni recibe sombras
+disableShadows(player);
 
 /* ═══════════════════════════════════════════
    ARMAS — DEFINICIONES
@@ -881,13 +890,6 @@ const weaponShotgun = shotgunModel.group;
 
 const _fbxLoader = new FBXLoader();
 
-/* ⚠️ NUEVO CARGADOR ROBUSTO DE ARMAS — similar al de vehículos:
-   - Fuerza visible en todos los nodos
-   - Sanea materiales (opacos, sin alpha) manteniendo color maps
-   - Auto-detección Z-up
-   - Configuración de rotación específica por arma
-   - Log de mallas
-*/
 function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
@@ -897,10 +899,8 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
         obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
 
-        // 1) Forzar visible
         obj.traverse(n => { n.visible = true; });
 
-        // 2) Forzar opacidad en materiales ANTES de medir
         obj.traverse(n => {
           if (n.isMesh || n.isSkinnedMesh) {
             if (n.material) {
@@ -910,8 +910,6 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
           }
         });
 
-        // 3) Auto-detección Z-up: si Y es la dimensión más pequeña y X o Z son grandes,
-        // probablemente es un arma "acostada" que necesita enderezar
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
         if (size.y < size.x * 0.5 && size.y < size.z * 0.5 && (rotX === 0)) {
@@ -921,26 +919,24 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
           size = box.getSize(new THREE.Vector3());
         }
 
-        // 4) Escalar a la longitud deseada (mayor dimensión)
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
         obj.scale.setScalar(targetLen / maxDim);
         obj.updateMatrixWorld(true);
 
-        // 5) Centrar
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2 = box2.getCenter(new THREE.Vector3());
         obj.position.set(-c2.x, -c2.y, -c2.z);
         obj.updateMatrixWorld(true);
 
-        // 6) Procesar mallas final (opacidad de nuevo, sombras, frustum)
         let meshCount = 0;
         obj.traverse(n => {
           n.visible = true;
           if (n.isMesh || n.isSkinnedMesh) {
             meshCount++;
             n.visible = true;
-            n.castShadow = true;
-            n.receiveShadow = true;
+            // ⚠️ Las armas FPS no proyectan sombra ni reciben sombra
+            n.castShadow = false;
+            n.receiveShadow = false;
             n.frustumCulled = false;
             if (n.material) {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
@@ -948,17 +944,17 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
             }
           }
         });
-        console.log(`[FBX] ${url}: ${meshCount} mallas (materiales opacos forzados)`);
+        console.log(`[FBX] ${url}: ${meshCount} mallas (opacas, sin sombra)`);
         resolve(obj);
       } catch (e) { logFbxError('weapon ' + url + ': ' + e.message); resolve(null); }
     }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
   });
 }
 
-/* Carga de las 3 armas con rotaciones específicas:
-   - m4a1:  sin rotación extra (funciona bien)
-   - pistol: +90° en Y (así apunta hacia el frente en la vista FPS)
-   - escopeta: -90° en Y (corrige que el cañón salga apuntando a la derecha)
+/* Carga de las 3 armas:
+   - m4a1: sin rotación extra
+   - pistol: +90° en Y
+   - escopeta: +90° en Y (antes estaba -90° y por eso apuntaba hacia el jugador)
 */
 (async () => {
   const r = await loadWeaponFBX('modelos3d/m4a1.fbx', 0.65, 0);
@@ -967,7 +963,7 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   const p = await loadWeaponFBX('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
 
-  const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, -Math.PI / 2);
+  const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
 })();
 
@@ -980,26 +976,26 @@ function makeFPSHand(side = 'right') {
   const matSleeve  = new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true });
   const matSleeve2 = new THREE.MeshLambertMaterial({ color: 0x353d27, flatShading: true });
   const matStrap   = new THREE.MeshLambertMaterial({ color: 0x2a2520, flatShading: true });
-  const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.32), matSleeve); forearm.position.set(0, 0, 0.185); forearm.castShadow = true; g.add(forearm);
-  const band = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.135, 0.055), matSleeve2); band.position.set(0, 0, 0.035); band.castShadow = true; g.add(band);
-  const wrap = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.075), matGlove); wrap.position.set(0, 0, -0.02); wrap.castShadow = true; g.add(wrap);
+  const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.32), matSleeve); forearm.position.set(0, 0, 0.185); g.add(forearm);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.135, 0.055), matSleeve2); band.position.set(0, 0, 0.035); g.add(band);
+  const wrap = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.075), matGlove); wrap.position.set(0, 0, -0.02); g.add(wrap);
   const strap = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.122, 0.014), matStrap); strap.position.set(0, 0, -0.052); g.add(strap);
-  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.115, 0.115), matGlove); palm.position.set(0, 0, -0.108); palm.castShadow = true; g.add(palm);
+  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.115, 0.115), matGlove); palm.position.set(0, 0, -0.108); g.add(palm);
   const knuckle = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.03, 0.075), matGlove2); knuckle.position.set(0, 0.058, -0.152); g.add(knuckle);
   const fingerGeo = new THREE.BoxGeometry(0.021, 0.052, 0.024);
   const tipGeo    = new THREE.BoxGeometry(0.019, 0.036, 0.022);
   for (let i = 0; i < 4; i++) {
     const fx = -0.036 + i * 0.024;
     const finger = new THREE.Mesh(fingerGeo, matGlove2);
-    finger.position.set(fx, -0.012, -0.182); finger.rotation.x = -0.9; finger.castShadow = true; g.add(finger);
+    finger.position.set(fx, -0.012, -0.182); finger.rotation.x = -0.9; g.add(finger);
     const tip = new THREE.Mesh(tipGeo, matGloveDk);
-    tip.position.set(fx, 0.006, -0.215); tip.rotation.x = -1.4; tip.castShadow = true; g.add(tip);
+    tip.position.set(fx, 0.006, -0.215); tip.rotation.x = -1.4; g.add(tip);
   }
   const ts = side === 'right' ? -1 : 1;
   const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.033, 0.05, 0.033), matGlove2);
   thumb.position.set(ts * 0.06, -0.008, -0.105);
   thumb.rotation.set(-0.28, ts * 0.55, ts * 0.42);
-  thumb.castShadow = true; g.add(thumb);
+  g.add(thumb);
   return g;
 }
 
@@ -1046,6 +1042,11 @@ weaponPistol.visible = false;
 camera.add(weaponRifle);
 camera.add(weaponShotgun);
 camera.add(weaponPistol);
+
+// ⚠️ Las armas FPS no proyectan sombra sobre el mundo
+disableShadows(weaponRifle);
+disableShadows(weaponShotgun);
+disableShadows(weaponPistol);
 
 const muzzleLight = new THREE.PointLight(0xffdd66, 0, 8);
 muzzleLight.position.set(0.15, -0.10, -0.62);
@@ -1540,7 +1541,7 @@ function loadVehicleFBX(url, targetLen) {
             }
           }
         });
-        console.log(`[FBX] ${url}: ${meshCount} mallas cargadas (materiales forzados a opacos)`);
+        console.log(`[FBX] ${url}: ${meshCount} mallas cargadas`);
         resolve({ obj, meshCount });
       } catch (e) {
         logFbxError('vehicle ' + url + ': ' + e.message);
@@ -2268,24 +2269,12 @@ function updateDebug(dt) {
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
-<span class="val">Modo:</span>      ${gameMode || '-'}
-<span class="val">Online:</span>    ${onlineMode ? 'SÍ' : 'no'}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Triángulos:</span>${renderer.info.render.triangles}
-
-<span class="title">── Jugador ──</span>
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
-
-<span class="title">── Red ──</span>
 <span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
-
-<span class="title">── FBX ──</span>
-<span class="val">Container1/2:</span> ${containerFbxStatus.c1 ? '✅' : '❌'}/${containerFbxStatus.c2 ? '✅' : '❌'}
-<span class="val">Auto militar:</span> ${vehicleFbxStatus.military ? '✅' : '❌'} (${vehicleMeshCounts.military})
-<span class="val">Camioneta:</span>  ${vehicleFbxStatus.pickup ? '✅' : '❌'} (${vehicleMeshCounts.pickup})
-<span class="val">Carrito:</span>    ${vehicleFbxStatus.cart ? '✅' : '❌'} (${vehicleMeshCounts.cart})
 <span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
   `.trim();
 }
@@ -2472,6 +2461,7 @@ function killPlayer() {
     child.getWorldPosition(wp); child.getWorldQuaternion(wq);
     clone.position.copy(wp); clone.quaternion.copy(wq);
     scene.add(clone);
+    disableShadows(clone); // los pedazos del jugador tampoco dan sombra
     const vel = new THREE.Vector3((Math.random() - 0.5) * 9, Math.random() * 8 + 4, (Math.random() - 0.5) * 9);
     const angVel = new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
     playerPieces.push({ mesh: clone, vel, angVel, life: 8 });
