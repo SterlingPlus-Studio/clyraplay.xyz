@@ -605,7 +605,6 @@ function createFlash(radius, x, y, z, color) {
   flash.visible = false;
   return flash;
 }
-
 function createRifleModel() {
   const group = new THREE.Group();
   const flash = createFlash(0.10, 0, 0.025, -0.35, 0xffee88);
@@ -618,7 +617,6 @@ function createRifleModel() {
   group.add(handguardMarker);
   return { group, flash, gripMarker, handguardMarker, fbxModel: null };
 }
-
 function createPistolModel() {
   const group = new THREE.Group();
   const flash = createFlash(0.07, 0, 0.04, -0.20, 0xffdd66);
@@ -628,7 +626,6 @@ function createPistolModel() {
   group.add(gripMarker);
   return { group, flash, gripMarker, fbxModel: null };
 }
-
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -649,7 +646,6 @@ function createLowPolyRifleRemote() {
   g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker, handguardMarker };
 }
-
 function createLowPolyPistolRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -664,7 +660,6 @@ function createLowPolyPistolRemote() {
   g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker };
 }
-
 function buildGrenadeModel(opts = {}) {
   const withHand = opts.withHand !== false;
   const scale = opts.scale ?? 1;
@@ -708,7 +703,6 @@ const weaponState = {
   rifle:  { ammo: 30, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
   pistol: { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 }
 };
-
 const rifleModel   = createRifleModel();
 const pistolModel  = createPistolModel();
 const weaponRifle  = rifleModel.group;
@@ -765,14 +759,12 @@ function makeFPSHand(side = 'right') {
   const matSleeve  = new THREE.MeshLambertMaterial({ color: 0x4a5238, flatShading: true });
   const matSleeve2 = new THREE.MeshLambertMaterial({ color: 0x353d27, flatShading: true });
   const matStrap   = new THREE.MeshLambertMaterial({ color: 0x2a2520, flatShading: true });
-
   const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.32), matSleeve); forearm.position.set(0, 0, 0.185); forearm.castShadow = true; g.add(forearm);
   const band = new THREE.Mesh(new THREE.BoxGeometry(0.135, 0.135, 0.055), matSleeve2); band.position.set(0, 0, 0.035); band.castShadow = true; g.add(band);
   const wrap = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.115, 0.075), matGlove); wrap.position.set(0, 0, -0.02); wrap.castShadow = true; g.add(wrap);
   const strap = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.122, 0.014), matStrap); strap.position.set(0, 0, -0.052); g.add(strap);
   const palm = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.115, 0.115), matGlove); palm.position.set(0, 0, -0.108); palm.castShadow = true; g.add(palm);
   const knuckle = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.03, 0.075), matGlove2); knuckle.position.set(0, 0.058, -0.152); g.add(knuckle);
-
   const fingerGeo = new THREE.BoxGeometry(0.021, 0.052, 0.024);
   const tipGeo    = new THREE.BoxGeometry(0.019, 0.036, 0.022);
   for (let i = 0; i < 4; i++) {
@@ -795,13 +787,11 @@ _fpHandR.scale.setScalar(0.55);
 _fpHandR.position.set(0.01, -0.075, 0.075);
 _fpHandR.rotation.set(0.55, 0, 0.10);
 weaponRifle.add(_fpHandR);
-
 const _fpHandL = makeFPSHand('left');
 _fpHandL.scale.set(0.58, 0.58, 0.74);
 _fpHandL.position.set(0.015, -0.055, -0.205);
 _fpHandL.rotation.set(1.15, 0.02, -0.55);
 weaponRifle.add(_fpHandL);
-
 const _fpPHandR = makeFPSHand('right');
 _fpPHandR.scale.setScalar(0.55);
 _fpPHandR.position.set(0.008, -0.055, 0.020);
@@ -828,7 +818,6 @@ function curWepDef()   { return WEAPONS[currentWeaponKey]; }
 function curWepState() { return weaponState[currentWeaponKey]; }
 function curWeaponGroup() { return currentWeaponKey === 'rifle' ? weaponRifle : weaponPistol; }
 function curWeaponFlash() { return currentWeaponKey === 'rifle' ? rifleModel.flash : pistolModel.flash; }
-
 function setLocalWeaponsVisible(v) {
   weaponRifle.visible  = v && currentWeaponKey === 'rifle';
   weaponPistol.visible = v && currentWeaponKey === 'pistol';
@@ -1037,62 +1026,45 @@ function darkenHex(hex, f) {
 
 const CONT_L = 6.0, CONT_W = 2.5, CONT_H = 2.6, CONT_GAP = 0.15;
 
+/* ─────────── CONTENEDOR PROCEDURAL (fallback) ─────────── */
 function createSingleContainer(color) {
   const g = new THREE.Group();
   const mBody = cachedMat(color);
   const mDark = cachedMat(darkenHex(color, 0.55));
   const mFrame = cachedMat(0x181818);
-
   const body = new THREE.Mesh(new THREE.BoxGeometry(CONT_L, CONT_H, CONT_W), mBody);
   body.position.y = CONT_H / 2;
   body.castShadow = true; body.receiveShadow = true;
   g.add(body);
-
-  // Corrugation ribs (reduced for performance)
   const ribCount = 6;
   const ribGeo = new THREE.BoxGeometry(0.08, CONT_H - 0.35, 0.05);
   for (let i = 0; i < ribCount; i++) {
     const px = -CONT_L/2 + 0.7 + i * (CONT_L - 1.4) / (ribCount - 1);
     const rf = new THREE.Mesh(ribGeo, mDark);
-    rf.position.set(px, CONT_H/2,  CONT_W/2 + 0.013);
-    g.add(rf);
+    rf.position.set(px, CONT_H/2,  CONT_W/2 + 0.013); g.add(rf);
     const rb = new THREE.Mesh(ribGeo, mDark);
-    rb.position.set(px, CONT_H/2, -CONT_W/2 - 0.013);
-    g.add(rb);
+    rb.position.set(px, CONT_H/2, -CONT_W/2 - 0.013); g.add(rb);
   }
-
-  // Corner posts
   const postGeo = new THREE.BoxGeometry(0.24, CONT_H + 0.04, 0.24);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
     const post = new THREE.Mesh(postGeo, mFrame);
     post.position.set(sx * (CONT_L/2 - 0.12), CONT_H/2, sz * (CONT_W/2 - 0.12));
     g.add(post);
   }
-
-  // Top & bottom rails
   const rimGeo = new THREE.BoxGeometry(CONT_L + 0.05, 0.1, CONT_W + 0.05);
-  const topRim = new THREE.Mesh(rimGeo, mFrame);
-  topRim.position.y = CONT_H - 0.05; g.add(topRim);
-  const botRim = new THREE.Mesh(rimGeo, mFrame);
-  botRim.position.y = 0.05; g.add(botRim);
-
-  // Door (front, +X)
+  const topRim = new THREE.Mesh(rimGeo, mFrame); topRim.position.y = CONT_H - 0.05; g.add(topRim);
+  const botRim = new THREE.Mesh(rimGeo, mFrame); botRim.position.y = 0.05; g.add(botRim);
   const doorGeo = new THREE.BoxGeometry(0.06, CONT_H - 0.4, CONT_W - 0.15);
   const door = new THREE.Mesh(doorGeo, mDark);
   door.position.set(CONT_L/2 + 0.015, CONT_H/2, 0);
   g.add(door);
-
   return g;
 }
 
-function createContainerStack(x, z, rot, colors) {
+function buildProceduralStack(colors) {
   const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  g.rotation.y = rot;
-
   const stepX = CONT_L + CONT_GAP;
   const stepZ = CONT_W + CONT_GAP;
-
   const offsets = [
     [-stepX/2, -stepZ/2, colors[0]],
     [-stepX/2,  stepZ/2, colors[1]],
@@ -1104,15 +1076,10 @@ function createContainerStack(x, z, rot, colors) {
     c.position.set(ox, 0, oz);
     g.add(c);
   }
-
-  const hw = CONT_L + CONT_GAP/2;
-  const hd = CONT_W + CONT_GAP/2;
-  boxColliders.push({ x, z, hw, hd, rot, kind: 'wall' });
-
   return g;
 }
 
-/* Paleta */
+/* ─────────── PALETAS ─────────── */
 const C_RED    = [0xb03a2e, 0xc0453a, 0x8b2c20, 0xa33a2e];
 const C_RED2   = [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e];
 const C_GREEN  = [0x2e7d4f, 0x35935c, 0x24774a, 0x2a8a52];
@@ -1123,58 +1090,190 @@ const C_BROWN  = [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a];
 const C_BROWN2 = [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a];
 const C_GREY   = [0x7f8c8d, 0x95a5a6, 0x6b7778, 0x7f8c8d];
 
-/* Layout: 5 columnas x 3 filas = 15 stacks */
+/* ─────────── LAYOUT DE STACKS (con tipo FBX) ─────────── */
 const containerLayout = [
-  { x: -38, z: -20, rot: 0, colors: C_RED },
-  { x: -38, z:   2, rot: 0, colors: C_RED2 },
-
-  { x: -20, z: -20, rot: 0, colors: C_GREEN },
-  { x: -20, z:   2, rot: 0, colors: C_RED2 },
-
-  { x:  -2, z: -20, rot: 0, colors: C_GREEN2 },
-  { x:  -2, z:   2, rot: 0, colors: C_BROWN },
-  { x:  -2, z:  24, rot: 0, colors: C_BROWN2 },
-
-  { x:  16, z: -20, rot: 0, colors: C_BLUE },
-  { x:  16, z:   2, rot: 0, colors: C_BROWN },
-  { x:  16, z:  24, rot: 0, colors: C_BROWN2 },
-
-  { x:  34, z: -20, rot: 0, colors: C_BLUE2 },
-  { x:  34, z:   2, rot: 0, colors: C_BLUE },
-  { x:  34, z:  24, rot: 0, colors: C_BROWN },
+  { x: -38, z: -20, rot: 0, type: 1, colors: C_RED },
+  { x: -38, z:   2, rot: 0, type: 2, colors: C_RED2 },
+  { x: -20, z: -20, rot: 0, type: 1, colors: C_GREEN },
+  { x: -20, z:   2, rot: 0, type: 2, colors: C_RED2 },
+  { x:  -2, z: -20, rot: 0, type: 2, colors: C_GREEN2 },
+  { x:  -2, z:   2, rot: 0, type: 1, colors: C_BROWN },
+  { x:  -2, z:  24, rot: 0, type: 2, colors: C_BROWN2 },
+  { x:  16, z: -20, rot: 0, type: 1, colors: C_BLUE },
+  { x:  16, z:   2, rot: 0, type: 2, colors: C_BROWN },
+  { x:  16, z:  24, rot: 0, type: 1, colors: C_BROWN2 },
+  { x:  34, z: -20, rot: 0, type: 2, colors: C_BLUE2 },
+  { x:  34, z:   2, rot: 0, type: 1, colors: C_BLUE },
+  { x:  34, z:  24, rot: 0, type: 2, colors: C_BROWN },
 ];
-for (const c of containerLayout) scene.add(createContainerStack(c.x, c.z, c.rot, c.colors));
+
+/* ─────────── GRUPOS PLACEHOLDER + COLISIONES INMEDIATAS ─────────── */
+const containerGroups = [];
+for (const def of containerLayout) {
+  const g = new THREE.Group();
+  g.position.set(def.x, 0, def.z);
+  g.rotation.y = def.rot;
+  scene.add(g);
+  containerGroups.push({ def, group: g });
+  boxColliders.push({
+    x: def.x, z: def.z,
+    hw: CONT_L + CONT_GAP / 2,
+    hd: CONT_W + CONT_GAP / 2,
+    rot: def.rot, kind: 'wall'
+  });
+}
+
+/* ─────────── CARGA DE CONTENEDORES FBX ─────────── */
+function loadContainerFBX(url) {
+  return new Promise((resolve) => {
+    _fbxLoader.load(url, (obj) => {
+      try {
+        // Reset
+        obj.position.set(0, 0, 0);
+        obj.rotation.set(0, 0, 0);
+        obj.scale.setScalar(1);
+        obj.updateMatrixWorld(true);
+
+        // Medidas originales
+        let box = new THREE.Box3().setFromObject(obj);
+        let size = box.getSize(new THREE.Vector3());
+
+        // Si el FBX viene "acostado", orientar para que el lado más largo sea X y el alto sea Y.
+        // Detectamos si Y no es la dimensión vertical esperada: si size.y es el menor, rotamos.
+        // Para containers estándar: largo > alto > ancho. Si Y es el más pequeño, rotamos X→Y.
+        if (size.y < size.x && size.y < size.z) {
+          // Y es el más chico: probablemente el FBX tiene Z-up (Blender). Rotamos -90° en X.
+          obj.rotation.x = -Math.PI / 2;
+          obj.updateMatrixWorld(true);
+          box = new THREE.Box3().setFromObject(obj);
+          size = box.getSize(new THREE.Vector3());
+        }
+
+        // Escalar uniformemente para que el alto sea CONT_H
+        const s = CONT_H / Math.max(size.y, 0.001);
+        obj.scale.setScalar(s);
+        obj.updateMatrixWorld(true);
+
+        // Centrar en XZ y poner base en Y=0
+        const box2 = new THREE.Box3().setFromObject(obj);
+        const c2 = box2.getCenter(new THREE.Vector3());
+        obj.position.x -= c2.x;
+        obj.position.z -= c2.z;
+        obj.position.y -= box2.min.y;
+        obj.updateMatrixWorld(true);
+
+        // Ajustes de materiales
+        obj.traverse(n => {
+          if (n.isMesh) {
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.frustumCulled = false;
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) {
+                if (!m) continue;
+                if ('flatShading' in m) m.flatShading = true;
+                if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+                m.needsUpdate = true;
+              }
+            }
+          }
+        });
+        resolve(obj);
+      } catch (e) {
+        console.warn('Error procesando contenedor FBX:', url, e);
+        resolve(null);
+      }
+    }, undefined, (err) => {
+      console.warn('No se pudo cargar contenedor FBX:', url, err);
+      resolve(null);
+    });
+  });
+}
+
+/* Promise.all: cargar ambos, popular grupos */
+Promise.all([
+  loadContainerFBX('modelos3d/Container1.fbx'),
+  loadContainerFBX('modelos3d/Container2.fbx')
+]).then(([c1, c2]) => {
+  const anyLoaded = c1 || c2;
+
+  // Si NINGÚN FBX cargó: fallback procedural para todo
+  if (!anyLoaded) {
+    console.warn('Contenedores FBX no disponibles, usando procedural.');
+    for (const { def, group } of containerGroups) {
+      group.add(buildProceduralStack(def.colors));
+    }
+    try { applyOptimizations(); } catch (e) {}
+    return;
+  }
+
+  const stepX = CONT_L + CONT_GAP;
+  const stepZ = CONT_W + CONT_GAP;
+  const offsets = [
+    [-stepX/2, -stepZ/2],
+    [-stepX/2,  stepZ/2],
+    [ stepX/2, -stepZ/2],
+    [ stepX/2,  stepZ/2],
+  ];
+
+  for (const { def, group } of containerGroups) {
+    // Elegir plantilla según tipo, con fallback al otro si uno no cargó
+    let template = null;
+    if (def.type === 1) template = c1 || c2;
+    else                template = c2 || c1;
+
+    if (!template) {
+      group.add(buildProceduralStack(def.colors));
+      continue;
+    }
+
+    for (const [ox, oz] of offsets) {
+      const c = template.clone(true);
+      c.position.set(ox, 0, oz);
+      // Micro-variación de rotación para realismo
+      c.rotation.y = (Math.random() - 0.5) * 0.02;
+      c.traverse(n => {
+        if (n.isMesh) {
+          n.castShadow = true;
+          n.receiveShadow = true;
+          n.frustumCulled = false;
+        }
+      });
+      group.add(c);
+    }
+  }
+
+  try { applyOptimizations(); } catch (e) {}
+}).catch(err => {
+  console.warn('Error general cargando contenedores FBX:', err);
+  for (const { def, group } of containerGroups) {
+    group.add(buildProceduralStack(def.colors));
+  }
+});
 
 /* ─────────────── ALMACÉN NORTE ─────────────── */
 function createWarehouse(x, z, w, d, h) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
-
   const mWall = cachedMat(0x9a9382);
   const mRoof = cachedMat(0x3f4244);
   const mDoor = cachedMat(0x2c2e30);
   const mTrim = cachedMat(0x1e1e1e);
-
   const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
   body.position.y = h / 2;
   body.castShadow = true; body.receiveShadow = true;
   g.add(body);
-
-  // Horizontal stripes (warehouse look)
   const stripeGeo = new THREE.BoxGeometry(w + 0.05, 0.12, d + 0.05);
   for (let i = 0; i < 5; i++) {
     const stripe = new THREE.Mesh(stripeGeo, mTrim);
     stripe.position.y = 1.2 + i * (h - 2.4) / 4;
     g.add(stripe);
   }
-
-  // Roof
   const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.5, d + 1), mRoof);
   roof.position.y = h + 0.25;
   roof.castShadow = true;
   g.add(roof);
-
-  // Garage doors (front, +z)
   const doorCount = 3;
   const innerW = w - 2.5;
   const doorW = innerW / doorCount - 0.6;
@@ -1191,7 +1290,6 @@ function createWarehouse(x, z, w, d, h) {
       g.add(slat);
     }
   }
-
   boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
   return g;
 }
@@ -1201,23 +1299,18 @@ scene.add(createWarehouse(0, -40, 46, 14, 8));
 function createOffice(x, z, w, d, h) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
-
   const mWall = cachedMat(0xe8dcc0);
   const mRoof = cachedMat(0x5d4037);
   const mTrim = cachedMat(0x2a2520);
   const mWindow = cachedMat(0x2b3a4a);
-
   const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
   body.position.y = h / 2;
   body.castShadow = true; body.receiveShadow = true;
   g.add(body);
-
   const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, 0.4, d + 0.6), mRoof);
   roof.position.y = h + 0.2;
   roof.castShadow = true;
   g.add(roof);
-
-  // Windows (front)
   for (let i = 0; i < 3; i++) {
     const wx = -w/2 + 1.6 + i * (w - 3.2) / 2;
     const win = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 0.1), mWindow);
@@ -1227,18 +1320,13 @@ function createOffice(x, z, w, d, h) {
     frame.position.set(wx, h * 0.65, d/2 + 0.02);
     g.add(frame);
   }
-
-  // Door
   const door = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.0, 0.12), mTrim);
   door.position.set(0, 1.0, d/2 + 0.06);
   g.add(door);
-
-  // AC unit
   const ac = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 1.0), cachedMat(0xaaaaaa));
   ac.position.set(w/2 - 1.2, h + 0.55, 0);
   ac.castShadow = true;
   g.add(ac);
-
   boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
   return g;
 }
@@ -1250,15 +1338,12 @@ function createFence(x1, z1, x2, z2) {
   const len = Math.hypot(dx, dz);
   if (len < 0.1) return null;
   const g = new THREE.Group();
-
   const mPost = cachedMat(0x3a3a3a);
   const mRail = cachedMat(0x222222);
   const mFence = new THREE.MeshLambertMaterial({
     color: 0x8a9aa8, transparent: true, opacity: 0.32,
     side: THREE.DoubleSide, depthWrite: false, flatShading: false
   });
-
-  // Posts
   const postGeo = new THREE.BoxGeometry(0.14, 3.2, 0.14);
   const postCount = Math.max(1, Math.ceil(len / 3));
   for (let i = 0; i <= postCount; i++) {
@@ -1267,131 +1352,45 @@ function createFence(x1, z1, x2, z2) {
     post.position.set(t * len - len / 2, 1.6, 0);
     post.castShadow = true;
     g.add(post);
-    // Post cap
     const cap = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.25, 4), mPost);
     cap.position.set(t * len - len / 2, 3.32, 0);
     g.add(cap);
   }
-
-  // Mesh panel
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(len, 3.0), mFence);
   panel.position.set(0, 1.55, 0);
   g.add(panel);
-
-  // Top rail
   const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.08), mRail);
   rail.position.set(0, 3.05, 0);
   g.add(rail);
-
-  // Bottom rail
   const bRail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), mRail);
   bRail.position.set(0, 0.15, 0);
   g.add(bRail);
-
   g.position.set((x1 + x2) / 2, 0, (z1 + z2) / 2);
   g.rotation.y = Math.atan2(-dz, dx);
-
-  // Collider along fence
   const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
   const rot = Math.atan2(-dz, dx);
   boxColliders.push({ x: cx, z: cz, hw: len / 2, hd: 0.15, rot, kind: 'wall' });
-
   return g;
 }
-
-// Perímetro con hueco en la entrada (frente, centro)
 const ENTRY_GAP = 9;
-scene.add(createFence(-FENCE_X, -FENCE_Z, FENCE_X, -FENCE_Z)); // norte
-scene.add(createFence( FENCE_X, -FENCE_Z, FENCE_X, FENCE_Z));  // este
-scene.add(createFence(-FENCE_X, -FENCE_Z, -FENCE_X, FENCE_Z)); // oeste
-// Frente (sur) con hueco central
+scene.add(createFence(-FENCE_X, -FENCE_Z, FENCE_X, -FENCE_Z));
+scene.add(createFence( FENCE_X, -FENCE_Z, FENCE_X, FENCE_Z));
+scene.add(createFence(-FENCE_X, -FENCE_Z, -FENCE_X, FENCE_Z));
 scene.add(createFence(-FENCE_X, FENCE_Z, -ENTRY_GAP / 2, FENCE_Z));
 scene.add(createFence( ENTRY_GAP / 2, FENCE_Z, FENCE_X, FENCE_Z));
-
-/* ─────────────── PUERTA DE ENTRADA / BARRERA ─────────────── */
-function createEntryGate(x, z) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-
-  const mPost = cachedMat(0x2a2a2a);
-  const mYellow = cachedMat(0xf1c40f);
-  const mRed = cachedMat(0xc0392b);
-  const mWhite = cachedMat(0xeeeeee);
-
-  // Posts laterales
-  for (const sx of [-1, 1]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.5, 0.5), mPost);
-    post.position.set(sx * (ENTRY_GAP / 2 + 0.3), 2.25, 0);
-    post.castShadow = true;
-    g.add(post);
-  }
-
-  // Cabaña de guardia
-  const booth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 3.0), cachedMat(0xd6d6d6));
-  booth.position.set(-ENTRY_GAP / 2 - 2.5, 1.4, 1.5);
-  booth.castShadow = true;
-  g.add(booth);
-  const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 3.4), cachedMat(0x2a2a2a));
-  boothRoof.position.set(-ENTRY_GAP / 2 - 2.5, 2.9, 1.5);
-  g.add(boothRoof);
-  // Ventana
-  const win = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 1.6), cachedMat(0x2b3a4a));
-  win.position.set(-ENTRY_GAP / 2 - 2.5 + 1.55, 1.7, 1.5);
-  g.add(win);
-
-  // Barrera (poste + brazo)
-  const barrierBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.5), mPost);
-  barrierBase.position.set(ENTRY_GAP / 2 - 0.6, 0.5, 0);
-  g.add(barrierBase);
-  const armPivot = new THREE.Group();
-  armPivot.position.set(ENTRY_GAP / 2 - 0.6, 1.0, 0);
-  armPivot.rotation.z = -Math.PI / 12; // ligeramente levantado
-  g.add(armPivot);
-
-  // Brazo a rayas
-  const armLen = ENTRY_GAP - 1.4;
-  const armSegments = 8;
-  for (let i = 0; i < armSegments; i++) {
-    const segLen = armLen / armSegments;
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(segLen, 0.18, 0.14), i % 2 ? mRed : mWhite);
-    seg.position.set(-segLen / 2 - i * segLen, 0, 0);
-    armPivot.add(seg);
-  }
-  // Franja amarilla en piso
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(ENTRY_GAP, 0.02, 1.4), mYellow);
-  stripe.position.set(0, 0.03, 0);
-  g.add(stripe);
-
-  // Cochera con dos coches aparcados
-  const carColors = [0x2c3e50, 0x7f8c8d];
-  for (let i = 0; i < 2; i++) {
-    const car = createParkedCar(FENCE_X - 4 - i * 3.2, FENCE_Z - 5, 0, carColors[i]);
-    scene.add(car);
-  }
-
-  // Colliders
-  boxColliders.push({ x: -ENTRY_GAP / 2 - 2.5, z: 1.5, hw: 1.5, hd: 1.5, rot: 0, kind: 'wall' });
-  boxColliders.push({ x: ENTRY_GAP / 2 - 0.6, z: 0, hw: 0.35, hd: 0.35, rot: 0, kind: 'wall' });
-
-  return g;
-}
 
 /* ─────────────── COCHE APARCADO ─────────────── */
 function createParkedCar(x, z, rot, color) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   g.rotation.y = rot;
-
   const mBody = cachedMat(color);
   const mDark = cachedMat(0x111111);
   const mGlass = cachedMat(0x1a2a3a);
-
   const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.7, 4.2), mBody);
   body.position.y = 0.75; body.castShadow = true; g.add(body);
-
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 2.2), mGlass);
   cabin.position.set(0, 1.4, 0.1); cabin.castShadow = true; g.add(cabin);
-
   const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8);
   for (const [wx, wz] of [[-1.0, -1.3], [1.0, -1.3], [-1.0, 1.3], [1.0, 1.3]]) {
     const w = new THREE.Mesh(wGeo, mDark);
@@ -1400,23 +1399,70 @@ function createParkedCar(x, z, rot, color) {
     w.castShadow = true;
     g.add(w);
   }
-
   colliders.push({ x, z, r: 1.6, kind: 'lamp' });
   return g;
 }
 
+/* ─────────────── PUERTA DE ENTRADA ─────────────── */
+function createEntryGate(x, z) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  const mPost = cachedMat(0x2a2a2a);
+  const mYellow = cachedMat(0xf1c40f);
+  const mRed = cachedMat(0xc0392b);
+  const mWhite = cachedMat(0xeeeeee);
+  for (const sx of [-1, 1]) {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.5, 0.5), mPost);
+    post.position.set(sx * (ENTRY_GAP / 2 + 0.3), 2.25, 0);
+    post.castShadow = true;
+    g.add(post);
+  }
+  const booth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 3.0), cachedMat(0xd6d6d6));
+  booth.position.set(-ENTRY_GAP / 2 - 2.5, 1.4, 1.5);
+  booth.castShadow = true;
+  g.add(booth);
+  const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 3.4), cachedMat(0x2a2a2a));
+  boothRoof.position.set(-ENTRY_GAP / 2 - 2.5, 2.9, 1.5);
+  g.add(boothRoof);
+  const win = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 1.6), cachedMat(0x2b3a4a));
+  win.position.set(-ENTRY_GAP / 2 - 2.5 + 1.55, 1.7, 1.5);
+  g.add(win);
+  const barrierBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.5), mPost);
+  barrierBase.position.set(ENTRY_GAP / 2 - 0.6, 0.5, 0);
+  g.add(barrierBase);
+  const armPivot = new THREE.Group();
+  armPivot.position.set(ENTRY_GAP / 2 - 0.6, 1.0, 0);
+  armPivot.rotation.z = -Math.PI / 12;
+  g.add(armPivot);
+  const armLen = ENTRY_GAP - 1.4;
+  const armSegments = 8;
+  for (let i = 0; i < armSegments; i++) {
+    const segLen = armLen / armSegments;
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(segLen, 0.18, 0.14), i % 2 ? mRed : mWhite);
+    seg.position.set(-segLen / 2 - i * segLen, 0, 0);
+    armPivot.add(seg);
+  }
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(ENTRY_GAP, 0.02, 1.4), mYellow);
+  stripe.position.set(0, 0.03, 0);
+  g.add(stripe);
+  const carColors = [0x2c3e50, 0x7f8c8d];
+  for (let i = 0; i < 2; i++) {
+    const car = createParkedCar(FENCE_X - 4 - i * 3.2, FENCE_Z - 5, 0, carColors[i]);
+    scene.add(car);
+  }
+  boxColliders.push({ x: -ENTRY_GAP / 2 - 2.5, z: 1.5, hw: 1.5, hd: 1.5, rot: 0, kind: 'wall' });
+  boxColliders.push({ x: ENTRY_GAP / 2 - 0.6, z: 0, hw: 0.35, hd: 0.35, rot: 0, kind: 'wall' });
+  return g;
+}
 scene.add(createEntryGate(0, FENCE_Z));
 
 /* ─────────────── TORRES DE VIGILANCIA ─────────────── */
 function createWatchtower(x, z) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
-
   const mPost = cachedMat(0x353535);
   const mTop = cachedMat(0x4a4a4a);
   const mRoof = cachedMat(0x2a2a2a);
-
-  // Legs
   const legGeo = new THREE.BoxGeometry(0.28, 7, 0.28);
   for (const [lx, lz] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) {
     const leg = new THREE.Mesh(legGeo, mPost);
@@ -1424,29 +1470,21 @@ function createWatchtower(x, z) {
     leg.castShadow = true;
     g.add(leg);
   }
-
-  // Platform
   const platform = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 3.8), mTop);
   platform.position.y = 7.15; platform.castShadow = true;
   g.add(platform);
-
-  // Walls
   const wallGeo = new THREE.BoxGeometry(3.8, 1.8, 0.15);
   const wallN = new THREE.Mesh(wallGeo, mTop); wallN.position.set(0, 8.2, -1.85); g.add(wallN);
   const wallS = new THREE.Mesh(wallGeo, mTop); wallS.position.set(0, 8.2, 1.85); g.add(wallS);
   const wallGeo2 = new THREE.BoxGeometry(0.15, 1.8, 3.8);
   const wallE = new THREE.Mesh(wallGeo2, mTop); wallE.position.set(1.85, 8.2, 0); g.add(wallE);
   const wallW = new THREE.Mesh(wallGeo2, mTop); wallW.position.set(-1.85, 8.2, 0); g.add(wallW);
-
-  // Roof (pyramid)
   const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 1.1, 4), mRoof);
   roof.position.y = 9.7; roof.rotation.y = Math.PI / 4; roof.castShadow = true;
   g.add(roof);
-
   colliders.push({ x, z, r: 1.9, kind: 'lamp' });
   return g;
 }
-
 scene.add(createWatchtower(-FENCE_X + 5, -FENCE_Z + 5));
 scene.add(createWatchtower( FENCE_X - 5, -FENCE_Z + 5));
 scene.add(createWatchtower( FENCE_X - 5,  FENCE_Z - 5));
@@ -1457,29 +1495,20 @@ function createCrane(x, z, rot) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   g.rotation.y = rot;
-
   const mYellow = cachedMat(0xf1c40f);
   const mDark = cachedMat(0x1c1c1c);
   const mSteel = cachedMat(0x555555);
-
-  // Base
   const base = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.0, 3.4), mDark);
   base.position.y = 0.5; base.castShadow = true; g.add(base);
-
-  // Tracks
   for (const sx of [-1, 1]) {
     const trk = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.7, 4.0), mSteel);
     trk.position.set(sx * 1.2, 0.35, 0);
     trk.castShadow = true;
     g.add(trk);
   }
-
-  // Mast
   const mast = new THREE.Mesh(new THREE.BoxGeometry(1.1, 14, 1.1), mYellow);
   mast.position.y = 8; mast.castShadow = true;
   g.add(mast);
-
-  // Cabin
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.6, 1.8), mYellow);
   cabin.position.set(1.4, 7.0, 0);
   cabin.castShadow = true;
@@ -1487,33 +1516,23 @@ function createCrane(x, z, rot) {
   const cWin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 1.4), cachedMat(0x2b3a4a));
   cWin.position.set(2.35, 7.0, 0);
   g.add(cWin);
-
-  // Boom
   const boom = new THREE.Mesh(new THREE.BoxGeometry(24, 0.7, 0.7), mYellow);
   boom.position.set(-9, 15, 0);
   boom.castShadow = true;
   g.add(boom);
-
-  // Counterweight
   const cw = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 1.6), mDark);
   cw.position.set(3.2, 14.5, 0);
   g.add(cw);
-
-  // Cable
   const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 10, 4), mSteel);
   cable.position.set(-17, 10, 0);
   g.add(cable);
-
-  // Hook
   const hook = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), mYellow);
   hook.position.set(-17, 5.0, 0);
   hook.castShadow = true;
   g.add(hook);
-
   colliders.push({ x, z, r: 2.4, kind: 'lamp' });
   return g;
 }
-
 scene.add(createCrane(46, -12, 0));
 scene.add(createCrane(46, 12, 0));
 
@@ -1522,27 +1541,20 @@ function createForklift(x, z, rot) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   g.rotation.y = rot;
-
   const mBody = cachedMat(0xe6a419);
   const mDark = cachedMat(0x1c1c1c);
   const mTire = cachedMat(0x111111);
   const mMast = cachedMat(0x444444);
-
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.0, 2.2), mBody);
   body.position.y = 0.9; body.castShadow = true; g.add(body);
-
   const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.2), mDark);
   cab.position.set(0, 1.85, 0.2); cab.castShadow = true; g.add(cab);
-
-  // Mast
   const mast1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.0, 0.16), mMast);
   mast1.position.set(-0.55, 2.2, -1.1); g.add(mast1);
   const mast2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.0, 0.16), mMast);
   mast2.position.set(0.55, 2.2, -1.1); g.add(mast2);
   const mastBar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 0.15), mMast);
   mastBar.position.set(0, 3.7, -1.1); g.add(mastBar);
-
-  // Wheels
   const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8);
   for (const [wx, wz] of [[-0.7, 0.7], [0.7, 0.7], [-0.7, -0.7], [0.7, -0.7]]) {
     const w = new THREE.Mesh(wGeo, mTire);
@@ -1551,11 +1563,9 @@ function createForklift(x, z, rot) {
     w.castShadow = true;
     g.add(w);
   }
-
   colliders.push({ x, z, r: 1.3, kind: 'lamp' });
   return g;
 }
-
 scene.add(createForklift(-30, -25, Math.PI / 6));
 scene.add(createForklift(-14, -8, -Math.PI / 3));
 
@@ -1570,7 +1580,6 @@ function addGroundLine(x1, z1, x2, z2, width = 0.18) {
   m.rotation.y = Math.atan2(-dz, dx);
   scene.add(m);
 }
-// Calles entre columnas de contenedores
 addGroundLine(-44, -8, -44, 30, 0.15);
 addGroundLine(-32, -8, -32, 30, 0.15);
 addGroundLine(-26, -8, -26, 30, 0.15);
@@ -1581,7 +1590,7 @@ addGroundLine(10, -8, 10, 30, 0.15);
 addGroundLine(22, -8, 22, 30, 0.15);
 addGroundLine(28, -8, 28, 30, 0.15);
 addGroundLine(40, -8, 40, 30, 0.15);
-// Marcos de plazas de contenedores
+
 const slotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
 function addSlotMark(x, z, w, d) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.015, 0.1), slotMat);
@@ -1592,8 +1601,6 @@ function addSlotMark(x, z, w, d) {
 for (const c of containerLayout) {
   addSlotMark(c.x, c.z, CONT_L * 2 + CONT_GAP + 0.4, CONT_W * 2 + CONT_GAP + 0.4);
 }
-
-// Zona de carga (frente al almacén) - líneas amarillas
 addGroundLine(-20, -32, 20, -32, 0.25);
 addGroundLine(-20, -30, 20, -30, 0.15);
 addGroundLine(-20, -32, -20, -30, 0.15);
@@ -1646,7 +1653,6 @@ function getInputAxes() {
   if (l > 1) { ix /= l; iz /= l; }
   return { ix, iz, moving: (ix * ix + iz * iz) > 0.01 };
 }
-
 function startSlide(ix, iz) {
   if (sliding) return;
   const camFwdX = -Math.sin(cameraYaw), camFwdZ = -Math.cos(cameraYaw);
@@ -2065,20 +2071,16 @@ function killPlayer() {
   deathPosition.copy(player.position);
   deathStartCamPos.copy(camera.position);
   deathCameraAngle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
-
   setLocalWeaponsVisible(false);
   grenadeViewModel.visible = false;
   grenadeViewTimer = 0;
   clickOverlay.classList.remove('active');
-
   setAiming(false); shootHeld = false;
   curWepState().reloading = false; ammoWrap.classList.remove('reloading');
-
   sliding = false; slideTimer = 0; slideSpeed = 0;
   crouching = false; crouchKeyHeld = false;
   currentEyeHeight = STAND_EYE_HEIGHT;
   crouchBtn.classList.remove('held');
-
   player.updateMatrixWorld(true);
   for (const child of [...playerBody.children]) {
     const clone = child.clone();
@@ -2097,7 +2099,6 @@ function killPlayer() {
   if (pointerLocked) document.exitPointerLock();
   if (onlineMode) sendLocalPlayerState();
 }
-
 function respawnPlayer() {
   playerDead = false; deathTimer = 0;
   for (const p of playerPieces) scene.remove(p.mesh);
@@ -2108,22 +2109,18 @@ function respawnPlayer() {
   for (const k in weaponState) { weaponState[k].reloading = false; weaponState[k].reloadTimer = 0; weaponState[k].cooldown = 0; weaponState[k].recoil = 0; }
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
   damageFlash = 0; damageOverlay.style.opacity = '0';
-  // Spawn en el área de carga (frente al almacén)
   const angle = Math.random() * Math.PI * 2;
   const dist = 5 + Math.random() * 8;
   player.position.set(Math.cos(angle) * dist, 0, -32 + Math.sin(angle) * dist);
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
-
   sliding = false; slideTimer = 0; slideSpeed = 0;
   crouching = false; crouchKeyHeld = false;
   currentEyeHeight = STAND_EYE_HEIGHT;
   crouchBtn.classList.remove('held');
-
   selectWeapon('rifle', true, true);
   setLocalWeaponsVisible(true);
-
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
@@ -2236,10 +2233,8 @@ function updatePlayer(dt) {
   const len = Math.hypot(ix, iz);
   if (len > 1) { ix /= len; iz /= len; }
   const moving = (ix * ix + iz * iz) > 0.01;
-
   const camFwdX = -Math.sin(cameraYaw), camFwdZ = -Math.cos(cameraYaw);
   const camRightX = -camFwdZ, camRightZ = camFwdX;
-
   if (sliding) {
     slideTimer -= dt;
     slideSpeed = Math.max(3, slideSpeed - 15 * dt);
@@ -2259,17 +2254,14 @@ function updatePlayer(dt) {
     player.position.x += moveX * moveSpeed * dt;
     player.position.z += moveZ * moveSpeed * dt;
   }
-
   resolveCollisions(player, PLAYER_RADIUS);
   const groundY = 0;
-
   if ((keys['Space'] || jumpQueued) && isGrounded) {
     velocityY = JUMP_FORCE; isGrounded = false;
     if (sliding) { sliding = false; slideSpeed = 0; crouching = false; crouchBtn.classList.remove('held'); if (onlineMode) sendLocalPlayerState(); }
     else if (crouching) { crouching = false; crouchBtn.classList.remove('held'); }
   }
   jumpQueued = false;
-
   if (isGrounded) {
     player.position.y = groundY;
     velocityY = 0;
@@ -2278,7 +2270,6 @@ function updatePlayer(dt) {
     player.position.y += velocityY * dt;
     if (player.position.y <= groundY && velocityY <= 0) { player.position.y = groundY; velocityY = 0; isGrounded = true; }
   }
-
   if (moving && isGrounded && !sliding) {
     walkPhase += dt * (crouching ? 7 : 11);
     weaponWalkPhase += dt * (aiming ? 6.8 : (crouching ? 6 : 8.2));
@@ -2304,7 +2295,6 @@ function updatePlayer(dt) {
   const targetX = basePos.x + swayX;
   const targetY = basePos.y + swayY;
   const targetZ = basePos.z + swayZ;
-
   if (ws.reloading) {
     ws.reloadTimer -= dt;
     const t = 1 - Math.max(0, ws.reloadTimer) / def.reloadTime;
@@ -2341,12 +2331,10 @@ function updateCamera(dt) {
   const desiredFov = aiming ? def.aimFov : BASE_FOV;
   camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 10);
   camera.updateProjectionMatrix();
-
   let targetEye = STAND_EYE_HEIGHT;
   if (sliding) targetEye = CROUCH_EYE_HEIGHT - 0.20;
   else if (crouching) targetEye = CROUCH_EYE_HEIGHT;
   currentEyeHeight += (targetEye - currentEyeHeight) * Math.min(1, dt * 14);
-
   const eyeX = player.position.x;
   const eyeY = player.position.y + currentEyeHeight + bobOffset;
   const eyeZ = player.position.z;
@@ -2478,7 +2466,6 @@ function triggerRemoteShot(r) {
   if (activeWeapon) activeWeapon.flash.visible = true;
 }
 
-/* IK */
 const _ikShoulderWorld = new THREE.Vector3();
 const _ikToTarget = new THREE.Vector3();
 const _ikTargetDir = new THREE.Vector3();
@@ -2694,7 +2681,6 @@ async function initOnline() {
   });
   onDisconnect(playerNetRef).remove();
   onDisconnect(ref(db, `rooms/${ROOM}/shots/${playerId}`)).remove();
-
   const playersRef = ref(db, `rooms/${ROOM}/players`);
   onChildAdded(playersRef, snap => {
     const id = snap.key;
@@ -2714,7 +2700,6 @@ async function initOnline() {
     }
   });
   onValue(ref(db, `rooms/${ROOM}/shots`), snap => handleRemoteShots(snap.val()));
-
   const bulletHolesRef = ref(db, `rooms/${ROOM}/bulletHoles`);
   onChildAdded(bulletHolesRef, snap => {
     const h = snap.val();
@@ -2724,7 +2709,6 @@ async function initOnline() {
     try { spawnRemoteBulletHole(pos, normal); } catch (e) {}
     setTimeout(() => remove(snap.ref).catch(() => {}), 25000);
   });
-
   onChildAdded(ref(db, `rooms/${ROOM}/explosions`), snap => {
     const e = snap.val();
     if (e && typeof e.x === 'number' && e.from !== playerId) {
@@ -2736,7 +2720,6 @@ async function initOnline() {
     }
     setTimeout(() => remove(snap.ref).catch(() => {}), 20000);
   });
-
   const myHitsRef = ref(db, `rooms/${ROOM}/players/${playerId}/hits`);
   onChildAdded(myHitsRef, snap => {
     const hit = snap.val();
@@ -2775,22 +2758,14 @@ function drawMinimap() {
   }
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + MM_W / 2;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + MM_H / 2;
-
-  // Perímetro
   ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
   ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE);
-
-  // Almacén
   const wh = wx2mm(0), wz = wz2mm(-40);
   ctx.fillStyle = '#7d7a6e';
   ctx.fillRect(wh - 23 * MM_SCALE, wz - 7 * MM_SCALE, 46 * MM_SCALE, 14 * MM_SCALE);
-
-  // Oficina
   const ox = wx2mm(-38), oz = wz2mm(38);
   ctx.fillStyle = '#e8dcc0';
   ctx.fillRect(ox - 7 * MM_SCALE, oz - 4.5 * MM_SCALE, 14 * MM_SCALE, 9 * MM_SCALE);
-
-  // Contenedores
   for (const c of containerLayout) {
     const px = wx2mm(c.x), py = wz2mm(c.z);
     if (px < -30 || px > MM_W + 30 || py < -30 || py > MM_H + 30) continue;
@@ -2798,7 +2773,6 @@ function drawMinimap() {
     const w = (CONT_L * 2 + CONT_GAP) * MM_SCALE;
     const h = (CONT_W * 2 + CONT_GAP) * MM_SCALE;
     ctx.fillRect(px - w/2, py - h/2, w, h);
-    // Líneas separadoras
     ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 0.6;
     ctx.strokeRect(px - w/2, py - h/2, w, h);
     ctx.beginPath();
@@ -2806,26 +2780,18 @@ function drawMinimap() {
     ctx.moveTo(px - w/2, py); ctx.lineTo(px + w/2, py);
     ctx.stroke();
   }
-
-  // Grúas
-  for (const cx of [46]) {
-    for (const cz of [-12, 12]) {
-      const px = wx2mm(cx), py = wz2mm(cz);
-      if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-      ctx.fillStyle = '#f1c40f';
-      ctx.fillRect(px - 2, py - 2, 4, 4);
-    }
+  for (const cx of [46]) for (const cz of [-12, 12]) {
+    const px = wx2mm(cx), py = wz2mm(cz);
+    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillRect(px - 2, py - 2, 4, 4);
   }
-
-  // Torres
   for (const [tx, tz] of [[-FENCE_X+5,-FENCE_Z+5],[FENCE_X-5,-FENCE_Z+5],[FENCE_X-5,FENCE_Z-5],[-FENCE_X+5,FENCE_Z-5]]) {
     const px = wx2mm(tx), py = wz2mm(tz);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
     ctx.fillStyle = '#c0392b';
     ctx.fillRect(px - 2, py - 2, 4, 4);
   }
-
-  // Montacargas
   for (const c of colliders) {
     if (c.kind !== 'lamp') continue;
     const px = wx2mm(c.x), py = wz2mm(c.z);
@@ -2833,8 +2799,6 @@ function drawMinimap() {
     ctx.fillStyle = '#e6a419';
     ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
   }
-
-  // Jugadores remotos
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
@@ -2842,13 +2806,10 @@ function drawMinimap() {
     ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
-
-  // Flecha jugador
   ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(cameraYaw + Math.PI);
   ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
   ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
   ctx.restore();
-
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, MM_W - 2, MM_H - 2);
   ctx.fillStyle = '#ffd93d'; ctx.font = 'bold 11px ui-monospace, monospace';
@@ -2951,7 +2912,6 @@ function selectGameMode(mode) {
   modeMenu.classList.add('hidden');
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
-
   if (!playerDead) {
     weaponRifle.visible  = (currentWeaponKey === 'rifle');
     weaponPistol.visible = (currentWeaponKey === 'pistol');
@@ -3003,7 +2963,6 @@ player.position.set(0, 0, 30);
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.1);
-
   if (menuActive) {
     updateMenuCamera(dt);
     renderer.render(scene, camera);
