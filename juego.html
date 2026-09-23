@@ -29,7 +29,6 @@
   @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
   @media (max-height: 500px) { #mode-menu .menu-content { gap: 16px; } #mode-menu h1 { font-size: clamp(30px, 7.5vh, 52px); letter-spacing: 5px; } #mode-menu .subtitle { margin-top: 6px; font-size: 10px; letter-spacing: 3px; } #mode-menu .divider { margin-top: 10px; width: 50px; } .play-btn { min-height: 58px; padding: 14px 22px; font-size: clamp(16px, 4.5vh, 22px); } .player-chip { padding: 7px 14px; font-size: 11px; } }
 
-  /* ═══════════ MENÚ DE SELECCIÓN DE ARSENAL ═══════════ */
   #loadout-menu {
     position: fixed; inset: 0; z-index: 490;
     display: none; align-items: center; justify-content: center;
@@ -216,7 +215,6 @@
   </div>
 </div>
 
-<!-- ═══════════ SELECCIÓN DE ARSENAL ═══════════ -->
 <div id="loadout-menu">
   <div class="loadout-content">
     <h2>ELEGÍ TU ARSENAL</h2>
@@ -310,9 +308,6 @@ let gameMode = null;
 let menuActive = true;
 let menuCamAngle = 0;
 
-/* ═══════════════════════════════════════════
-   LOG DE ERRORES
-   ═══════════════════════════════════════════ */
 const fbxErrors = [];
 function logFbxError(msg) {
   const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -359,7 +354,6 @@ function playShotgunShot(distance = 0) {
   if (!audioCtx || !audioEnabled) return;
   const vol = Math.max(0, 1 - distance / 55); if (vol <= 0.02) return;
   const t = audioCtx.currentTime;
-  // Cuerpo grave y potente
   const src = audioCtx.createBufferSource(); src.buffer = _noiseBuffer(0.28, 2.2);
   const filt = audioCtx.createBiquadFilter(); filt.type = 'lowpass';
   filt.frequency.setValueAtTime(2200, t); filt.frequency.exponentialRampToValueAtTime(140, t + 0.28);
@@ -562,6 +556,30 @@ function cachedMat(color, opts = {}) {
     _matCache.set(key, m);
   }
   return m;
+}
+
+/* ⚠️ NUEVO: fuerza un material a ser completamente opaco y visible.
+   Arregla materiales FBX con alpha blend, opacity < 1, alphaTest agresivo, etc.
+   Mantiene los mapas de textura (color map) pero descarta los alpha map.
+*/
+function forceMaterialOpaque(mat) {
+  if (!mat) return;
+  mat.transparent = false;
+  mat.opacity = 1;
+  mat.alphaTest = 0;
+  if ('alphaMap' in mat) mat.alphaMap = null;
+  mat.depthWrite = true;
+  mat.depthTest = true;
+  // Si el material es de un tipo que soporta color base, asegurar que el color no sea negro puro
+  // (algunos FBX exportan color=0x000000 como "placeholder" esperando al map)
+  if (mat.color && mat.map && mat.color.r === 0 && mat.color.g === 0 && mat.color.b === 0) {
+    mat.color.setHex(0xffffff);
+  }
+  if (mat.map) {
+    mat.map.colorSpace = THREE.SRGBColorSpace;
+    mat.map.needsUpdate = true;
+  }
+  mat.needsUpdate = true;
 }
 
 /* ─────────────── SUELO ─────────────── */
@@ -845,7 +863,6 @@ const WEAPONS = {
   pistol:  { key: 'pistol',  name: 'PISTOLA',  icon: '🔫', magSize: 12, fireRate: 0.18, reloadTime: 1.2, damage: 30, aimFov: 55, auto: false }
 };
 
-/* Loadout del jugador (se asigna al elegir en el menú) */
 const playerLoadout = { primary: 'rifle', secondary: 'pistol' };
 let currentWeaponKey = 'rifle';
 
@@ -864,47 +881,93 @@ const weaponShotgun = shotgunModel.group;
 
 const _fbxLoader = new FBXLoader();
 
-function loadFBXWeapon(url, targetLen, rotY = 0) {
+/* ⚠️ NUEVO CARGADOR ROBUSTO DE ARMAS — similar al de vehículos:
+   - Fuerza visible en todos los nodos
+   - Sanea materiales (opacos, sin alpha) manteniendo color maps
+   - Auto-detección Z-up
+   - Configuración de rotación específica por arma
+   - Log de mallas
+*/
+function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
       try {
-        obj.position.set(0, 0, 0); obj.scale.setScalar(1); obj.rotation.set(0, rotY, 0);
+        obj.position.set(0, 0, 0);
+        obj.rotation.set(rotX, rotY, rotZ);
+        obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
-        const box  = new THREE.Box3().setFromObject(obj);
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        obj.scale.setScalar(targetLen / maxDim);
-        obj.updateMatrixWorld(true);
-        const box2 = new THREE.Box3().setFromObject(obj);
-        const c2   = box2.getCenter(new THREE.Vector3());
-        obj.position.set(-c2.x, -c2.y, -c2.z);
-        obj.updateMatrixWorld(true);
+
+        // 1) Forzar visible
+        obj.traverse(n => { n.visible = true; });
+
+        // 2) Forzar opacidad en materiales ANTES de medir
         obj.traverse(n => {
-          if (n.isMesh) {
-            n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false;
+          if (n.isMesh || n.isSkinnedMesh) {
             if (n.material) {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
-              for (const m of mats) {
-                if (m && 'flatShading' in m) m.flatShading = true;
-                if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-                // Forzar opaco en armas
-                if (m) { m.transparent = false; m.opacity = 1; m.alphaTest = 0; m.needsUpdate = true; }
-              }
+              for (const m of mats) forceMaterialOpaque(m);
             }
           }
         });
+
+        // 3) Auto-detección Z-up: si Y es la dimensión más pequeña y X o Z son grandes,
+        // probablemente es un arma "acostada" que necesita enderezar
+        let box = new THREE.Box3().setFromObject(obj);
+        let size = box.getSize(new THREE.Vector3());
+        if (size.y < size.x * 0.5 && size.y < size.z * 0.5 && (rotX === 0)) {
+          obj.rotation.x = -Math.PI / 2;
+          obj.updateMatrixWorld(true);
+          box = new THREE.Box3().setFromObject(obj);
+          size = box.getSize(new THREE.Vector3());
+        }
+
+        // 4) Escalar a la longitud deseada (mayor dimensión)
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        obj.scale.setScalar(targetLen / maxDim);
+        obj.updateMatrixWorld(true);
+
+        // 5) Centrar
+        const box2 = new THREE.Box3().setFromObject(obj);
+        const c2 = box2.getCenter(new THREE.Vector3());
+        obj.position.set(-c2.x, -c2.y, -c2.z);
+        obj.updateMatrixWorld(true);
+
+        // 6) Procesar mallas final (opacidad de nuevo, sombras, frustum)
+        let meshCount = 0;
+        obj.traverse(n => {
+          n.visible = true;
+          if (n.isMesh || n.isSkinnedMesh) {
+            meshCount++;
+            n.visible = true;
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.frustumCulled = false;
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) forceMaterialOpaque(m);
+            }
+          }
+        });
+        console.log(`[FBX] ${url}: ${meshCount} mallas (materiales opacos forzados)`);
         resolve(obj);
       } catch (e) { logFbxError('weapon ' + url + ': ' + e.message); resolve(null); }
     }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
   });
 }
 
+/* Carga de las 3 armas con rotaciones específicas:
+   - m4a1:  sin rotación extra (funciona bien)
+   - pistol: +90° en Y (así apunta hacia el frente en la vista FPS)
+   - escopeta: -90° en Y (corrige que el cañón salga apuntando a la derecha)
+*/
 (async () => {
-  const r = await loadFBXWeapon('modelos3d/m4a1.fbx', 0.65, 0);
+  const r = await loadWeaponFBX('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
-  const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
+
+  const p = await loadWeaponFBX('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
-  const s = await loadFBXWeapon('modelos3d/escopeta.fbx', 0.72, 0);
+
+  const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, -Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
 })();
 
@@ -957,7 +1020,6 @@ _fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
-// Manos para escopeta
 const _fpSHandR = makeFPSHand('right');
 _fpSHandR.scale.setScalar(0.55);
 _fpSHandR.position.set(0.01, -0.08, 0.08);
@@ -1337,13 +1399,7 @@ function loadContainerFBX(url) {
             n.frustumCulled = false;
             if (n.material) {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
-              for (const m of mats) {
-                if (!m) continue;
-                if ('flatShading' in m) m.flatShading = true;
-                if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-                m.transparent = false; m.opacity = 1; m.alphaTest = 0;
-                m.needsUpdate = true;
-              }
+              for (const m of mats) forceMaterialOpaque(m);
             }
           }
         });
@@ -1423,21 +1479,6 @@ Promise.all([
    ═══════════════════════════════════════════ */
 const vehicleFbxStatus = { military: false, pickup: false, cart: false };
 const vehicleMeshCounts = { military: 0, pickup: 0, cart: 0 };
-
-function forceMaterialOpaque(mat) {
-  if (!mat) return;
-  mat.transparent = false;
-  mat.opacity = 1;
-  mat.alphaTest = 0;
-  mat.alphaMap = null;
-  mat.depthWrite = true;
-  mat.depthTest = true;
-  if (mat.map) {
-    mat.map.colorSpace = THREE.SRGBColorSpace;
-    mat.map.format = THREE.RGBAFormat;
-  }
-  mat.needsUpdate = true;
-}
 
 function loadVehicleFBX(url, targetLen) {
   return new Promise((resolve) => {
@@ -2229,30 +2270,23 @@ function updateDebug(dt) {
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
 <span class="val">Modo:</span>      ${gameMode || '-'}
 <span class="val">Online:</span>    ${onlineMode ? 'SÍ' : 'no'}
-<span class="val">ID:</span>        ${playerId || '-'}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Triángulos:</span>${renderer.info.render.triangles}
-<span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no'}
 
 <span class="title">── Jugador ──</span>
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
-<span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
-<span class="val">Vida:</span>      ${health.toFixed(0)} / 100
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
-<span class="val">Postura:</span>   ${sliding ? '🛷 DESLIZÁNDOSE' : (crouching ? '⬇ AGACHADO' : '⬆ DE PIE')}
 
 <span class="title">── Red ──</span>
-<span class="val">Remotos vivos:</span> ${aliveRemote}
-<span class="val">Remotos muertos:</span> ${deadRemote}
-<span class="val">Total mapa:</span> ${remotePlayers.size}
+<span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
 
-<span class="title">── Modelos FBX ──</span>
-<span class="val">Container1:</span> ${containerFbxStatus.c1 ? '✅' : '❌'}
-<span class="val">Container2:</span> ${containerFbxStatus.c2 ? '✅' : '❌'}
-<span class="val">Auto militar:</span> ${vehicleFbxStatus.military ? '✅' : '❌'} <span class="ok">(${vehicleMeshCounts.military} mallas)</span>
-<span class="val">Camioneta:</span>  ${vehicleFbxStatus.pickup ? '✅' : '❌'} <span class="ok">(${vehicleMeshCounts.pickup} mallas)</span>
-<span class="val">Carrito:</span>    ${vehicleFbxStatus.cart ? '✅' : '❌'} <span class="ok">(${vehicleMeshCounts.cart} mallas)</span>${errLines}
+<span class="title">── FBX ──</span>
+<span class="val">Container1/2:</span> ${containerFbxStatus.c1 ? '✅' : '❌'}/${containerFbxStatus.c2 ? '✅' : '❌'}
+<span class="val">Auto militar:</span> ${vehicleFbxStatus.military ? '✅' : '❌'} (${vehicleMeshCounts.military})
+<span class="val">Camioneta:</span>  ${vehicleFbxStatus.pickup ? '✅' : '❌'} (${vehicleMeshCounts.pickup})
+<span class="val">Carrito:</span>    ${vehicleFbxStatus.cart ? '✅' : '❌'} (${vehicleMeshCounts.cart})
+<span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
   `.trim();
 }
 
@@ -2529,8 +2563,6 @@ function broadcastBulletHole(point, normal) {
   }).catch(() => {});
 }
 
-/* Dispara UN proyectil desde el origen con dirección dada.
-   Devuelve true si impactó a un jugador remoto. */
 function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
   const finalDir = dir.clone();
   if (spreadRad > 0) {
@@ -2560,7 +2592,7 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
       }
       spawnBulletHole(hit, normal);
       broadcastBulletHole(hit.point, normal);
-      return true; // impactó jugador
+      return true;
     }
     spawnBulletHole(hit, normal);
     broadcastBulletHole(hit.point, normal);
@@ -2583,7 +2615,6 @@ function tryShoot() {
   muzzleLight.intensity = def.key === 'shotgun' ? 5 : 3;
   setTimeout(() => { flash.visible = false; muzzleLight.intensity = 0; }, def.key === 'shotgun' ? 80 : 45);
 
-  // Sonido
   if (def.key === 'pistol') playPistolShot(0);
   else if (def.key === 'shotgun') playShotgunShot(0);
   else playGunshot(0);
@@ -2594,13 +2625,11 @@ function tryShoot() {
     }).catch(() => {});
   }
 
-  // Dirección base desde la cámara
   const origin = camera.position.clone();
   const dir = new THREE.Vector3();
   camera.getWorldDirection(dir);
 
   if (def.key === 'shotgun') {
-    // Disparo múltiple con dispersión
     const pelletCount = def.pellets ?? 8;
     const spread = def.spread ?? 0.09;
     let hitPlayer = false;
@@ -2610,12 +2639,10 @@ function tryShoot() {
     }
     if (hitPlayer) playHitMarker();
   } else {
-    // Disparo único
     const hit = fireProjectile(origin, dir, def, def.damage, 0);
     if (hit) playHitMarker();
   }
 
-  // Pequeño empujón hacia arriba (recoil de cámara) para escopeta
   if (def.key === 'shotgun') {
     cameraPitch = Math.min(FP_PITCH_MAX, cameraPitch + 0.06);
   }
@@ -3040,7 +3067,6 @@ function handleRemoteShots(all) {
     if (!r || r.dead) continue;
     if (d.ts <= (r.lastShotTs || 0)) continue;
     r.lastShotTs = d.ts;
-    // Sincronizar arma del remoto antes del flash
     if (d.weapon === 'pistol' || d.weapon === 'rifle' || d.weapon === 'shotgun') r.weaponKey = d.weapon;
     triggerRemoteShot(r);
     const dist = r.root.position.distanceTo(player.position);
@@ -3318,7 +3344,6 @@ const modeMenu = document.getElementById('mode-menu');
 const playBtn = document.getElementById('play-btn');
 const loadoutMenu = document.getElementById('loadout-menu');
 
-/* Al pulsar JUGAR: mostrar el menú de selección de arsenal */
 function handlePlay() {
   if (gameMode) return;
   initAudio();
@@ -3328,7 +3353,6 @@ function handlePlay() {
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
 
-/* Botones de selección de loadout */
 document.querySelectorAll('.loadout-btn').forEach(btn => {
   const applyLoadout = (e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -3354,7 +3378,6 @@ function selectGameMode(mode) {
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
-  // Activar el arma primaria elegida
   currentWeaponKey = playerLoadout.primary;
   if (!playerDead) {
     weaponRifle.visible   = currentWeaponKey === 'rifle';
