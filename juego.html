@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Low Poly FPS - Online</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
@@ -12,42 +12,161 @@
   #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; }
   #hint.active { display: block; }
 
-  #mode-menu { position: fixed; inset: 0; z-index: 500; color: #fff; cursor: default; overflow: hidden; pointer-events: none; }
-  #mode-menu::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.78) 100%); pointer-events: none; }
-  #mode-menu.hidden { display: none; }
-  #mode-menu .brand { position: absolute; left: 6vw; top: 50%; transform: translateY(-50%); pointer-events: none; }
-  #mode-menu .brand h1 { font: 900 clamp(38px, 6vw, 76px) system-ui, sans-serif; letter-spacing: 8px; margin: 0 0 10px 0; color: #ffd93d; text-shadow: 4px 4px 0 #000, 0 0 40px rgba(255,200,80,0.6); line-height: 0.95; }
-  #mode-menu .brand .subtitle { font: bold clamp(11px, 1.1vw, 15px) system-ui, sans-serif; letter-spacing: 6px; color: #ffb76b; text-shadow: 2px 2px 0 #000; margin-top: 18px; opacity: 0.9; }
-  #mode-menu .brand .tag { font: 500 13px system-ui, sans-serif; color: #b0c0d0; letter-spacing: 2px; margin-top: 8px; text-shadow: 1px 1px 0 #000; }
-  #mode-menu .menu-stack { position: absolute; right: 5vw; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 20px; pointer-events: none; }
-  .mode-card { position: relative; width: min(340px, 34vw); min-width: 260px; padding: 26px 24px 24px 84px; background: rgba(14,18,30,0.82); border: 3px solid rgba(120,140,180,0.55); border-radius: 12px; cursor: pointer; transition: all 0.22s ease; pointer-events: auto; backdrop-filter: blur(6px); text-align: left; }
-  .mode-card:hover { transform: translateX(-10px) scale(1.03); }
-  .mode-card.battle:hover { border-color: #ff8c42; box-shadow: -10px 0 40px rgba(255,120,60,0.45), 0 0 30px rgba(255,120,60,0.35); background: rgba(40,18,10,0.88); }
-  .mode-card.zombie:hover { border-color: #7cf47c; box-shadow: -10px 0 40px rgba(120,255,120,0.45), 0 0 30px rgba(120,255,120,0.35); background: rgba(14,32,14,0.88); }
-  .mode-card:active { transform: translateX(-6px) scale(1.01); }
-  .mode-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); font-size: 46px; line-height: 1; filter: drop-shadow(0 0 12px rgba(255,200,80,0.5)); }
-  .mode-card.zombie .mode-icon { filter: drop-shadow(0 0 12px rgba(120,255,120,0.6)); }
-  .mode-title { font: 900 22px system-ui, sans-serif; letter-spacing: 3px; margin-bottom: 6px; text-shadow: 2px 2px 0 #000; }
-  .mode-card.battle .mode-title { color: #ff9a5a; }
-  .mode-card.zombie .mode-title { color: #8fe58f; }
-  .mode-desc { font: 500 12px system-ui, sans-serif; color: #b0c0d0; line-height: 1.45; }
-  .mode-badge { display: inline-block; margin-top: 10px; padding: 3px 9px; background: rgba(80,220,140,0.18); border: 1px solid rgba(120,255,160,0.6); border-radius: 4px; font: bold 10px ui-monospace, monospace; color: #7cff9e; letter-spacing: 1.5px; }
-  .mode-card.battle .mode-badge { background: rgba(255,140,80,0.18); border-color: rgba(255,180,120,0.6); color: #ffb76b; }
-  @media (max-width: 900px) {
-    #mode-menu::before { background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.85) 100%); }
-    #mode-menu .brand { position: relative; left: auto; top: 40px; transform: none; text-align: center; padding: 0 20px; }
-    #mode-menu .brand h1 { font-size: 34px; letter-spacing: 4px; }
-    #mode-menu .brand .subtitle { font-size: 11px; letter-spacing: 4px; margin-top: 10px; }
-    #mode-menu .menu-stack { position: absolute; right: 0; left: 0; bottom: 30px; top: auto; transform: none; padding: 0 20px; gap: 12px; }
-    .mode-card { width: 100%; min-width: 0; padding: 18px 16px 18px 66px; }
-    .mode-icon { left: 16px; font-size: 34px; }
-    .mode-title { font-size: 18px; letter-spacing: 2px; }
-    .mode-desc { font-size: 11px; }
+  /* ═══════════ MENÚ DE INICIO (mobile-first) ═══════════ */
+  #mode-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    color: #fff;
+    cursor: default;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 24px) 24px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    box-sizing: border-box;
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(30,45,85,0.35) 0%, rgba(5,8,18,0.9) 70%),
+      linear-gradient(180deg, rgba(8,12,24,0.55) 0%, rgba(8,12,24,0.92) 100%);
+  }
+  #mode-menu.hidden { opacity: 0; pointer-events: none; }
+  #mode-menu.hidden * { pointer-events: none !important; }
+
+  #mode-menu .menu-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(28px, 6vh, 56px);
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+  }
+
+  #mode-menu .brand-block {
+    animation: menuFadeIn 0.7s ease both;
+  }
+  #mode-menu h1 {
+    font: 900 clamp(46px, 14vw, 90px)/0.9 system-ui, sans-serif;
+    letter-spacing: clamp(4px, 1.6vw, 10px);
+    margin: 0;
+    color: #ffd93d;
+    text-shadow: 4px 4px 0 #000, 0 0 44px rgba(255,200,80,0.55);
+  }
+  #mode-menu .subtitle {
+    margin-top: clamp(10px, 2.5vw, 18px);
+    font: bold clamp(10px, 3vw, 14px) system-ui, sans-serif;
+    letter-spacing: clamp(3px, 1.3vw, 6px);
+    color: #ffb76b;
+    text-shadow: 2px 2px 0 #000;
+    opacity: 0.92;
+  }
+  #mode-menu .divider {
+    width: 72px;
+    height: 3px;
+    margin: clamp(16px, 3.5vw, 24px) auto 0;
+    background: linear-gradient(90deg, transparent, #ffb76b, transparent);
+    border-radius: 2px;
+    box-shadow: 0 0 14px rgba(255,183,107,0.55);
+  }
+
+  .play-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 78px;
+    padding: 22px 28px;
+    background: linear-gradient(180deg, #ff9a4a 0%, #e05a10 100%);
+    border: 3px solid #ffc080;
+    border-radius: 18px;
+    color: #fff;
+    font: 900 clamp(20px, 5.8vw, 28px)/1 system-ui, sans-serif;
+    letter-spacing: clamp(3px, 1.2vw, 5px);
+    cursor: pointer;
+    pointer-events: auto;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    box-shadow: 0 8px 0 #8a3200, 0 16px 34px rgba(255,130,60,0.5);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    animation: menuFadeIn 0.7s 0.15s ease both;
+  }
+  .play-btn .play-triangle {
+    display: inline-block;
+    font-size: 0.85em;
+    filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5));
+  }
+  .play-btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 #8a3200, 0 6px 18px rgba(255,130,60,0.4);
+    filter: brightness(1.12);
+  }
+  .play-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 4px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .play-btn:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 8px 0 #8a3200, 0 20px 44px rgba(255,130,60,0.65);
+    }
+  }
+
+  .player-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: rgba(14,18,30,0.7);
+    border: 2px solid rgba(120,140,180,0.5);
+    border-radius: 999px;
+    font: bold clamp(11px, 3vw, 13px) ui-monospace, monospace;
+    letter-spacing: 1.5px;
+    color: #d0dbe8;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    animation: menuFadeIn 0.7s 0.3s ease both;
+  }
+  .player-chip .chip-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4cdf7b;
+    box-shadow: 0 0 10px #4cdf7b;
+    animation: pulseDot 1.6s ease-in-out infinite;
+  }
+  @keyframes menuFadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1;   transform: scale(1); }
+    50%      { opacity: 0.6; transform: scale(0.85); }
+  }
+
+  /* Ajuste para pantallas muy bajas (landscape móvil) */
+  @media (max-height: 500px) {
+    #mode-menu .menu-content { gap: 16px; }
+    #mode-menu h1 { font-size: clamp(30px, 7.5vh, 52px); letter-spacing: 5px; }
+    #mode-menu .subtitle { margin-top: 6px; font-size: 10px; letter-spacing: 3px; }
+    #mode-menu .divider { margin-top: 10px; width: 50px; }
+    .play-btn { min-height: 58px; padding: 14px 22px; font-size: clamp(16px, 4.5vh, 22px); }
+    .player-chip { padding: 7px 14px; font-size: 11px; }
   }
 
   #click-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 200; cursor: pointer; color: #fff; text-align: center; }
   #click-overlay.active { display: flex; }
-  #click-overlay .inner { border: 3px solid #fff; padding: 26px 40px; background: rgba(0,0,0,0.6); font: bold 22px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; line-height: 1.5; }
+  #click-overlay .inner { border: 3px solid #fff; padding: 26px 40px; background: rgba(0,0,0,0.6); font: bold 22px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; line-height: 1.5; margin: 0 16px; }
   #click-overlay .sub { font-size: 14px; font-weight: normal; margin-top: 12px; opacity: 0.85; }
   #click-overlay .sub .key { background: #333; padding: 2px 7px; border: 1px solid #666; font-family: monospace; font-size: 13px; }
   #death-ui { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, rgba(120,0,0,0.5), rgba(20,0,0,0.85)); z-index: 300; pointer-events: auto; color: #fff; }
@@ -86,13 +205,6 @@
   #crouch-btn { right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px; background: rgba(120,200,150,0.3); border-color: rgba(180,255,200,0.9); }
   #crouch-btn.held { background: rgba(150,240,180,0.75); border-color: #fff; }
 
-  #zombie-hud { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(20,0,0,0.85); color: #fff; font: bold 14px ui-monospace, monospace; padding: 8px 18px; border: 3px solid #8b2020; border-radius: 6px; z-index: 22; pointer-events: none; white-space: nowrap; text-shadow: 1px 1px 0 #000; display: none; text-align: center; letter-spacing: 2px; }
-  #zombie-hud.active { display: block; }
-  #zombie-hud .wave { color: #ff5555; font-size: 20px; }
-  #zombie-hud .count { color: #8fe58f; margin-left: 12px; }
-  #zombie-hud .pts { color: #ffd93d; margin-left: 12px; font-size: 12px; }
-  #zombie-hud .status { color: #a0b0c0; font-size: 11px; margin-top: 4px; letter-spacing: 1px; }
-
   #debug { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #7cf47c; font: 11px/1.4 ui-monospace, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; z-index: 100; display: none; min-width: 220px; border: 2px solid rgba(124,244,124,0.5); max-height: 90vh; overflow: hidden; }
   #debug.active { display: block; }
   #debug .title { color: #fff; font-weight: bold; }
@@ -128,22 +240,23 @@
   #online-panel .bad { color: #ff6b6b; }
   #online-panel .name { color: #ffd93d; }
   body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
-  body.is-touch #minimap-wrap { top: 6px; left: 6px; width: 96px; height: 96px; border-width: 2px; }
-  body.is-touch #health-wrap { top: 106px; left: 6px; width: 96px; }
+  body.is-touch #info { display: none; }
+  body.is-touch #minimap-wrap { top: calc(env(safe-area-inset-top, 0px) + 6px); left: 6px; width: 96px; height: 96px; border-width: 2px; }
+  body.is-touch #health-wrap { top: calc(env(safe-area-inset-top, 0px) + 106px); left: 6px; width: 96px; }
   body.is-touch #health-label, body.is-touch #ammo-label { font-size: 9px; margin-bottom: 2px; }
   body.is-touch #health-bar-outer, body.is-touch #ammo-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
-  body.is-touch #ammo-wrap { top: 138px; left: 6px; width: 96px; }
-  body.is-touch #grenade-wrap { top: 168px; left: 6px; width: 96px; }
+  body.is-touch #ammo-wrap { top: calc(env(safe-area-inset-top, 0px) + 138px); left: 6px; width: 96px; }
+  body.is-touch #grenade-wrap { top: calc(env(safe-area-inset-top, 0px) + 168px); left: 6px; width: 96px; }
   body.is-touch #grenade-label { font-size: 9px; margin-bottom: 2px; }
   body.is-touch #grenade-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
-  body.is-touch #grenade-btn { right: 200px; bottom: 42px; width: 68px; height: 68px; font-size: 26px; }
-  body.is-touch #crouch-btn { right: 275px; bottom: 42px; width: 68px; height: 68px; font-size: 24px; }
-  body.is-touch #joystick { left: 20px; bottom: 20px; width: 110px; height: 110px; }
+  body.is-touch #grenade-btn { right: 200px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 26px; }
+  body.is-touch #crouch-btn { right: 275px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 24px; }
+  body.is-touch #joystick { left: calc(env(safe-area-inset-left, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); width: 110px; height: 110px; }
   body.is-touch #stick { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
-  body.is-touch #shoot-btn { right: 18px; bottom: 30px; width: 88px; height: 88px; font-size: 34px; }
-  body.is-touch #aim-btn { right: 118px; bottom: 42px; width: 68px; height: 68px; font-size: 26px; }
-  body.is-touch #jump-btn { right: 18px; bottom: 130px; width: 68px; height: 68px; font-size: 11px; }
-  body.is-touch #swap-btn { right: 118px; bottom: 122px; width: 68px; height: 68px; font-size: 22px; }
+  body.is-touch #shoot-btn { right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); width: 88px; height: 88px; font-size: 34px; }
+  body.is-touch #aim-btn { right: calc(env(safe-area-inset-right, 0px) + 118px); bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 26px; }
+  body.is-touch #jump-btn { right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); width: 68px; height: 68px; font-size: 11px; }
+  body.is-touch #swap-btn { right: calc(env(safe-area-inset-right, 0px) + 118px); bottom: calc(env(safe-area-inset-bottom, 0px) + 122px); width: 68px; height: 68px; font-size: 22px; }
 
   body.in-menu #minimap-wrap,
   body.in-menu #health-wrap,
@@ -151,7 +264,6 @@
   body.in-menu #grenade-wrap,
   body.in-menu #info,
   body.in-menu #crosshair,
-  body.in-menu #zombie-hud,
   body.in-menu #online-panel,
   body.in-menu #debug { display: none !important; }
 </style>
@@ -159,23 +271,19 @@
 <body class="in-menu">
 
 <div id="mode-menu">
-  <div class="brand">
-    <h1>LOW<br>POLY<br>FPS</h1>
-    <div class="subtitle">ONLINE MULTIPLAYER</div>
-    <div class="tag">Elige un modo para comenzar</div>
-  </div>
-  <div class="menu-stack">
-    <div class="mode-card battle" data-mode="battle">
-      <div class="mode-icon">⚔</div>
-      <div class="mode-title">MODO GUERRA</div>
-      <div class="mode-desc">Combate online contra otros jugadores en tiempo real. Domina el mapa.</div>
-      <span class="mode-badge">● ONLINE</span>
+  <div class="menu-content">
+    <div class="brand-block">
+      <h1>LOW<br>POLY<br>FPS</h1>
+      <div class="subtitle">ONLINE MULTIPLAYER</div>
+      <div class="divider"></div>
     </div>
-    <div class="mode-card zombie" data-mode="zombies">
-      <div class="mode-icon">🧟</div>
-      <div class="mode-title">MODO ZOMBIE</div>
-      <div class="mode-desc">Sobrevive a oleadas infinitas junto a otros jugadores online.</div>
-      <span class="mode-badge">● ONLINE CO-OP</span>
+    <button class="play-btn" id="play-btn" type="button">
+      <span class="play-triangle">▶</span>
+      <span class="play-text">JUGAR</span>
+    </button>
+    <div class="player-chip">
+      <span class="chip-dot"></span>
+      <span id="menu-player-name">Jugador</span>
     </div>
   </div>
 </div>
@@ -183,10 +291,6 @@
 <div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
-<div id="zombie-hud">
-  <div><span class="wave">OLA 1</span><span class="count">🧟 0</span><span class="pts">⭐ 0</span></div>
-  <div class="status" id="zombie-status">Preparate...</div>
-</div>
 <div id="click-overlay">
   <div class="inner">
     CLICK PARA JUGAR
@@ -378,39 +482,6 @@ function playExplosionSound(distance = 0) {
   const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.75 * vol, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
   osc.connect(g2).connect(masterGain); osc.start(t); osc.stop(t + 0.7);
 }
-function playZombieGrowl(distance = 0) {
-  if (!audioCtx || !audioEnabled) return;
-  const vol = Math.max(0, 1 - distance / 25); if (vol <= 0.05) return;
-  const t = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
-  const f0 = 80 + Math.random() * 40;
-  osc.frequency.setValueAtTime(f0, t); osc.frequency.exponentialRampToValueAtTime(f0 * 0.5, t + 0.5);
-  const filt = audioCtx.createBiquadFilter(); filt.type = 'lowpass';
-  filt.frequency.setValueAtTime(600, t); filt.frequency.exponentialRampToValueAtTime(180, t + 0.5);
-  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.25 * vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-  osc.connect(filt).connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.6);
-}
-function playWaveHorn() {
-  if (!audioCtx || !audioEnabled) return;
-  const t = audioCtx.currentTime;
-  for (let i = 0; i < 2; i++) {
-    const tt = t + i * 0.45;
-    const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(i === 0 ? 120 : 160, tt);
-    osc.frequency.exponentialRampToValueAtTime(i === 0 ? 160 : 90, tt + 0.5);
-    const g = audioCtx.createGain(); g.gain.setValueAtTime(0.0001, tt);
-    g.gain.exponentialRampToValueAtTime(0.28, tt + 0.05); g.gain.exponentialRampToValueAtTime(0.001, tt + 0.55);
-    osc.connect(g).connect(masterGain); osc.start(tt); osc.stop(tt + 0.6);
-  }
-}
-function playZombieDeathSound() {
-  if (!audioCtx || !audioEnabled) return;
-  const t = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(60, t + 0.4);
-  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-  osc.connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.45);
-}
 
 /* ═══════════════════════════════════════════
    FIREBASE
@@ -447,6 +518,12 @@ try {
   }
   playerName = stored;
 } catch (e) { playerName = 'Jugador' + Math.floor(1000 + Math.random() * 9000); }
+
+// Mostrar nombre en el menú
+try {
+  const menuNameEl = document.getElementById('menu-player-name');
+  if (menuNameEl) menuNameEl.textContent = playerName;
+} catch (e) {}
 
 /* ═══════════════════════════════════════════
    RNG
@@ -1123,15 +1200,7 @@ function explodeGrenade(pos) {
   playExplosionSound(distSelf);
   shakeAmount = Math.min(1.3, shakeAmount + Math.max(0, 1 - distSelf / 24) * 1.0);
 
-  if (gameMode === 'zombies') {
-    for (const z of zombies) {
-      if (z.dead) continue;
-      const d = Math.hypot(z.root.position.x - pos.x, (z.root.position.y + 1) - pos.y, z.root.position.z - pos.z);
-      if (d > GRENADE_RADIUS) continue;
-      const dmg = Math.max(30, Math.round(GRENADE_DAMAGE * (1 - d / GRENADE_RADIUS)));
-      damageZombie(z, dmg);
-    }
-  } else if (onlineMode) {
+  if (onlineMode) {
     for (const [id, r] of remotePlayers) {
       if (r.dead) continue;
       const d = Math.hypot(r.root.position.x - pos.x, (r.root.position.y + 1) - pos.y, r.root.position.z - pos.z);
@@ -1458,7 +1527,6 @@ const houseLayout = [
   { x: -50, z:   0, rot:  Math.PI / 2,   style: 5 },
   { x:  50, z:   0, rot: -Math.PI / 2,   style: 7 }
 ];
-const outerHouses = houseLayout;
 
 for (const h of houseLayout) scene.add(createHouse(h.x, h.z, h.rot, h.style));
 
@@ -1703,159 +1771,6 @@ _fbxLoader.load('modelos3d/Grass.fbx', (obj) => {
     try { applyOptimizations(); } catch (e) {}
   } catch (e) { console.warn('Error preparando Grass.fbx:', e); }
 }, undefined, err => console.warn('No se pudo cargar Grass.fbx:', err));
-
-/* ═══════════════════════════════════════════
-   MODO NOCHE + FUEGO + CASAS DESTRUIDAS
-   ═══════════════════════════════════════════ */
-let nightMode = false;
-const fires = [];
-const damagedHouseGroups = [];
-let fireTime = 0;
-
-function createFire(x, z, scale = 1) {
-  const outerGeo = new THREE.ConeGeometry(0.5, 1.5, 6, 1, true);
-  const outerMat = new THREE.MeshBasicMaterial({
-    color: 0xff5500, transparent: true, opacity: 0.75,
-    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
-  });
-  const outer = new THREE.Mesh(outerGeo, outerMat);
-  outer.position.y = 0.75 * scale;
-  outer.scale.setScalar(scale);
-
-  const innerGeo = new THREE.ConeGeometry(0.28, 1.0, 5, 1, true);
-  const innerMat = new THREE.MeshBasicMaterial({
-    color: 0xffdd44, transparent: true, opacity: 0.95,
-    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
-  });
-  const inner = new THREE.Mesh(innerGeo, innerMat);
-  inner.position.y = 0.5 * scale;
-  inner.scale.setScalar(scale);
-
-  const group = new THREE.Group();
-  group.add(outer);
-  group.add(inner);
-  group.position.set(x, 0, z);
-  scene.add(group);
-
-  fires.push({
-    group, outer, inner,
-    phase: Math.random() * 10,
-    baseScale: scale
-  });
-}
-
-function updateFires(dt) {
-  fireTime += dt;
-  for (const f of fires) {
-    const s1 = Math.sin(fireTime * 7 + f.phase);
-    const s2 = Math.sin(fireTime * 13 + f.phase * 2.3);
-    const flicker = 0.85 + s1 * 0.10 + s2 * 0.08;
-    f.outer.scale.set(
-      f.baseScale * (0.9 + flicker * 0.15),
-      f.baseScale * flicker * 1.35,
-      f.baseScale * (0.9 + flicker * 0.15)
-    );
-    f.inner.scale.set(
-      f.baseScale * (0.75 + flicker * 0.2),
-      f.baseScale * flicker * 1.2,
-      f.baseScale * (0.75 + flicker * 0.2)
-    );
-    f.outer.rotation.y += dt * 1.2;
-    f.inner.rotation.y -= dt * 1.8;
-  }
-}
-
-function addHouseDamage(h) {
-  const g = new THREE.Group();
-  g.position.set(h.x, 0, h.z);
-  g.rotation.y = h.rot;
-
-  const debrisMat = cachedMat(0x1a1510);
-  const burntMat  = cachedMat(0x2a1a10);
-  const ashMat    = cachedMat(0x0d0a08);
-
-  for (let i = 0; i < 16; i++) {
-    const size = 0.2 + Math.random() * 0.7;
-    const rubble = new THREE.Mesh(
-      new THREE.BoxGeometry(size, size * 0.5, size * 0.85),
-      Math.random() < 0.5 ? debrisMat : ashMat
-    );
-    const a = Math.random() * Math.PI * 2;
-    const r = 3.5 + Math.random() * 4.5;
-    rubble.position.set(Math.cos(a) * r, size * 0.25, Math.sin(a) * r);
-    rubble.rotation.set(
-      (Math.random() - 0.5) * 0.6,
-      Math.random() * Math.PI * 2,
-      (Math.random() - 0.5) * 0.6
-    );
-    rubble.castShadow = true;
-    rubble.receiveShadow = true;
-    g.add(rubble);
-  }
-
-  for (let i = 0; i < 4; i++) {
-    const w  = 0.7 + Math.random() * 1.5;
-    const hh = 0.6 + Math.random() * 1.8;
-    const chunk = new THREE.Mesh(
-      new THREE.BoxGeometry(w, hh, 0.35),
-      burntMat
-    );
-    const side = Math.floor(Math.random() * 4);
-    const rr = 4.3;
-    if (side === 0) chunk.position.set((Math.random() - 0.5) * 6, hh / 2,  rr);
-    else if (side === 1) chunk.position.set( rr, hh / 2, (Math.random() - 0.5) * 5);
-    else if (side === 2) chunk.position.set((Math.random() - 0.5) * 6, hh / 2, -rr);
-    else chunk.position.set(-rr, hh / 2, (Math.random() - 0.5) * 5);
-    chunk.rotation.set(
-      (Math.random() - 0.5) * 0.35,
-      Math.random() * Math.PI * 2,
-      (Math.random() - 0.5) * 0.35
-    );
-    chunk.castShadow = true;
-    chunk.receiveShadow = true;
-    g.add(chunk);
-  }
-
-  scene.add(g);
-  damagedHouseGroups.push(g);
-
-  const fireCount = 1 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < fireCount; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const r = 3 + Math.random() * 3.5;
-    const fx = h.x + Math.cos(a) * r;
-    const fz = h.z + Math.sin(a) * r;
-    createFire(fx, fz, 0.75 + Math.random() * 0.7);
-  }
-}
-
-function applyNightMode() {
-  if (nightMode) return;
-  nightMode = true;
-
-  scene.background.setHex(0x0a0e1a);
-  scene.fog.color.setHex(0x0a0e1a);
-  scene.fog.near = 22;
-  scene.fog.far  = 90;
-
-  sun.color.setHex(0x8090c0);
-  sun.intensity = 0.40;
-  sun.position.set(-20, 40, -18);
-
-  hemi.color.setHex(0x2a3050);
-  hemi.groundColor.setHex(0x101018);
-  hemi.intensity = 0.55;
-
-  _lampBulbMat.color.setHex(0xff8800);
-
-  for (const h of houseLayout) addHouseDamage(h);
-
-  createFire(2.5, 2.5, 1.2);
-  createFire(-2.5, -2.5, 1.2);
-  createFire(0, 0, 1.5);
-
-  showTempHint('🌙 Modo Noche', 2.5);
-}
 
 /* ─────────────── ESTADO ─────────────── */
 let aiming = false;
@@ -2149,9 +2064,6 @@ function updateDebug(dt) {
   if (fpsSamples.length > 30) fpsSamples.shift();
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
   const ws = curWepState();
-  const zinfo = gameMode === 'zombies'
-    ? `<span class="val">Zombies:</span>  ${zombies.filter(z => !z.dead).length} vivos\n<span class="val">Ola:</span>      ${zombieWave}\n<span class="val">Puntos:</span>   ${zombiePoints}\n<span class="val">Host:</span>     ${isZombieHost ? 'SÍ' : 'no'}\n<span class="val">SoloTimer:</span>${soloTimer.toFixed(1)}s\n<span class="val">Fuegos:</span>    ${fires.length}`
-    : `<span class="val">Remotos:</span>  ${remotePlayers.size}`;
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
@@ -2170,7 +2082,7 @@ function updateDebug(dt) {
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
 <span class="val">Granada:</span>   ${grenadeCooldown > 0 ? grenadeCooldown.toFixed(1) + 's' : 'LISTA'}
 <span class="val">Postura:</span>   ${sliding ? '🛷 DESLIZÁNDOSE' : (crouching ? '⬇ AGACHADO' : '⬆ DE PIE')}
-${zinfo}
+<span class="val">Remotos:</span>   ${remotePlayers.size}
 <span class="val">Mapa:</span>      seed ${MAP_SEED}
   `.trim();
 }
@@ -2277,7 +2189,6 @@ function getTopParent(obj) { let top = obj; while (top.parent && top.parent !== 
 function isPartOfPlayer(obj) { let p = obj; while (p) { if (p === player) return true; p = p.parent; } return false; }
 function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weaponRifle || p === weaponPistol || p === grenadeViewModel) return true; p = p.parent; } return false; }
 function getRemotePlayerId(obj) { let p = obj; while (p) { if (p.userData && p.userData.remotePlayerId) return p.userData.remotePlayerId; p = p.parent; } return null; }
-function getZombieFromObject(obj) { let p = obj; while (p) { if (p.userData && p.userData.zombieRef) return p.userData.zombieRef; p = p.parent; } return null; }
 
 function spawnBulletHole(hit, normal) {
   const topParent = getTopParent(hit.object);
@@ -2401,19 +2312,6 @@ function respawnPlayer() {
 
   deathUI.classList.remove('active');
   playRespawnSound();
-  if (gameMode === 'zombies' && isZombieHost) {
-    for (const z of zombies) {
-      disposeObject(z.root);
-      scene.remove(z.root);
-      if (onlineMode) remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {});
-    }
-    zombies.length = 0;
-    zombiesToSpawn = 0;
-    waveActive = false;
-    waveIntermission = 3;
-    hasHadOtherPlayers = false;
-    updateZombieHUD();
-  }
   if (!isTouch) setTimeout(() => requestLock(), 100);
   if (onlineMode) sendLocalPlayerState();
 }
@@ -2478,7 +2376,7 @@ function tryShoot() {
   setTimeout(() => { flash.visible = false; muzzleLight.intensity = 0; }, 45);
   if (def.key === 'pistol') playPistolShot(0);
   else playGunshot(0);
-  if (onlineMode && gameMode === 'battle') {
+  if (onlineMode) {
     set(ref(db, `rooms/${ROOM}/shots/${playerId}`), {
       ts: Date.now(), yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: def.key
     }).catch(() => {});
@@ -2489,21 +2387,6 @@ function tryShoot() {
     if (hit.object.userData.isBulletHole) continue;
     if (isPartOfWeapon(hit.object)) continue;
     if (isPartOfPlayer(hit.object)) continue;
-
-    if (gameMode === 'zombies') {
-      const z = getZombieFromObject(hit.object);
-      if (z && !z.dead) {
-        let normal;
-        if (hit.face) {
-          const nm = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
-          normal = hit.face.normal.clone().applyMatrix3(nm).normalize();
-        } else normal = raycaster.ray.direction.clone().negate();
-        spawnBulletHole(hit, normal);
-        damageZombie(z, def.damage);
-        playHitMarker();
-        break;
-      }
-    }
 
     let normal;
     if (hit.face) {
@@ -2686,438 +2569,6 @@ function updateDeathCamera(dt) {
   camera.lookAt(deathPosition.x, deathPosition.y + 1, deathPosition.z);
   camera.fov += (BASE_FOV - camera.fov) * Math.min(1, dt * 5);
   camera.updateProjectionMatrix();
-}
-
-/* ═══════════════════════════════════════════
-   ZOMBIES
-   ═══════════════════════════════════════════ */
-const zombies = [];
-let zombieWave = 0, zombiePoints = 0, zombiesToSpawn = 0;
-let waveActive = false, waveIntermission = 3, zombieSpawnTimer = 0;
-let isZombieHost = false;
-const MAX_ZOMBIES = 25;
-let soloTimer = 0;
-let hasHadOtherPlayers = false;
-const SOLO_RESET_SECS = 5;
-
-const zombieHUD = document.getElementById('zombie-hud');
-const zombieStatusEl = document.getElementById('zombie-status');
-
-const ZOMBIE_CORPSE_LIFETIME = 1.2;
-
-function disposeObject(root) {
-  root.traverse(o => {
-    if (o.isMesh && !o.userData.isBulletHole) {
-      if (o.geometry) o.geometry.dispose();
-      if (o.material) {
-        const mats = Array.isArray(o.material) ? o.material : [o.material];
-        for (const m of mats) if (m) m.dispose();
-      }
-    }
-  });
-}
-
-function buildZombieCharacter(variant = 0) {
-  const palettes = [
-    { skin: 0x7a9b6a, uniform: 0x4a3a2a, uniformDark: 0x332a1a, vest: 0x2a1f10, helmet: 0x2a1f10, boots: 0x1a1208, strap: 0x1c1408, pouch: 0x3a2a18, eye: 0x8b0000 },
-    { skin: 0x6b8f5c, uniform: 0x3d2f22, uniformDark: 0x2a1f10, vest: 0x1f1508, helmet: 0x1f1508, boots: 0x141008, strap: 0x181208, pouch: 0x2f2212, eye: 0xaa0000 },
-    { skin: 0x88a878, uniform: 0x55402a, uniformDark: 0x3a2a18, vest: 0x30241a, helmet: 0x30241a, boots: 0x1e1408, strap: 0x221810, pouch: 0x44301c, eye: 0x660000 }
-  ];
-  const p = palettes[variant % palettes.length];
-  return buildCharacter(p);
-}
-
-function setZombiePose(z, walkPhase) {
-  const armBase = -1.35;
-  const armSide = 0.22;
-  const swing = Math.sin(walkPhase) * 0.12;
-
-  z.parts.leftArm.shoulder.rotation.x = armBase + swing;
-  z.parts.leftArm.shoulder.rotation.z = armSide;
-  z.parts.leftArm.shoulder.rotation.y = 0;
-  z.parts.leftArm.elbow.rotation.x = 0.55 + Math.abs(swing) * 0.4;
-  z.parts.leftArm.elbow.rotation.z = 0;
-
-  z.parts.rightArm.shoulder.rotation.x = armBase - swing;
-  z.parts.rightArm.shoulder.rotation.z = -armSide;
-  z.parts.rightArm.shoulder.rotation.y = 0;
-  z.parts.rightArm.elbow.rotation.x = 0.55 + Math.abs(swing) * 0.4;
-  z.parts.rightArm.elbow.rotation.z = 0;
-}
-
-function spawnZombieLocal() {
-  const variant = Math.floor(Math.random() * 3);
-  const z = buildZombieCharacter(variant);
-  const hp = 60 + zombieWave * 12;
-  const speed = 2.4 + Math.min(2.6, zombieWave * 0.18);
-
-  let x, z2, tries = 0;
-  do {
-    const a = Math.random() * Math.PI * 2;
-    const r = 25 + Math.random() * 15;
-    x = player.position.x + Math.cos(a) * r;
-    z2 = player.position.z + Math.sin(a) * r;
-    tries++;
-  } while ((tooCloseToHouse(x, z2, 3) || Math.abs(x) > 70 || Math.abs(z2) > 70) && tries < 20);
-
-  z.root.position.set(x, 0, z2);
-  z.root.rotation.y = Math.random() * Math.PI * 2;
-  setZombiePose({ parts: z.parts }, 0);
-
-  const zObj = {
-    id: 'z_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-    root: z.root, body: z.body, parts: z.parts, mats: z.mats,
-    hp, maxHp: hp, speed, variant,
-    dead: false, deathTime: 0,
-    walkPhase: Math.random() * 6.28,
-    attackCooldown: 0, hitFlash: 0,
-    growlTimer: 1 + Math.random() * 3,
-    targetId: null,
-    tx: x, ty: 0, tz: z2, tyaw: z.root.rotation.y
-  };
-  z.root.userData.zombieRef = zObj;
-  z.root.traverse(o => { o.userData.zombieRef = zObj; });
-  scene.add(z.root);
-  zombies.push(zObj);
-  return zObj;
-}
-
-function damageZombie(z, dmg) {
-  if (z.dead) return;
-  z.hp -= dmg;
-  z.hitFlash = 1;
-  if (onlineMode && isZombieHost) {
-    update(ref(db, `rooms/${ROOM}/zombies/${z.id}`), {
-      hp: z.hp,
-      dead: z.hp <= 0,
-      ts: Date.now()
-    }).catch(() => {});
-  }
-  if (z.hp <= 0) killZombie(z);
-}
-
-function killZombie(z) {
-  if (z.dead) return;
-  z.dead = true;
-  z.deathTime = 0;
-  const p = z.root.position;
-  spawnBurst(new THREE.Vector3(p.x, p.y + 1.1, p.z), [0x6b8f5c, 0x3d2f22, 0x2a1f10, 0x8b2020], 22, 2, 5);
-  zombiePoints += 10 + zombieWave * 2;
-  updateZombieHUD();
-  playZombieDeathSound();
-  if (onlineMode && isZombieHost) {
-    update(ref(db, `rooms/${ROOM}/zombies/${z.id}`), { dead: true, ts: Date.now() }).catch(() => {});
-    setTimeout(() => { remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {}); }, 1200);
-  }
-}
-
-let zombieSyncAcc = 0;
-const ZOMBIE_SYNC_HZ = 5;
-
-function updateZombiesHost(dt) {
-  if (waveActive && zombiesToSpawn > 0) {
-    zombieSpawnTimer -= dt;
-    if (zombieSpawnTimer <= 0) {
-      const aliveCount = zombies.filter(z => !z.dead).length;
-      if (aliveCount >= MAX_ZOMBIES) {
-        zombieSpawnTimer = 0.4;
-      } else {
-        zombieSpawnTimer = 1.4;
-        const z = spawnZombieLocal();
-        if (onlineMode) {
-          set(ref(db, `rooms/${ROOM}/zombies/${z.id}`), {
-            x: +z.root.position.x.toFixed(2), y: 0, z: +z.root.position.z.toFixed(2),
-            yaw: +z.root.rotation.y.toFixed(3),
-            hp: z.hp, maxHp: z.maxHp, variant: z.variant,
-            dead: false, wave: zombieWave,
-            targetId: null, ts: Date.now()
-          }).catch(() => {});
-        }
-        zombiesToSpawn--;
-        updateZombieHUD();
-      }
-    }
-  }
-
-  if (waveActive && zombiesToSpawn === 0 && zombies.every(z => z.dead)) {
-    waveActive = false;
-    waveIntermission = 6;
-    zombiePoints += 50;
-    if (onlineMode && isZombieHost) {
-      update(ref(db, `rooms/${ROOM}/zombieState`), { waveActive: false, waveIntermission: 6, ts: Date.now() }).catch(() => {});
-    }
-    showTempHint(`✅ ¡Ola ${zombieWave} completada! +50 pts`, 3);
-    playRespawnSound();
-  }
-
-  if (!waveActive && !playerDead) {
-    waveIntermission -= dt;
-    if (waveIntermission <= 0) startNextWave();
-    updateZombieHUD();
-  }
-
-  const playerPositions = [{ id: playerId, x: player.position.x, z: player.position.z }];
-  for (const [id, r] of remotePlayers) {
-    if (!r.dead) playerPositions.push({ id, x: r.root.position.x, z: r.root.position.z });
-  }
-
-  for (let i = zombies.length - 1; i >= 0; i--) {
-    const z = zombies[i];
-    if (z.hitFlash > 0) {
-      z.hitFlash = Math.max(0, z.hitFlash - dt * 3);
-      for (const m of z.mats) m.emissive.setRGB(z.hitFlash * 0.8, 0, 0);
-    }
-    if (z.dead) {
-      z.deathTime += dt;
-      const fall = Math.min(1, z.deathTime / 0.35);
-      const e = 1 - Math.pow(1 - fall, 3);
-      z.body.rotation.x = -e * Math.PI * 0.55;
-      z.body.position.y = -e * 0.15;
-
-      const fadeStart = 0.5;
-      if (z.deathTime > fadeStart) {
-        const fade = (z.deathTime - fadeStart) / 0.7;
-        z.root.traverse(o => {
-          if (o.isMesh && o.material) {
-            o.material.transparent = true;
-            o.material.opacity = Math.max(0, 1 - fade);
-          }
-        });
-      }
-      if (z.deathTime > fadeStart + 0.7) {
-        disposeObject(z.root);
-        scene.remove(z.root);
-        zombies.splice(i, 1);
-        updateZombieHUD();
-      }
-      continue;
-    }
-
-    let closest = null, cd = Infinity;
-    for (const p of playerPositions) {
-      const d = Math.hypot(p.x - z.root.position.x, p.z - z.root.position.z);
-      if (d < cd) { cd = d; closest = p; }
-    }
-
-    if (!closest) continue;
-    if (z.targetId !== closest.id) z.targetId = closest.id;
-
-    const dx = closest.x - z.root.position.x;
-    const dz = closest.z - z.root.position.z;
-    const dist = Math.hypot(dx, dz);
-    const targetYaw = Math.atan2(dx, dz);
-    let dy = targetYaw - z.root.rotation.y;
-    while (dy > Math.PI) dy -= Math.PI * 2;
-    while (dy < -Math.PI) dy += Math.PI * 2;
-    z.root.rotation.y += dy * Math.min(1, dt * 5);
-
-    z.growlTimer -= dt;
-    if (z.growlTimer <= 0) {
-      z.growlTimer = 4 + Math.random() * 6;
-      if (dist < 22) playZombieGrowl(dist);
-    }
-
-    if (dist > 1.2) {
-      const mx = (dx / dist) * z.speed * dt;
-      const mz = (dz / dist) * z.speed * dt;
-      z.root.position.x += mx;
-      z.root.position.z += mz;
-      resolveCollisions(z.root, 0.4);
-
-      z.walkPhase += dt * (5 + z.speed * 0.5);
-      const amp = 0.55;
-      const s = Math.sin(z.walkPhase);
-      z.parts.leftLeg.rotation.x = s * amp;
-      z.parts.rightLeg.rotation.x = -s * amp;
-      z.body.position.y = Math.abs(Math.sin(z.walkPhase)) * 0.045;
-      z.body.rotation.z = Math.sin(z.walkPhase) * 0.04;
-      z.body.rotation.x = 0;
-      setZombiePose(z, z.walkPhase);
-    } else {
-      z.attackCooldown -= dt;
-      z.parts.leftLeg.rotation.x *= 0.9;
-      z.parts.rightLeg.rotation.x *= 0.9;
-      setZombiePose(z, 0);
-      if (z.attackCooldown <= 0) {
-        z.attackCooldown = 1.2;
-        const dmg = 10 + Math.floor(zombieWave * 0.5);
-        if (closest.id === playerId) {
-          if (!playerDead) {
-            health = Math.max(0, health - dmg);
-            updateHealthBar();
-            showDamageFlash(0.6);
-            if (health <= 0) killPlayer();
-          }
-        } else if (onlineMode) {
-          const hitId = 'z_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
-          set(ref(db, `rooms/${ROOM}/players/${closest.id}/hits/${hitId}`), {
-            damage: dmg, from: 'zombie', ts: Date.now()
-          }).catch(() => {});
-        }
-      }
-    }
-  }
-}
-
-function updateZombiesClient(dt) {
-  for (let i = zombies.length - 1; i >= 0; i--) {
-    const z = zombies[i];
-    if (z.hitFlash > 0) {
-      z.hitFlash = Math.max(0, z.hitFlash - dt * 3);
-      for (const m of z.mats) m.emissive.setRGB(z.hitFlash * 0.8, 0, 0);
-    }
-    if (z.dead) {
-      z.deathTime += dt;
-      const fall = Math.min(1, z.deathTime / 0.35);
-      const e = 1 - Math.pow(1 - fall, 3);
-      z.body.rotation.x = -e * Math.PI * 0.55;
-      z.body.position.y = -e * 0.15;
-
-      const fadeStart = 0.5;
-      if (z.deathTime > fadeStart) {
-        const fade = (z.deathTime - fadeStart) / 0.7;
-        z.root.traverse(o => {
-          if (o.isMesh && o.material) {
-            o.material.transparent = true;
-            o.material.opacity = Math.max(0, 1 - fade);
-          }
-        });
-      }
-      if (z.deathTime > fadeStart + 0.7) {
-        disposeObject(z.root);
-        scene.remove(z.root);
-        zombies.splice(i, 1);
-        updateZombieHUD();
-      }
-      continue;
-    }
-    const t = Math.min(1, dt * 8);
-    const ox = z.root.position.x, oz = z.root.position.z;
-    z.root.position.x += (z.tx - z.root.position.x) * t;
-    z.root.position.z += (z.tz - z.root.position.z) * t;
-    let dy = z.tyaw - z.root.rotation.y;
-    while (dy > Math.PI) dy -= Math.PI * 2;
-    while (dy < -Math.PI) dy += Math.PI * 2;
-    z.root.rotation.y += dy * Math.min(1, dt * 8);
-    const moved = Math.hypot(z.root.position.x - ox, z.root.position.z - oz);
-    if (moved > 0.01) {
-      z.walkPhase += dt * 5;
-      const s = Math.sin(z.walkPhase);
-      z.parts.leftLeg.rotation.x = s * 0.5;
-      z.parts.rightLeg.rotation.x = -s * 0.5;
-      z.body.position.y = Math.abs(s) * 0.045;
-    } else {
-      z.parts.leftLeg.rotation.x *= 0.9;
-      z.parts.rightLeg.rotation.x *= 0.9;
-    }
-    setZombiePose(z, z.walkPhase);
-  }
-}
-
-function resetZombieSession() {
-  for (const z of zombies) {
-    disposeObject(z.root);
-    scene.remove(z.root);
-    if (onlineMode) remove(ref(db, `rooms/${ROOM}/zombies/${z.id}`)).catch(() => {});
-  }
-  zombies.length = 0;
-  zombiesToSpawn = 0;
-  waveActive = false;
-  waveIntermission = 3;
-  zombieWave = 0;
-  zombiePoints = 0;
-  updateZombieHUD();
-  showTempHint('🔄 Servidor vacío · Reiniciando', 2.5);
-  if (onlineMode && isZombieHost) {
-    update(ref(db, `rooms/${ROOM}/zombieState`), {
-      wave: 0, waveActive: false, waveIntermission: 3, hostId: playerId, ts: Date.now()
-    }).catch(() => {});
-  }
-}
-
-function updateSoloReset(dt) {
-  if (!isZombieHost) { soloTimer = 0; return; }
-
-  if (remotePlayers.size > 0) {
-    hasHadOtherPlayers = true;
-    soloTimer = 0;
-  } else if (hasHadOtherPlayers) {
-    soloTimer += dt;
-    if (soloTimer >= SOLO_RESET_SECS) {
-      soloTimer = 0;
-      hasHadOtherPlayers = false;
-      if (zombieWave > 0 || zombies.length > 0 || waveActive) {
-        resetZombieSession();
-      }
-    }
-  } else {
-    soloTimer = 0;
-  }
-}
-
-function updateZombies(dt) {
-  if (gameMode !== 'zombies') return;
-  if (isZombieHost) {
-    updateZombiesHost(dt);
-    updateSoloReset(dt);
-  } else {
-    updateZombiesClient(dt);
-    soloTimer = 0;
-  }
-
-  if (isZombieHost && onlineMode) {
-    zombieSyncAcc += dt;
-    if (zombieSyncAcc >= 1 / ZOMBIE_SYNC_HZ) {
-      zombieSyncAcc = 0;
-      for (const z of zombies) {
-        if (z.dead) continue;
-        update(ref(db, `rooms/${ROOM}/zombies/${z.id}`), {
-          x: +z.root.position.x.toFixed(2),
-          z: +z.root.position.z.toFixed(2),
-          yaw: +z.root.rotation.y.toFixed(3),
-          ts: Date.now()
-        }).catch(() => {});
-      }
-    }
-  }
-}
-
-function startNextWave() {
-  zombieWave++;
-  waveActive = true;
-  zombiesToSpawn = 4 + zombieWave * 2;
-  zombieSpawnTimer = 0.5;
-  updateZombieHUD();
-  playWaveHorn();
-  showTempHint(`🌊 ¡OLA ${zombieWave}!`, 2.5);
-  if (onlineMode && isZombieHost) {
-    update(ref(db, `rooms/${ROOM}/zombieState`), {
-      wave: zombieWave, waveActive: true, waveIntermission: 0, hostId: playerId, ts: Date.now()
-    }).catch(() => {});
-  }
-}
-
-function startZombieMode() {
-  zombieWave = 0; zombiePoints = 0;
-  waveActive = false; waveIntermission = 3;
-  zombiesToSpawn = 0;
-  soloTimer = 0;
-  hasHadOtherPlayers = false;
-  for (const z of zombies) { disposeObject(z.root); scene.remove(z.root); }
-  zombies.length = 0;
-  updateZombieHUD();
-}
-
-function updateZombieHUD() {
-  if (gameMode !== 'zombies') return;
-  const alive = zombies.filter(z => !z.dead).length + (isZombieHost ? zombiesToSpawn : 0);
-  zombieHUD.querySelector('.wave').textContent = `OLA ${zombieWave}`;
-  zombieHUD.querySelector('.count').textContent = `🧟 ${alive}/${MAX_ZOMBIES}`;
-  zombieHUD.querySelector('.pts').textContent = `⭐ ${zombiePoints}`;
-  if (playerDead) zombieStatusEl.textContent = '— DERROTA —';
-  else if (!waveActive && zombieWave > 0) zombieStatusEl.textContent = `Siguiente ola en ${Math.ceil(waveIntermission)}s`;
-  else if (waveActive) zombieStatusEl.textContent = `Sobrevive... ${alive} enemigos`;
-  else zombieStatusEl.textContent = 'Preparate...';
 }
 
 /* ═══════════════════════════════════════════
@@ -3327,7 +2778,6 @@ function animateRemotePlayer(r, dt) {
     r.body.rotation.z += (0 - r.body.rotation.z) * k;
   }
 
-  // ─── Pose de agachado / deslizamiento ───
   r.crouchBlend += (r.targetCrouch - r.crouchBlend) * Math.min(1, dt * 10);
   r.slideBlend  += (r.targetSlide  - r.slideBlend)  * Math.min(1, dt * 12);
   const crouchC = r.crouchBlend * (1 - r.slideBlend);
@@ -3379,7 +2829,7 @@ function animateRemotePlayer(r, dt) {
 }
 
 function handleRemoteShots(all) {
-  if (!all || gameMode !== 'battle') return;
+  if (!all) return;
   const now = Date.now();
   for (const [id, d] of Object.entries(all)) {
     if (id === playerId || !d || !d.ts) continue;
@@ -3427,8 +2877,7 @@ function updateOnlineUI() {
   onlineUICounter++;
   if (onlineUICounter % 15 !== 0) return;
   const n = remotePlayers.size + 1;
-  const label = gameMode === 'zombies' ? 'CO-OP' : 'ONLINE';
-  setOnlineStatus(`<span class="ok">🟢 ${label}</span> · <span class="name">${playerName}</span> · ${n} jugador${n === 1 ? '' : 'es'}`);
+  setOnlineStatus(`<span class="ok">🟢 ONLINE</span> · <span class="name">${playerName}</span> · ${n} jugador${n === 1 ? '' : 'es'}`);
 }
 
 /* ═══════════════════════════════════════════
@@ -3444,7 +2893,7 @@ async function initOnline() {
 
   await set(playerNetRef, {
     name: playerName, x: player.position.x, y: player.position.y, z: player.position.z,
-    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false, mode: gameMode, ts: Date.now(),
+    yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false, ts: Date.now(),
     crouch: false, slide: false
   });
   onDisconnect(playerNetRef).remove();
@@ -3467,7 +2916,6 @@ async function initOnline() {
       if (id === playerId) continue;
       updateRemotePlayer(id, data);
     }
-    if (gameMode === 'zombies') reevaluateZombieHost(all);
   });
 
   onValue(ref(db, `rooms/${ROOM}/shots`), snap => handleRemoteShots(snap.val()));
@@ -3509,109 +2957,8 @@ async function initOnline() {
     remove(snap.ref);
   });
 
-  if (gameMode === 'zombies') {
-    initZombieSync();
-  }
-
   sendLocalPlayerState();
   setInterval(() => { if (!playerDead) sendLocalPlayerState(); }, 5000);
-}
-
-/* ═══════════════════════════════════════════
-   SINCRONIZACIÓN DE ZOMBIES
-   ═══════════════════════════════════════════ */
-function reevaluateZombieHost(allPlayers) {
-  if (gameMode !== 'zombies') return;
-  const ids = Object.keys(allPlayers || {}).sort();
-  const expectedHost = ids[0];
-  isZombieHost = (expectedHost === playerId);
-}
-
-function initZombieSync() {
-  const stateRef = ref(db, `rooms/${ROOM}/zombieState`);
-
-  onValue(stateRef, snap => {
-    const s = snap.val() || {};
-    if (!isZombieHost) {
-      if (typeof s.wave === 'number' && s.wave !== zombieWave) {
-        zombieWave = s.wave;
-        waveActive = !!s.waveActive;
-        waveIntermission = s.waveIntermission ?? 6;
-        if (waveActive) {
-          playWaveHorn();
-          showTempHint(`🌊 ¡OLA ${zombieWave}!`, 2.5);
-        }
-        updateZombieHUD();
-      } else {
-        waveActive = !!s.waveActive;
-        waveIntermission = s.waveIntermission ?? waveIntermission;
-      }
-    }
-  });
-
-  const zombiesRef = ref(db, `rooms/${ROOM}/zombies`);
-  onChildAdded(zombiesRef, snap => {
-    const id = snap.key;
-    if (zombies.find(z => z.id === id)) return;
-    const d = snap.val();
-    if (!d) return;
-    const char = buildZombieCharacter(d.variant || 0);
-    char.root.position.set(d.x || 0, 0, d.z || 0);
-    char.root.rotation.y = d.yaw || 0;
-    setZombiePose({ parts: char.parts }, 0);
-    const zObj = {
-      id,
-      root: char.root, body: char.body, parts: char.parts, mats: char.mats,
-      hp: d.hp ?? 100, maxHp: d.maxHp ?? 100, speed: 2.4, variant: d.variant || 0,
-      dead: !!d.dead, deathTime: 0,
-      walkPhase: Math.random() * 6.28,
-      attackCooldown: 0, hitFlash: 0,
-      growlTimer: 2 + Math.random() * 3,
-      targetId: d.targetId || null,
-      tx: d.x || 0, ty: 0, tz: d.z || 0, tyaw: d.yaw || 0
-    };
-    char.root.userData.zombieRef = zObj;
-    char.root.traverse(o => { o.userData.zombieRef = zObj; });
-    scene.add(char.root);
-    zombies.push(zObj);
-    updateZombieHUD();
-  });
-
-  onChildChanged(zombiesRef, snap => {
-    const id = snap.key;
-    const z = zombies.find(zz => zz.id === id);
-    if (!z) return;
-    const d = snap.val();
-    if (!d) return;
-    z.tx = d.x ?? z.tx;
-    z.tz = d.z ?? z.tz;
-    z.tyaw = d.yaw ?? z.tyaw;
-    if (typeof d.hp === 'number' && d.hp < z.hp && !isZombieHost) z.hitFlash = 1;
-    z.hp = d.hp ?? z.hp;
-    if (d.dead && !z.dead) {
-      z.dead = true;
-      z.deathTime = 0;
-      const p = z.root.position;
-      spawnBurst(new THREE.Vector3(p.x, p.y + 1.1, p.z), [0x6b8f5c, 0x3d2f22, 0x2a1f10, 0x8b2020], 22, 2, 5);
-      if (!isZombieHost) {
-        zombiePoints += 10 + zombieWave * 2;
-        updateZombieHUD();
-      }
-      playZombieDeathSound();
-    }
-  });
-
-  onChildRemoved(zombiesRef, snap => {
-    const id = snap.key;
-    const idx = zombies.findIndex(zz => zz.id === id);
-    if (idx >= 0) {
-      const z = zombies[idx];
-      disposeObject(z.root);
-      scene.remove(z.root);
-      zombies.splice(idx, 1);
-      updateZombieHUD();
-    }
-  });
 }
 
 /* ─────────────── MINIMAPA ─────────────── */
@@ -3623,7 +2970,7 @@ const MM_SCALE = MM_W / (MM_RANGE * 2);
 function drawMinimap() {
   const ctx = mmCtx;
   const cxWorld = player.position.x, czWorld = player.position.z;
-  ctx.fillStyle = nightMode ? '#0a1015' : '#0f2010';
+  ctx.fillStyle = '#0f2010';
   ctx.fillRect(0, 0, MM_W, MM_H);
   ctx.strokeStyle = 'rgba(120,180,120,0.15)'; ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
@@ -3634,15 +2981,15 @@ function drawMinimap() {
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + MM_W / 2;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + MM_H / 2;
   const plx = wx2mm(0), ply = wz2mm(0);
-  ctx.fillStyle = nightMode ? 'rgba(70,50,35,0.6)' : 'rgba(156,122,82,0.5)';
+  ctx.fillStyle = 'rgba(156,122,82,0.5)';
   ctx.beginPath(); ctx.arc(plx, ply, 13 * MM_SCALE, 0, Math.PI * 2); ctx.fill();
 
   const chpx = wx2mm(CHURCH_POS.x), chpy = wz2mm(CHURCH_POS.z);
   if (chpx > -30 && chpx < MM_W + 30 && chpy > -30 && chpy < MM_H + 30) {
     ctx.save(); ctx.translate(chpx, chpy); ctx.rotate(-CHURCH_POS.rot);
-    ctx.fillStyle = nightMode ? '#5c4a6a' : '#c9a0dc';
+    ctx.fillStyle = '#c9a0dc';
     ctx.fillRect(-8, -10, 16, 20);
-    ctx.fillStyle = nightMode ? '#3a2d42' : '#7d5ba6';
+    ctx.fillStyle = '#7d5ba6';
     ctx.fillRect(-2, -16, 4, 10);
     ctx.restore();
   }
@@ -3651,37 +2998,26 @@ function drawMinimap() {
     const px = wx2mm(h.x), py = wz2mm(h.z), r = 9;
     if (px < -20 || px > MM_W + 20 || py < -20 || py > MM_H + 20) continue;
     ctx.save(); ctx.translate(px, py); ctx.rotate(-h.rot);
-    ctx.fillStyle = nightMode ? '#3a2a20' : '#d4a373';
+    ctx.fillStyle = '#d4a373';
     ctx.fillRect(-r, -r * 0.9, r * 2, r * 1.8);
-    ctx.fillStyle = nightMode ? '#5a1a10' : '#a0522d';
+    ctx.fillStyle = '#a0522d';
     ctx.beginPath(); ctx.moveTo(-r, -r * 0.9); ctx.lineTo(r, -r * 0.9); ctx.lineTo(0, -r * 1.5); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
   for (const c of colliders) {
     const px = wx2mm(c.x), py = wz2mm(c.z), r = Math.max(2, c.r * MM_SCALE);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = c.kind === 'tree' ? (nightMode ? '#1a3a20' : '#2f8f3e')
-                  : c.kind === 'lamp' ? (nightMode ? '#ff8800' : '#ffdd88')
+    ctx.fillStyle = c.kind === 'tree' ? '#2f8f3e'
+                  : c.kind === 'lamp' ? '#ffdd88'
                   : '#7f8c8d';
     ctx.fillRect(px - r, py - r, r * 2, r * 2);
   }
-  if (gameMode === 'zombies') {
-    for (const z of zombies) {
-      if (z.dead) continue;
-      const px = wx2mm(z.root.position.x), py = wz2mm(z.root.position.z);
-      if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-      ctx.fillStyle = '#8fe58f';
-      ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
-    }
-  } else {
-    for (const [, r] of remotePlayers) {
-      const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
-      if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-      ctx.fillStyle = r.dead ? '#666' : '#f39c12';
-      ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
-    }
+  for (const [, r] of remotePlayers) {
+    const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
+    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
+    ctx.fillStyle = r.dead ? '#666' : '#f39c12';
+    ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
   ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(cameraYaw + Math.PI);
   ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
@@ -3745,7 +3081,6 @@ function updateUI(dt = 0) {
 function applyOptimizations() {
   const dynamicRoots = new Set([player, camera, weaponRifle, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
-  for (const z of zombies) dynamicRoots.add(z.root);
 
   scene.traverse(obj => {
     let p = obj, isDynamic = false;
@@ -3774,14 +3109,22 @@ function applyOptimizations() {
    MENÚ
    ═══════════════════════════════════════════ */
 const modeMenu = document.getElementById('mode-menu');
+const playBtn = document.getElementById('play-btn');
 
-document.querySelectorAll('.mode-card').forEach(card => {
-  card.addEventListener('click', () => {
-    const mode = card.dataset.mode;
-    initAudio();
-    selectGameMode(mode);
-  });
+function handlePlay() {
+  if (gameMode) return;
+  initAudio();
+  selectGameMode('battle');
+}
+playBtn.addEventListener('click', e => {
+  e.preventDefault();
+  handlePlay();
 });
+// Fallback para navegadores antiguos
+playBtn.addEventListener('touchend', e => {
+  e.preventDefault();
+  handlePlay();
+}, { passive: false });
 
 function selectGameMode(mode) {
   if (gameMode) return;
@@ -3815,12 +3158,6 @@ function selectGameMode(mode) {
     console.warn('Firebase no disponible:', err);
     onlineMode = false;
     setOnlineStatus('<span class="bad">🔌 Offline (sin Firebase)</span>', true);
-  }
-
-  if (mode === 'zombies') {
-    applyNightMode();
-    zombieHUD.classList.add('active');
-    startZombieMode();
   }
 
   initOnline().catch(err => {
@@ -3877,8 +3214,6 @@ function animate() {
     }
 
     updateNetwork(dt);
-    if (gameMode === 'zombies') updateZombies(dt);
-    if (nightMode) updateFires(dt);
     updatePieces(playerPieces, dt);
     updatePieces(droppedPieces, dt);
     updateExplosionParticles(dt);
