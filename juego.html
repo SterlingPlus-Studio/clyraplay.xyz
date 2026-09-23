@@ -1255,13 +1255,6 @@ Promise.all([
 const vehicleFbxStatus = { military: false, pickup: false, cart: false };
 const vehicleMeshCounts = { military: 0, pickup: 0, cart: 0 };
 
-/* Cargador robusto de vehículos:
-   - Fuerza visible=true en TODOS los nodos (raíz de que "no aparezcan las gomas")
-   - Sanea materiales: opacidad/transparencia/alphaTest
-   - Soporta SkinnedMesh sin skeleton bindeado
-   - Auto-detecta Z-up (Blender) y rota -90° en X
-   - Escala y centra
-*/
 function loadVehicleFBX(url, targetLen) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
@@ -1270,14 +1263,10 @@ function loadVehicleFBX(url, targetLen) {
         obj.rotation.set(0, 0, 0);
         obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
-
-        // 1) Forzar visibilidad en TODOS los nodos (incluye huesos vacíos y grupos)
         obj.traverse(n => { n.visible = true; });
 
-        // 2) Detectar orientación
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
-        // Si Y es la dimensión MÁS pequeña, es casi seguro que viene Z-up
         if (size.y < size.x * 0.7 && size.y < size.z * 0.7) {
           obj.rotation.x = -Math.PI / 2;
           obj.updateMatrixWorld(true);
@@ -1285,13 +1274,11 @@ function loadVehicleFBX(url, targetLen) {
           size = box.getSize(new THREE.Vector3());
         }
 
-        // 3) Escala uniforme al targetLen
         const maxHorizontal = Math.max(size.x, size.z);
         const s = targetLen / Math.max(maxHorizontal, 0.001);
         obj.scale.setScalar(s);
         obj.updateMatrixWorld(true);
 
-        // 4) Centrar XZ, poner base en Y=0
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2 = box2.getCenter(new THREE.Vector3());
         obj.position.x -= c2.x;
@@ -1299,7 +1286,6 @@ function loadVehicleFBX(url, targetLen) {
         obj.position.y -= box2.min.y;
         obj.updateMatrixWorld(true);
 
-        // 5) Procesar mallas: contar, forzar visible, sanear material
         let meshCount = 0;
         obj.traverse(n => {
           n.visible = true;
@@ -1312,7 +1298,6 @@ function loadVehicleFBX(url, targetLen) {
             if (n.isSkinnedMesh && n.skeleton && typeof n.skeleton.update === 'function') {
               try { n.skeleton.update(); } catch (e) {}
             }
-            // Sanear material
             if (!n.material) {
               n.material = new THREE.MeshLambertMaterial({ color: 0x666666, flatShading: true });
             } else {
@@ -1321,7 +1306,6 @@ function loadVehicleFBX(url, targetLen) {
                 if (!m) continue;
                 if ('flatShading' in m) m.flatShading = true;
                 if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-                // Si el material es "casi invisible" (opacidad 0 o alphaTest agresivo), restaurar
                 if (m.transparent && typeof m.opacity === 'number' && m.opacity < 0.15) {
                   m.transparent = false;
                   m.opacity = 1;
@@ -1346,7 +1330,6 @@ function loadVehicleFBX(url, targetLen) {
   });
 }
 
-/* Fallback procedural solo si el FBX no carga (NO se usa para el carrito) */
 function buildVehicleFallback(type) {
   const g = new THREE.Group();
   const cols = { military: 0x4a5a3a, pickup: 0x8a2b1e, cart: 0xc0392b };
@@ -1370,25 +1353,21 @@ function buildVehicleFallback(type) {
 }
 
 /* Distribución de vehículos:
-   - Carrito: ya NO tiene fallback (si falla, no aparece).
-   - Carrito: tamaño mayor (3.2 en vez de 2.2).
+   - Carrito: sin fallback y AÚN MÁS GRANDE (4.0)
 */
 const vehicleSpawns = [
-  // Auto militar: en la zona de carga, frente al almacén
   { type: 'military', x: -12, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
   { type: 'military', x:  14, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
-  // Camionetas: en los laterales del recinto
   { type: 'pickup',   x: -44, z:  25, rot:  Math.PI / 2, len: 5.5, collR: 2.2 },
   { type: 'pickup',   x:  44, z:  28, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
   { type: 'pickup',   x:  44, z:  35, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
-  // Carritos de carga: más grandes ahora (3.2), collider también más grande
-  { type: 'cart',     x: -30, z:  12, rot:  Math.PI / 3, len: 3.2, collR: 1.3 },
-  { type: 'cart',     x:  -8, z: -12, rot: -Math.PI / 5, len: 3.2, collR: 1.3 },
-  { type: 'cart',     x:  24, z:  12, rot:  Math.PI / 6, len: 3.2, collR: 1.3 },
-  { type: 'cart',     x:  -8, z:  12, rot:  Math.PI,     len: 3.2, collR: 1.3 },
+  // Carritos de carga: MÁS GRANDES (4.0)
+  { type: 'cart',     x: -30, z:  12, rot:  Math.PI / 3, len: 4.0, collR: 1.6 },
+  { type: 'cart',     x:  -8, z: -12, rot: -Math.PI / 5, len: 4.0, collR: 1.6 },
+  { type: 'cart',     x:  24, z:  12, rot:  Math.PI / 6, len: 4.0, collR: 1.6 },
+  { type: 'cart',     x:  -8, z:  12, rot:  Math.PI,     len: 4.0, collR: 1.6 },
 ];
 
-/* Función helper: re-escala una plantilla ya cargada al targetLen */
 function rescaleToLength(template, targetLen) {
   if (!template) return null;
   const t = template.clone(true);
@@ -1402,7 +1381,6 @@ function rescaleToLength(template, targetLen) {
   if (maxH < 0.001) return t;
   t.scale.setScalar(targetLen / maxH);
   t.updateMatrixWorld(true);
-  // Re-centrar tras escalar
   const b2 = new THREE.Box3().setFromObject(t);
   const c = b2.getCenter(new THREE.Vector3());
   t.position.x -= c.x;
@@ -1412,11 +1390,10 @@ function rescaleToLength(template, targetLen) {
   return t;
 }
 
-/* Cargar los 3 FBX y colocar vehículos */
 Promise.all([
   loadVehicleFBX('modelos3d/auto militar.fbx',  6.5),
   loadVehicleFBX('modelos3d/camioneta.fbx',     5.5),
-  loadVehicleFBX('modelos3d/Carrito de carga.fbx', 3.2)
+  loadVehicleFBX('modelos3d/Carrito de carga.fbx', 4.0)
 ]).then(([milRes, pickRes, cartRes]) => {
   const milBase  = milRes  && milRes.obj  ? milRes.obj  : null;
   const pickBase = pickRes && pickRes.obj ? pickRes.obj : null;
@@ -1432,20 +1409,14 @@ Promise.all([
   const templates = {
     military: milBase  ? rescaleToLength(milBase,  6.5) : null,
     pickup:   pickBase ? rescaleToLength(pickBase, 5.5) : null,
-    cart:     cartBase ? rescaleToLength(cartBase, 3.2) : null,  // ← más grande
+    cart:     cartBase ? rescaleToLength(cartBase, 4.0) : null,  // ← MÁS GRANDE
   };
 
   for (const spawn of vehicleSpawns) {
     const tmpl = templates[spawn.type];
-
-    // Si NO hay plantilla:
-    //  - Carrito: saltar (no fallback) → "quita la versión de código"
-    //  - Otros:   usar fallback procedural
     if (!tmpl) {
-      if (spawn.type === 'cart') {
-        // Sin fallback para el carrito
-        continue;
-      }
+      // Carrito sin fallback
+      if (spawn.type === 'cart') continue;
       const v = buildVehicleFallback(spawn.type);
       v.position.set(spawn.x, 0, spawn.z);
       v.rotation.y = spawn.rot;
@@ -1454,7 +1425,6 @@ Promise.all([
       continue;
     }
 
-    // Clonar plantilla y envolver en un grupo con rotación+posición final
     const inner = tmpl.clone(true);
     inner.position.set(0, 0, 0);
     inner.rotation.set(0, 0, 0);
@@ -1478,14 +1448,11 @@ Promise.all([
       }
     });
     scene.add(wrapper);
-
-    // Collider
     colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
   }
   try { applyOptimizations(); } catch (e) {}
 }).catch(err => {
   logFbxError('Error general vehículos: ' + err.message);
-  // Fallback solo para militar y camioneta (carrito NO)
   for (const spawn of vehicleSpawns) {
     if (spawn.type === 'cart') continue;
     const v = buildVehicleFallback(spawn.type);
@@ -1495,6 +1462,11 @@ Promise.all([
     colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
   }
 });
+
+/* ═══════════════════════════════════════════
+   ⚠️ MONTACARGAS PROCEDURAL ELIMINADO
+   (antes: createForklift → vehículo amarillo visto en la captura)
+   ═══════════════════════════════════════════ */
 
 /* ─────────────── ALMACÉN NORTE ─────────────── */
 function createWarehouse(x, z, w, d, h) {
@@ -1623,7 +1595,7 @@ scene.add(createFence(-FENCE_X, -FENCE_Z, -FENCE_X, FENCE_Z));
 scene.add(createFence(-FENCE_X, FENCE_Z, -ENTRY_GAP / 2, FENCE_Z));
 scene.add(createFence( ENTRY_GAP / 2, FENCE_Z, FENCE_X, FENCE_Z));
 
-/* ─────────────── PUERTA DE ENTRADA (sin coches procedurales) ─────────────── */
+/* ─────────────── PUERTA DE ENTRADA ─────────────── */
 function createEntryGate(x, z) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
@@ -1750,39 +1722,6 @@ function createCrane(x, z, rot) {
 }
 scene.add(createCrane(46, -12, 0));
 scene.add(createCrane(46, 12, 0));
-
-/* ─────────────── MONTACARGAS ─────────────── */
-function createForklift(x, z, rot) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  g.rotation.y = rot;
-  const mBody = cachedMat(0xe6a419);
-  const mDark = cachedMat(0x1c1c1c);
-  const mTire = cachedMat(0x111111);
-  const mMast = cachedMat(0x444444);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.0, 2.2), mBody);
-  body.position.y = 0.9; body.castShadow = true; g.add(body);
-  const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.2), mDark);
-  cab.position.set(0, 1.85, 0.2); cab.castShadow = true; g.add(cab);
-  const mast1 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.0, 0.16), mMast);
-  mast1.position.set(-0.55, 2.2, -1.1); g.add(mast1);
-  const mast2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.0, 0.16), mMast);
-  mast2.position.set(0.55, 2.2, -1.1); g.add(mast2);
-  const mastBar = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 0.15), mMast);
-  mastBar.position.set(0, 3.7, -1.1); g.add(mastBar);
-  const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8);
-  for (const [wx, wz] of [[-0.7, 0.7], [0.7, 0.7], [-0.7, -0.7], [0.7, -0.7]]) {
-    const w = new THREE.Mesh(wGeo, mTire);
-    w.rotation.z = Math.PI / 2;
-    w.position.set(wx, 0.35, wz);
-    w.castShadow = true;
-    g.add(w);
-  }
-  colliders.push({ x, z, r: 1.3, kind: 'lamp' });
-  return g;
-}
-scene.add(createForklift(-30, -25, Math.PI / 6));
-scene.add(createForklift(-14, -8, -Math.PI / 3));
 
 /* ─────────────── MARCAS DE PISO ─────────────── */
 const roadMat = new THREE.MeshBasicMaterial({ color: 0xf4d03f });
