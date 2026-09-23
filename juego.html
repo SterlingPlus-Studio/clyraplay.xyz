@@ -66,10 +66,11 @@
   #grenade-btn.cooling { opacity: 0.35; }
   #crouch-btn { right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px; background: rgba(120,200,150,0.3); border-color: rgba(180,255,200,0.9); }
   #crouch-btn.held { background: rgba(150,240,180,0.75); border-color: #fff; }
-  #debug { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #7cf47c; font: 11px/1.4 ui-monospace, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; z-index: 100; display: none; min-width: 220px; border: 2px solid rgba(124,244,124,0.5); max-height: 90vh; overflow: hidden; }
+  #debug { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #7cf47c; font: 11px/1.4 ui-monospace, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; z-index: 100; display: none; min-width: 240px; border: 2px solid rgba(124,244,124,0.5); max-height: 90vh; overflow: hidden; }
   #debug.active { display: block; }
   #debug .title { color: #fff; font-weight: bold; }
   #debug .val   { color: #ffd93d; }
+  #debug .err   { color: #ff6b6b; }
   #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; pointer-events: none; display: none; z-index: 15; }
   #crosshair.active { display: block; }
   #crosshair .line { position: absolute; background: #fff; box-shadow: 0 0 3px #000, 0 0 1px #000; }
@@ -222,6 +223,17 @@ let menuActive = true;
 let menuCamAngle = 0;
 
 /* ═══════════════════════════════════════════
+   LOG DE ERRORES (visible en debug F3)
+   ═══════════════════════════════════════════ */
+const fbxErrors = [];
+function logFbxError(msg) {
+  const line = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  fbxErrors.push(line);
+  if (fbxErrors.length > 6) fbxErrors.shift();
+  console.warn(line);
+}
+
+/* ═══════════════════════════════════════════
    AUDIO
    ═══════════════════════════════════════════ */
 let audioCtx = null, masterGain = null, audioEnabled = true;
@@ -362,7 +374,7 @@ let onlineMode = false, db = null;
 let playerId = null, playerName = null, playerNetRef = null;
 const ROOM = 'main';
 const NET_SEND_HZ = 10;
-const NET_STALE_MS = 10000;
+const NET_STALE_MS = 15000; // más permisivo
 
 const onlinePanel = document.getElementById('online-panel');
 const onlineStatus = document.getElementById('online-status');
@@ -738,8 +750,8 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
           }
         });
         resolve(obj);
-      } catch (e) { resolve(null); }
-    }, undefined, () => resolve(null));
+      } catch (e) { logFbxError('weapon ' + url + ': ' + e.message); resolve(null); }
+    }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
   });
 }
 
@@ -977,13 +989,8 @@ function explodeGrenade(pos) {
    ═══════════════════════════════════════════ */
 const colliders = [];
 const boxColliders = [];
-const walkableSurfaces = [];
 const PLAYER_RADIUS = 0.45;
 
-function localToWorld(lx, lz, ox, oz, rot) {
-  const c = Math.cos(rot), s = Math.sin(rot);
-  return { x: ox + lx * c + lz * s, z: oz - lx * s + lz * c };
-}
 function computeBoxPenetration(px, pz, radius, box) {
   const c = Math.cos(box.rot), s = Math.sin(box.rot);
   const dx = px - box.x, dz = pz - box.z;
@@ -1010,7 +1017,6 @@ function computeBoxPenetration(px, pz, radius, box) {
   const wz = box.z - pushLx * s + pushLz * c;
   return { dx: wx - px, dz: wz - pz };
 }
-function computeGroundY(x, z, currentY) { return 0; }
 
 /* ═══════════════════════════════════════════
    BODEGA DE CONTENEDORES
@@ -1088,9 +1094,8 @@ const C_BLUE   = [0x2874a6, 0x3585b8, 0x1f5d8a, 0x2874a6];
 const C_BLUE2  = [0x1f5d8a, 0x2874a6, 0x184a70, 0x2d7cb8];
 const C_BROWN  = [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a];
 const C_BROWN2 = [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a];
-const C_GREY   = [0x7f8c8d, 0x95a5a6, 0x6b7778, 0x7f8c8d];
 
-/* ─────────── LAYOUT DE STACKS (con tipo FBX) ─────────── */
+/* ─────────── LAYOUT DE STACKS ─────────── */
 const containerLayout = [
   { x: -38, z: -20, rot: 0, type: 1, colors: C_RED },
   { x: -38, z:   2, rot: 0, type: 2, colors: C_RED2 },
@@ -1107,7 +1112,7 @@ const containerLayout = [
   { x:  34, z:  24, rot: 0, type: 2, colors: C_BROWN },
 ];
 
-/* ─────────── GRUPOS PLACEHOLDER + COLISIONES INMEDIATAS ─────────── */
+/* ─────────── GRUPOS + COLISIONES ─────────── */
 const containerGroups = [];
 for (const def of containerLayout) {
   const g = new THREE.Group();
@@ -1124,37 +1129,32 @@ for (const def of containerLayout) {
 }
 
 /* ─────────── CARGA DE CONTENEDORES FBX ─────────── */
+const containerFbxStatus = { c1: false, c2: false };
+
 function loadContainerFBX(url) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
       try {
-        // Reset
         obj.position.set(0, 0, 0);
         obj.rotation.set(0, 0, 0);
         obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
 
-        // Medidas originales
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
 
-        // Si el FBX viene "acostado", orientar para que el lado más largo sea X y el alto sea Y.
-        // Detectamos si Y no es la dimensión vertical esperada: si size.y es el menor, rotamos.
-        // Para containers estándar: largo > alto > ancho. Si Y es el más pequeño, rotamos X→Y.
+        // Si el FBX viene Z-up (Blender), rotar
         if (size.y < size.x && size.y < size.z) {
-          // Y es el más chico: probablemente el FBX tiene Z-up (Blender). Rotamos -90° en X.
           obj.rotation.x = -Math.PI / 2;
           obj.updateMatrixWorld(true);
           box = new THREE.Box3().setFromObject(obj);
           size = box.getSize(new THREE.Vector3());
         }
 
-        // Escalar uniformemente para que el alto sea CONT_H
         const s = CONT_H / Math.max(size.y, 0.001);
         obj.scale.setScalar(s);
         obj.updateMatrixWorld(true);
 
-        // Centrar en XZ y poner base en Y=0
         const box2 = new THREE.Box3().setFromObject(obj);
         const c2 = box2.getCenter(new THREE.Vector3());
         obj.position.x -= c2.x;
@@ -1162,7 +1162,6 @@ function loadContainerFBX(url) {
         obj.position.y -= box2.min.y;
         obj.updateMatrixWorld(true);
 
-        // Ajustes de materiales
         obj.traverse(n => {
           if (n.isMesh) {
             n.castShadow = true;
@@ -1181,26 +1180,26 @@ function loadContainerFBX(url) {
         });
         resolve(obj);
       } catch (e) {
-        console.warn('Error procesando contenedor FBX:', url, e);
+        logFbxError('container ' + url + ': ' + e.message);
         resolve(null);
       }
-    }, undefined, (err) => {
-      console.warn('No se pudo cargar contenedor FBX:', url, err);
+    }, undefined, () => {
+      logFbxError('No se pudo cargar ' + url);
       resolve(null);
     });
   });
 }
 
-/* Promise.all: cargar ambos, popular grupos */
 Promise.all([
   loadContainerFBX('modelos3d/Container1.fbx'),
   loadContainerFBX('modelos3d/Container2.fbx')
 ]).then(([c1, c2]) => {
+  containerFbxStatus.c1 = !!c1;
+  containerFbxStatus.c2 = !!c2;
   const anyLoaded = c1 || c2;
 
-  // Si NINGÚN FBX cargó: fallback procedural para todo
   if (!anyLoaded) {
-    console.warn('Contenedores FBX no disponibles, usando procedural.');
+    logFbxError('Contenedores FBX no disponibles, usando procedural.');
     for (const { def, group } of containerGroups) {
       group.add(buildProceduralStack(def.colors));
     }
@@ -1218,7 +1217,6 @@ Promise.all([
   ];
 
   for (const { def, group } of containerGroups) {
-    // Elegir plantilla según tipo, con fallback al otro si uno no cargó
     let template = null;
     if (def.type === 1) template = c1 || c2;
     else                template = c2 || c1;
@@ -1231,7 +1229,6 @@ Promise.all([
     for (const [ox, oz] of offsets) {
       const c = template.clone(true);
       c.position.set(ox, 0, oz);
-      // Micro-variación de rotación para realismo
       c.rotation.y = (Math.random() - 0.5) * 0.02;
       c.traverse(n => {
         if (n.isMesh) {
@@ -1246,7 +1243,7 @@ Promise.all([
 
   try { applyOptimizations(); } catch (e) {}
 }).catch(err => {
-  console.warn('Error general cargando contenedores FBX:', err);
+  logFbxError('Error general contenedores: ' + err.message);
   for (const { def, group } of containerGroups) {
     group.add(buildProceduralStack(def.colors));
   }
@@ -1887,6 +1884,9 @@ function updateDebug(dt) {
   if (fpsSamples.length > 30) fpsSamples.shift();
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
   const ws = curWepState();
+  let aliveRemote = 0, deadRemote = 0;
+  for (const [, r] of remotePlayers) { if (r.dead) deadRemote++; else aliveRemote++; }
+  const errLines = fbxErrors.length ? '\n<span class="title">── Errores FBX ──</span>\n' + fbxErrors.map(e => `<span class="err">${e}</span>`).join('\n') : '';
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
@@ -1896,13 +1896,22 @@ function updateDebug(dt) {
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Triángulos:</span>${renderer.info.render.triangles}
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no'}
+
+<span class="title">── Jugador ──</span>
 <span class="val">Pos:</span>       (${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)})
 <span class="val">Vida:</span>      ${health.toFixed(0)} / 100
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
-<span class="val">Granada:</span>   ${grenadeCooldown > 0 ? grenadeCooldown.toFixed(1) + 's' : 'LISTA'}
 <span class="val">Postura:</span>   ${sliding ? '🛷 DESLIZÁNDOSE' : (crouching ? '⬇ AGACHADO' : '⬆ DE PIE')}
-<span class="val">Remotos:</span>   ${remotePlayers.size}
+
+<span class="title">── Red ──</span>
+<span class="val">Remotos vivos:</span> ${aliveRemote}
+<span class="val">Remotos muertos:</span> ${deadRemote}
+<span class="val">Total mapa:</span> ${remotePlayers.size}
+
+<span class="title">── Modelos FBX ──</span>
+<span class="val">Container1:</span> ${containerFbxStatus.c1 ? '✅' : '❌'}
+<span class="val">Container2:</span> ${containerFbxStatus.c2 ? '✅' : '❌'}${errLines}
   `.trim();
 }
 
@@ -2408,15 +2417,17 @@ function addRemotePlayer(id, data) {
     targetSlide: data.slide ? 1 : 0
   });
 }
+
 function updateRemotePlayer(id, data) {
-  if (data.ts && Date.now() - data.ts > NET_STALE_MS) return;
+  // ⚠️ FIX: eliminado el early-return por stale. Ahora siempre añadimos/actualizamos.
   let r = remotePlayers.get(id);
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
-  r.targetX = data.x ?? r.targetX;
-  r.targetY = data.y ?? r.targetY;
-  r.targetZ = data.z ?? r.targetZ;
-  r.targetYaw = (data.yaw ?? 0) + Math.PI;
-  r.targetPitch = data.pitch ?? r.targetPitch;
+  if (!r) return;
+  if (typeof data.x === 'number') r.targetX = data.x;
+  if (typeof data.y === 'number') r.targetY = data.y;
+  if (typeof data.z === 'number') r.targetZ = data.z;
+  if (typeof data.yaw === 'number') r.targetYaw = data.yaw + Math.PI;
+  if (typeof data.pitch === 'number') r.targetPitch = data.pitch;
   if (data.weapon === 'pistol' || data.weapon === 'rifle') r.weaponKey = data.weapon;
   r.lastSeen = Date.now();
   r.targetCrouch = data.crouch ? 1 : 0;
@@ -2447,6 +2458,7 @@ function reviveRemotePlayer(r) {
   r.body.position.set(0, 0, 0);
   r.parts.leftLeg.rotation.x = 0;
   r.parts.rightLeg.rotation.x = 0;
+  r.parts.head.rotation.x = 0;
   r.aimPivot.visible = true;
   r.hitFlash = 0;
   r.crouchBlend = 0;
@@ -2550,6 +2562,7 @@ function animateRemotePlayer(r, dt) {
   r.aimPivot.visible = true;
   if (r.rifle) r.rifle.group.visible = r.weaponKey !== 'pistol';
   if (r.pistol) r.pistol.group.visible = r.weaponKey === 'pistol';
+
   const walking = r.moveSpeed > 0.5;
   if (walking) {
     r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
@@ -2569,10 +2582,12 @@ function animateRemotePlayer(r, dt) {
     r.body.rotation.y += (0 - r.body.rotation.y) * k;
     r.body.rotation.z += (0 - r.body.rotation.z) * k;
   }
+
   r.crouchBlend += (r.targetCrouch - r.crouchBlend) * Math.min(1, dt * 10);
   r.slideBlend  += (r.targetSlide  - r.slideBlend)  * Math.min(1, dt * 12);
   const crouchC = r.crouchBlend * (1 - r.slideBlend);
   const slideC  = r.slideBlend;
+
   if (crouchC > 0.005 || slideC > 0.005) {
     r.body.position.y += -0.45 * crouchC - 0.75 * slideC;
     const kneeBend = -0.55 * crouchC;
@@ -2582,17 +2597,24 @@ function animateRemotePlayer(r, dt) {
       r.parts.leftLeg.rotation.x  = r.parts.leftLeg.rotation.x  * (1 - slideC) + (-1.45) * slideC;
       r.parts.rightLeg.rotation.x = r.parts.rightLeg.rotation.x * (1 - slideC) + (-1.05) * slideC;
     }
-    r.parts.head.rotation.x += 0.18 * crouchC - 0.22 * slideC;
     r.body.rotation.x = 0.22 * crouchC - 0.35 * slideC;
-  } else {
-    r.body.rotation.x = 0;
   }
+
+  // ⚠️ FIX: la rotación de la cabeza se calcula UNA VEZ con asignación (=) y no acumula.
+  // Combina pitch (mirar arriba/abajo) + offset por agachado/deslizamiento.
   r.pitchSmooth += (r.targetPitch - r.pitchSmooth) * Math.min(1, dt * 12);
   if (r.recoil > 0) r.recoil = Math.max(0, r.recoil - dt * 7);
   r.aimPivot.rotation.x = r.pitchSmooth - r.recoil * 0.22;
   r.aimPivot.rotation.z = Math.sin(r.walkPhase) * (walking ? 0.05 : 0.012);
-  r.aimPivot.position.set(REMOTE_AIM_POS.x, REMOTE_AIM_POS.y - (0.45 * crouchC + 0.75 * slideC), REMOTE_AIM_POS.z - r.recoil * 0.07);
-  r.parts.head.rotation.x += r.pitchSmooth * 0.45;
+  r.aimPivot.position.set(
+    REMOTE_AIM_POS.x,
+    REMOTE_AIM_POS.y - (0.45 * crouchC + 0.75 * slideC),
+    REMOTE_AIM_POS.z - r.recoil * 0.07
+  );
+
+  // Head: pitch total + inclinación por postura. ¡No acumular!
+  r.parts.head.rotation.x = r.pitchSmooth * 0.45 + 0.18 * crouchC - 0.22 * slideC;
+
   if (r.flashTimer > 0) {
     r.flashTimer -= dt;
     if (r.flashTimer <= 0) {
@@ -2600,6 +2622,7 @@ function animateRemotePlayer(r, dt) {
       if (r.pistol) r.pistol.flash.visible = false;
     }
   }
+
   r.root.updateMatrixWorld(true);
   const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
   if (activeWeapon && activeWeapon.gripMarker) {
