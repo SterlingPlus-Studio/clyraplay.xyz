@@ -317,18 +317,57 @@ function logFbxError(msg) {
 }
 
 /* ═══════════════════════════════════════════
-   AUDIO
+   AUDIO — versión robusta con reanudación global
    ═══════════════════════════════════════════ */
 let audioCtx = null, masterGain = null, audioEnabled = true;
+
 function initAudio() {
-  if (audioCtx) { if (audioCtx.state === 'suspended') audioCtx.resume(); return; }
+  if (audioCtx) {
+    // Siempre intentar reanudar si está suspendido
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+    return;
+  }
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { audioEnabled = false; return; }
+    audioCtx = new Ctx();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.6;
     masterGain.connect(audioCtx.destination);
-  } catch (e) { audioEnabled = false; }
+    // Reanudar inmediatamente por si el navegador lo deja suspendido
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+  } catch (e) { audioEnabled = false; console.warn('Audio init error:', e); }
 }
+
+/* ⚠️ CRÍTICO: listener global que reanuda el AudioContext con CUALQUIER
+   gesto del usuario. Se auto-remueve cuando el contexto está "running".
+   Sin esto, algunos navegadores (Safari, Firefox estricto) mantienen el
+   contexto suspendido hasta que haya un gesto válido, y no se oye nada. */
+function resumeAudioGlobal() {
+  initAudio();
+  if (audioCtx && audioCtx.state === 'running') {
+    document.removeEventListener('pointerdown', resumeAudioGlobal, true);
+    document.removeEventListener('mousedown', resumeAudioGlobal, true);
+    document.removeEventListener('touchstart', resumeAudioGlobal, true);
+    document.removeEventListener('keydown', resumeAudioGlobal, true);
+    document.removeEventListener('click', resumeAudioGlobal, true);
+  }
+}
+document.addEventListener('pointerdown', resumeAudioGlobal, true);
+document.addEventListener('mousedown', resumeAudioGlobal, true);
+document.addEventListener('touchstart', resumeAudioGlobal, true);
+document.addEventListener('keydown', resumeAudioGlobal, true);
+document.addEventListener('click', resumeAudioGlobal, true);
+
+/* Reactivar el audio si la pestaña vuelve a estar activa */
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) initAudio();
+});
+
 function _noiseBuffer(duration, curve = 2) {
   const size = Math.max(1, Math.floor(audioCtx.sampleRate * duration));
   const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
@@ -576,8 +615,6 @@ function forceMaterialOpaque(mat) {
   mat.needsUpdate = true;
 }
 
-/* ⚠️ NUEVO: quita las sombras (cast) y la recepción de sombras a un objeto.
-   Se usa para el personaje local y sus armas FPS para que no proyecten sombra sobre el suelo. */
 function disableShadows(obj) {
   if (!obj) return;
   obj.traverse(n => {
@@ -838,7 +875,7 @@ function buildGrenadeModel(opts = {}) {
   const mDark  = cachedMat(0x141414);
   const mGlove = cachedMat(0x1a1a17);
   const mUni   = cachedMat(0x4a5238);
-  const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.085, 0), mBody); body.castShadow = false; g.add(body);
+  const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.085, 0), mBody); g.add(body);
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.038, 0.05, 6), mMetal); neck.position.y = 0.095; g.add(neck);
   const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.030, 0.030, 0.022, 6), mDark); cap.position.y = 0.128; g.add(cap);
   const lever = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.10, 0.026), mMetal); lever.position.set(0.042, 0.075, 0); lever.rotation.z = -0.16; g.add(lever);
@@ -860,7 +897,6 @@ const player = _localChar.root;
 const playerBody = _localChar.body;
 player.visible = false;
 scene.add(player);
-// ⚠️ El jugador local no proyecta sombra ni recibe sombras
 disableShadows(player);
 
 /* ═══════════════════════════════════════════
@@ -934,7 +970,6 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
           if (n.isMesh || n.isSkinnedMesh) {
             meshCount++;
             n.visible = true;
-            // ⚠️ Las armas FPS no proyectan sombra ni reciben sombra
             n.castShadow = false;
             n.receiveShadow = false;
             n.frustumCulled = false;
@@ -944,18 +979,13 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
             }
           }
         });
-        console.log(`[FBX] ${url}: ${meshCount} mallas (opacas, sin sombra)`);
+        console.log(`[FBX] ${url}: ${meshCount} mallas`);
         resolve(obj);
       } catch (e) { logFbxError('weapon ' + url + ': ' + e.message); resolve(null); }
     }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
   });
 }
 
-/* Carga de las 3 armas:
-   - m4a1: sin rotación extra
-   - pistol: +90° en Y
-   - escopeta: +90° en Y (antes estaba -90° y por eso apuntaba hacia el jugador)
-*/
 (async () => {
   const r = await loadWeaponFBX('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
@@ -1016,15 +1046,19 @@ _fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
+/* ⚠️ MANO IZQUIERDA DE LA ESCOPETA: bajada y más atrás
+   - Antes: (0.015, -0.055, -0.19)
+   - Ahora: (0.015, -0.11, -0.08) → más abajo y más cerca del cuerpo */
 const _fpSHandR = makeFPSHand('right');
 _fpSHandR.scale.setScalar(0.55);
 _fpSHandR.position.set(0.01, -0.08, 0.08);
 _fpSHandR.rotation.set(0.55, 0, 0.10);
 weaponShotgun.add(_fpSHandR);
+
 const _fpSHandL = makeFPSHand('left');
 _fpSHandL.scale.set(0.58, 0.58, 0.74);
-_fpSHandL.position.set(0.015, -0.055, -0.19);
-_fpSHandL.rotation.set(1.15, 0.02, -0.55);
+_fpSHandL.position.set(0.015, -0.11, -0.08);   // ← más abajo y más atrás
+_fpSHandL.rotation.set(1.05, 0.02, -0.48);      // ← ajuste de rotación para ángulo natural
 weaponShotgun.add(_fpSHandL);
 
 const WEAPON_POS = {
@@ -1043,7 +1077,6 @@ camera.add(weaponRifle);
 camera.add(weaponShotgun);
 camera.add(weaponPistol);
 
-// ⚠️ Las armas FPS no proyectan sombra sobre el mundo
 disableShadows(weaponRifle);
 disableShadows(weaponShotgun);
 disableShadows(weaponPistol);
@@ -2270,7 +2303,7 @@ function updateDebug(dt) {
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
-<span class="val">Triángulos:</span>${renderer.info.render.triangles}
+<span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no ctx'}
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
@@ -2461,7 +2494,7 @@ function killPlayer() {
     child.getWorldPosition(wp); child.getWorldQuaternion(wq);
     clone.position.copy(wp); clone.quaternion.copy(wq);
     scene.add(clone);
-    disableShadows(clone); // los pedazos del jugador tampoco dan sombra
+    disableShadows(clone);
     const vel = new THREE.Vector3((Math.random() - 0.5) * 9, Math.random() * 8 + 4, (Math.random() - 0.5) * 9);
     const angVel = new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
     playerPieces.push({ mesh: clone, vel, angVel, life: 8 });
