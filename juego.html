@@ -82,7 +82,18 @@
     transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, border-color 0.15s ease;
     user-select: none; -webkit-tap-highlight-color: transparent;
   }
-  .loadout-btn .loadout-icon { font-size: clamp(40px, 8vw, 64px); filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.5)); }
+  .loadout-btn .loadout-icon {
+    width: min(82%, 360px);
+    height: clamp(78px, 14vw, 120px);
+    display: block;
+    margin: 0 auto;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+    background: #4c4c4c;
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 0 3px 9px rgba(0,0,0,0.24);
+  }
   .loadout-btn .loadout-name { font-size: clamp(18px, 3.4vw, 24px); letter-spacing: 3px; }
   .loadout-btn .loadout-side { font-size: clamp(11px, 2.2vw, 13px); color: #ffd93d; letter-spacing: 2px; font-weight: bold; }
   .loadout-btn .loadout-desc { font-size: clamp(10px, 2vw, 12px); color: #a8c0e0; font-weight: normal; letter-spacing: 1px; }
@@ -220,14 +231,14 @@
     <h2>ELEGÍ TU ARSENAL</h2>
     <div class="loadout-sub">— PRIMARIA + PISTOLA —</div>
     <div class="loadout-options">
-      <button class="loadout-btn" data-primary="rifle" type="button">
-        <span class="loadout-icon">🔫</span>
+      <button class="loadout-btn" data-primary="rifle" type="button" aria-label="Elegir M4A1 con pistola">
+        <img class="loadout-icon" src="texturas/selector_m4a1_pistola.png" alt="M4A1 y pistola" draggable="false">
         <span class="loadout-name">M4A1</span>
         <span class="loadout-side">+ PISTOLA</span>
         <span class="loadout-desc">Automática · Rápida · 30 balas</span>
       </button>
-      <button class="loadout-btn" data-primary="shotgun" type="button">
-        <span class="loadout-icon">💥</span>
+      <button class="loadout-btn" data-primary="shotgun" type="button" aria-label="Elegir escopeta con pistola">
+        <img class="loadout-icon" src="texturas/selector_escopeta_pistola.png" alt="Escopeta y pistola" draggable="false">
         <span class="loadout-name">ESCOPETA</span>
         <span class="loadout-side">+ PISTOLA</span>
         <span class="loadout-desc">Daño masivo · Lenta · 7 cartuchos</span>
@@ -3375,6 +3386,13 @@ function handlePlay() {
 }
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
+
+document.querySelectorAll('.loadout-icon').forEach(img => {
+  img.addEventListener('error', () => {
+    img.style.visibility = 'hidden';
+    img.parentElement.style.background = 'linear-gradient(135deg,#343434,#555)';
+  }, { once: true });
+});
 
 document.querySelectorAll('.loadout-btn').forEach(btn => {
   const applyLoadout = (e) => {
