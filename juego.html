@@ -154,7 +154,6 @@
     50%      { opacity: 0.6; transform: scale(0.85); }
   }
 
-  /* Ajuste para pantallas muy bajas (landscape móvil) */
   @media (max-height: 500px) {
     #mode-menu .menu-content { gap: 16px; }
     #mode-menu h1 { font-size: clamp(30px, 7.5vh, 52px); letter-spacing: 5px; }
@@ -350,11 +349,22 @@
 <script type="module">
 import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, update, onValue, onChildAdded, onChildRemoved, onChildChanged,
   onDisconnect, remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+/* ═══════════════════════════════════════════
+   DETECCIÓN DE DISPOSITIVO (temprano para optimizaciones)
+   ═══════════════════════════════════════════ */
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (isTouch) document.body.classList.add('is-touch');
+
+const IS_MOBILE = isTouch || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const SHADOW_MAP_SIZE = IS_MOBILE ? 1024 : 2048;
+const MAX_PIXEL_RATIO = IS_MOBILE ? 1.5 : 2;
 
 let gameMode = null;
 let menuActive = true;
@@ -519,7 +529,6 @@ try {
   playerName = stored;
 } catch (e) { playerName = 'Jugador' + Math.floor(1000 + Math.random() * 9000); }
 
-// Mostrar nombre en el menú
 try {
   const menuNameEl = document.getElementById('menu-player-name');
   if (menuNameEl) menuNameEl.textContent = playerName;
@@ -544,22 +553,23 @@ const mapRandom = mulberry32(MAP_SEED);
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 65, 160);
+scene.fog = new THREE.Fog(0x87ceeb, 80, 220);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 300);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
 scene.add(camera);
 
 const BASE_FOV = 70;
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: !IS_MOBILE,
   powerPreference: 'high-performance',
-  stencil: false
+  stencil: false,
+  alpha: false
 });
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, MAX_PIXEL_RATIO));
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = IS_MOBILE ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
 renderer.sortObjects = true;
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
@@ -567,10 +577,11 @@ renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 const hemi = new THREE.HemisphereLight(0xffffff, 0x445566, 1.5);
 scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff2cc, 2.2);
-sun.position.set(25, 40, 15);
+sun.position.set(45, 65, 30);
 sun.castShadow = true;
-sun.shadow.mapSize.set(1536, 1536);
-Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 150 });
+sun.shadow.mapSize.set(SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 1, far: 180 });
+sun.shadow.bias = -0.0006;
 scene.add(sun);
 
 /* ═══════════════════════════════════════════
@@ -589,13 +600,97 @@ function cachedMat(color, opts = {}) {
   return m;
 }
 
+/* ═══════════════════════════════════════════
+   SUELO
+   ═══════════════════════════════════════════ */
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(160, 160, 1, 1),
+  new THREE.PlaneGeometry(320, 320, 1, 1),
   cachedMat(0x6ab04c)
 );
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
+
+/* ═══════════════════════════════════════════
+   MONTAÑAS (low-poly, alrededor del mapa)
+   ═══════════════════════════════════════════ */
+function createMountainGeometry(seedOffset) {
+  const rnd = mulberry32(MAP_SEED + seedOffset);
+  const geo = new THREE.ConeGeometry(1, 1, 6, 4);
+  geo.translate(0, 0.5, 0);
+  const pos = geo.attributes.position;
+  // Randomizar ligeramente los vértices
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
+    if (y > 0.01 && y < 0.99) {
+      pos.setX(i, pos.getX(i) + (rnd() - 0.5) * 0.15);
+      pos.setZ(i, pos.getZ(i) + (rnd() - 0.5) * 0.15);
+    }
+  }
+  pos.needsUpdate = true;
+  geo.computeVertexNormals();
+  // Vertex colors: nieve arriba, roca abajo
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
+    let r, g, b;
+    if (y > 0.72) { r = 0.94; g = 0.96; b = 1.00; }
+    else if (y > 0.42) { r = 0.62; g = 0.63; b = 0.70; }
+    else { r = 0.40; g = 0.42; b = 0.48; }
+    const n = 0.93 + rnd() * 0.14;
+    colors[i * 3] = r * n;
+    colors[i * 3 + 1] = g * n;
+    colors[i * 3 + 2] = b * n;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return geo;
+}
+
+function createMountains() {
+  const RING_RADIUS = 110;
+  const COUNT = IS_MOBILE ? 18 : 26;
+  // 3 variantes de geometría para dar variedad visual
+  const geos = [
+    createMountainGeometry(101),
+    createMountainGeometry(202),
+    createMountainGeometry(303)
+  ];
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+
+  const perGeo = Math.ceil(COUNT / geos.length);
+  const dummy = new THREE.Object3D();
+
+  for (let gi = 0; gi < geos.length; gi++) {
+    const inst = new THREE.InstancedMesh(geos[gi], mat, perGeo);
+    inst.castShadow = false;
+    inst.receiveShadow = false;
+    inst.frustumCulled = true;
+    let idx = 0;
+    for (let i = gi; i < COUNT; i += geos.length, idx++) {
+      const a = (i / COUNT) * Math.PI * 2 + (mapRandom() - 0.5) * 0.18;
+      const rr = RING_RADIUS + (mapRandom() - 0.5) * 24;
+      const x = Math.cos(a) * rr;
+      const z = Math.sin(a) * rr;
+      const h = 22 + mapRandom() * 30;
+      const rad = 12 + mapRandom() * 10;
+      dummy.position.set(x, 0, z);
+      dummy.rotation.y = mapRandom() * Math.PI * 2;
+      dummy.scale.set(rad, h, rad);
+      dummy.updateMatrix();
+      inst.setMatrixAt(idx, dummy.matrix);
+    }
+    // Rellenar las sobrantes con escala 0 si quedan huecos (no pasa aquí pero por seguridad)
+    for (; idx < perGeo; idx++) {
+      dummy.position.set(0, -9999, 0);
+      dummy.scale.set(0.001, 0.001, 0.001);
+      dummy.updateMatrix();
+      inst.setMatrixAt(idx, dummy.matrix);
+    }
+    inst.instanceMatrix.needsUpdate = true;
+    scene.add(inst);
+  }
+}
+createMountains();
 
 /* ═══════════════════════════════════════════
    PERSONAJE
@@ -760,7 +855,7 @@ function createPistolModel() {
 }
 
 /* ═══════════════════════════════════════════
-   ARMAS LOW-POLY PARA JUGADORES REMOTOS
+   ARMAS LOW-POLY REMOTAS
    ═══════════════════════════════════════════ */
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
@@ -769,32 +864,24 @@ function createLowPolyRifleRemote() {
   const matMetal = new THREE.MeshLambertMaterial({ color: 0x3a3a35, flatShading: true });
 
   const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.11, 0.36), matBody);
-  receiver.position.set(0, 0, 0); g.add(receiver);
-
+  g.add(receiver);
   const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.028, 0.30), matDark);
   barrel.position.set(0, 0.028, -0.32); g.add(barrel);
-
   const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.07, 0.22), matBody);
   handguard.position.set(0, 0.010, -0.20); g.add(handguard);
-
   const stock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.20), matBody);
   stock.position.set(0, -0.010, 0.27); g.add(stock);
-
   const mag = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.15, 0.07), matDark);
   mag.position.set(0, -0.135, 0.03); g.add(mag);
-
   const grip = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.13, 0.055), matDark);
   grip.position.set(0, -0.115, 0.15); grip.rotation.x = 0.35; g.add(grip);
-
   const fs = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.05, 0.02), matMetal);
   fs.position.set(0, 0.085, -0.44); g.add(fs);
-
   const rs = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.045, 0.02), matMetal);
   rs.position.set(0, 0.08, 0.09); g.add(rs);
 
   const gripMarker = new THREE.Object3D();
   gripMarker.position.set(0, -0.115, 0.15); g.add(gripMarker);
-
   const handguardMarker = new THREE.Object3D();
   handguardMarker.position.set(0, 0.01, -0.20); g.add(handguardMarker);
 
@@ -805,7 +892,7 @@ function createLowPolyRifleRemote() {
   flash.position.set(0, 0.028, -0.49);
   flash.visible = false; g.add(flash);
 
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker, handguardMarker };
 }
 
@@ -816,13 +903,10 @@ function createLowPolyPistolRemote() {
 
   const slide = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.065, 0.26), matBody);
   slide.position.set(0, 0.025, -0.02); g.add(slide);
-
   const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.026, 0.06), matDark);
   barrel.position.set(0, 0.025, -0.17); g.add(barrel);
-
   const grip = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.14, 0.055), matDark);
   grip.position.set(0, -0.09, 0.07); grip.rotation.x = 0.28; g.add(grip);
-
   const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 0.05), matDark);
   trigger.position.set(0, -0.045, 0.02); g.add(trigger);
 
@@ -836,7 +920,7 @@ function createLowPolyPistolRemote() {
   flash.position.set(0, 0.025, -0.21);
   flash.visible = false; g.add(flash);
 
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker };
 }
 
@@ -956,7 +1040,6 @@ function loadFBXWeapon(url, targetLen, rotY = 0) {
     rifleModel.fbxModel = r;
     rifleModel.group.add(r);
   }
-
   const p = await loadFBXWeapon('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) {
     pistolModel.fbxModel = p;
@@ -1195,7 +1278,7 @@ function updateGrenades(dt) {
 }
 
 function explodeGrenade(pos) {
-  spawnBurst(pos, [0xffdd44, 0xff9a1a, 0xff5511, 0x883300, 0xffffff], 70, 4, 14);
+  spawnBurst(pos, [0xffdd44, 0xff9a1a, 0xff5511, 0x883300, 0xffffff], IS_MOBILE ? 45 : 70, 4, 14);
   const distSelf = camera.position.distanceTo(pos);
   playExplosionSound(distSelf);
   shakeAmount = Math.min(1.3, shakeAmount + Math.max(0, 1 - distSelf / 24) * 1.0);
@@ -1511,21 +1594,15 @@ function createHouse(x, z, rot, styleIdx) {
 }
 
 /* ═══════════════════════════════════════════
-   PUEBLO
+   PUEBLO (6 casas, antes 12)
    ═══════════════════════════════════════════ */
 const houseLayout = [
-  { x:   0, z: -26, rot:  0,             style: 0 },
-  { x:   0, z:  26, rot:  Math.PI,       style: 1 },
-  { x: -26, z:   0, rot:  Math.PI / 2,   style: 2 },
-  { x:  26, z:   0, rot: -Math.PI / 2,   style: 3 },
-  { x: -27, z: -27, rot:  Math.PI / 4,   style: 4 },
-  { x:  27, z: -27, rot: -Math.PI / 4,   style: 5 },
-  { x: -27, z:  27, rot:  3 * Math.PI / 4, style: 6 },
-  { x:  27, z:  27, rot: -3 * Math.PI / 4, style: 7 },
-  { x:   0, z: -50, rot:  0,             style: 0 },
-  { x:   0, z:  50, rot:  Math.PI,       style: 2 },
-  { x: -50, z:   0, rot:  Math.PI / 2,   style: 5 },
-  { x:  50, z:   0, rot: -Math.PI / 2,   style: 7 }
+  { x:   0, z: -26, rot:  0,               style: 0 },
+  { x:   0, z:  26, rot:  Math.PI,         style: 1 },
+  { x: -26, z:   0, rot:  Math.PI / 2,     style: 2 },
+  { x:  26, z:   0, rot: -Math.PI / 2,     style: 3 },
+  { x: -22, z: -22, rot:  Math.PI / 4,     style: 4 },
+  { x:  22, z:  22, rot: -3 * Math.PI / 4, style: 5 }
 ];
 
 for (const h of houseLayout) scene.add(createHouse(h.x, h.z, h.rot, h.style));
@@ -1562,6 +1639,194 @@ plaza.position.set(0, 0.025, 0);
 plaza.receiveShadow = true;
 scene.add(plaza);
 
+/* ═══════════════════════════════════════════
+   ÁRBOLES INSTANCIADOS (reemplaza tree.fbx)
+   ═══════════════════════════════════════════ */
+function buildTreeGeometry() {
+  const trunk = new THREE.CylinderGeometry(0.15, 0.22, 1.6, 5);
+  trunk.translate(0, 0.8, 0);
+  const foliage1 = new THREE.ConeGeometry(1.3, 2.6, 6, 1);
+  foliage1.translate(0, 2.6, 0);
+  const foliage2 = new THREE.ConeGeometry(1.0, 2.1, 6, 1);
+  foliage2.translate(0, 4.0, 0);
+
+  // Vertex colors (tronco marrón, follaje verde)
+  const applyColors = (geo, r, g, b) => {
+    const count = geo.attributes.position.count;
+    const colors = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const n = 0.9 + Math.random() * 0.2;
+      colors[i*3] = r * n;
+      colors[i*3+1] = g * n;
+      colors[i*3+2] = b * n;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  };
+  applyColors(trunk, 0.42, 0.28, 0.16);
+  applyColors(foliage1, 0.22, 0.52, 0.24);
+  applyColors(foliage2, 0.28, 0.62, 0.28);
+
+  return mergeGeometries([trunk, foliage1, foliage2]);
+}
+
+function createTreesInstanced() {
+  const placements = [];
+  const MAX_TREES = IS_MOBILE ? 40 : 70;
+  for (let i = 0; i < MAX_TREES * 4 && placements.length < MAX_TREES; i++) {
+    const a = mapRandom() * Math.PI * 2;
+    const r = 32 + mapRandom() * 55;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    let tooClose = false;
+    for (const h of houseLayout) {
+      const dx = x - h.x, dz = z - h.z;
+      if (dx*dx + dz*dz < 100) { tooClose = true; break; }
+    }
+    if (!tooClose) {
+      const dx = x, dz = z;
+      if (dx*dx + dz*dz < 324) tooClose = true; // radio 18 del centro
+    }
+    if (tooClose) continue;
+    placements.push({ x, z, rot: mapRandom() * Math.PI * 2, scale: 0.85 + mapRandom() * 0.5 });
+  }
+
+  const geo = buildTreeGeometry();
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  const inst = new THREE.InstancedMesh(geo, mat, placements.length);
+  inst.castShadow = !IS_MOBILE;
+  inst.receiveShadow = false;
+  inst.frustumCulled = true;
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < placements.length; i++) {
+    const p = placements[i];
+    dummy.position.set(p.x, 0, p.z);
+    dummy.rotation.set(0, p.rot, 0);
+    dummy.scale.setScalar(p.scale);
+    dummy.updateMatrix();
+    inst.setMatrixAt(i, dummy.matrix);
+    // Colisión sólo con tronco
+    colliders.push({ x: p.x, z: p.z, r: 0.45 * p.scale, kind: 'tree' });
+  }
+  inst.instanceMatrix.needsUpdate = true;
+  scene.add(inst);
+}
+createTreesInstanced();
+
+/* ═══════════════════════════════════════════
+   HIERBA INSTANCIADA (sin colisión, sin shadow cast)
+   ═══════════════════════════════════════════ */
+function buildGrassGeometry() {
+  const parts = [];
+  for (let b = 0; b < 3; b++) {
+    const blade = new THREE.ConeGeometry(0.07, 0.55, 3, 1);
+    blade.translate(0, 0.275, 0);
+    const ang = (b / 3) * Math.PI * 2;
+    blade.rotateZ(0.15 + Math.random() * 0.15);
+    blade.rotateY(ang);
+    blade.translate(Math.cos(ang) * 0.08, 0, Math.sin(ang) * 0.08);
+    const count = blade.attributes.position.count;
+    const colors = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const n = 0.85 + Math.random() * 0.3;
+      colors[i*3] = 0.32 * n;
+      colors[i*3+1] = 0.58 * n;
+      colors[i*3+2] = 0.24 * n;
+    }
+    blade.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    parts.push(blade);
+  }
+  return mergeGeometries(parts);
+}
+
+function createGrassInstanced() {
+  const MAX_GRASS = IS_MOBILE ? 120 : 300;
+  const placements = [];
+  for (let i = 0; i < MAX_GRASS * 3 && placements.length < MAX_GRASS; i++) {
+    const a = mapRandom() * Math.PI * 2;
+    const r = 15 + mapRandom() * 60;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    let tooClose = false;
+    for (const h of houseLayout) {
+      const dx = x - h.x, dz = z - h.z;
+      if (dx*dx + dz*dz < 25) { tooClose = true; break; }
+    }
+    if (tooClose) continue;
+    if (x*x + z*z < 100) continue;
+    placements.push({ x, z, rot: mapRandom() * Math.PI * 2, scale: 0.7 + mapRandom() * 0.8 });
+  }
+
+  const geo = buildGrassGeometry();
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide });
+  const inst = new THREE.InstancedMesh(geo, mat, placements.length);
+  inst.castShadow = false;
+  inst.receiveShadow = false;
+  inst.frustumCulled = true;
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < placements.length; i++) {
+    const p = placements[i];
+    dummy.position.set(p.x, 0, p.z);
+    dummy.rotation.set(0, p.rot, 0);
+    dummy.scale.setScalar(p.scale);
+    dummy.updateMatrix();
+    inst.setMatrixAt(i, dummy.matrix);
+  }
+  inst.instanceMatrix.needsUpdate = true;
+  scene.add(inst);
+}
+createGrassInstanced();
+
+/* ═══════════════════════════════════════════
+   PIEDRAS INSTANCIADAS
+   ═══════════════════════════════════════════ */
+function createRocksInstanced() {
+  const MAX_ROCKS = 18;
+  const placements = [];
+  for (let i = 0; i < MAX_ROCKS * 3 && placements.length < MAX_ROCKS; i++) {
+    const a = mapRandom() * Math.PI * 2;
+    const r = 25 + mapRandom() * 45;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    let tooClose = false;
+    for (const h of houseLayout) {
+      const dx = x - h.x, dz = z - h.z;
+      if (dx*dx + dz*dz < 81) { tooClose = true; break; }
+    }
+    if (tooClose) continue;
+    if (x*x + z*z < 256) continue;
+    placements.push({
+      x, z, size: 0.4 + mapRandom() * 0.9,
+      rx: mapRandom() * Math.PI, ry: mapRandom() * Math.PI, rz: mapRandom() * Math.PI
+    });
+  }
+
+  const geo = new THREE.DodecahedronGeometry(1, 0);
+  const mat = cachedMat(0x7f8c8d);
+  const inst = new THREE.InstancedMesh(geo, mat, placements.length);
+  inst.castShadow = !IS_MOBILE;
+  inst.receiveShadow = true;
+  inst.frustumCulled = true;
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < placements.length; i++) {
+    const p = placements[i];
+    dummy.position.set(p.x, p.size * 0.55, p.z);
+    dummy.rotation.set(p.rx, p.ry, p.rz);
+    dummy.scale.setScalar(p.size);
+    dummy.updateMatrix();
+    inst.setMatrixAt(i, dummy.matrix);
+    colliders.push({ x: p.x, z: p.z, r: p.size * 1.05, kind: 'rock' });
+  }
+  inst.instanceMatrix.needsUpdate = true;
+  scene.add(inst);
+}
+createRocksInstanced();
+
+/* ═══════════════════════════════════════════
+   FAROLAS
+   ═══════════════════════════════════════════ */
 const _lampPoleMat = cachedMat(0x1a1a1a);
 const _lampBaseMat = cachedMat(0x0a0a0a);
 const _lampBulbMat = new THREE.MeshBasicMaterial({ color: 0xffdd88 });
@@ -1585,97 +1850,9 @@ for (const [lx, lz] of [[11, 11], [-11, 11], [11, -11], [-11, -11]]) {
   scene.add(createLamp(lx, lz));
 }
 
-const _rockMat  = cachedMat(0x7f8c8d);
-
-function tooCloseToHouse(x, z, minDist) {
-  for (const h of houseLayout) {
-    const dx = x - h.x, dz = z - h.z;
-    if (dx * dx + dz * dz < minDist * minDist) return true;
-  }
-  return false;
-}
-function tooCloseToChurch(x, z, minDist) {
-  const dx = x - 0, dz = z - 0;
-  return dx * dx + dz * dz < minDist * minDist;
-}
-
-const treePlacements = [];
-for (let i = 0; i < 24; i++) {
-  let x, z, tries = 0;
-  do {
-    const a = mapRandom() * Math.PI * 2;
-    const r = 30 + mapRandom() * 35;
-    x = Math.cos(a) * r; z = Math.sin(a) * r;
-    tries++;
-  } while ((tooCloseToHouse(x, z, 10) || tooCloseToChurch(x, z, 18)) && tries < 30);
-  if (tries < 30) treePlacements.push({ x, z, rot: mapRandom() * Math.PI });
-}
-
-let treeTemplate = null;
-let treeColliderRadius = 0.9;
-
-_fbxLoader.load('modelos3d/tree.fbx', (obj) => {
-  try {
-    obj.traverse(n => {
-      if (n.isMesh) {
-        n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false;
-        if (n.material) {
-          const mats = Array.isArray(n.material) ? n.material : [n.material];
-          for (const m of mats) {
-            if (m && 'flatShading' in m) m.flatShading = true;
-            if (m && m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-          }
-        }
-      }
-    });
-    obj.rotation.set(0, 0, 0); obj.position.set(0, 0, 0); obj.scale.setScalar(1);
-    obj.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(obj);
-    const size = box.getSize(new THREE.Vector3());
-    const targetH = 6.5;
-    const s = targetH / Math.max(size.y, 0.001);
-    obj.scale.setScalar(s);
-    obj.updateMatrixWorld(true);
-    const box2 = new THREE.Box3().setFromObject(obj);
-    const c2 = box2.getCenter(new THREE.Vector3());
-    obj.position.x -= c2.x;
-    obj.position.z -= c2.z;
-    obj.position.y -= box2.min.y;
-    treeColliderRadius = Math.max(0.7, Math.min(size.x, size.z) * s * 0.32);
-
-    const template = new THREE.Group();
-    template.add(obj);
-    treeTemplate = template;
-
-    for (const p of treePlacements) {
-      const clone = template.clone(true);
-      clone.position.set(p.x, 0, p.z);
-      clone.rotation.y = p.rot;
-      clone.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
-      scene.add(clone);
-      colliders.push({ x: p.x, z: p.z, r: treeColliderRadius, kind: 'tree' });
-    }
-    try { applyOptimizations(); } catch (e) {}
-  } catch (e) { console.warn('Error preparando tree.fbx:', e); }
-}, undefined, err => console.warn('No se pudo cargar tree.fbx:', err));
-
-for (let i = 0; i < 16; i++) {
-  const size = 0.4 + mapRandom() * 0.9;
-  let x, z, tries = 0;
-  do {
-    const a = mapRandom() * Math.PI * 2;
-    const r = 25 + mapRandom() * 40;
-    x = Math.cos(a) * r; z = Math.sin(a) * r;
-    tries++;
-  } while ((tooCloseToHouse(x, z, 9) || tooCloseToChurch(x, z, 16)) && tries < 30);
-  if (tries >= 30) continue;
-  const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), _rockMat);
-  rock.position.set(x, size * 0.55, z);
-  rock.rotation.set(mapRandom() * Math.PI, mapRandom() * Math.PI, mapRandom() * Math.PI);
-  rock.castShadow = true; rock.receiveShadow = true; scene.add(rock);
-  colliders.push({ x, z, r: size * 1.05, kind: 'rock' });
-}
-
+/* ═══════════════════════════════════════════
+   IGLESIA (FBX opcional)
+   ═══════════════════════════════════════════ */
 const CHURCH_POS = { x: 0, z: 0, rot: 0 };
 
 _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
@@ -1722,55 +1899,6 @@ _fbxLoader.load('modelos3d/iglesia.fbx', (obj) => {
     try { applyOptimizations(); } catch (e) {}
   } catch (e) { console.warn('Error preparando iglesia.fbx:', e); }
 }, undefined, err => console.warn('No se pudo cargar iglesia.fbx:', err));
-
-_fbxLoader.load('modelos3d/Grass.fbx', (obj) => {
-  try {
-    obj.traverse(n => {
-      if (n.isMesh) {
-        n.castShadow = false;
-        n.receiveShadow = true;
-        n.frustumCulled = true;
-      }
-    });
-    obj.rotation.set(0, 0, 0); obj.position.set(0, 0, 0); obj.scale.setScalar(1);
-    obj.updateMatrixWorld(true);
-    const box = new THREE.Box3().setFromObject(obj);
-    const size = box.getSize(new THREE.Vector3());
-    const targetH = 0.8;
-    const s = targetH / Math.max(size.y, 0.001);
-    obj.scale.setScalar(s);
-    obj.updateMatrixWorld(true);
-    const box2 = new THREE.Box3().setFromObject(obj);
-    const c2 = box2.getCenter(new THREE.Vector3());
-    obj.position.x -= c2.x;
-    obj.position.z -= c2.z;
-    obj.position.y -= box2.min.y;
-
-    const template = new THREE.Group();
-    template.add(obj);
-
-    let placed = 0;
-    const MAX_GRASS = 200;
-    for (let i = 0; i < MAX_GRASS * 3 && placed < MAX_GRASS; i++) {
-      const a = mapRandom() * Math.PI * 2;
-      const r = 14 + mapRandom() * 58;
-      const x = Math.cos(a) * r;
-      const z = Math.sin(a) * r;
-      if (tooCloseToHouse(x, z, 5)) continue;
-      if (tooCloseToChurch(x, z, 10)) continue;
-
-      const clone = template.clone(true);
-      clone.position.set(x, 0, z);
-      clone.rotation.y = mapRandom() * Math.PI * 2;
-      const sc = 0.7 + mapRandom() * 0.9;
-      clone.scale.setScalar(sc);
-      scene.add(clone);
-      placed++;
-    }
-
-    try { applyOptimizations(); } catch (e) {}
-  } catch (e) { console.warn('Error preparando Grass.fbx:', e); }
-}, undefined, err => console.warn('No se pudo cargar Grass.fbx:', err));
 
 /* ─────────────── ESTADO ─────────────── */
 let aiming = false;
@@ -1884,11 +2012,6 @@ const touchInput = { x: 0, y: 0 };
 let joystickActiveId = null;
 let joystickOrigin = { x: 0, y: 0 };
 const JOYSTICK_RADIUS = 45;
-
-const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-if (isTouch) {
-  document.body.classList.add('is-touch');
-}
 
 function hideInfo() { document.getElementById('info').classList.add('hidden'); }
 addEventListener('touchstart', hideInfo, { once: true, passive: true });
@@ -2072,6 +2195,7 @@ function updateDebug(dt) {
 <span class="val">ID:</span>        ${playerId || '-'}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Triángulos:</span>${renderer.info.render.triangles}
+<span class="val">DPR:</span>       ${renderer.getPixelRatio().toFixed(2)}
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no'}
 
 <span class="title">── Modo ──</span>
@@ -2083,6 +2207,8 @@ function updateDebug(dt) {
 <span class="val">Granada:</span>   ${grenadeCooldown > 0 ? grenadeCooldown.toFixed(1) + 's' : 'LISTA'}
 <span class="val">Postura:</span>   ${sliding ? '🛷 DESLIZÁNDOSE' : (crouching ? '⬇ AGACHADO' : '⬆ DE PIE')}
 <span class="val">Remotos:</span>   ${remotePlayers.size}
+<span class="val">Casas:</span>     ${houseLayout.length}
+<span class="val">Colisores:</span>  ${colliders.length + boxColliders.length}
 <span class="val">Mapa:</span>      seed ${MAP_SEED}
   `.trim();
 }
@@ -2131,7 +2257,6 @@ let walkPhase = 0, velocityY = 0, isGrounded = true;
 const GRAVITY = 26, JUMP_FORCE = 9;
 
 const playerPieces = [];
-const droppedPieces = [];
 function updatePieces(arr, dt) {
   for (let i = arr.length - 1; i >= 0; i--) {
     const p = arr[i];
@@ -2181,7 +2306,7 @@ function updateExplosionParticles(dt) {
 }
 
 const bulletHoles = [];
-const MAX_BULLET_HOLES = 80;
+const MAX_BULLET_HOLES = IS_MOBILE ? 40 : 80;
 const bulletHoleGeo = new THREE.CircleGeometry(0.07, 8);
 const bulletHoleMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, side: THREE.DoubleSide });
 
@@ -2278,7 +2403,7 @@ function killPlayer() {
     playerPieces.push({ mesh: clone, vel, angVel, life: 8 });
   }
   const origin = new THREE.Vector3(player.position.x, player.position.y + 1.3, player.position.z);
-  spawnBurst(origin, [0x990000, 0xdd1111, 0xff3333, 0x660000], 40, 3, 9);
+  spawnBurst(origin, [0x990000, 0xdd1111, 0xff3333, 0x660000], IS_MOBILE ? 25 : 40, 3, 9);
   playDeathSound();
   deathUI.classList.add('active');
   if (pointerLocked) document.exitPointerLock();
@@ -2480,8 +2605,8 @@ function updatePlayer(dt) {
     bobOffset *= Math.max(0, 1 - dt * 8);
     weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 5);
   }
-  player.position.x = THREE.MathUtils.clamp(player.position.x, -70, 70);
-  player.position.z = THREE.MathUtils.clamp(player.position.z, -70, 70);
+  player.position.x = THREE.MathUtils.clamp(player.position.x, -95, 95);
+  player.position.z = THREE.MathUtils.clamp(player.position.z, -95, 95);
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
@@ -2576,6 +2701,8 @@ function updateDeathCamera(dt) {
    ═══════════════════════════════════════════ */
 const remotePlayers = new Map();
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.28);
+const REMOTE_IK_DISTANCE_SQ = 25 * 25;    // sólo solve IK si está a <25u
+const REMOTE_LOD_DISTANCE_SQ = 80 * 80;   // simplificar animaciones si >80u
 
 function addRemotePlayer(id, data) {
   if (remotePlayers.has(id)) return;
@@ -2602,6 +2729,10 @@ function addRemotePlayer(id, data) {
   char.root.userData.remotePlayerId = id;
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
   char.root.rotation.y = (data.yaw ?? 0) + Math.PI;
+
+  // Los meshes del personaje remoto no proyectan sombras (ahorra shadow pass)
+  char.root.traverse(n => { if (n.isMesh) n.castShadow = false; });
+
   scene.add(char.root);
   remotePlayers.set(id, {
     id, root: char.root, body: char.body, parts: char.parts, mats: char.mats,
@@ -2646,7 +2777,7 @@ function startRemoteDeath(r) {
   if (r.dead) return;
   r.dead = true; r.deathTime = 0;
   const p = r.root.position;
-  spawnBurst(new THREE.Vector3(p.x, p.y + 1.3, p.z), [0x990000, 0xdd1111, 0xff3333, 0x660000], 26, 2, 6);
+  spawnBurst(new THREE.Vector3(p.x, p.y + 1.3, p.z), [0x990000, 0xdd1111, 0xff3333, 0x660000], IS_MOBILE ? 18 : 26, 2, 6);
 }
 function reviveRemotePlayer(r) {
   r.dead = false; r.deathTime = 0;
@@ -2737,6 +2868,13 @@ function animateRemotePlayer(r, dt) {
   while (dy > Math.PI) dy -= Math.PI * 2;
   while (dy < -Math.PI) dy += Math.PI * 2;
   r.root.rotation.y += dy * Math.min(1, dt * 12);
+
+  // LOD: si está lejos, saltar animaciones detalladas
+  const dxp = r.root.position.x - player.position.x;
+  const dzp = r.root.position.z - player.position.z;
+  const distSq = dxp * dxp + dzp * dzp;
+  if (distSq > REMOTE_LOD_DISTANCE_SQ) return;
+
   const moved = Math.hypot(r.root.position.x - oldX, r.root.position.z - oldZ);
   const spd = moved / Math.max(dt, 0.0001);
   r.moveSpeed += (spd - r.moveSpeed) * Math.min(1, dt * 6);
@@ -2814,16 +2952,19 @@ function animateRemotePlayer(r, dt) {
       if (r.pistol) r.pistol.flash.visible = false;
     }
   }
+
+  // IK sólo si está cerca
+  if (distSq > REMOTE_IK_DISTANCE_SQ) return;
+
   r.root.updateMatrixWorld(true);
   const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : r.rifle;
   if (activeWeapon && activeWeapon.gripMarker) {
     activeWeapon.gripMarker.getWorldPosition(_gripWorldTmp);
-    const distToLocal = r.root.position.distanceTo(player.position);
-    if (distToLocal < 40) solveArmIK(r.parts.rightArm, _gripWorldTmp, _poleRight);
+    solveArmIK(r.parts.rightArm, _gripWorldTmp, _poleRight);
 
     if (r.weaponKey === 'rifle' && r.rifle && r.rifle.handguardMarker) {
       r.rifle.handguardMarker.getWorldPosition(_handguardWorldTmp);
-      if (distToLocal < 40) solveArmIK(r.parts.leftArm, _handguardWorldTmp, _poleLeft);
+      solveArmIK(r.parts.leftArm, _handguardWorldTmp, _poleLeft);
     }
   }
 }
@@ -2935,7 +3076,7 @@ async function initOnline() {
     if (e && typeof e.x === 'number' && e.from !== playerId) {
       const pos = new THREE.Vector3(e.x, e.y, e.z);
       const d = pos.distanceTo(camera.position);
-      spawnBurst(pos, [0xffdd44, 0xff9a1a, 0xff5511, 0x883300, 0xffffff], 55, 4, 12);
+      spawnBurst(pos, [0xffdd44, 0xff9a1a, 0xff5511, 0x883300, 0xffffff], IS_MOBILE ? 35 : 55, 4, 12);
       playExplosionSound(d);
       shakeAmount = Math.min(1.0, shakeAmount + Math.max(0, 1 - d / 26) * 0.85);
     }
@@ -2965,7 +3106,7 @@ async function initOnline() {
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
 const MM_W = minimapCanvas.width, MM_H = minimapCanvas.height;
-const MM_RANGE = 55;
+const MM_RANGE = 60;
 const MM_SCALE = MM_W / (MM_RANGE * 2);
 function drawMinimap() {
   const ctx = mmCtx;
@@ -3076,13 +3217,16 @@ function updateUI(dt = 0) {
 }
 
 /* ═══════════════════════════════════════════
-   OPTIMIZACIÓN
+   OPTIMIZACIÓN (aplica a mallas estáticas)
    ═══════════════════════════════════════════ */
 function applyOptimizations() {
   const dynamicRoots = new Set([player, camera, weaponRifle, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
 
   scene.traverse(obj => {
+    // Nunca tocar InstancedMesh — gestiona sus propias matrices
+    if (obj.isInstancedMesh) return;
+
     let p = obj, isDynamic = false;
     while (p) {
       if (dynamicRoots.has(p)) { isDynamic = true; break; }
@@ -3120,7 +3264,6 @@ playBtn.addEventListener('click', e => {
   e.preventDefault();
   handlePlay();
 });
-// Fallback para navegadores antiguos
 playBtn.addEventListener('touchend', e => {
   e.preventDefault();
   handlePlay();
@@ -3173,12 +3316,12 @@ function selectGameMode(mode) {
 /* ─────────────── CÁMARA DEL MENÚ ─────────────── */
 function updateMenuCamera(dt) {
   menuCamAngle += dt * 0.13;
-  const r = 68;
+  const r = 78;
   const cx = Math.cos(menuCamAngle) * r;
   const cz = Math.sin(menuCamAngle) * r;
-  const cy = 28 + Math.sin(menuCamAngle * 0.7) * 6;
+  const cy = 32 + Math.sin(menuCamAngle * 0.7) * 8;
   camera.position.set(cx, cy, cz);
-  camera.lookAt(0, 5, 0);
+  camera.lookAt(0, 8, 0);
   camera.fov = 62;
   camera.updateProjectionMatrix();
 }
@@ -3186,6 +3329,10 @@ function updateMenuCamera(dt) {
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
 player.position.set(22, 0, 0);
+
+// Minimapa a ~20fps para ahorrar CPU
+let minimapAcc = 0;
+const MINIMAP_INTERVAL = 1 / 20;
 
 function animate() {
   requestAnimationFrame(animate);
@@ -3215,14 +3362,18 @@ function animate() {
 
     updateNetwork(dt);
     updatePieces(playerPieces, dt);
-    updatePieces(droppedPieces, dt);
     updateExplosionParticles(dt);
     updateGrenades(dt);
     updateGrenadeView(dt);
     if (grenadeCooldown > 0) { grenadeCooldown = Math.max(0, grenadeCooldown - dt); updateGrenadeBar(); }
     updateUI(dt);
     updateDebug(dt);
-    drawMinimap();
+
+    minimapAcc += dt;
+    if (minimapAcc >= MINIMAP_INTERVAL) {
+      minimapAcc = 0;
+      drawMinimap();
+    }
   }
 
   renderer.render(scene, camera);
