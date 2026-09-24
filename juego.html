@@ -2345,7 +2345,6 @@ function showDamageFlash(amount = 0.7) {
 }
 
 /* ─────────────── AGACHARSE / DESLIZARSE ─────────────── */
-/* CAMBIO: velocidad de deslizamiento aumentada y duración más larga */
 const SLIDE_DURATION = 1.1;
 const SLIDE_INITIAL_SPEED = 18;
 const CROUCH_EYE_HEIGHT = 1.05;
@@ -2998,7 +2997,6 @@ function updatePlayer(dt) {
   const camRightX = -camFwdZ, camRightZ = camFwdX;
   if (sliding) {
     slideTimer -= dt;
-    /* CAMBIO: fricción más suave (12 en lugar de 15) y mínimo más alto (4) */
     slideSpeed = Math.max(4, slideSpeed - 12 * dt);
     player.position.x += slideDir.x * slideSpeed * dt;
     player.position.z += slideDir.z * slideSpeed * dt;
@@ -3012,7 +3010,6 @@ function updatePlayer(dt) {
   } else if (moving) {
     const moveX = camFwdX * iz + camRightX * ix;
     const moveZ = camFwdZ * iz + camRightZ * ix;
-    /* CAMBIO: velocidad de carrera aumentada (11 en lugar de 8) */
     const moveSpeed = aiming ? 5 : (crouching ? 4 : 11);
     player.position.x += moveX * moveSpeed * dt;
     player.position.z += moveZ * moveSpeed * dt;
@@ -3174,7 +3171,9 @@ function addRemotePlayer(id, data) {
     aimPivot, rifle, shotgun, pistol, weaponKey, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
-    lastSeen: Date.now(), hp: data.hp ?? 100, dead: false, deathTime: 0,
+    lastSeen: Date.now(),
+    lastRemoteTs: (typeof data.ts === 'number') ? data.ts : Date.now(),
+    hp: data.hp ?? 100, dead: false, deathTime: 0,
     walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0,
     crouchBlend: 0, slideBlend: 0,
     targetCrouch: data.crouch ? 1 : 0,
@@ -3182,24 +3181,44 @@ function addRemotePlayer(id, data) {
   });
 }
 function updateRemotePlayer(id, data) {
+  if (!data) return;
+
+  const now = Date.now();
+  const remoteTs = (typeof data.ts === 'number') ? data.ts : now;
+
+  // FIX: si el ts remoto es viejo, ese jugador ya no está activo.
+  if (now - remoteTs > NET_STALE_MS) {
+    removeRemotePlayer(id);
+    if (onlineMode) {
+      remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
+    }
+    return;
+  }
+
   let r = remotePlayers.get(id);
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
+
   if (typeof data.x === 'number') r.targetX = data.x;
   if (typeof data.y === 'number') r.targetY = data.y;
   if (typeof data.z === 'number') r.targetZ = data.z;
   if (typeof data.yaw === 'number') r.targetYaw = data.yaw + Math.PI;
   if (typeof data.pitch === 'number') r.targetPitch = data.pitch;
   if (data.weapon === 'pistol' || data.weapon === 'rifle' || data.weapon === 'shotgun') r.weaponKey = data.weapon;
-  r.lastSeen = Date.now();
+
+  r.lastSeen = now;
+  r.lastRemoteTs = remoteTs;
   r.targetCrouch = data.crouch ? 1 : 0;
   r.targetSlide  = data.slide  ? 1 : 0;
+
   const newHp = (typeof data.hp === 'number') ? data.hp : r.hp;
   if (newHp < r.hp) r.hitFlash = 1;
   r.hp = newHp;
+
   const isDead = (data.dead !== undefined) ? !!data.dead : (r.hp <= 0);
   if (isDead && !r.dead) startRemoteDeath(r);
   else if (!isDead && r.dead) reviveRemotePlayer(r);
+
   if (data.name) r.name = data.name;
 }
 function removeRemotePlayer(id) {
@@ -3435,7 +3454,14 @@ function updateNetwork(dt) {
   }
   const now = Date.now();
   for (const [id, r] of remotePlayers) {
-    if (now - r.lastSeen > NET_STALE_MS) { removeRemotePlayer(id); continue; }
+    // FIX: usar lastRemoteTs (hora real enviada por el jugador) en vez de lastSeen
+    // para detectar jugadores inactivos, incluso si onValue sigue disparando por
+    // cambios de otros jugadores.
+    if (now - (r.lastRemoteTs || 0) > NET_STALE_MS) {
+      removeRemotePlayer(id);
+      remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
+      continue;
+    }
     animateRemotePlayer(r, dt);
   }
   updateOnlineUI();
@@ -3518,6 +3544,21 @@ async function initOnline() {
     }
     remove(snap.ref);
   });
+
+  // FIX: sweep periódico. Si algún nodo quedó huérfano en Firebase
+  // (el jugador cerró la pestaña y onDisconnect no se disparó),
+  // lo eliminamos desde acá para no dejarlo colgado como "fantasma".
+  setInterval(() => {
+    if (!onlineMode || !db) return;
+    const nowSweep = Date.now();
+    for (const [id, r] of remotePlayers) {
+      if (nowSweep - (r.lastRemoteTs || 0) > NET_STALE_MS * 1.5) {
+        remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
+        removeRemotePlayer(id);
+      }
+    }
+  }, 20000);
+
   sendLocalPlayerState();
   setInterval(() => { if (!playerDead) sendLocalPlayerState(); }, 5000);
 }
@@ -3590,9 +3631,8 @@ function drawMinimap() {
     ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
-  /* CAMBIO: rotación del triángulo del jugador corregida.
-     El mapa NO rota (norte siempre arriba) y el triángulo apunta
-     correctamente hacia donde mirás. */
+  /* El mapa NO rota (norte arriba) y el triángulo apunta correctamente
+     hacia donde mira el jugador. */
   ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(-cameraYaw);
   ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
   ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
@@ -3832,8 +3872,12 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
+
+// FIX: al cerrar la pestaña, eliminar el nodo de Firebase lo más rápido posible.
 addEventListener('beforeunload', () => {
-  if (onlineMode && playerNetRef) remove(playerNetRef).catch(() => {});
+  if (onlineMode && playerNetRef) {
+    try { remove(playerNetRef); } catch (e) {}
+  }
   if (windModTimer) clearTimeout(windModTimer);
   if (birdTimer) clearTimeout(birdTimer);
   if (industrialTimer) clearTimeout(industrialTimer);
