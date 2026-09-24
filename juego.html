@@ -725,8 +725,17 @@ const firebaseConfig = {
 let onlineMode = false, db = null;
 let playerId = null, playerName = null, playerNetRef = null;
 const ROOM = 'main';
-const NET_SEND_HZ = 10;
-const NET_STALE_MS = 15000;
+// NET_SEND_HZ: rate máximo de envío. sendLocalPlayerState filtra cambios reales.
+const NET_SEND_HZ = 8;
+// NET_STALE_MS: tiempo sin actualización real de un remoto antes de quitarlo.
+const NET_STALE_MS = 30000;
+// HEARTBEAT_MS: aunque no haya cambios, enviamos un latido cada X ms para que
+// los otros no nos consideren inactivos.
+const HEARTBEAT_MS = 5000;
+// DAMAGE_GRACE_MS: ventana de invulnerabilidad tras respawnear.
+const DAMAGE_GRACE_MS = 1500;
+// HIT_MAX_AGE_MS: hits más viejos que esto se descartan.
+const HIT_MAX_AGE_MS = 5000;
 
 const onlinePanel = document.getElementById('online-panel');
 const onlineStatus = document.getElementById('online-status');
@@ -1545,7 +1554,7 @@ function explodeGrenade(pos) {
       from: playerId, ts: Date.now()
     }).catch(() => {});
   }
-  if (!playerDead) {
+  if (!playerDead && (Date.now() - aliveSince) > DAMAGE_GRACE_MS) {
     const dSelf = Math.hypot(player.position.x - pos.x, (player.position.y + 1) - pos.y, player.position.z - pos.z);
     const maxSelf = GRENADE_RADIUS * 0.85;
     if (dSelf < maxSelf) {
@@ -1555,7 +1564,7 @@ function explodeGrenade(pos) {
         updateHealthBar();
         showDamageFlash(0.5 + Math.min(0.5, dmg / 100));
         if (health <= 0) killPlayer();
-        else if (onlineMode) sendLocalPlayerState();
+        else if (onlineMode) sendLocalPlayerState(true);
       }
     }
   }
@@ -2335,6 +2344,7 @@ const ammoNumEl = document.getElementById('ammo-num');
 const ammoMaxEl = document.getElementById('ammo-max');
 const weaponNameEl = document.getElementById('weapon-name');
 let playerDead = false;
+let aliveSince = Date.now();
 const deathUI = document.getElementById('death-ui');
 const respawnBtn = document.getElementById('respawn-btn');
 const damageOverlay = document.getElementById('damage-overlay');
@@ -2382,7 +2392,7 @@ function startSlide(ix, iz) {
   slideTimer = SLIDE_DURATION;
   slideSpeed = SLIDE_INITIAL_SPEED;
   crouching = false;
-  if (onlineMode) sendLocalPlayerState();
+  if (onlineMode) sendLocalPlayerState(true);
 }
 
 /* ─────────────── CONTROLES ─────────────── */
@@ -2402,7 +2412,7 @@ addEventListener('keydown', e => {
       crouching = !crouching;
       crouchKeyHeld = crouching;
       crouchBtn.classList.toggle('held', crouching);
-      if (onlineMode) sendLocalPlayerState();
+      if (onlineMode) sendLocalPlayerState(true);
     }
   }
   if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
@@ -2504,7 +2514,7 @@ crouchBtn.addEventListener('pointerdown', e => {
     crouching = !crouching;
     crouchKeyHeld = crouching;
     crouchBtn.classList.toggle('held', crouching);
-    if (onlineMode) sendLocalPlayerState();
+    if (onlineMode) sendLocalPlayerState(true);
   }
 });
 
@@ -2813,10 +2823,16 @@ function killPlayer() {
   playDeathSound();
   deathUI.classList.add('active');
   if (pointerLocked) document.exitPointerLock();
-  if (onlineMode) sendLocalPlayerState();
+  // FIX: limpiar hits pendientes para que no se apliquen al respawnear.
+  if (onlineMode) {
+    remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
+    sendLocalPlayerState(true);
+  }
 }
 function respawnPlayer() {
   playerDead = false; deathTimer = 0;
+  // FIX: periodo de gracia para no recibir daño inmediato al respawnear.
+  aliveSince = Date.now();
   for (const p of playerPieces) scene.remove(p.mesh);
   playerPieces.length = 0;
   health = 100; updateHealthBar();
@@ -2842,7 +2858,11 @@ function respawnPlayer() {
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
-  if (onlineMode) sendLocalPlayerState();
+  // FIX: limpiar hits y mandar estado con force.
+  if (onlineMode) {
+    remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
+    sendLocalPlayerState(true);
+  }
 }
 respawnBtn.addEventListener('click', respawnPlayer);
 
@@ -2863,7 +2883,7 @@ function selectWeapon(key, silent = false, force = false) {
     curWeaponGroup().rotation.set(0, 0, 0);
   }
   updateAmmoBar();
-  if (onlineMode) sendLocalPlayerState();
+  if (onlineMode) sendLocalPlayerState(true);
   if (!silent) playSwapSound();
 }
 function swapWeapon() {
@@ -2917,7 +2937,9 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
     } else normal = finalDir.clone().negate();
     const remoteId = getRemotePlayerId(hit.object);
     if (remoteId && !playerDead) {
-      if (onlineMode) {
+      // FIX: no escribir hits si el objetivo ya está muerto (evita hits fantasma).
+      const target = remotePlayers.get(remoteId);
+      if (onlineMode && target && !target.dead) {
         const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
         set(ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`), { damage: damage, from: playerId, ts: Date.now() }).catch(() => {});
       }
@@ -3005,7 +3027,7 @@ function updatePlayer(dt) {
       slideSpeed = 0;
       crouching = false;
       crouchBtn.classList.remove('held');
-      if (onlineMode) sendLocalPlayerState();
+      if (onlineMode) sendLocalPlayerState(true);
     }
   } else if (moving) {
     const moveX = camFwdX * iz + camRightX * ix;
@@ -3018,7 +3040,7 @@ function updatePlayer(dt) {
   const groundY = 0;
   if ((keys['Space'] || jumpQueued) && isGrounded) {
     velocityY = JUMP_FORCE; isGrounded = false;
-    if (sliding) { sliding = false; slideSpeed = 0; crouching = false; crouchBtn.classList.remove('held'); if (onlineMode) sendLocalPlayerState(); }
+    if (sliding) { sliding = false; slideSpeed = 0; crouching = false; crouchBtn.classList.remove('held'); if (onlineMode) sendLocalPlayerState(true); }
     else if (crouching) { crouching = false; crouchBtn.classList.remove('held'); }
   }
   jumpQueued = false;
@@ -3172,7 +3194,7 @@ function addRemotePlayer(id, data) {
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
     lastSeen: Date.now(),
-    lastRemoteTs: (typeof data.ts === 'number') ? data.ts : Date.now(),
+    lastRemoteTs: (typeof data.ts === 'number') ? data.ts : 0,
     hp: data.hp ?? 100, dead: false, deathTime: 0,
     walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0,
     crouchBlend: 0, slideBlend: 0,
@@ -3180,24 +3202,29 @@ function addRemotePlayer(id, data) {
     targetSlide: data.slide ? 1 : 0
   });
 }
+
+/* FIX CLAVE: solo refrescamos lastSeen cuando el ts remoto cambia.
+   Así, si onValue dispara por otros jugadores, no mantenemos "vivo"
+   artificialmente a alguien inactivo. Y usamos lastSeen (local) para
+   el chequeo de stale, así evitamos problemas de clock skew. */
 function updateRemotePlayer(id, data) {
   if (!data) return;
-
   const now = Date.now();
-  const remoteTs = (typeof data.ts === 'number') ? data.ts : now;
-
-  // FIX: si el ts remoto es viejo, ese jugador ya no está activo.
-  if (now - remoteTs > NET_STALE_MS) {
-    removeRemotePlayer(id);
-    if (onlineMode) {
-      remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
-    }
-    return;
-  }
+  const remoteTs = (typeof data.ts === 'number') ? data.ts : 0;
 
   let r = remotePlayers.get(id);
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
+
+  // Solo si llegó un ts NUEVO (más reciente), refrescamos lastSeen.
+  if (remoteTs > 0 && remoteTs !== r.lastRemoteTs) {
+    r.lastSeen = now;
+    r.lastRemoteTs = remoteTs;
+  } else if (r.lastRemoteTs === 0 && remoteTs > 0) {
+    // primera vez con ts válido
+    r.lastSeen = now;
+    r.lastRemoteTs = remoteTs;
+  }
 
   if (typeof data.x === 'number') r.targetX = data.x;
   if (typeof data.y === 'number') r.targetY = data.y;
@@ -3206,8 +3233,6 @@ function updateRemotePlayer(id, data) {
   if (typeof data.pitch === 'number') r.targetPitch = data.pitch;
   if (data.weapon === 'pistol' || data.weapon === 'rifle' || data.weapon === 'shotgun') r.weaponKey = data.weapon;
 
-  r.lastSeen = now;
-  r.lastRemoteTs = remoteTs;
   r.targetCrouch = data.crouch ? 1 : 0;
   r.targetSlide  = data.slide  ? 1 : 0;
 
@@ -3221,6 +3246,7 @@ function updateRemotePlayer(id, data) {
 
   if (data.name) r.name = data.name;
 }
+
 function removeRemotePlayer(id) {
   const r = remotePlayers.get(id);
   if (!r) return;
@@ -3433,15 +3459,49 @@ function handleRemoteShots(all) {
   }
 }
 
-function sendLocalPlayerState() {
+/* FIX: sendLocalPlayerState con detección de cambios.
+   Solo escribe en Firebase si hay un cambio significativo en la posición/estado
+   O si ya pasó HEARTBEAT_MS desde el último envío. Esto reduce muchísimo el
+   tráfico cuando estás quieto o cuando sólo rotás un poco la cámara. */
+let lastSentTime = 0;
+let lastSentState = null;
+function sendLocalPlayerState(force = false) {
   if (!onlineMode || !playerNetRef) return;
-  update(playerNetRef, {
+  const now = Date.now();
+  const state = {
     name: playerName,
-    x: +player.position.x.toFixed(2), y: +player.position.y.toFixed(2), z: +player.position.z.toFixed(2),
-    yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: currentWeaponKey,
-    hp: Math.round(health), dead: playerDead, ts: Date.now(),
-    crouch: crouching, slide: sliding
-  }).catch(() => {});
+    x: +player.position.x.toFixed(2),
+    y: +player.position.y.toFixed(2),
+    z: +player.position.z.toFixed(2),
+    yaw: +cameraYaw.toFixed(3),
+    pitch: +cameraPitch.toFixed(3),
+    weapon: currentWeaponKey,
+    hp: Math.round(health),
+    dead: playerDead,
+    crouch: crouching,
+    slide: sliding
+  };
+  let changed = false;
+  if (!lastSentState) {
+    changed = true;
+  } else {
+    if (Math.abs(state.x - lastSentState.x) >= 0.03) changed = true;
+    else if (Math.abs(state.y - lastSentState.y) >= 0.03) changed = true;
+    else if (Math.abs(state.z - lastSentState.z) >= 0.03) changed = true;
+    else if (Math.abs(state.yaw - lastSentState.yaw) >= 0.03) changed = true;
+    else if (Math.abs(state.pitch - lastSentState.pitch) >= 0.03) changed = true;
+    else if (state.weapon !== lastSentState.weapon) changed = true;
+    else if (state.hp !== lastSentState.hp) changed = true;
+    else if (state.dead !== lastSentState.dead) changed = true;
+    else if (state.crouch !== lastSentState.crouch) changed = true;
+    else if (state.slide !== lastSentState.slide) changed = true;
+  }
+  const heartbeatDue = (now - lastSentTime) >= HEARTBEAT_MS;
+  if (!changed && !heartbeatDue && !force) return;
+
+  lastSentTime = now;
+  lastSentState = state;
+  update(playerNetRef, { ...state, ts: now }).catch(() => {});
 }
 
 let netSendAcc = 0;
@@ -3450,16 +3510,15 @@ function updateNetwork(dt) {
   netSendAcc += dt;
   if (netSendAcc >= 1 / NET_SEND_HZ) {
     netSendAcc = 0;
-    sendLocalPlayerState();
+    sendLocalPlayerState(false);
   }
   const now = Date.now();
   for (const [id, r] of remotePlayers) {
-    // FIX: usar lastRemoteTs (hora real enviada por el jugador) en vez de lastSeen
-    // para detectar jugadores inactivos, incluso si onValue sigue disparando por
-    // cambios de otros jugadores.
-    if (now - (r.lastRemoteTs || 0) > NET_STALE_MS) {
+    // FIX: ahora usamos lastSeen (local). Sólo se actualiza cuando llega
+    // un ts nuevo de ese jugador, así que no se queda "pegado" por otros
+    // onValue disparados por el resto.
+    if (now - r.lastSeen > NET_STALE_MS) {
       removeRemotePlayer(id);
-      remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
       continue;
     }
     animateRemotePlayer(r, dt);
@@ -3533,34 +3592,57 @@ async function initOnline() {
   const myHitsRef = ref(db, `rooms/${ROOM}/players/${playerId}/hits`);
   onChildAdded(myHitsRef, snap => {
     const hit = snap.val();
-    if (!hit) return;
-    if (!playerDead) {
-      const dmg = hit.damage || 20;
-      health = Math.max(0, health - dmg);
-      updateHealthBar();
-      showDamageFlash(0.35 + Math.min(0.5, dmg / 40));
-      if (health <= 0) killPlayer();
-      sendLocalPlayerState();
-    }
-    remove(snap.ref);
+    if (!hit) { return; }
+    // FIX: descartar el nodo inmediatamente para que no se re-aplique.
+    remove(snap.ref).catch(() => {});
+    // FIX: nada de daño si estamos muertos.
+    if (playerDead) return;
+    // FIX: grace period tras respawnear.
+    if ((Date.now() - aliveSince) < DAMAGE_GRACE_MS) return;
+    // FIX: descartar hits viejos (evita daño acumulado tras reconexiones).
+    if (hit.ts && (Date.now() - hit.ts) > HIT_MAX_AGE_MS) return;
+    const dmg = hit.damage || 20;
+    health = Math.max(0, health - dmg);
+    updateHealthBar();
+    showDamageFlash(0.35 + Math.min(0.5, dmg / 40));
+    if (health <= 0) killPlayer();
+    else sendLocalPlayerState(true);
   });
 
-  // FIX: sweep periódico. Si algún nodo quedó huérfano en Firebase
-  // (el jugador cerró la pestaña y onDisconnect no se disparó),
-  // lo eliminamos desde acá para no dejarlo colgado como "fantasma".
+  // FIX: sweep MUY conservador. Solo elimina LOCALMENTE (no toca Firebase).
+  // Si un jugador se fue sin que onDisconnect se disparara, cada cliente lo
+  // eliminará de su lista cuando su lastSeen local venza. El nodo Firebase
+  // se limpia solo con onDisconnect o cuando el dueño se reconecte.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const nowSweep = Date.now();
     for (const [id, r] of remotePlayers) {
-      if (nowSweep - (r.lastRemoteTs || 0) > NET_STALE_MS * 1.5) {
-        remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
+      if (nowSweep - r.lastSeen > NET_STALE_MS * 2) {
         removeRemotePlayer(id);
       }
     }
-  }, 20000);
+  }, 15000);
 
-  sendLocalPlayerState();
-  setInterval(() => { if (!playerDead) sendLocalPlayerState(); }, 5000);
+  // Limpieza opcional de nodos huérfanos en Firebase (una vez cada 60 s):
+  // si un nodo tiene ts muy viejo (> 90 s), lo borramos.
+  setInterval(() => {
+    if (!onlineMode || !db) return;
+    const playersRef2 = ref(db, `rooms/${ROOM}/players`);
+    onValue(playersRef2, snap => {
+      const all = snap.val() || {};
+      const now2 = Date.now();
+      for (const [id, data] of Object.entries(all)) {
+        if (id === playerId) continue;
+        if (data && typeof data.ts === 'number' && (now2 - data.ts) > 90000) {
+          remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
+        }
+      }
+    }, { onlyOnce: true });
+  }, 60000);
+
+  sendLocalPlayerState(true);
+  // Heartbeat de respaldo (por si algo se pierde). sendLocalPlayerState decide si enviar.
+  setInterval(() => { if (!playerDead) sendLocalPlayerState(false); }, HEARTBEAT_MS);
 }
 
 /* ─────────────── MINIMAPA ─────────────── */
@@ -3631,8 +3713,6 @@ function drawMinimap() {
     ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
-  /* El mapa NO rota (norte arriba) y el triángulo apunta correctamente
-     hacia donde mira el jugador. */
   ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(-cameraYaw);
   ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
   ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
@@ -3766,6 +3846,8 @@ function selectGameMode(mode) {
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
+  aliveSince = Date.now();
+
   currentWeaponKey = playerLoadout.primary;
   if (!playerDead) {
     weaponRifle.visible   = currentWeaponKey === 'rifle';
@@ -3873,7 +3955,6 @@ addEventListener('resize', () => {
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
 
-// FIX: al cerrar la pestaña, eliminar el nodo de Firebase lo más rápido posible.
 addEventListener('beforeunload', () => {
   if (onlineMode && playerNetRef) {
     try { remove(playerNetRef); } catch (e) {}
