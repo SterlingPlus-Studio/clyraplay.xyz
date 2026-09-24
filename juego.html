@@ -328,13 +328,12 @@ function logFbxError(msg) {
 }
 
 /* ═══════════════════════════════════════════
-   AUDIO — versión robusta con reanudación global
+   AUDIO
    ═══════════════════════════════════════════ */
 let audioCtx = null, masterGain = null, audioEnabled = true;
 
 function initAudio() {
   if (audioCtx) {
-    // Siempre intentar reanudar si está suspendido
     if (audioCtx.state === 'suspended') {
       audioCtx.resume().catch(() => {});
     }
@@ -347,17 +346,12 @@ function initAudio() {
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.6;
     masterGain.connect(audioCtx.destination);
-    // Reanudar inmediatamente por si el navegador lo deja suspendido
     if (audioCtx.state === 'suspended') {
       audioCtx.resume().catch(() => {});
     }
   } catch (e) { audioEnabled = false; console.warn('Audio init error:', e); }
 }
 
-/* ⚠️ CRÍTICO: listener global que reanuda el AudioContext con CUALQUIER
-   gesto del usuario. Se auto-remueve cuando el contexto está "running".
-   Sin esto, algunos navegadores (Safari, Firefox estricto) mantienen el
-   contexto suspendido hasta que haya un gesto válido, y no se oye nada. */
 function resumeAudioGlobal() {
   initAudio();
   if (audioCtx && audioCtx.state === 'running') {
@@ -374,7 +368,6 @@ document.addEventListener('touchstart', resumeAudioGlobal, true);
 document.addEventListener('keydown', resumeAudioGlobal, true);
 document.addEventListener('click', resumeAudioGlobal, true);
 
-/* Reactivar el audio si la pestaña vuelve a estar activa */
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) initAudio();
 });
@@ -501,6 +494,218 @@ function playExplosionSound(distance = 0) {
   osc.frequency.setValueAtTime(95, t); osc.frequency.exponentialRampToValueAtTime(26, t + 0.55);
   const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.75 * vol, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
   osc.connect(g2).connect(masterGain); osc.start(t); osc.stop(t + 0.7);
+}
+
+/* ═══════════════════════════════════════════
+   AUDIO AMBIENTAL
+   ═══════════════════════════════════════════ */
+let ambientGain = null;
+let ambientStarted = false;
+let windGainNode = null;
+let windModTimer = null;
+let birdTimer = null;
+let industrialTimer = null;
+let droneOsc = null;
+let droneOsc2 = null;
+
+function startAmbient() {
+  if (ambientStarted) return;
+  if (!audioCtx || !masterGain) return;
+  if (audioCtx.state !== 'running') return;
+  ambientStarted = true;
+
+  ambientGain = audioCtx.createGain();
+  ambientGain.gain.value = 0;
+  ambientGain.connect(masterGain);
+  const now = audioCtx.currentTime;
+  ambientGain.gain.setValueAtTime(0, now);
+  ambientGain.gain.linearRampToValueAtTime(0.35, now + 3);
+
+  startWind();
+  startDrone();
+  scheduleBird();
+  scheduleIndustrial();
+}
+
+function startWind() {
+  const dur = 5;
+  const size = Math.floor(audioCtx.sampleRate * dur);
+  const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < size; i++) {
+    const white = Math.random() * 2 - 1;
+    last = (last + 0.02 * white) / 1.02;
+    d[i] = last * 3.2;
+  }
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 520;
+  lp.Q.value = 0.6;
+
+  const hp = audioCtx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 80;
+
+  const g = audioCtx.createGain();
+  g.gain.value = 0.07;
+
+  src.connect(hp).connect(lp).connect(g).connect(ambientGain);
+  src.start();
+  windGainNode = g;
+
+  (function modulate() {
+    if (!windGainNode || !audioCtx || audioCtx.state !== 'running') return;
+    const t = audioCtx.currentTime;
+    const target = 0.035 + Math.random() * 0.075;
+    const rampTime = 2 + Math.random() * 3;
+    try {
+      windGainNode.gain.cancelScheduledValues(t);
+      windGainNode.gain.setValueAtTime(windGainNode.gain.value, t);
+      windGainNode.gain.linearRampToValueAtTime(target, t + rampTime);
+    } catch (e) {}
+    windModTimer = setTimeout(modulate, (rampTime + 0.5 + Math.random() * 2) * 1000);
+  })();
+}
+
+function startDrone() {
+  try {
+    const o1 = audioCtx.createOscillator();
+    o1.type = 'sine';
+    o1.frequency.value = 55;
+    const o2 = audioCtx.createOscillator();
+    o2.type = 'sine';
+    o2.frequency.value = 82.5;
+
+    const g = audioCtx.createGain();
+    g.gain.value = 0.018;
+
+    const lfo = audioCtx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 0.07;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 0.010;
+    lfo.connect(lfoGain).connect(g.gain);
+    lfo.start();
+
+    const lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 220;
+
+    o1.connect(lp);
+    o2.connect(lp);
+    lp.connect(g).connect(ambientGain);
+    o1.start();
+    o2.start();
+    droneOsc = o1;
+    droneOsc2 = o2;
+  } catch (e) {}
+}
+
+function playBirdChirp() {
+  if (!audioCtx || !ambientGain || audioCtx.state !== 'running') return;
+  const t = audioCtx.currentTime;
+  const notes = 2 + Math.floor(Math.random() * 4);
+  const baseFreq = 1800 + Math.random() * 1500;
+  let tt = t;
+  for (let i = 0; i < notes; i++) {
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    const f1 = baseFreq * (0.92 + Math.random() * 0.3);
+    const f2 = f1 * (1.10 + Math.random() * 0.25);
+    osc.frequency.setValueAtTime(f1, tt);
+    osc.frequency.exponentialRampToValueAtTime(f2, tt + 0.06);
+
+    const vib = audioCtx.createOscillator();
+    vib.type = 'sine';
+    vib.frequency.value = 35 + Math.random() * 20;
+    const vibGain = audioCtx.createGain();
+    vibGain.gain.value = 25 + Math.random() * 25;
+    vib.connect(vibGain).connect(osc.frequency);
+    vib.start(tt);
+    vib.stop(tt + 0.1);
+
+    const g = audioCtx.createGain();
+    const peak = 0.035 + Math.random() * 0.045;
+    g.gain.setValueAtTime(0.0001, tt);
+    g.gain.exponentialRampToValueAtTime(peak, tt + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.09);
+
+    osc.connect(g).connect(ambientGain);
+    osc.start(tt);
+    osc.stop(tt + 0.11);
+
+    tt += 0.075 + Math.random() * 0.09;
+  }
+}
+
+function scheduleBird() {
+  const delay = 2500 + Math.random() * 9000;
+  birdTimer = setTimeout(() => {
+    if (audioCtx && audioCtx.state === 'running' && ambientStarted) {
+      if (Math.random() < 0.35) {
+        const n = 2 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < n; i++) {
+          setTimeout(playBirdChirp, i * (200 + Math.random() * 380));
+        }
+      } else {
+        playBirdChirp();
+      }
+    }
+    scheduleBird();
+  }, delay);
+}
+
+function playDistantClang() {
+  if (!audioCtx || !ambientGain || audioCtx.state !== 'running') return;
+  const t = audioCtx.currentTime;
+
+  const o1 = audioCtx.createOscillator();
+  o1.type = 'triangle';
+  const f1 = 160 + Math.random() * 120;
+  o1.frequency.setValueAtTime(f1, t);
+  o1.frequency.exponentialRampToValueAtTime(55, t + 0.5);
+  const g1 = audioCtx.createGain();
+  g1.gain.setValueAtTime(0.0001, t);
+  g1.gain.exponentialRampToValueAtTime(0.045 + Math.random() * 0.03, t + 0.01);
+  g1.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+  o1.connect(g1).connect(ambientGain);
+  o1.start(t); o1.stop(t + 0.6);
+
+  const o2 = audioCtx.createOscillator();
+  o2.type = 'sine';
+  o2.frequency.value = 420 + Math.random() * 380;
+  const g2 = audioCtx.createGain();
+  g2.gain.setValueAtTime(0.0001, t + 0.005);
+  g2.gain.exponentialRampToValueAtTime(0.018 + Math.random() * 0.015, t + 0.02);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t + 1.1 + Math.random() * 0.6);
+  o2.connect(g2).connect(ambientGain);
+  o2.start(t + 0.005); o2.stop(t + 1.8);
+
+  if (Math.random() < 0.6) {
+    const o3 = audioCtx.createOscillator();
+    o3.type = 'sine';
+    o3.frequency.value = 640 + Math.random() * 500;
+    const g3 = audioCtx.createGain();
+    const dt = 0.15 + Math.random() * 0.15;
+    g3.gain.setValueAtTime(0.0001, t + dt);
+    g3.gain.exponentialRampToValueAtTime(0.010, t + dt + 0.03);
+    g3.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.7);
+    o3.connect(g3).connect(ambientGain);
+    o3.start(t + dt); o3.stop(t + dt + 1);
+  }
+}
+
+function scheduleIndustrial() {
+  const delay = 9000 + Math.random() * 20000;
+  industrialTimer = setTimeout(() => {
+    if (audioCtx && audioCtx.state === 'running' && ambientStarted) playDistantClang();
+    scheduleIndustrial();
+  }, delay);
 }
 
 /* ═══════════════════════════════════════════
@@ -1008,6 +1213,85 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
 })();
 
+/* ═══════════════════════════════════════════
+   ✨ NUEVA FUNCIÓN: crea el arma del jugador remoto.
+   Si el FBX está cargado → clona el FBX.
+   Si no → usa el modelo procedural low-poly.
+   ═══════════════════════════════════════════ */
+function createRemoteWeaponInstance(weaponKey) {
+  let fbxSource = null;
+  let flashCfg, gripCfg, extraMarker;
+
+  if (weaponKey === 'rifle') {
+    fbxSource = rifleModel.fbxModel;
+    flashCfg = { radius: 0.10, pos: [0, 0.025, -0.35], color: 0xffee88 };
+    gripCfg  = [0, -0.11, 0.10];
+    extraMarker = { key: 'handguardMarker', pos: [0, 0.02, -0.22] };
+  } else if (weaponKey === 'shotgun') {
+    fbxSource = shotgunModel.fbxModel;
+    flashCfg = { radius: 0.12, pos: [0, 0.03, -0.42], color: 0xffcc55 };
+    gripCfg  = [0, -0.11, 0.12];
+    extraMarker = { key: 'pumpMarker', pos: [0, 0.01, -0.22] };
+  } else {
+    fbxSource = pistolModel.fbxModel;
+    flashCfg = { radius: 0.07, pos: [0, 0.04, -0.20], color: 0xffdd66 };
+    gripCfg  = [0, -0.09, 0.06];
+    extraMarker = null;
+  }
+
+  // ─── Caso A: usar FBX clonado ───
+  if (fbxSource) {
+    const cloned = fbxSource.clone(true);
+    // Forzar visibilidad / opacidad de todos los meshes clonados
+    cloned.traverse(n => {
+      if (n.isMesh || n.isSkinnedMesh) {
+        n.visible = true;
+        n.frustumCulled = false;
+        n.castShadow = true;
+        n.receiveShadow = true;
+        if (n.material) {
+          const mats = Array.isArray(n.material) ? n.material : [n.material];
+          for (const m of mats) forceMaterialOpaque(m);
+        }
+      }
+    });
+
+    const g = new THREE.Group();
+    g.add(cloned);
+
+    // Flash (boca del cañón) — mismas coordenadas que en FPS
+    const flash = new THREE.Mesh(
+      new THREE.SphereGeometry(flashCfg.radius, 6, 4),
+      new THREE.MeshBasicMaterial({ color: flashCfg.color, transparent: true, opacity: 0.95 })
+    );
+    flash.position.set(...flashCfg.pos);
+    flash.visible = false;
+    g.add(flash);
+
+    // Grip marker (donde la mano derecha agarra)
+    const gripMarker = new THREE.Object3D();
+    gripMarker.position.set(...gripCfg);
+    g.add(gripMarker);
+
+    const result = { group: g, flash, gripMarker };
+
+    // Marker adicional (handguard para rifle / pump para escopeta)
+    if (extraMarker) {
+      const m = new THREE.Object3D();
+      m.position.set(...extraMarker.pos);
+      g.add(m);
+      result[extraMarker.key] = m;
+    }
+
+    return result;
+  }
+
+  // ─── Caso B: fallback procedural (FBX no disponible) ───
+  if (weaponKey === 'rifle')   return createLowPolyRifleRemote();
+  if (weaponKey === 'shotgun') return createLowPolyShotgunRemote();
+  return createLowPolyPistolRemote();
+}
+
 /* ─────────────── MANOS FPS ─────────────── */
 function makeFPSHand(side = 'right') {
   const g = new THREE.Group();
@@ -1057,9 +1341,6 @@ _fpPHandR.position.set(0.008, -0.055, 0.020);
 _fpPHandR.rotation.set(0.55, 0, 0.10);
 weaponPistol.add(_fpPHandR);
 
-/* ⚠️ MANO IZQUIERDA DE LA ESCOPETA: bajada y más atrás
-   - Antes: (0.015, -0.055, -0.19)
-   - Ahora: (0.015, -0.11, -0.08) → más abajo y más cerca del cuerpo */
 const _fpSHandR = makeFPSHand('right');
 _fpSHandR.scale.setScalar(0.55);
 _fpSHandR.position.set(0.01, -0.08, 0.08);
@@ -1068,8 +1349,8 @@ weaponShotgun.add(_fpSHandR);
 
 const _fpSHandL = makeFPSHand('left');
 _fpSHandL.scale.set(0.58, 0.58, 0.74);
-_fpSHandL.position.set(0.015, -0.11, -0.08);   // ← más abajo y más atrás
-_fpSHandL.rotation.set(1.05, 0.02, -0.48);      // ← ajuste de rotación para ángulo natural
+_fpSHandL.position.set(0.015, -0.11, -0.08);
+_fpSHandL.rotation.set(1.05, 0.02, -0.48);
 weaponShotgun.add(_fpSHandL);
 
 const WEAPON_POS = {
@@ -2315,6 +2596,7 @@ function updateDebug(dt) {
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no ctx'}
+<span class="val">Ambiente:</span>  ${ambientStarted ? '✅ activo' : '⏸ inactivo'}
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
@@ -2843,20 +3125,26 @@ function addRemotePlayer(id, data) {
   const aimPivot = new THREE.Group();
   aimPivot.position.copy(REMOTE_AIM_POS);
   char.body.add(aimPivot);
-  const rifle = createLowPolyRifleRemote();
+
+  /* ✨ CAMBIO CLAVE: usamos createRemoteWeaponInstance() que devuelve
+     el FBX clonado si está cargado, o el modelo procedural si no. */
+  const rifle = createRemoteWeaponInstance('rifle');
   rifle.group.position.set(0, -0.10, 0.40);
   rifle.group.rotation.y = Math.PI;
   aimPivot.add(rifle.group);
-  const shotgun = createLowPolyShotgunRemote();
+
+  const shotgun = createRemoteWeaponInstance('shotgun');
   shotgun.group.position.set(0, -0.10, 0.42);
   shotgun.group.rotation.y = Math.PI;
   shotgun.group.visible = false;
   aimPivot.add(shotgun.group);
-  const pistol = createLowPolyPistolRemote();
+
+  const pistol = createRemoteWeaponInstance('pistol');
   pistol.group.position.set(0, -0.09, 0.30);
   pistol.group.rotation.y = Math.PI;
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
+
   const weaponKey = (data.weapon === 'pistol' || data.weapon === 'shotgun') ? data.weapon : 'rifle';
   rifle.group.visible   = weaponKey === 'rifle';
   shotgun.group.visible = weaponKey === 'shotgun';
@@ -3427,6 +3715,15 @@ function selectGameMode(mode) {
   }
   updateAmmoBar();
 
+  (function tryAmbient(attempt = 0) {
+    initAudio();
+    if (audioCtx && audioCtx.state === 'running') {
+      startAmbient();
+    } else if (attempt < 8) {
+      setTimeout(() => tryAmbient(attempt + 1), 300);
+    }
+  })();
+
   if (isTouch) {
     joystick.classList.add('active'); joystickZone.classList.add('active');
     jumpBtn.classList.add('active'); cameraZone.classList.add('active');
@@ -3514,7 +3811,18 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
-addEventListener('beforeunload', () => { if (onlineMode && playerNetRef) remove(playerNetRef).catch(() => {}); });
+addEventListener('beforeunload', () => {
+  if (onlineMode && playerNetRef) remove(playerNetRef).catch(() => {});
+  if (windModTimer) clearTimeout(windModTimer);
+  if (birdTimer) clearTimeout(birdTimer);
+  if (industrialTimer) clearTimeout(industrialTimer);
+  try {
+    if (windGainNode) windGainNode.disconnect();
+    if (droneOsc) droneOsc.stop();
+    if (droneOsc2) droneOsc2.stop();
+    if (ambientGain) ambientGain.disconnect();
+  } catch (e) {}
+});
 </script>
 </body>
 </html>
