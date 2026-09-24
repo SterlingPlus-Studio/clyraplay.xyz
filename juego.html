@@ -1214,7 +1214,7 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
 })();
 
 /* ═══════════════════════════════════════════
-   ✨ NUEVA FUNCIÓN: crea el arma del jugador remoto.
+   ✨ Crea el arma del jugador remoto.
    Si el FBX está cargado → clona el FBX.
    Si no → usa el modelo procedural low-poly.
    ═══════════════════════════════════════════ */
@@ -1239,10 +1239,8 @@ function createRemoteWeaponInstance(weaponKey) {
     extraMarker = null;
   }
 
-  // ─── Caso A: usar FBX clonado ───
   if (fbxSource) {
     const cloned = fbxSource.clone(true);
-    // Forzar visibilidad / opacidad de todos los meshes clonados
     cloned.traverse(n => {
       if (n.isMesh || n.isSkinnedMesh) {
         n.visible = true;
@@ -1259,7 +1257,6 @@ function createRemoteWeaponInstance(weaponKey) {
     const g = new THREE.Group();
     g.add(cloned);
 
-    // Flash (boca del cañón) — mismas coordenadas que en FPS
     const flash = new THREE.Mesh(
       new THREE.SphereGeometry(flashCfg.radius, 6, 4),
       new THREE.MeshBasicMaterial({ color: flashCfg.color, transparent: true, opacity: 0.95 })
@@ -1268,14 +1265,12 @@ function createRemoteWeaponInstance(weaponKey) {
     flash.visible = false;
     g.add(flash);
 
-    // Grip marker (donde la mano derecha agarra)
     const gripMarker = new THREE.Object3D();
     gripMarker.position.set(...gripCfg);
     g.add(gripMarker);
 
     const result = { group: g, flash, gripMarker };
 
-    // Marker adicional (handguard para rifle / pump para escopeta)
     if (extraMarker) {
       const m = new THREE.Object3D();
       m.position.set(...extraMarker.pos);
@@ -1286,7 +1281,6 @@ function createRemoteWeaponInstance(weaponKey) {
     return result;
   }
 
-  // ─── Caso B: fallback procedural (FBX no disponible) ───
   if (weaponKey === 'rifle')   return createLowPolyRifleRemote();
   if (weaponKey === 'shotgun') return createLowPolyShotgunRemote();
   return createLowPolyPistolRemote();
@@ -3126,8 +3120,6 @@ function addRemotePlayer(id, data) {
   aimPivot.position.copy(REMOTE_AIM_POS);
   char.body.add(aimPivot);
 
-  /* ✨ CAMBIO CLAVE: usamos createRemoteWeaponInstance() que devuelve
-     el FBX clonado si está cargado, o el modelo procedural si no. */
   const rifle = createRemoteWeaponInstance('rifle');
   rifle.group.position.set(0, -0.10, 0.40);
   rifle.group.rotation.y = Math.PI;
@@ -3308,9 +3300,19 @@ function animateRemotePlayer(r, dt) {
   }
   r.body.rotation.x = 0;
   r.aimPivot.visible = true;
-  if (r.rifle)   r.rifle.group.visible   = r.weaponKey === 'rifle';
-  if (r.shotgun) r.shotgun.group.visible = r.weaponKey === 'shotgun';
-  if (r.pistol)  r.pistol.group.visible  = r.weaponKey === 'pistol';
+
+  /* ✨ NUEVO: ocultar las armas del jugador remoto si está muy cerca
+     de la cámara local (evita que su arma se meta dentro de tu vista
+     cuando los jugadores se solapan o se pegan demasiado). */
+  const dxLocal = r.root.position.x - player.position.x;
+  const dzLocal = r.root.position.z - player.position.z;
+  const horizontalDistLocal = Math.hypot(dxLocal, dzLocal);
+  const remoteWeaponsVisible = horizontalDistLocal > 1.2;
+
+  if (r.rifle)   r.rifle.group.visible   = remoteWeaponsVisible && r.weaponKey === 'rifle';
+  if (r.shotgun) r.shotgun.group.visible = remoteWeaponsVisible && r.weaponKey === 'shotgun';
+  if (r.pistol)  r.pistol.group.visible  = remoteWeaponsVisible && r.weaponKey === 'pistol';
+
   const walking = r.moveSpeed > 0.5;
   if (walking) {
     r.walkPhase += dt * (4.5 + Math.min(r.moveSpeed, 12) * 0.9);
@@ -3766,7 +3768,19 @@ function updateMenuCamera(dt) {
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(0, 0, 30);
+
+/* ✨ NUEVO: spawn inicial aleatorio por jugador.
+   Antes TODOS los jugadores empezaban en (0,0,30), lo que hacía
+   que se solaparan al conectarse y vieran la M4A1 del otro encima. */
+(function setInitialSpawn() {
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 6 + Math.random() * 8;
+  player.position.set(
+    Math.cos(angle) * dist,
+    0,
+    32 + Math.sin(angle) * dist * 0.5
+  );
+})();
 
 function animate() {
   requestAnimationFrame(animate);
