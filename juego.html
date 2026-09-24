@@ -1212,15 +1212,9 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
 
-  // ⚠️ FIX CLAVE: tras cargar cada FBX, forzar la visibilidad correcta
-  // según el arma activa en ese instante. Esto evita que si el FBX
-  // llega tarde y el usuario ya cambió de arma, el M4A1 quede visible.
   forceWeaponVisibility();
 })();
 
-/* ⚠️ FIX: función centralizada que garantiza que SOLO el arma activa
-   esté visible, tanto a nivel de grupo como de FBX raíz. Se llama
-   desde selectWeapon(), setLocalWeaponsVisible() y cada frame en animate(). */
 function forceWeaponVisibility() {
   if (playerDead || !gameMode) {
     weaponRifle.visible   = false;
@@ -1237,17 +1231,11 @@ function forceWeaponVisibility() {
   weaponRifle.visible   = isRifle;
   weaponShotgun.visible = isShotgun;
   weaponPistol.visible  = isPistol;
-  // Sincronizar el FBX raíz con el grupo contenedor (por si loadWeaponFBX
-  // re-activó visible=true en su traverse final)
   if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = isRifle;
   if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = isShotgun;
   if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = isPistol;
 }
 
-/* ═══════════════════════════════════════════
-   ✨ createRemoteWeaponInstance: FBX clonado si está cargado,
-   si no, fallback al modelo procedural low-poly.
-   ═══════════════════════════════════════════ */
 function createRemoteWeaponInstance(weaponKey) {
   let fbxSource = null;
   let flashCfg, gripCfg, extraMarker;
@@ -1269,7 +1257,6 @@ function createRemoteWeaponInstance(weaponKey) {
     extraMarker = null;
   }
 
-  // ─── Caso A: usar FBX clonado ───
   if (fbxSource) {
     const cloned = fbxSource.clone(true);
     cloned.traverse(n => {
@@ -1312,7 +1299,6 @@ function createRemoteWeaponInstance(weaponKey) {
     return result;
   }
 
-  // ─── Caso B: fallback procedural ───
   if (weaponKey === 'rifle')   return createLowPolyRifleRemote();
   if (weaponKey === 'shotgun') return createLowPolyShotgunRemote();
   return createLowPolyPistolRemote();
@@ -1419,7 +1405,6 @@ function setLocalWeaponsVisible(v) {
   weaponRifle.visible   = v && currentWeaponKey === 'rifle';
   weaponShotgun.visible = v && currentWeaponKey === 'shotgun';
   weaponPistol.visible  = v && currentWeaponKey === 'pistol';
-  // FIX: sincronizar el FBX raíz con su grupo contenedor
   if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = weaponRifle.visible;
   if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = weaponShotgun.visible;
   if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = weaponPistol.visible;
@@ -2360,8 +2345,9 @@ function showDamageFlash(amount = 0.7) {
 }
 
 /* ─────────────── AGACHARSE / DESLIZARSE ─────────────── */
-const SLIDE_DURATION = 0.85;
-const SLIDE_INITIAL_SPEED = 13;
+/* CAMBIO: velocidad de deslizamiento aumentada y duración más larga */
+const SLIDE_DURATION = 1.1;
+const SLIDE_INITIAL_SPEED = 18;
 const CROUCH_EYE_HEIGHT = 1.05;
 const STAND_EYE_HEIGHT = 1.75;
 let crouching = false;
@@ -2873,7 +2859,6 @@ function selectWeapon(key, silent = false, force = false) {
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
   if (!playerDead) {
-    // FIX: usar la función centralizada que sincroniza grupo + FBX raíz
     forceWeaponVisibility();
     curWeaponGroup().position.copy(WEAPON_POS[key]);
     curWeaponGroup().rotation.set(0, 0, 0);
@@ -3013,7 +2998,8 @@ function updatePlayer(dt) {
   const camRightX = -camFwdZ, camRightZ = camFwdX;
   if (sliding) {
     slideTimer -= dt;
-    slideSpeed = Math.max(3, slideSpeed - 15 * dt);
+    /* CAMBIO: fricción más suave (12 en lugar de 15) y mínimo más alto (4) */
+    slideSpeed = Math.max(4, slideSpeed - 12 * dt);
     player.position.x += slideDir.x * slideSpeed * dt;
     player.position.z += slideDir.z * slideSpeed * dt;
     if (slideTimer <= 0 || !isGrounded) {
@@ -3026,7 +3012,8 @@ function updatePlayer(dt) {
   } else if (moving) {
     const moveX = camFwdX * iz + camRightX * ix;
     const moveZ = camFwdZ * iz + camRightZ * ix;
-    const moveSpeed = aiming ? 4 : (crouching ? 3.5 : 8);
+    /* CAMBIO: velocidad de carrera aumentada (11 en lugar de 8) */
+    const moveSpeed = aiming ? 5 : (crouching ? 4 : 11);
     player.position.x += moveX * moveSpeed * dt;
     player.position.z += moveZ * moveSpeed * dt;
   }
@@ -3603,7 +3590,10 @@ function drawMinimap() {
     ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
-  ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(cameraYaw + Math.PI);
+  /* CAMBIO: rotación del triángulo del jugador corregida.
+     El mapa NO rota (norte siempre arriba) y el triángulo apunta
+     correctamente hacia donde mirás. */
+  ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(-cameraYaw);
   ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
   ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
   ctx.restore();
@@ -3813,9 +3803,6 @@ function animate() {
     } else {
       updatePlayer(dt);
       updateCamera(dt);
-      // ⚠️ FIX CRÍTICO: forzar visibilidad del arma activa CADA FRAME.
-      // Soluciona el bug donde el M4A1 queda pegado aunque cambies
-      // a escopeta/pistola, especialmente si el FBX cargó tarde.
       forceWeaponVisibility();
     }
     if (damageFlash > 0) {
