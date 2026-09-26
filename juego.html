@@ -638,7 +638,7 @@
   <button id="respawn-btn">REAPARECER</button>
 </div>
 <div id="damage-overlay"></div>
-<div id="minimap-wrap"><canvas id="minimap" width="150" height="150"></canvas></div>
+<div id="minimap-wrap"><canvas id="minimap" width="300" height="300"></canvas></div>
 
 <div id="health-wrap">
   <div id="health-label">
@@ -1091,7 +1091,7 @@ sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 200 });
 scene.add(sun);
 
-// Luces del MENÚ (encendidas solo en el lobby, MUY BRILLANTES)
+// Luces del MENÚ (encendidas solo en el lobby)
 const menuKeyLight = new THREE.DirectionalLight(0xffffff, 3.2);
 menuKeyLight.position.set(2.5, 4.5, 3.5);
 scene.add(menuKeyLight);
@@ -1103,7 +1103,7 @@ menuRimLight.position.set(-1, 3, -4.5);
 scene.add(menuRimLight);
 const menuAmbient = new THREE.AmbientLight(0xffffff, 0.55);
 scene.add(menuAmbient);
-menuAmbient.intensity = 0; // se activa en el menú
+menuAmbient.intensity = 0;
 
 /* CACHE MATERIALES */
 const _matCache = new Map();
@@ -1227,59 +1227,6 @@ function buildCharacter(opts = {}) {
   };
 }
 
-/* ARMAS BAJO POLI */
-function createLowPolyRifleRemote() {
-  const g = new THREE.Group();
-  const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
-  const matDark = new THREE.MeshLambertMaterial({ color: 0x0a0a0a, flatShading: true });
-  const matMetal = new THREE.MeshLambertMaterial({ color: 0x3a3a35, flatShading: true });
-  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.11, 0.36), matBody); g.add(receiver);
-  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.028, 0.028, 0.30), matDark); barrel.position.set(0, 0.028, -0.32); g.add(barrel);
-  const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.07, 0.22), matBody); handguard.position.set(0, 0.010, -0.20); g.add(handguard);
-  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.20), matBody); stock.position.set(0, -0.010, 0.27); g.add(stock);
-  const mag = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.15, 0.07), matDark); mag.position.set(0, -0.135, 0.03); g.add(mag);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.13, 0.055), matDark); grip.position.set(0, -0.115, 0.15); grip.rotation.x = 0.35; g.add(grip);
-  const fs = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.05, 0.02), matMetal); fs.position.set(0, 0.085, -0.44); g.add(fs);
-  const rs = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.045, 0.02), matMetal); rs.position.set(0, 0.08, 0.09); g.add(rs);
-  const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.115, 0.15); g.add(gripMarker);
-  const handguardMarker = new THREE.Object3D(); handguardMarker.position.set(0, 0.01, -0.20); g.add(handguardMarker);
-  const flash = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 }));
-  flash.position.set(0, 0.028, -0.49); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
-  return { group: g, flash, gripMarker, handguardMarker };
-}
-function createLowPolyShotgunRemote() {
-  const g = new THREE.Group();
-  const matBody = new THREE.MeshLambertMaterial({ color: 0x3a2a20, flatShading: true });
-  const matDark = new THREE.MeshLambertMaterial({ color: 0x0a0a0a, flatShading: true });
-  const matMetal = new THREE.MeshLambertMaterial({ color: 0x4a4a45, flatShading: true });
-  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.13, 0.34), matBody); g.add(receiver);
-  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.045, 0.46), matMetal); barrel.position.set(0, 0.04, -0.38); g.add(barrel);
-  const magTube = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 0.38), matMetal); magTube.position.set(0, -0.005, -0.34); g.add(magTube);
-  const pump = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.075, 0.16), matBody); pump.position.set(0, 0.01, -0.22); g.add(pump);
-  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 0.24), matBody); stock.position.set(0, -0.02, 0.28); g.add(stock);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, 0.06), matDark); grip.position.set(0, -0.13, 0.16); grip.rotation.x = 0.35; g.add(grip);
-  const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.13, 0.16); g.add(gripMarker);
-  const pumpMarker = new THREE.Object3D(); pumpMarker.position.set(0, 0.01, -0.22); g.add(pumpMarker);
-  const flash = new THREE.Mesh(new THREE.SphereGeometry(0.10, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffcc55, transparent: true, opacity: 0.95 }));
-  flash.position.set(0, 0.04, -0.62); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
-  return { group: g, flash, gripMarker, pumpMarker };
-}
-function createLowPolyPistolRemote() {
-  const g = new THREE.Group();
-  const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
-  const matDark = new THREE.MeshLambertMaterial({ color: 0x0a0a0a, flatShading: true });
-  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.065, 0.26), matBody); slide.position.set(0, 0.025, -0.02); g.add(slide);
-  const barrel = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.026, 0.06), matDark); barrel.position.set(0, 0.025, -0.17); g.add(barrel);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.14, 0.055), matDark); grip.position.set(0, -0.09, 0.07); grip.rotation.x = 0.28; g.add(grip);
-  const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 0.05), matDark); trigger.position.set(0, -0.045, 0.02); g.add(trigger);
-  const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.085, 0.07); g.add(gripMarker);
-  const flash = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 }));
-  flash.position.set(0, 0.025, -0.21); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
-  return { group: g, flash, gripMarker };
-}
 function buildGrenadeModel(opts = {}) {
   const withHand = opts.withHand !== false;
   const scale = opts.scale ?? 1;
@@ -1303,11 +1250,13 @@ function buildGrenadeModel(opts = {}) {
   return g;
 }
 
-/* LOBBY: plataforma + personaje */
+/* LOBBY */
 let menuCharYaw = 0;
 let menuDragActive = false;
 let menuDragLastX = 0;
 let menuDragVelocity = 0;
+let menuRifleRef = null;
+let menuPistolRef = null;
 
 const menuPlatform = new THREE.Mesh(
   new THREE.CylinderGeometry(1.7, 1.9, 0.18, 40),
@@ -1333,26 +1282,6 @@ scene.add(menuPlatformInner);
 
 const menuOnlyObjects = new Set([menuPlatform, menuPlatformRing, menuPlatformInner, menuKeyLight, menuFillLight, menuRimLight, menuAmbient]);
 
-function brightenMenuWeapon(root) {
-  root.traverse(n => {
-    if (n.isMesh && n.material) {
-      const mats = Array.isArray(n.material) ? n.material : [n.material];
-      for (const m of mats) {
-        if (m.color) {
-          const c = m.color.clone();
-          c.r = Math.min(1, c.r * 3.0 + 0.20);
-          c.g = Math.min(1, c.g * 3.0 + 0.20);
-          c.b = Math.min(1, c.b * 3.0 + 0.20);
-          m.color.copy(c);
-        }
-        if ('emissive' in m && m.emissive) m.emissive = new THREE.Color(0x222630);
-        if ('flatShading' in m) m.flatShading = true;
-        m.needsUpdate = true;
-      }
-    }
-  });
-}
-
 function setupMenuCharacter() {
   menuChar = buildCharacter({
     uniform:     0x6f82a8,
@@ -1369,31 +1298,33 @@ function setupMenuCharacter() {
   menuChar.root.rotation.y = 0;
   scene.add(menuChar.root);
 
-  // Rifle al frente (sujeto por las manos)
-  const menuRifle = createLowPolyRifleRemote();
-  brightenMenuWeapon(menuRifle.group);
-  menuRifle.group.position.set(0.10, 1.42, 0.30);
-  menuRifle.group.rotation.set(0, Math.PI, 0);
-  menuChar.body.add(menuRifle.group);
-
-  // Pistola en la cadera derecha (enfundada)
-  const menuPistol = createLowPolyPistolRemote();
-  brightenMenuWeapon(menuPistol.group);
-  menuPistol.group.scale.setScalar(0.95);
-  menuPistol.group.position.set(0.42, 1.02, 0.06);
-  menuPistol.group.rotation.set(-0.2, 0.3, 0.6);
-  menuChar.body.add(menuPistol.group);
-
-  // Pose de brazos: mano derecha al grip, izquierda al handguard
-  menuChar.parts.rightArm.shoulder.rotation.set(-1.0, 0, -0.42);
-  menuChar.parts.rightArm.elbow.rotation.set(1.55, 0, 0);
-  menuChar.parts.leftArm.shoulder.rotation.set(-1.1, 0, 0.50);
-  menuChar.parts.leftArm.elbow.rotation.set(1.55, 0, 0);
-
   menuChar.root.traverse(n => {
     if (n.isMesh || n.isSkinnedMesh) { n.castShadow = false; n.receiveShadow = false; }
   });
   menuOnlyObjects.add(menuChar.root);
+}
+
+/* Coloca las armas FBX en el personaje del menú (los brazos por IK). */
+function refreshMenuWeapons() {
+  if (!menuChar || !rifleModel.fbxModel) return;
+  if (menuRifleRef) { menuChar.body.remove(menuRifleRef.group); menuRifleRef = null; }
+  if (menuPistolRef) { menuChar.body.remove(menuPistolRef.group); menuPistolRef = null; }
+
+  // Rifle cruzado al pecho, cañón apuntando al frente-izquierda
+  const r = createRemoteWeaponInstance('rifle');
+  r.group.position.set(0.02, 1.28, 0.30);
+  r.group.rotation.set(0, Math.PI / 2 + 0.30, 0);
+  menuChar.body.add(r.group);
+  menuRifleRef = r;
+
+  // Pistola enfundada en la cadera derecha
+  if (pistolModel.fbxModel) {
+    const p = createRemoteWeaponInstance('pistol');
+    p.group.position.set(0.42, 1.02, 0.02);
+    p.group.rotation.set(-0.15, 0.9, 1.35);
+    menuChar.body.add(p.group);
+    menuPistolRef = p;
+  }
 }
 setupMenuCharacter();
 
@@ -1532,6 +1463,7 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
   forceWeaponVisibility();
+  refreshMenuWeapons();
   setWorldVisibleForMenu(menuActive);
 })();
 
@@ -1554,6 +1486,9 @@ function forceWeaponVisibility() {
   if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = isPistol;
 }
 
+/* SOLO FBX: construye instancia remota desde el modelo cargado.
+   Si el FBX todavía no está listo, devuelve un grupo vacío que se rellenará
+   cuando termine la carga (no se generan armas procedurales). */
 function createRemoteWeaponInstance(weaponKey) {
   let fbxSource = null, flashCfg, gripCfg, extraMarker;
   if (weaponKey === 'rifle') {
@@ -1572,34 +1507,44 @@ function createRemoteWeaponInstance(weaponKey) {
     gripCfg  = [0, -0.09, 0.06];
     extraMarker = null;
   }
+
+  const g = new THREE.Group();
+
   if (fbxSource) {
     const cloned = fbxSource.clone(true);
     cloned.traverse(n => {
       if (n.isMesh || n.isSkinnedMesh) {
-        n.visible = true; n.frustumCulled = false; n.castShadow = true; n.receiveShadow = true;
+        n.visible = true; n.frustumCulled = false;
+        n.castShadow = true; n.receiveShadow = true;
         if (n.material) {
           const mats = Array.isArray(n.material) ? n.material : [n.material];
           for (const m of mats) forceMaterialOpaque(m);
         }
       }
     });
-    const g = new THREE.Group(); g.add(cloned);
-    const flash = new THREE.Mesh(
-      new THREE.SphereGeometry(flashCfg.radius, 6, 4),
-      new THREE.MeshBasicMaterial({ color: flashCfg.color, transparent: true, opacity: 0.95 })
-    );
-    flash.position.set(...flashCfg.pos); flash.visible = false; g.add(flash);
-    const gripMarker = new THREE.Object3D(); gripMarker.position.set(...gripCfg); g.add(gripMarker);
-    const result = { group: g, flash, gripMarker };
-    if (extraMarker) {
-      const m = new THREE.Object3D(); m.position.set(...extraMarker.pos); g.add(m);
-      result[extraMarker.key] = m;
-    }
-    return result;
+    g.add(cloned);
   }
-  if (weaponKey === 'rifle')   return createLowPolyRifleRemote();
-  if (weaponKey === 'shotgun') return createLowPolyShotgunRemote();
-  return createLowPolyPistolRemote();
+
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(flashCfg.radius, 6, 4),
+    new THREE.MeshBasicMaterial({ color: flashCfg.color, transparent: true, opacity: 0.95 })
+  );
+  flash.position.set(...flashCfg.pos);
+  flash.visible = false;
+  g.add(flash);
+
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(...gripCfg);
+  g.add(gripMarker);
+
+  const result = { group: g, flash, gripMarker };
+  if (extraMarker) {
+    const m = new THREE.Object3D();
+    m.position.set(...extraMarker.pos);
+    g.add(m);
+    result[extraMarker.key] = m;
+  }
+  return result;
 }
 
 /* MANOS FPS */
@@ -1866,72 +1811,22 @@ function computeBoxPenetration(px, pz, radius, box) {
 /* BODEGA */
 const FENCE_X = 54;
 const FENCE_Z = 52;
-function darkenHex(hex, f) { const c = new THREE.Color(hex); c.multiplyScalar(f); return c.getHex(); }
 const CONT_L = 6.0, CONT_W = 2.5, CONT_H = 2.6, CONT_GAP = 0.15;
-function createSingleContainer(color) {
-  const g = new THREE.Group();
-  const mBody = cachedMat(color);
-  const mDark = cachedMat(darkenHex(color, 0.55));
-  const mFrame = cachedMat(0x181818);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(CONT_L, CONT_H, CONT_W), mBody);
-  body.position.y = CONT_H / 2; body.castShadow = true; body.receiveShadow = true; g.add(body);
-  const ribCount = 6;
-  const ribGeo = new THREE.BoxGeometry(0.08, CONT_H - 0.35, 0.05);
-  for (let i = 0; i < ribCount; i++) {
-    const px = -CONT_L/2 + 0.7 + i * (CONT_L - 1.4) / (ribCount - 1);
-    const rf = new THREE.Mesh(ribGeo, mDark);
-    rf.position.set(px, CONT_H/2,  CONT_W/2 + 0.013); g.add(rf);
-    const rb = new THREE.Mesh(ribGeo, mDark);
-    rb.position.set(px, CONT_H/2, -CONT_W/2 - 0.013); g.add(rb);
-  }
-  const postGeo = new THREE.BoxGeometry(0.24, CONT_H + 0.04, 0.24);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-    const post = new THREE.Mesh(postGeo, mFrame);
-    post.position.set(sx * (CONT_L/2 - 0.12), CONT_H/2, sz * (CONT_W/2 - 0.12)); g.add(post);
-  }
-  const rimGeo = new THREE.BoxGeometry(CONT_L + 0.05, 0.1, CONT_W + 0.05);
-  const topRim = new THREE.Mesh(rimGeo, mFrame); topRim.position.y = CONT_H - 0.05; g.add(topRim);
-  const botRim = new THREE.Mesh(rimGeo, mFrame); botRim.position.y = 0.05; g.add(botRim);
-  const doorGeo = new THREE.BoxGeometry(0.06, CONT_H - 0.4, CONT_W - 0.15);
-  const door = new THREE.Mesh(doorGeo, mDark); door.position.set(CONT_L/2 + 0.015, CONT_H/2, 0); g.add(door);
-  return g;
-}
-function buildProceduralStack(colors) {
-  const g = new THREE.Group();
-  const stepX = CONT_L + CONT_GAP;
-  const stepZ = CONT_W + CONT_GAP;
-  const offsets = [
-    [-stepX/2, -stepZ/2, colors[0]], [-stepX/2,  stepZ/2, colors[1]],
-    [ stepX/2, -stepZ/2, colors[2]], [ stepX/2,  stepZ/2, colors[3]],
-  ];
-  for (const [ox, oz, col] of offsets) {
-    const c = createSingleContainer(col); c.position.set(ox, 0, oz); g.add(c);
-  }
-  return g;
-}
-const C_RED    = [0xb03a2e, 0xc0453a, 0x8b2c20, 0xa33a2e];
-const C_RED2   = [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e];
-const C_GREEN  = [0x2e7d4f, 0x35935c, 0x24774a, 0x2a8a52];
-const C_GREEN2 = [0x27704a, 0x3a9a63, 0x1e6a42, 0x2e7d4f];
-const C_BLUE   = [0x2874a6, 0x3585b8, 0x1f5d8a, 0x2874a6];
-const C_BLUE2  = [0x1f5d8a, 0x2874a6, 0x184a70, 0x2d7cb8];
-const C_BROWN  = [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a];
-const C_BROWN2 = [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a];
 
 const containerLayout = [
-  { x: -38, z: -20, rot: 0, type: 1, colors: C_RED },
-  { x: -38, z:   2, rot: 0, type: 2, colors: C_RED2 },
-  { x: -20, z: -20, rot: 0, type: 1, colors: C_GREEN },
-  { x: -20, z:   2, rot: 0, type: 2, colors: C_RED2 },
-  { x:  -2, z: -20, rot: 0, type: 2, colors: C_GREEN2 },
-  { x:  -2, z:   2, rot: 0, type: 1, colors: C_BROWN },
-  { x:  -2, z:  24, rot: 0, type: 2, colors: C_BROWN2 },
-  { x:  16, z: -20, rot: 0, type: 1, colors: C_BLUE },
-  { x:  16, z:   2, rot: 0, type: 2, colors: C_BROWN },
-  { x:  16, z:  24, rot: 0, type: 1, colors: C_BROWN2 },
-  { x:  34, z: -20, rot: 0, type: 2, colors: C_BLUE2 },
-  { x:  34, z:   2, rot: 0, type: 1, colors: C_BLUE },
-  { x:  34, z:  24, rot: 0, type: 2, colors: C_BROWN },
+  { x: -38, z: -20, rot: 0, type: 1, colors: [0xb03a2e, 0xc0453a, 0x8b2c20, 0xa33a2e] },
+  { x: -38, z:   2, rot: 0, type: 2, colors: [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e] },
+  { x: -20, z: -20, rot: 0, type: 1, colors: [0x2e7d4f, 0x35935c, 0x24774a, 0x2a8a52] },
+  { x: -20, z:   2, rot: 0, type: 2, colors: [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e] },
+  { x:  -2, z: -20, rot: 0, type: 2, colors: [0x27704a, 0x3a9a63, 0x1e6a42, 0x2e7d4f] },
+  { x:  -2, z:   2, rot: 0, type: 1, colors: [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a] },
+  { x:  -2, z:  24, rot: 0, type: 2, colors: [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a] },
+  { x:  16, z: -20, rot: 0, type: 1, colors: [0x2874a6, 0x3585b8, 0x1f5d8a, 0x2874a6] },
+  { x:  16, z:   2, rot: 0, type: 2, colors: [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a] },
+  { x:  16, z:  24, rot: 0, type: 1, colors: [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a] },
+  { x:  34, z: -20, rot: 0, type: 2, colors: [0x1f5d8a, 0x2874a6, 0x184a70, 0x2d7cb8] },
+  { x:  34, z:   2, rot: 0, type: 1, colors: [0x2874a6, 0x3585b8, 0x1f5d8a, 0x2874a6] },
+  { x:  34, z:  24, rot: 0, type: 2, colors: [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a] },
 ];
 const containerGroups = [];
 for (const def of containerLayout) {
@@ -1979,34 +1874,29 @@ Promise.all([
   loadContainerFBX('modelos3d/Container2.fbx')
 ]).then(([c1, c2]) => {
   const anyLoaded = c1 || c2;
-  if (!anyLoaded) {
-    for (const { def, group } of containerGroups) group.add(buildProceduralStack(def.colors));
-    try { applyOptimizations(); } catch (e) {}
-    setWorldVisibleForMenu(menuActive);
-    return;
-  }
-  const stepX = CONT_L + CONT_GAP, stepZ = CONT_W + CONT_GAP;
-  const offsets = [[-stepX/2, -stepZ/2], [-stepX/2, stepZ/2], [stepX/2, -stepZ/2], [stepX/2, stepZ/2]];
-  for (const { def, group } of containerGroups) {
-    let template = null;
-    if (def.type === 1) template = c1 || c2; else template = c2 || c1;
-    if (!template) { group.add(buildProceduralStack(def.colors)); continue; }
-    for (const [ox, oz] of offsets) {
-      const c = template.clone(true);
-      c.position.set(ox, 0, oz);
-      c.rotation.y = (Math.random() - 0.5) * 0.02;
-      c.traverse(n => {
-        if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; }
-      });
-      group.add(c);
+  if (anyLoaded) {
+    const stepX = CONT_L + CONT_GAP, stepZ = CONT_W + CONT_GAP;
+    const offsets = [
+      [-stepX/2, -stepZ/2], [-stepX/2, stepZ/2],
+      [ stepX/2, -stepZ/2], [ stepX/2, stepZ/2]
+    ];
+    for (const { def, group } of containerGroups) {
+      const template = (def.type === 1) ? (c1 || c2) : (c2 || c1);
+      if (!template) continue;
+      for (const [ox, oz] of offsets) {
+        const c = template.clone(true);
+        c.position.set(ox, 0, oz);
+        c.rotation.y = (Math.random() - 0.5) * 0.02;
+        c.traverse(n => {
+          if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; }
+        });
+        group.add(c);
+      }
     }
   }
   try { applyOptimizations(); } catch (e) {}
   setWorldVisibleForMenu(menuActive);
-}).catch(err => {
-  for (const { def, group } of containerGroups) group.add(buildProceduralStack(def.colors));
-  setWorldVisibleForMenu(menuActive);
-});
+}).catch(() => { setWorldVisibleForMenu(menuActive); });
 
 /* VEHÍCULOS */
 function loadVehicleFBX(url, targetLen) {
@@ -2053,25 +1943,6 @@ function loadVehicleFBX(url, targetLen) {
     }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
   });
 }
-function buildVehicleFallback(type) {
-  const g = new THREE.Group();
-  const cols = { military: 0x4a5a3a, pickup: 0x8a2b1e, cart: 0xc0392b };
-  const mBody = cachedMat(cols[type] || 0x555555);
-  const mDark = cachedMat(0x111111);
-  const mGlass = cachedMat(0x1a2a3a);
-  let L = 5.5, W = 2.2, H = 0.9;
-  const body = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), mBody);
-  body.position.y = H / 2 + 0.35; body.castShadow = true; g.add(body);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(L * 0.5, 0.7, W * 0.95), mGlass);
-  cabin.position.set(-L * 0.05, H + 0.7, 0); cabin.castShadow = true; g.add(cabin);
-  const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 8);
-  for (const [wx, wz] of [[-L*0.35, -W*0.5], [L*0.35, -W*0.5], [-L*0.35, W*0.5], [L*0.35, W*0.5]]) {
-    const wm = new THREE.Mesh(wGeo, mDark);
-    wm.rotation.x = Math.PI / 2; wm.position.set(wx, 0.35, wz); wm.castShadow = true;
-    g.add(wm);
-  }
-  return g;
-}
 const vehicleSpawns = [
   { type: 'military', x: -12, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
   { type: 'military', x:  14, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
@@ -2109,29 +1980,23 @@ Promise.all([
   loadVehicleFBX('modelos3d/camioneta.fbx',     5.5),
   loadVehicleFBX('modelos3d/Carrito de carga.fbx', 4.0)
 ]).then(([milRes, pickRes, cartRes]) => {
-  const milBase  = milRes  && milRes.obj  ? milRes.obj  : null;
-  const pickBase = pickRes && pickRes.obj ? pickRes.obj : null;
-  const cartBase = cartRes && cartRes.obj ? cartRes.obj : null;
   const templates = {
-    military: milBase  ? rescaleToLength(milBase,  6.5) : null,
-    pickup:   pickBase ? rescaleToLength(pickBase, 5.5) : null,
-    cart:     cartBase ? rescaleToLength(cartBase, 4.0) : null,
+    military: milRes  && milRes.obj  ? rescaleToLength(milRes.obj,  6.5) : null,
+    pickup:   pickRes && pickRes.obj ? rescaleToLength(pickRes.obj, 5.5) : null,
+    cart:     cartRes && cartRes.obj ? rescaleToLength(cartRes.obj, 4.0) : null,
   };
   for (const spawn of vehicleSpawns) {
     const tmpl = templates[spawn.type];
-    if (!tmpl) {
-      if (spawn.type === 'cart') continue;
-      const v = buildVehicleFallback(spawn.type);
-      v.position.set(spawn.x, 0, spawn.z); v.rotation.y = spawn.rot;
-      scene.add(v);
-      colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
-      continue;
-    }
+    if (!tmpl) continue;
     const inner = tmpl.clone(true);
-    inner.position.set(0, 0, 0); inner.rotation.set(0, 0, 0); inner.updateMatrixWorld(true);
+    inner.position.set(0, 0, 0);
+    inner.rotation.set(0, 0, 0);
+    inner.updateMatrixWorld(true);
     const b = new THREE.Box3().setFromObject(inner);
     const c = b.getCenter(new THREE.Vector3());
-    inner.position.x -= c.x; inner.position.z -= c.z; inner.position.y -= b.min.y;
+    inner.position.x -= c.x;
+    inner.position.z -= c.z;
+    inner.position.y -= b.min.y;
     const wrapper = new THREE.Group();
     wrapper.add(inner);
     wrapper.position.set(spawn.x, 0, spawn.z);
@@ -2149,16 +2014,7 @@ Promise.all([
   }
   try { applyOptimizations(); } catch (e) {}
   setWorldVisibleForMenu(menuActive);
-}).catch(err => {
-  for (const spawn of vehicleSpawns) {
-    if (spawn.type === 'cart') continue;
-    const v = buildVehicleFallback(spawn.type);
-    v.position.set(spawn.x, 0, spawn.z); v.rotation.y = spawn.rot;
-    scene.add(v);
-    colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
-  }
-  setWorldVisibleForMenu(menuActive);
-});
+}).catch(() => { setWorldVisibleForMenu(menuActive); });
 
 /* ALMACÉN / OFICINA */
 function createWarehouse(x, z, w, d, h) {
@@ -2588,7 +2444,6 @@ function updateDebug(dt) {
   fpsSamples.push(1 / Math.max(dt, 0.0001));
   if (fpsSamples.length > 30) fpsSamples.shift();
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
-  const ws = curWepState();
   let aliveRemote = 0, deadRemote = 0;
   for (const [, r] of remotePlayers) { if (r.dead) deadRemote++; else aliveRemote++; }
   const errLines = fbxErrors.length ? '\n<span class="title">── Errores FBX ──</span>\n' + fbxErrors.map(e => `<span class="err">${e}</span>`).join('\n') : '';
@@ -3491,44 +3346,152 @@ async function initOnline() {
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
 const MM_W = minimapCanvas.width, MM_H = minimapCanvas.height;
-const MM_RANGE = 65;
+const MM_RANGE = 62;
 const MM_SCALE = MM_W / (MM_RANGE * 2);
+
 function drawMinimap() {
   const ctx = mmCtx;
-  const cxWorld = player.position.x, czWorld = player.position.z;
-  ctx.fillStyle = '#15181c'; ctx.fillRect(0, 0, MM_W, MM_H);
-  ctx.strokeStyle = 'rgba(120,160,200,0.12)'; ctx.lineWidth = 1;
-  for (let i = 0; i <= 5; i++) {
-    const p = (i / 5) * MM_W;
-    ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, MM_H); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(MM_W, p); ctx.stroke();
+  const cxW = player.position.x, czW = player.position.z;
+  const wx2mm = x => (x - cxW) * MM_SCALE + MM_W / 2;
+  const wz2mm = z => (z - czW) * MM_SCALE + MM_H / 2;
+
+  // Fondo
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, MM_W, MM_H);
+
+  // Rejilla métrica
+  ctx.strokeStyle = 'rgba(80,120,170,0.10)';
+  ctx.lineWidth = 1;
+  const step = 10;
+  for (let gx = Math.floor((cxW - MM_RANGE) / step) * step; gx <= cxW + MM_RANGE; gx += step) {
+    const px = wx2mm(gx);
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, MM_H); ctx.stroke();
   }
-  const wx2mm = (x) => (x - cxWorld) * MM_SCALE + MM_W / 2;
-  const wz2mm = (z) => (z - czWorld) * MM_SCALE + MM_H / 2;
-  ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
-  ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE);
+  for (let gz = Math.floor((czW - MM_RANGE) / step) * step; gz <= czW + MM_RANGE; gz += step) {
+    const py = wz2mm(gz);
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(MM_W, py); ctx.stroke();
+  }
+
+  // Perímetro del recinto
+  ctx.strokeStyle = 'rgba(255,200,80,0.55)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([12, 7]);
+  ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), FENCE_X * 2 * MM_SCALE, FENCE_Z * 2 * MM_SCALE);
+  ctx.setLineDash([]);
+
+  // Portón de entrada
+  ctx.strokeStyle = '#4cdf7b';
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(wx2mm(-ENTRY_GAP / 2), wz2mm(FENCE_Z));
+  ctx.lineTo(wx2mm(ENTRY_GAP / 2), wz2mm(FENCE_Z));
+  ctx.stroke();
+
+  // Edificios (almacén + oficina)
+  ctx.fillStyle = 'rgba(150,165,190,0.5)';
+  ctx.fillRect(wx2mm(-23), wz2mm(-47), 46 * MM_SCALE, 14 * MM_SCALE);
+  ctx.fillRect(wx2mm(-45), wz2mm(33.5), 14 * MM_SCALE, 9 * MM_SCALE);
+
+  // Contenedores
   for (const c of containerLayout) {
     const px = wx2mm(c.x), py = wz2mm(c.z);
-    if (px < -30 || px > MM_W + 30 || py < -30 || py > MM_H + 30) continue;
-    ctx.fillStyle = '#' + c.colors[0].toString(16).padStart(6, '0');
     const w = (CONT_L * 2 + CONT_GAP) * MM_SCALE;
     const h = (CONT_W * 2 + CONT_GAP) * MM_SCALE;
-    ctx.fillRect(px - w/2, py - h/2, w, h);
+    if (px + w < 0 || px - w > MM_W || py + h < 0 || py - h > MM_H) continue;
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = '#' + c.colors[0].toString(16).padStart(6, '0');
+    ctx.fillRect(px - w / 2, py - h / 2, w, h);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px - w / 2, py - h / 2, w, h);
   }
+
+  // Vehículos
+  for (const v of vehicleSpawns) {
+    const px = wx2mm(v.x), py = wz2mm(v.z);
+    if (px < -14 || px > MM_W + 14 || py < -14 || py > MM_H + 14) continue;
+    const L = v.len * MM_SCALE;
+    const Wd = Math.max(3, L * 0.38);
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(-v.rot);
+    ctx.fillStyle = v.type === 'military' ? '#5c6b3f'
+                  : v.type === 'pickup'   ? '#8a2b1e'
+                  :                         '#b06a2a';
+    ctx.fillRect(-L / 2, -Wd / 2, L, Wd);
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-L / 2, -Wd / 2, L, Wd);
+    ctx.restore();
+  }
+
+  // Cono de visión del jugador
+  ctx.save();
+  ctx.translate(MM_W / 2, MM_H / 2);
+  ctx.rotate(-cameraYaw);
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 60);
+  grad.addColorStop(0, 'rgba(110,190,255,0.28)');
+  grad.addColorStop(1, 'rgba(110,190,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.arc(0, 0, 60, -Math.PI / 2 - 0.55, -Math.PI / 2 + 0.55);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // Jugadores remotos (con anillo de vida)
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = r.dead ? '#666' : '#f39c12';
-    ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+    if (px < -14 || px > MM_W + 14 || py < -14 || py > MM_H + 14) continue;
+    const dead = r.dead;
+    ctx.beginPath();
+    ctx.arc(px, py, 7, 0, Math.PI * 2);
+    ctx.fillStyle = dead ? 'rgba(110,110,110,0.85)' : 'rgba(243,156,18,0.95)';
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    if (!dead) {
+      const hp = Math.max(0, Math.min(1, r.hp / 100));
+      ctx.beginPath();
+      ctx.arc(px, py, 11, -Math.PI / 2, -Math.PI / 2 + hp * Math.PI * 2);
+      ctx.strokeStyle = hp > 0.6 ? '#2ecc71' : hp > 0.3 ? '#f39c12' : '#e74c3c';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
   }
-  ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(-cameraYaw);
-  ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
-  ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
+
+  // Jugador local
+  ctx.save();
+  ctx.translate(MM_W / 2, MM_H / 2);
+  ctx.rotate(-cameraYaw);
+  ctx.fillStyle = playerDead ? '#666' : '#4ea8ff';
+  ctx.beginPath();
+  ctx.moveTo(0, -11);
+  ctx.lineTo(7.5, 8);
+  ctx.lineTo(0, 4.5);
+  ctx.lineTo(-7.5, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
   ctx.restore();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+
+  // Brújula
+  ctx.fillStyle = 'rgba(255,220,120,0.9)';
+  ctx.font = 'bold 16px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('N', MM_W / 2, 18);
+
+  // Marco
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, MM_W - 2, MM_H - 2);
 }
+
 function updateHealthBar() {
   const pct = Math.max(0, Math.min(100, health));
   healthBarInner.style.width = pct + '%';
@@ -3740,6 +3703,11 @@ function selectGameMode(mode) {
   if (!isTouch) clickOverlay.classList.add('active');
 }
 
+const _menuGripWorld = new THREE.Vector3();
+const _menuHandguardWorld = new THREE.Vector3();
+const _menuPoleR = new THREE.Vector3();
+const _menuPoleL = new THREE.Vector3();
+
 function updateMenuCamera(dt) {
   menuCamAngle += dt;
   if (!menuDragActive) {
@@ -3751,7 +3719,28 @@ function updateMenuCamera(dt) {
       menuCharYaw += dt * 0.35;
     }
   }
-  if (menuChar) menuChar.root.rotation.y = menuCharYaw;
+
+  if (menuChar) {
+    menuChar.root.rotation.y = menuCharYaw;
+    menuChar.root.updateMatrixWorld(true);
+  }
+
+  // Pose de brazos por IK hacia el arma (brazos hacia el frente, nunca a la espalda)
+  if (menuChar && menuRifleRef) {
+    const q = menuChar.root.quaternion;
+    _menuPoleR.set(0.60, -1.0, -0.25).applyQuaternion(q).normalize();
+    _menuPoleL.set(-0.60, -1.0, -0.05).applyQuaternion(q).normalize();
+
+    if (menuRifleRef.gripMarker) {
+      menuRifleRef.gripMarker.getWorldPosition(_menuGripWorld);
+      solveArmIK(menuChar.parts.rightArm, _menuGripWorld, _menuPoleR);
+    }
+    if (menuRifleRef.handguardMarker) {
+      menuRifleRef.handguardMarker.getWorldPosition(_menuHandguardWorld);
+      solveArmIK(menuChar.parts.leftArm, _menuHandguardWorld, _menuPoleL);
+    }
+  }
+
   const bob = Math.sin(menuCamAngle * 0.8) * 0.045;
   const sway = Math.sin(menuCamAngle * 0.5) * 0.10;
   camera.position.set(sway, 1.70 + bob, 3.85);
@@ -3938,7 +3927,6 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
   if (menuActive) {
     updateMenuCamera(dt);
-    // Re-aplicar cada frame para ocultar objetos FBX añadidos asincrónicamente
     setWorldVisibleForMenu(true);
     renderer.render(scene, camera);
     return;
