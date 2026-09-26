@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Low Poly FPS - Bodega de Contenedores</title>
+<title>Strike Arena — Lobby FPS</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
   body { margin: 0; overflow: hidden; background: #87ceeb; touch-action: none; user-select: none; font-family: system-ui, sans-serif; cursor: none; }
@@ -12,398 +12,22 @@
   #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; }
   #hint.active { display: block; }
 
-  /* ═══════════════════════════════════════════
-     LOBBY PRINCIPAL (estilo Blood Strike / Free Fire)
-     ═══════════════════════════════════════════ */
-  #mode-menu {
-    position: fixed; inset: 0; z-index: 500;
-    color: #fff; cursor: default;
-    pointer-events: none;
-    opacity: 1; transition: opacity 0.4s ease;
-    font-family: system-ui, sans-serif;
-    user-select: none;
-    background:
-      radial-gradient(ellipse at 50% 100%, rgba(40,90,140,0) 0%, rgba(5,10,20,0) 45%, rgba(2,4,10,0.75) 100%),
-      linear-gradient(180deg, rgba(4,8,18,0.9) 0%, rgba(4,8,18,0.15) 22%, rgba(4,8,18,0.10) 68%, rgba(2,4,10,0.92) 100%);
-  }
+  #mode-menu { position: fixed; inset: 0; z-index: 500; color: #fff; cursor: default; overflow: hidden; pointer-events: none; opacity: 1; transition: opacity 0.4s ease; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 24px) 24px calc(env(safe-area-inset-bottom, 0px) + 24px); box-sizing: border-box; background: radial-gradient(ellipse at 50% 20%, rgba(30,45,85,0.35) 0%, rgba(5,8,18,0.9) 70%), linear-gradient(180deg, rgba(8,12,24,0.55) 0%, rgba(8,12,24,0.92) 100%); }
   #mode-menu.hidden { opacity: 0; pointer-events: none; }
   #mode-menu.hidden * { pointer-events: none !important; }
-
-  /* ─── Barra superior ─── */
-  .lobby-topbar {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 12px);
-    left: 12px; right: 12px;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    gap: 8px; pointer-events: none;
-    animation: menuFadeIn 0.5s ease both;
-    flex-wrap: wrap;
-  }
-  .lobby-topbar > * { pointer-events: auto; }
-
-  .player-card {
-    display: flex; align-items: center; gap: 10px;
-    padding: 6px 14px 6px 6px;
-    background: linear-gradient(90deg, rgba(10,20,35,0.9), rgba(10,20,35,0.55));
-    border: 2px solid rgba(120,200,255,0.45);
-    border-radius: 8px;
-    backdrop-filter: blur(6px);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
-    min-width: 190px;
-    max-width: 60vw;
-  }
-  .player-avatar {
-    position: relative;
-    width: 48px; height: 48px;
-    border-radius: 6px;
-    background: linear-gradient(135deg, #2a4a6a, #16273a);
-    border: 2px solid #ffd93d;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 0 10px rgba(255,217,61,0.4);
-  }
-  .player-avatar .avatar-emoji { font-size: 24px; line-height: 1; }
-  .player-avatar .avatar-level {
-    position: absolute; bottom: -6px; right: -6px;
-    background: #ffd93d; color: #1a1200;
-    font: 900 11px system-ui, sans-serif;
-    padding: 1px 5px; border-radius: 4px;
-    border: 1.5px solid #1a1200;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  }
-  .player-meta {
-    display: flex; flex-direction: column; gap: 3px;
-    min-width: 0; flex: 1;
-  }
-  .player-name {
-    font: 800 13px system-ui, sans-serif;
-    letter-spacing: 0.5px;
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    color: #fff;
-  }
-  .player-level-label {
-    font: 700 9px ui-monospace, monospace;
-    color: #ffd93d; letter-spacing: 1.5px;
-  }
-  .xp-track {
-    width: 100%; height: 4px;
-    background: rgba(0,0,0,0.55);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .xp-fill {
-    width: 38%; height: 100%;
-    background: linear-gradient(90deg, #4ad9ff, #7cf4ff);
-    box-shadow: 0 0 6px rgba(74,217,255,0.7);
-  }
-
-  .topbar-right {
-    display: flex; align-items: center; gap: 8px;
-    flex-wrap: wrap; justify-content: flex-end;
-  }
-  .currency-chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 8px 4px 6px;
-    background: rgba(10,18,32,0.85);
-    border: 1.5px solid rgba(120,200,255,0.45);
-    border-radius: 6px;
-    font: 800 12px ui-monospace, monospace;
-    color: #fff;
-    text-shadow: 1px 1px 0 #000;
-    backdrop-filter: blur(6px);
-  }
-  .currency-chip .cur-icon { font-size: 13px; }
-  .currency-chip .cur-plus {
-    color: #4cdf7b; font-weight: 900; margin-left: 2px;
-    font-size: 14px;
-  }
-  .icon-btn {
-    width: 38px; height: 38px;
-    background: rgba(10,18,32,0.85);
-    border: 1.5px solid rgba(120,200,255,0.45);
-    border-radius: 6px;
-    color: #fff; font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    backdrop-filter: blur(6px);
-    transition: transform 0.1s, filter 0.1s;
-  }
-  .icon-btn:active { transform: scale(0.92); filter: brightness(1.2); }
-
-  /* ─── Columna izquierda ─── */
-  .lobby-left {
-    position: absolute;
-    left: 12px;
-    top: 50%; transform: translateY(-50%);
-    display: flex; flex-direction: column; gap: 10px;
-    pointer-events: none;
-    animation: menuFadeIn 0.55s 0.1s ease both;
-  }
-  .lobby-left > * { pointer-events: auto; }
-
-  .side-btn {
-    position: relative;
-    width: 78px; height: 62px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 2px;
-    background: linear-gradient(135deg, rgba(20,35,55,0.92), rgba(10,18,30,0.96));
-    border: 2px solid rgba(120,200,255,0.5);
-    border-radius: 8px;
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
-    transition: transform 0.1s, filter 0.15s, border-color 0.15s;
-    font-family: system-ui, sans-serif;
-    text-align: center;
-  }
-  .side-btn .side-icon { font-size: 20px; line-height: 1; }
-  .side-btn .side-text {
-    font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
-    line-height: 1.1;
-    text-shadow: 1px 1px 0 #000;
-  }
-  .side-btn .side-text b { color: #ffd93d; }
-  .side-btn .side-badge {
-    position: absolute; top: -6px; right: -6px;
-    min-width: 18px; height: 18px;
-    background: #e74c3c; color: #fff;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    font: 900 10px system-ui, sans-serif;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 8px rgba(231,76,60,0.8);
-  }
-  .side-btn-pass {
-    background: linear-gradient(135deg, rgba(180,40,40,0.92), rgba(90,15,15,0.96));
-    border-color: rgba(255,180,80,0.75);
-    height: 76px;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .side-btn:hover { filter: brightness(1.2); border-color: #4ad9ff; }
-  }
-  .side-btn:active { transform: scale(0.95); }
-
-  /* ─── Columna derecha (ranked) ─── */
-  .lobby-right {
-    position: absolute;
-    right: 12px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 120px);
-    display: flex; flex-direction: column; gap: 10px;
-    pointer-events: none;
-    max-width: 220px;
-    animation: menuFadeIn 0.55s 0.2s ease both;
-  }
-  .lobby-right > * { pointer-events: auto; }
-
-  .ranked-card {
-    background: linear-gradient(135deg, rgba(20,35,55,0.96), rgba(10,18,30,0.98));
-    border: 2px solid rgba(255,180,80,0.55);
-    border-radius: 8px;
-    padding: 8px 10px 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.55);
-    backdrop-filter: blur(6px);
-    min-width: 175px;
-  }
-  .ranked-ribbon {
-    display: inline-block;
-    background: linear-gradient(90deg, #e74c3c, #c0392b);
-    color: #fff;
-    font: 900 9px system-ui, sans-serif;
-    letter-spacing: 1.5px;
-    padding: 2px 7px;
-    border-radius: 3px;
-    margin-bottom: 6px;
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
-  }
-  .ranked-row { display: flex; align-items: center; gap: 10px; }
-  .ranked-icon {
-    font-size: 32px; line-height: 1;
-    filter: drop-shadow(0 0 6px rgba(255,180,80,0.6));
-  }
-  .ranked-info { flex: 1; min-width: 0; }
-  .ranked-name {
-    font: 900 14px system-ui, sans-serif;
-    letter-spacing: 0.5px;
-    color: #ffd93d;
-    text-shadow: 1px 1px 0 #000;
-  }
-  .ranked-track {
-    width: 100%; height: 5px;
-    background: rgba(0,0,0,0.55);
-    border-radius: 3px;
-    overflow: hidden;
-    margin: 4px 0 3px;
-  }
-  .ranked-fill {
-    width: 64%; height: 100%;
-    background: linear-gradient(90deg, #ffd93d, #ffb76b);
-    box-shadow: 0 0 6px rgba(255,217,61,0.7);
-  }
-  .ranked-pts {
-    font: 700 9px ui-monospace, monospace;
-    color: #a8c0e0;
-    letter-spacing: 0.5px;
-  }
-
-  /* ─── Barra inferior con PLAY ─── */
-  .lobby-bottom {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    display: flex; align-items: stretch;
-    padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
-    background: linear-gradient(180deg, rgba(4,10,20,0) 0%, rgba(4,10,20,0.85) 40%, rgba(2,5,12,0.98) 100%);
-    gap: 10px;
-    pointer-events: none;
-    animation: menuFadeIn 0.6s 0.15s ease both;
-  }
-  .lobby-bottom > * { pointer-events: auto; }
-
-  .nav-bar {
-    display: flex; align-items: stretch;
-    flex: 1;
-    gap: 4px;
-    background: rgba(6,12,22,0.72);
-    border: 1.5px solid rgba(80,140,200,0.35);
-    border-radius: 8px;
-    padding: 4px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .nav-bar::-webkit-scrollbar { display: none; }
-  .nav-item {
-    flex: 1;
-    min-width: 62px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 2px;
-    padding: 6px 4px;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    color: #7a9cc0;
-    cursor: pointer;
-    font-family: system-ui, sans-serif;
-    transition: background 0.15s, color 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .nav-item .nav-icon {
-    font-size: 20px;
-    line-height: 1;
-    filter: grayscale(0.4) opacity(0.85);
-    transition: filter 0.15s;
-  }
-  .nav-item .nav-label {
-    font: 800 9px system-ui, sans-serif;
-    letter-spacing: 0.8px;
-    text-shadow: 1px 1px 0 rgba(0,0,0,0.6);
-    white-space: nowrap;
-  }
-  .nav-item.active {
-    background: linear-gradient(180deg, rgba(74,217,255,0.18), rgba(74,217,255,0.05));
-    color: #fff;
-  }
-  .nav-item.active .nav-icon { filter: none; }
-  .nav-item.active .nav-label { color: #4ad9ff; }
-  @media (hover: hover) and (pointer: fine) {
-    .nav-item:hover { color: #fff; background: rgba(74,217,255,0.1); }
-  }
-
-  .play-btn-main {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px;
-    padding: 12px 32px;
-    min-width: 130px;
-    background: linear-gradient(180deg, #ffd93d 0%, #f0a500 100%);
-    border: 2px solid #fff2b0;
-    border-radius: 10px;
-    color: #1a1200;
-    font: 900 22px system-ui, sans-serif;
-    letter-spacing: 2px;
-    cursor: pointer;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
-    box-shadow:
-      0 4px 0 #8a5a00,
-      0 8px 22px rgba(255,180,60,0.5),
-      inset 0 1px 0 rgba(255,255,255,0.7);
-    transition: transform 0.1s, box-shadow 0.1s, filter 0.1s;
-    animation: playPulse 2s ease-in-out infinite;
-  }
-  .play-btn-main .play-tri { font-size: 16px; line-height: 1; }
-  .play-btn-main:active {
-    transform: translateY(3px);
-    box-shadow: 0 1px 0 #8a5a00, 0 4px 12px rgba(255,180,60,0.4);
-    filter: brightness(1.1);
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .play-btn-main:hover { filter: brightness(1.08); }
-  }
-  @keyframes playPulse {
-    0%, 100% { box-shadow: 0 4px 0 #8a5a00, 0 8px 22px rgba(255,180,60,0.5), inset 0 1px 0 rgba(255,255,255,0.7); }
-    50%      { box-shadow: 0 4px 0 #8a5a00, 0 8px 32px rgba(255,200,80,0.85), inset 0 1px 0 rgba(255,255,255,0.7); }
-  }
-
-  @keyframes menuFadeIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  #config-controls-btn {
-    position: absolute;
-    left: 50%; transform: translateX(-50%);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
-    z-index: 5;
-    animation: menuFadeIn 0.7s 0.25s ease both;
-  }
-
-  /* ─── Responsive ─── */
-  @media (max-width: 720px) {
-    .player-card { min-width: 0; padding: 5px 10px 5px 5px; }
-    .player-avatar { width: 40px; height: 40px; }
-    .player-avatar .avatar-emoji { font-size: 20px; }
-    .player-name { font-size: 11px; }
-    .side-btn { width: 64px; height: 54px; }
-    .side-btn .side-icon { font-size: 16px; }
-    .side-btn .side-text { font-size: 8px; }
-    .side-btn-pass { height: 66px; }
-    .ranked-card { min-width: 145px; padding: 6px 8px 8px; }
-    .ranked-icon { font-size: 26px; }
-    .ranked-name { font-size: 12px; }
-    .nav-item .nav-label { font-size: 8px; }
-    .play-btn-main { padding: 10px 20px; font-size: 18px; min-width: 100px; }
-    .currency-chip { font-size: 10px; padding: 3px 7px; }
-    .icon-btn { width: 32px; height: 32px; font-size: 15px; }
-  }
-  @media (max-width: 460px) {
-    .lobby-left { gap: 6px; }
-    .side-btn { width: 54px; height: 46px; }
-    .side-btn .side-icon { font-size: 14px; }
-    .side-btn .side-text { font-size: 7px; letter-spacing: 0.5px; }
-    .side-btn-pass { height: 58px; }
-    .ranked-card { min-width: 130px; }
-    .nav-item { min-width: 52px; padding: 5px 3px; }
-    .nav-item .nav-icon { font-size: 16px; }
-    .nav-item .nav-label { font-size: 7px; letter-spacing: 0.5px; }
-    .play-btn-main { font-size: 15px; padding: 9px 14px; min-width: 78px; gap: 5px; }
-    .play-btn-main .play-tri { font-size: 12px; }
-    .player-avatar { width: 34px; height: 34px; }
-    .player-avatar .avatar-emoji { font-size: 17px; }
-    .player-avatar .avatar-level { font-size: 9px; padding: 0 4px; }
-    #config-controls-btn { bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); padding: 9px 14px; }
-  }
-  @media (max-height: 480px) {
-    .lobby-topbar { top: calc(env(safe-area-inset-top, 0px) + 6px); }
-    .player-avatar { width: 34px; height: 34px; }
-    .side-btn { width: 54px; height: 44px; }
-    .side-btn .side-icon { font-size: 14px; }
-    .side-btn .side-text { font-size: 7px; }
-    .side-btn-pass { height: 54px; }
-    .lobby-bottom { padding-top: 4px; }
-    .nav-item { min-width: 48px; padding: 4px 3px; }
-    .play-btn-main { padding: 8px 16px; font-size: 16px; min-width: 90px; }
-  }
+  #mode-menu .menu-content { display: flex; flex-direction: column; align-items: center; gap: clamp(28px, 6vh, 56px); width: 100%; max-width: 480px; text-align: center; }
+  #mode-menu .brand-block { animation: menuFadeIn 0.7s ease both; }
+  #mode-menu h1 { font: 900 clamp(46px, 14vw, 90px)/0.9 system-ui, sans-serif; letter-spacing: clamp(4px, 1.6vw, 10px); margin: 0; color: #ffd93d; text-shadow: 4px 4px 0 #000, 0 0 44px rgba(255,200,80,0.55); }
+  #mode-menu .subtitle { margin-top: clamp(10px, 2.5vw, 18px); font: bold clamp(10px, 3vw, 14px) system-ui, sans-serif; letter-spacing: clamp(3px, 1.3vw, 6px); color: #ffb76b; text-shadow: 2px 2px 0 #000; opacity: 0.92; }
+  #mode-menu .divider { width: 72px; height: 3px; margin: clamp(16px, 3.5vw, 24px) auto 0; background: linear-gradient(90deg, transparent, #ffb76b, transparent); border-radius: 2px; box-shadow: 0 0 14px rgba(255,183,107,0.55); }
+  .play-btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; width: 100%; min-height: 78px; padding: 22px 28px; background: linear-gradient(180deg, #ff9a4a 0%, #e05a10 100%); border: 3px solid #ffc080; border-radius: 18px; color: #fff; font: 900 clamp(20px, 5.8vw, 28px)/1 system-ui, sans-serif; letter-spacing: clamp(3px, 1.2vw, 5px); cursor: pointer; pointer-events: auto; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); box-shadow: 0 8px 0 #8a3200, 0 16px 34px rgba(255,130,60,0.5); transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease; animation: menuFadeIn 0.7s 0.15s ease both; }
+  .play-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #8a3200, 0 6px 18px rgba(255,130,60,0.4); filter: brightness(1.12); }
+  @media (hover: hover) and (pointer: fine) { .play-btn:hover { filter: brightness(1.08); box-shadow: 0 8px 0 #8a3200, 0 20px 44px rgba(255,130,60,0.65); } }
+  .player-chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(14,18,30,0.7); border: 2px solid rgba(120,140,180,0.5); border-radius: 999px; font: bold clamp(11px, 3vw, 13px) ui-monospace, monospace; letter-spacing: 1.5px; color: #d0dbe8; backdrop-filter: blur(6px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: menuFadeIn 0.7s 0.3s ease both; }
+  .player-chip .chip-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: #4cdf7b; box-shadow: 0 0 10px #4cdf7b; animation: pulseDot 1.6s ease-in-out infinite; }
+  @keyframes menuFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
+  @media (max-height: 500px) { #mode-menu .menu-content { gap: 16px; } #mode-menu h1 { font-size: clamp(30px, 7.5vh, 52px); letter-spacing: 5px; } #mode-menu .subtitle { margin-top: 6px; font-size: 10px; letter-spacing: 3px; } #mode-menu .divider { margin-top: 10px; width: 50px; } .play-btn { min-height: 58px; padding: 14px 22px; font-size: clamp(16px, 4.5vh, 22px); } .player-chip { padding: 7px 14px; font-size: 11px; } }
 
   #loadout-menu {
     position: fixed; inset: 0; z-index: 490;
@@ -672,11 +296,7 @@
   #controls-menu .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.6); filter: brightness(1.1); }
 
   /* Modo edición */
-  body.editing-controls #mode-menu .lobby-topbar,
-  body.editing-controls #mode-menu .lobby-left,
-  body.editing-controls #mode-menu .lobby-right,
-  body.editing-controls #mode-menu .lobby-bottom,
-  body.editing-controls #mode-menu #config-controls-btn { display: none !important; }
+  body.editing-controls #mode-menu .menu-content { display: none !important; }
   body.editing-controls #loadout-menu { display: none !important; }
 
   /* Overlay oscuro detrás de los controles */
@@ -733,122 +353,200 @@
     0%, 100% { outline-color: rgba(255,217,61,0.9); }
     50%      { outline-color: rgba(255,217,61,0.35); }
   }
+
+  /* ═══════════════════════════════════════════
+     HOME / LOBBY — UI minimalista estilo FPS móvil
+     ═══════════════════════════════════════════ */
+  #mode-menu {
+    pointer-events: none;
+    display: block;
+    padding: 0;
+    background:
+      linear-gradient(90deg, rgba(3,7,13,.86) 0%, rgba(3,7,13,.38) 38%, rgba(3,7,13,.10) 62%, rgba(3,7,13,.58) 100%),
+      linear-gradient(0deg, rgba(3,7,13,.92) 0%, transparent 34%, rgba(3,7,13,.28) 100%);
+  }
+  #mode-menu.hidden { opacity: 0; pointer-events: none; }
+  #mode-menu.hidden * { pointer-events: none !important; }
+  #mode-menu .menu-content { display:none; }
+
+  .home-topbar { position:absolute; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; padding:18px 24px; padding-top:calc(env(safe-area-inset-top,0px) + 18px); pointer-events:auto; }
+  .profile-card { display:flex; align-items:center; gap:11px; padding:8px 14px 8px 8px; background:rgba(5,10,17,.62); border:1px solid rgba(190,210,230,.24); border-radius:9px; backdrop-filter:blur(10px); box-shadow:0 8px 28px rgba(0,0,0,.25); }
+  .profile-avatar { width:40px; height:40px; display:grid; place-items:center; border-radius:7px; background:linear-gradient(145deg,#25394d,#0e1722); border:1px solid rgba(255,255,255,.28); color:#dcecff; font:900 18px system-ui,sans-serif; }
+  .profile-copy { display:flex; flex-direction:column; gap:3px; min-width:105px; }
+  .profile-copy strong { color:#fff; font:800 14px/1 system-ui,sans-serif; letter-spacing:.8px; }
+  .profile-copy span { color:#8fa7bc; font:700 9px/1 system-ui,sans-serif; letter-spacing:1.3px; }
+  .top-actions { display:flex; gap:8px; }
+  .icon-btn { width:42px; height:42px; border:1px solid rgba(220,235,250,.24); border-radius:8px; background:rgba(5,10,17,.62); color:#eaf4ff; font-size:19px; cursor:pointer; pointer-events:auto; backdrop-filter:blur(10px); }
+  .icon-btn:active { transform:translateY(1px); filter:brightness(1.15); }
+
+  .home-brand { position:absolute; left:5.5vw; top:50%; transform:translateY(-58%); pointer-events:none; text-shadow:0 3px 18px rgba(0,0,0,.85); }
+  .brand-kicker { color:#a9c0d4; font:800 11px/1 system-ui,sans-serif; letter-spacing:4px; margin-bottom:9px; }
+  .home-brand h1 { margin:0; color:#f6f8fb; font:900 clamp(44px,6.2vw,88px)/.86 system-ui,sans-serif; letter-spacing:clamp(2px,.5vw,8px); }
+  .home-brand h1 span { color:#e8b94f; }
+  .brand-line { width:86px; height:3px; margin:18px 0 13px; background:linear-gradient(90deg,#e8b94f,transparent); }
+  .home-brand p { margin:0; color:#b8c7d5; font:700 11px/1 system-ui,sans-serif; letter-spacing:4px; }
+
+  .home-bottom { position:absolute; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; gap:10px; padding:18px 20px calc(env(safe-area-inset-bottom,0px) + 18px); pointer-events:auto; background:linear-gradient(180deg,transparent,rgba(2,5,9,.82)); }
+  .home-mode-card { position:absolute; left:24px; bottom:26px; display:flex; align-items:center; gap:10px; min-width:190px; padding:11px 14px; border-left:3px solid #e8b94f; background:rgba(5,10,17,.64); border-top:1px solid rgba(255,255,255,.10); border-right:1px solid rgba(255,255,255,.10); border-bottom:1px solid rgba(255,255,255,.10); border-radius:0 8px 8px 0; backdrop-filter:blur(8px); }
+  .mode-dot { width:9px; height:9px; border-radius:50%; background:#53dc83; box-shadow:0 0 12px #53dc83; }
+  .home-mode-card div { display:flex; flex-direction:column; gap:4px; }
+  .home-mode-card strong { color:#fff; font:800 12px/1 system-ui,sans-serif; letter-spacing:1.5px; }
+  .home-mode-card small { color:#8da1b4; font:700 8px/1 system-ui,sans-serif; letter-spacing:1.2px; }
+  .play-btn { position:relative; width:min(390px,44vw); min-height:68px; padding:18px 30px; display:flex; align-items:center; justify-content:center; gap:15px; border:2px solid #f7d783; border-radius:7px; background:linear-gradient(180deg,#f5cf62,#d79b2e); color:#101820; font:900 clamp(20px,2.8vw,29px)/1 system-ui,sans-serif; letter-spacing:4px; cursor:pointer; pointer-events:auto; text-shadow:none; box-shadow:0 7px 0 #79551b,0 15px 38px rgba(0,0,0,.38),0 0 32px rgba(231,184,73,.20); transition:transform .12s ease,filter .12s ease,box-shadow .12s ease; animation:homeIn .55s .12s ease both; }
+  .play-btn:hover { filter:brightness(1.07); box-shadow:0 7px 0 #79551b,0 18px 46px rgba(0,0,0,.45),0 0 38px rgba(231,184,73,.28); }
+  .play-btn:active { transform:translateY(5px); box-shadow:0 2px 0 #79551b,0 7px 20px rgba(0,0,0,.36); }
+  .play-triangle { font-size:20px; }
+  .home-hint { color:#91a2b1; font:700 8px/1 system-ui,sans-serif; letter-spacing:2px; }
+
+  @keyframes homeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  #loadout-menu { position:fixed; inset:0; z-index:490; display:none; align-items:center; justify-content:center; padding:calc(env(safe-area-inset-top,0px) + 22px) 22px calc(env(safe-area-inset-bottom,0px) + 22px); box-sizing:border-box; background:linear-gradient(180deg,rgba(2,6,12,.72),rgba(2,6,12,.94)); color:#fff; opacity:0; transition:opacity .25s ease; pointer-events:none; }
+  #loadout-menu.active { display:flex; opacity:1; pointer-events:auto; }
+  .lobby-panel { width:min(760px,94vw); max-height:92vh; display:flex; flex-direction:column; gap:16px; padding:20px; border:1px solid rgba(201,220,238,.22); border-radius:12px; background:linear-gradient(145deg,rgba(12,20,31,.96),rgba(5,10,17,.97)); box-shadow:0 24px 70px rgba(0,0,0,.55); backdrop-filter:blur(14px); animation:homeIn .28s ease both; }
+  .lobby-header { display:flex; align-items:center; justify-content:space-between; }
+  .eyebrow { color:#e8b94f; font:800 9px/1 system-ui,sans-serif; letter-spacing:2.5px; }
+  .lobby-header h2 { margin:5px 0 0; color:#fff; font:900 clamp(28px,5vw,40px)/.9 system-ui,sans-serif; letter-spacing:4px; }
+  .lobby-close { width:40px; height:40px; border:1px solid rgba(255,255,255,.20); border-radius:7px; background:rgba(255,255,255,.05); color:#c7d5e1; font-size:17px; cursor:pointer; }
+  .lobby-main { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .lobby-card { border:1px solid rgba(189,210,229,.14); border-radius:8px; background:rgba(255,255,255,.035); padding:14px; }
+  .players-card { grid-column:1/-1; }
+  .card-label { color:#71869b; font:800 9px/1 system-ui,sans-serif; letter-spacing:2px; margin-bottom:9px; }
+  .mode-title { color:#f4f7fb; font:900 20px/1 system-ui,sans-serif; letter-spacing:1.5px; }
+  .mode-icon { color:#e8b94f; margin-right:7px; }
+  .mode-card p { margin:8px 0 0; color:#91a3b4; font:500 11px/1.35 system-ui,sans-serif; }
+  .map-preview { position:relative; height:105px; overflow:hidden; border-radius:6px; border:1px solid rgba(255,255,255,.11); background:linear-gradient(135deg,#17232c,#34444c); }
+  .map-grid { position:absolute; inset:0; background:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px); background-size:22px 22px; }
+  .map-building { position:absolute; background:#59666b; border:1px solid rgba(255,255,255,.18); box-shadow:5px 5px 0 rgba(0,0,0,.18); }
+  .b1{width:42%;height:28%;left:8%;top:16%}.b2{width:28%;height:45%;left:58%;top:11%}.b3{width:32%;height:24%;left:34%;top:60%}
+  .map-preview span { position:absolute; right:10px; bottom:8px; color:#fff; font:900 13px/1 system-ui,sans-serif; letter-spacing:2px; text-shadow:0 2px 5px #000; }
+  .players-heading { display:flex; justify-content:space-between; align-items:center; }
+  .players-heading .card-label { margin:0; }
+  .players-heading strong { color:#d9e7f2; font:800 12px/1 system-ui,sans-serif; }
+  .player-slots { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:11px; }
+  .player-slot { min-height:58px; display:flex; flex-direction:column; justify-content:center; gap:4px; padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.025); }
+  .player-slot span { color:#71869b; font:700 8px/1 ui-monospace,monospace; }
+  .player-slot strong { color:#dce8f2; font:800 10px/1.1 system-ui,sans-serif; letter-spacing:.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .player-slot small { color:#53dc83; font:800 8px/1 system-ui,sans-serif; letter-spacing:1px; }
+  .player-slot.empty { opacity:.48; }
+  .player-slot.empty strong { color:#8495a4; }
+  .lobby-footer { display:flex; gap:10px; }
+  .lobby-secondary,.lobby-primary { min-height:52px; border-radius:7px; padding:0 20px; cursor:pointer; font:900 12px/1 system-ui,sans-serif; letter-spacing:1.8px; }
+  .lobby-secondary { width:30%; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.05); color:#b9c8d5; }
+  .lobby-primary { flex:1; border:2px solid #f7d783; background:linear-gradient(180deg,#f5cf62,#d79b2e); color:#111820; box-shadow:0 5px 0 #79551b; }
+  .lobby-primary:active,.lobby-secondary:active { transform:translateY(2px); }
+  .lobby-note { text-align:center; color:#71869b; font:700 8px/1 system-ui,sans-serif; letter-spacing:1.4px; }
+
+  @media (max-width:700px) {
+    .home-topbar { padding-left:12px; padding-right:12px; }
+    .profile-card { padding-right:10px; }
+    .home-brand { left:18px; top:42%; transform:translateY(-50%); }
+    .home-brand h1 { font-size:clamp(38px,12vw,62px); }
+    .home-mode-card { display:none; }
+    .play-btn { width:min(430px,88vw); min-height:62px; }
+    .lobby-panel { padding:14px; }
+    .lobby-main { grid-template-columns:1fr; }
+    .players-card { grid-column:auto; }
+    .player-slots { grid-template-columns:1fr 1fr; }
+    .lobby-secondary { width:32%; padding:0 10px; }
+  }
+  @media (max-height:520px) {
+    .home-brand { top:38%; }
+    .home-brand h1 { font-size:clamp(30px,9vh,54px); }
+    .home-brand p,.brand-line { margin-top:8px; }
+    .home-bottom { padding-top:8px; padding-bottom:8px; }
+    .play-btn { min-height:50px; padding:12px 24px; }
+    .lobby-panel { max-height:96vh; gap:9px; padding:12px; }
+    .lobby-main { gap:8px; }
+    .lobby-card { padding:9px; }
+    .map-preview { height:72px; }
+  }
+
 </style>
 </head>
 <body class="in-menu">
 
 <div id="mode-menu">
-  <!-- Barra superior -->
-  <div class="lobby-topbar">
-    <div class="player-card">
-      <div class="player-avatar">
-        <span class="avatar-emoji">🎖️</span>
-        <span class="avatar-level">2</span>
-      </div>
-      <div class="player-meta">
-        <div class="player-name" id="menu-player-name">Jugador</div>
-        <div class="xp-track"><div class="xp-fill"></div></div>
-        <div class="player-level-label">LV. 2 · 38%</div>
+  <div class="home-topbar">
+    <div class="profile-card">
+      <div class="profile-avatar">M</div>
+      <div class="profile-copy">
+        <strong id="menu-player-name">Jugador</strong>
+        <span>NIVEL 1 · OPERADOR</span>
       </div>
     </div>
-    <div class="topbar-right">
-      <div class="currency-chip"><span class="cur-icon">🪙</span><span>613</span><span class="cur-plus">+</span></div>
-      <div class="currency-chip"><span class="cur-icon">💎</span><span>0</span><span class="cur-plus">+</span></div>
-      <button class="icon-btn" type="button" aria-label="Ajustes">⚙</button>
+    <div class="top-actions">
+      <button class="icon-btn" id="config-controls-btn" type="button" aria-label="Configurar controles">⚙</button>
     </div>
   </div>
 
-  <!-- Columna izquierda -->
-  <div class="lobby-left">
-    <button class="side-btn side-btn-pass" type="button">
-      <span class="side-icon">🎫</span>
-      <span class="side-text">STRIKE<br><b>PASS</b></span>
-      <span class="side-badge">1</span>
-    </button>
-    <button class="side-btn" type="button">
-      <span class="side-icon">📋</span>
-      <span class="side-text">TASK</span>
-    </button>
-    <button class="side-btn" type="button">
-      <span class="side-icon">🛒</span>
-      <span class="side-text">MALL</span>
-    </button>
-    <button class="side-btn" type="button">
-      <span class="side-icon">🎁</span>
-      <span class="side-text">EVENT</span>
-    </button>
+  <div class="home-brand">
+    <div class="brand-kicker">COMBATE TÁCTICO</div>
+    <h1>STRIKE<br><span>ARENA</span></h1>
+    <div class="brand-line"></div>
+    <p>ENTRA. LUCHA. GANA.</p>
   </div>
 
-  <!-- Columna derecha -->
-  <div class="lobby-right">
-    <div class="ranked-card">
-      <div class="ranked-ribbon">NEW SEASON</div>
-      <div class="ranked-row">
-        <div class="ranked-icon">🥉</div>
-        <div class="ranked-info">
-          <div class="ranked-name">Bronze III</div>
-          <div class="ranked-track"><div class="ranked-fill"></div></div>
-          <div class="ranked-pts">258 / 400</div>
-        </div>
+  <div class="home-bottom">
+    <div class="home-mode-card">
+      <span class="mode-dot"></span>
+      <div>
+        <strong>COMBATE</strong>
+        <small>PARTIDA PÚBLICA</small>
       </div>
     </div>
-  </div>
-
-  <!-- Barra inferior + PLAY -->
-  <div class="lobby-bottom">
-    <div class="nav-bar">
-      <button class="nav-item active" type="button">
-        <span class="nav-icon">🎯</span>
-        <span class="nav-label">STRIKERS</span>
-      </button>
-      <button class="nav-item" type="button">
-        <span class="nav-icon">🔫</span>
-        <span class="nav-label">LOADOUT</span>
-      </button>
-      <button class="nav-item" type="button">
-        <span class="nav-icon">📦</span>
-        <span class="nav-label">VAULT</span>
-      </button>
-      <button class="nav-item" type="button">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label">LEADERBOARD</span>
-      </button>
-      <button class="nav-item" type="button">
-        <span class="nav-icon">🎖️</span>
-        <span class="nav-label">RANKED</span>
-      </button>
-    </div>
-    <button class="play-btn-main" id="play-btn" type="button">
-      <span class="play-tri">▶</span>
-      <span class="play-lbl">PLAY</span>
+    <button class="play-btn" id="play-btn" type="button">
+      <span class="play-triangle">▶</span>
+      <span class="play-text">JUGAR</span>
     </button>
+    <div class="home-hint">LOBBY SIMPLE · SIN PASE DE BATALLA</div>
   </div>
-
-  <!-- Config controles (táctil) -->
-  <button class="config-btn" id="config-controls-btn" type="button">
-    <span>⚙</span>
-    <span>CONFIGURAR CONTROLES</span>
-  </button>
 </div>
 
 <div id="loadout-menu">
-  <div class="loadout-content">
-    <h2>ELEGÍ TU ARSENAL</h2>
-    <div class="loadout-sub">— PRIMARIA + PISTOLA —</div>
-    <div class="loadout-options">
-      <button class="loadout-btn" data-primary="rifle" type="button" aria-label="Elegir M4A1 con pistola">
-        <img class="loadout-icon" src="texturas/selector_m4a1_pistola.png" alt="M4A1 y pistola" draggable="false">
-        <span class="loadout-name">M4A1</span>
-        <span class="loadout-side">+ PISTOLA</span>
-        <span class="loadout-desc">Automática · Rápida · 30 balas</span>
-      </button>
-      <button class="loadout-btn" data-primary="shotgun" type="button" aria-label="Elegir escopeta con pistola">
-        <img class="loadout-icon" src="texturas/selector_escopeta_pistola.png" alt="Escopeta y pistola" draggable="false">
-        <span class="loadout-name">ESCOPETA</span>
-        <span class="loadout-side">+ PISTOLA</span>
-        <span class="loadout-desc">Daño masivo · Lenta · 7 cartuchos</span>
-      </button>
+  <div class="lobby-panel">
+    <div class="lobby-header">
+      <div>
+        <span class="eyebrow">PARTIDA</span>
+        <h2>LOBBY</h2>
+      </div>
+      <button class="lobby-close" id="lobby-close" type="button" aria-label="Volver">✕</button>
     </div>
+
+    <div class="lobby-main">
+      <section class="lobby-card mode-card">
+        <div class="card-label">MODO</div>
+        <div class="mode-title"><span class="mode-icon">⚔</span> COMBATE</div>
+        <p>Partida rápida · todos contra todos</p>
+      </section>
+
+      <section class="lobby-card map-card">
+        <div class="card-label">MAPA</div>
+        <div class="map-preview">
+          <div class="map-grid"></div>
+          <div class="map-building b1"></div><div class="map-building b2"></div><div class="map-building b3"></div>
+          <span>BODEGA</span>
+        </div>
+      </section>
+
+      <section class="lobby-card players-card">
+        <div class="players-heading">
+          <div class="card-label">JUGADORES</div>
+          <strong><span id="lobby-count">1</span>/12</strong>
+        </div>
+        <div class="player-slots" id="player-slots">
+          <div class="player-slot me"><span>01</span><strong id="lobby-player-name">Jugador</strong><small>LISTO</small></div>
+          <div class="player-slot empty"><span>02</span><strong>ESPERANDO...</strong></div>
+          <div class="player-slot empty"><span>03</span><strong>ESPERANDO...</strong></div>
+          <div class="player-slot empty"><span>04</span><strong>ESPERANDO...</strong></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="lobby-footer">
+      <button class="lobby-secondary" id="lobby-back" type="button">VOLVER</button>
+      <button class="lobby-primary" id="lobby-start" type="button"><span>▶</span> INICIAR PARTIDA</button>
+    </div>
+    <div class="lobby-note">ARMAMENTO PREDETERMINADO: M4A1 + PISTOLA</div>
   </div>
 </div>
 
@@ -934,6 +632,7 @@ import {
 
 let gameMode = null;
 let menuActive = true;
+let menuCamAngle = 0;
 
 const fbxErrors = [];
 function logFbxError(msg) {
@@ -1341,10 +1040,16 @@ const firebaseConfig = {
 let onlineMode = false, db = null;
 let playerId = null, playerName = null, playerNetRef = null;
 const ROOM = 'main';
+// NET_SEND_HZ: rate máximo de envío. sendLocalPlayerState filtra cambios reales.
 const NET_SEND_HZ = 8;
+// NET_STALE_MS: tiempo sin actualización real de un remoto antes de quitarlo.
 const NET_STALE_MS = 30000;
+// HEARTBEAT_MS: aunque no haya cambios, enviamos un latido cada X ms para que
+// los otros no nos consideren inactivos.
 const HEARTBEAT_MS = 5000;
+// DAMAGE_GRACE_MS: ventana de invulnerabilidad tras respawnear.
 const DAMAGE_GRACE_MS = 1500;
+// HIT_MAX_AGE_MS: hits más viejos que esto se descartan.
 const HIT_MAX_AGE_MS = 5000;
 
 const onlinePanel = document.getElementById('online-panel');
@@ -1386,8 +1091,8 @@ const mapRandom = mulberry32(MAP_SEED);
 
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a1220);
-scene.fog = new THREE.Fog(0x0a1220, 90, 200);
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
 scene.add(camera);
@@ -1731,41 +1436,11 @@ const _localChar = buildCharacter();
 const player = _localChar.root;
 const playerBody = _localChar.body;
 player.visible = true;
-player.position.set(0, 0, 0);
-player.rotation.set(0, 0, 0);
+player.position.set(0, 0, -12);
+player.scale.setScalar(2.15);
+player.rotation.y = Math.PI;
 scene.add(player);
 disableShadows(player);
-
-/* ── Plataforma del lobby ── */
-const menuPad = new THREE.Mesh(
-  new THREE.CircleGeometry(2.0, 48),
-  new THREE.MeshLambertMaterial({ color: 0x1a2530 })
-);
-menuPad.rotation.x = -Math.PI / 2;
-menuPad.position.set(0, 0.03, 0);
-menuPad.receiveShadow = true;
-menuPad.visible = true;
-scene.add(menuPad);
-
-const menuRing = new THREE.Mesh(
-  new THREE.RingGeometry(2.0, 2.35, 64),
-  new THREE.MeshBasicMaterial({ color: 0x4ad9ff, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
-);
-menuRing.rotation.x = -Math.PI / 2;
-menuRing.position.set(0, 0.05, 0);
-scene.add(menuRing);
-
-const menuRing2 = new THREE.Mesh(
-  new THREE.RingGeometry(2.6, 2.72, 64),
-  new THREE.MeshBasicMaterial({ color: 0x2a8ac0, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
-);
-menuRing2.rotation.x = -Math.PI / 2;
-menuRing2.position.set(0, 0.05, 0);
-scene.add(menuRing2);
-
-const menuLight = new THREE.PointLight(0x4ad9ff, 2.2, 9, 2);
-menuLight.position.set(0, 2.4, 0);
-scene.add(menuLight);
 
 /* ═══════════════════════════════════════════
    ARMAS — DEFINICIONES
@@ -3466,6 +3141,7 @@ function killPlayer() {
   playDeathSound();
   deathUI.classList.add('active');
   if (pointerLocked) document.exitPointerLock();
+  // FIX: limpiar hits pendientes para que no se apliquen al respawnear.
   if (onlineMode) {
     remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
     sendLocalPlayerState(true);
@@ -3473,6 +3149,7 @@ function killPlayer() {
 }
 function respawnPlayer() {
   playerDead = false; deathTimer = 0;
+  // FIX: periodo de gracia para no recibir daño inmediato al respawnear.
   aliveSince = Date.now();
   for (const p of playerPieces) scene.remove(p.mesh);
   playerPieces.length = 0;
@@ -3499,6 +3176,7 @@ function respawnPlayer() {
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
+  // FIX: limpiar hits y mandar estado con force.
   if (onlineMode) {
     remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
     sendLocalPlayerState(true);
@@ -3577,6 +3255,7 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
     } else normal = finalDir.clone().negate();
     const remoteId = getRemotePlayerId(hit.object);
     if (remoteId && !playerDead) {
+      // FIX: no escribir hits si el objetivo ya está muerto (evita hits fantasma).
       const target = remotePlayers.get(remoteId);
       if (onlineMode && target && !target.dead) {
         const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -3842,6 +3521,10 @@ function addRemotePlayer(id, data) {
   });
 }
 
+/* FIX CLAVE: solo refrescamos lastSeen cuando el ts remoto cambia.
+   Así, si onValue dispara por otros jugadores, no mantenemos "vivo"
+   artificialmente a alguien inactivo. Y usamos lastSeen (local) para
+   el chequeo de stale, así evitamos problemas de clock skew. */
 function updateRemotePlayer(id, data) {
   if (!data) return;
   const now = Date.now();
@@ -3851,10 +3534,12 @@ function updateRemotePlayer(id, data) {
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
 
+  // Solo si llegó un ts NUEVO (más reciente), refrescamos lastSeen.
   if (remoteTs > 0 && remoteTs !== r.lastRemoteTs) {
     r.lastSeen = now;
     r.lastRemoteTs = remoteTs;
   } else if (r.lastRemoteTs === 0 && remoteTs > 0) {
+    // primera vez con ts válido
     r.lastSeen = now;
     r.lastRemoteTs = remoteTs;
   }
@@ -4092,6 +3777,10 @@ function handleRemoteShots(all) {
   }
 }
 
+/* FIX: sendLocalPlayerState con detección de cambios.
+   Solo escribe en Firebase si hay un cambio significativo en la posición/estado
+   O si ya pasó HEARTBEAT_MS desde el último envío. Esto reduce muchísimo el
+   tráfico cuando estás quieto o cuando sólo rotás un poco la cámara. */
 let lastSentTime = 0;
 let lastSentState = null;
 function sendLocalPlayerState(force = false) {
@@ -4143,6 +3832,9 @@ function updateNetwork(dt) {
   }
   const now = Date.now();
   for (const [id, r] of remotePlayers) {
+    // FIX: ahora usamos lastSeen (local). Sólo se actualiza cuando llega
+    // un ts nuevo de ese jugador, así que no se queda "pegado" por otros
+    // onValue disparados por el resto.
     if (now - r.lastSeen > NET_STALE_MS) {
       removeRemotePlayer(id);
       continue;
@@ -4219,9 +3911,13 @@ async function initOnline() {
   onChildAdded(myHitsRef, snap => {
     const hit = snap.val();
     if (!hit) { return; }
+    // FIX: descartar el nodo inmediatamente para que no se re-aplique.
     remove(snap.ref).catch(() => {});
+    // FIX: nada de daño si estamos muertos.
     if (playerDead) return;
+    // FIX: grace period tras respawnear.
     if ((Date.now() - aliveSince) < DAMAGE_GRACE_MS) return;
+    // FIX: descartar hits viejos (evita daño acumulado tras reconexiones).
     if (hit.ts && (Date.now() - hit.ts) > HIT_MAX_AGE_MS) return;
     const dmg = hit.damage || 20;
     health = Math.max(0, health - dmg);
@@ -4231,6 +3927,10 @@ async function initOnline() {
     else sendLocalPlayerState(true);
   });
 
+  // FIX: sweep MUY conservador. Solo elimina LOCALMENTE (no toca Firebase).
+  // Si un jugador se fue sin que onDisconnect se disparara, cada cliente lo
+  // eliminará de su lista cuando su lastSeen local venza. El nodo Firebase
+  // se limpia solo con onDisconnect o cuando el dueño se reconecte.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const nowSweep = Date.now();
@@ -4241,6 +3941,8 @@ async function initOnline() {
     }
   }, 15000);
 
+  // Limpieza opcional de nodos huérfanos en Firebase (una vez cada 60 s):
+  // si un nodo tiene ts muy viejo (> 90 s), lo borramos.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const playersRef2 = ref(db, `rooms/${ROOM}/players`);
@@ -4257,6 +3959,7 @@ async function initOnline() {
   }, 60000);
 
   sendLocalPlayerState(true);
+  // Heartbeat de respaldo (por si algo se pierde). sendLocalPlayerState decide si enviar.
   setInterval(() => { if (!playerDead) sendLocalPlayerState(false); }, HEARTBEAT_MS);
 }
 
@@ -4419,55 +4122,43 @@ function applyOptimizations() {
 const modeMenu = document.getElementById('mode-menu');
 const playBtn = document.getElementById('play-btn');
 const loadoutMenu = document.getElementById('loadout-menu');
+const lobbyStart = document.getElementById('lobby-start');
+const lobbyBack = document.getElementById('lobby-back');
+const lobbyClose = document.getElementById('lobby-close');
+const lobbyPlayerName = document.getElementById('lobby-player-name');
 
-function handlePlay() {
+function openLobby() {
   if (gameMode) return;
   initAudio();
+  if (lobbyPlayerName) lobbyPlayerName.textContent = playerName || 'Jugador';
   modeMenu.classList.add('hidden');
   loadoutMenu.classList.add('active');
 }
-playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
-playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
+function closeLobby() {
+  if (gameMode) return;
+  loadoutMenu.classList.remove('active');
+  modeMenu.classList.remove('hidden');
+}
+function startLobbyMatch() {
+  if (gameMode) return;
+  playerLoadout.primary = 'rifle';
+  playerLoadout.secondary = 'pistol';
+  currentWeaponKey = 'rifle';
+  loadoutMenu.classList.remove('active');
+  selectGameMode('battle');
+}
+playBtn.addEventListener('click', e => { e.preventDefault(); openLobby(); });
+playBtn.addEventListener('touchend', e => { e.preventDefault(); openLobby(); }, { passive:false });
+lobbyStart.addEventListener('click', e => { e.preventDefault(); startLobbyMatch(); });
+lobbyStart.addEventListener('touchend', e => { e.preventDefault(); startLobbyMatch(); }, { passive:false });
+lobbyBack.addEventListener('click', e => { e.preventDefault(); closeLobby(); });
+lobbyClose.addEventListener('click', e => { e.preventDefault(); closeLobby(); });
 
-document.querySelectorAll('.loadout-icon').forEach(img => {
-  img.addEventListener('error', () => {
-    img.style.visibility = 'hidden';
-    img.parentElement.style.background = 'linear-gradient(135deg,#343434,#555)';
-  }, { once: true });
-});
-
-document.querySelectorAll('.loadout-btn').forEach(btn => {
-  const applyLoadout = (e) => {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (gameMode) return;
-    const primary = btn.getAttribute('data-primary');
-    if (primary !== 'rifle' && primary !== 'shotgun') return;
-    playerLoadout.primary = primary;
-    playerLoadout.secondary = 'pistol';
-    currentWeaponKey = primary;
-    loadoutMenu.classList.remove('active');
-    selectGameMode('battle');
-  };
-  btn.addEventListener('click', applyLoadout);
-  btn.addEventListener('touchend', applyLoadout, { passive: false });
-});
+/* Ya no se necesita selector de arsenal: la lobby usa M4A1 + pistola como loadout base. */
+document.querySelectorAll('.loadout-btn').forEach(btn => btn.remove());
 
 function selectGameMode(mode) {
   if (gameMode) return;
-
-  // Salir del lobby
-  player.visible = false;
-  menuPad.visible = false;
-  menuRing.visible = false;
-  menuRing2.visible = false;
-  menuLight.visible = false;
-  scene.background = new THREE.Color(0x87ceeb);
-  scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
-  player.position.set(0, 0, 30);
-  player.rotation.set(0, 0, 0);
-  playerBody.position.y = 0;
-  _localChar.parts.head.rotation.set(0, 0, 0);
-
   gameMode = mode;
   menuActive = false;
   modeMenu.classList.add('hidden');
@@ -4523,32 +4214,20 @@ function selectGameMode(mode) {
 }
 
 /* ─────────────── CÁMARA DEL MENÚ ─────────────── */
-let menuCharTime = 0;
 function updateMenuCamera(dt) {
-  menuCharTime += dt;
-
-  const angle = Math.sin(menuCharTime * 0.35) * 0.32;
-  const radius = 3.4;
-  const camY = 1.55 + Math.sin(menuCharTime * 0.6) * 0.06;
-  camera.position.set(
-    Math.sin(angle) * radius,
-    camY,
-    Math.cos(angle) * radius
-  );
-  camera.lookAt(0, 1.05, 0);
-  camera.fov = 42;
+  menuCamAngle += dt * 0.10;
+  const r = 8.8;
+  const cx = Math.sin(menuCamAngle) * r;
+  const cz = -12 + Math.cos(menuCamAngle) * r;
+  const cy = 3.0 + Math.sin(menuCamAngle * 0.8) * 0.25;
+  camera.position.set(cx, cy, cz);
+  camera.lookAt(0, 1.45, -12);
+  camera.fov = 48;
   camera.updateProjectionMatrix();
-
-  if (playerBody) {
-    playerBody.position.y = Math.sin(menuCharTime * 1.8) * 0.012;
+  if (player && menuActive) {
+    player.position.y = Math.sin(performance.now() * 0.0014) * 0.035;
+    player.rotation.y = Math.PI + Math.sin(menuCamAngle * 0.8) * 0.10;
   }
-  const head = _localChar.parts.head;
-  if (head) {
-    head.rotation.y = Math.sin(menuCharTime * 0.7) * 0.05;
-    head.rotation.x = Math.sin(menuCharTime * 0.5) * 0.02;
-  }
-  menuRing.rotation.z = menuCharTime * 0.35;
-  menuRing2.rotation.z = -menuCharTime * 0.22;
 }
 
 /* ═══════════════════════════════════════════
@@ -4656,6 +4335,7 @@ function initTouchConfig() {
   applyTouchConfig();
 }
 
+/* ─────── Editor ─────── */
 const controlsMenu = document.getElementById('controls-menu');
 const configControlsBtn = document.getElementById('config-controls-btn');
 
@@ -4697,6 +4377,7 @@ document.getElementById('ctrl-reset').addEventListener('click', e => {
   applyTouchConfig();
 });
 
+/* Bloquear pointerdown de los botones en modo edición */
 document.addEventListener('pointerdown', e => {
   if (!editMode) return;
   const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
@@ -4705,6 +4386,7 @@ document.addEventListener('pointerdown', e => {
   e.stopPropagation();
 }, true);
 
+/* Drag / resize con eventos táctiles */
 document.addEventListener('touchstart', e => {
   if (!editMode) return;
   const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
@@ -4762,11 +4444,12 @@ function endEditTouch(e) {
 document.addEventListener('touchend', endEditTouch, { capture: true });
 document.addEventListener('touchcancel', endEditTouch, { capture: true });
 
+/* Aplicar config y reaplicar en resize */
 initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(0, 0, 0);
+player.position.set(0, 0, 30);
 
 function animate() {
   requestAnimationFrame(animate);
