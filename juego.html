@@ -204,6 +204,155 @@
   body.in-menu #crosshair,
   body.in-menu #online-panel,
   body.in-menu #debug { display: none !important; }
+
+  /* ═══════════════════════════════════════════
+     CONFIGURACIÓN DE CONTROLES TÁCTILES
+     ═══════════════════════════════════════════ */
+  .config-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+    padding: 14px 22px;
+    background: linear-gradient(180deg, rgba(70,90,120,0.75), rgba(20,30,50,0.95));
+    border: 2px solid rgba(180,200,240,0.55);
+    border-radius: 12px;
+    color: #fff;
+    font: bold clamp(12px, 3.2vw, 15px) system-ui, sans-serif;
+    letter-spacing: 2.5px;
+    cursor: pointer;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+    box-shadow: 0 5px 0 rgba(0,0,0,0.5), 0 12px 24px rgba(0,0,0,0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s;
+    animation: menuFadeIn 0.7s 0.22s ease both;
+    pointer-events: auto;
+  }
+  body.is-touch .config-btn { display: inline-flex; }
+  .config-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+  @media (hover: hover) and (pointer: fine) {
+    .config-btn:hover { filter: brightness(1.12); border-color: #ffd93d; }
+  }
+
+  #controls-menu {
+    position: fixed; inset: 0; z-index: 507;
+    display: none; pointer-events: none; color: #fff;
+  }
+  #controls-menu.active { display: block; }
+
+  #controls-menu .ctrl-header {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    left: 50%; transform: translateX(-50%);
+    text-align: center; pointer-events: none;
+    padding: 10px 18px;
+    background: rgba(0,0,0,0.7);
+    border: 2px solid rgba(255,217,61,0.65);
+    border-radius: 10px;
+    backdrop-filter: blur(6px);
+    max-width: calc(100% - 24px); box-sizing: border-box;
+    animation: menuFadeIn 0.4s ease both;
+  }
+  #controls-menu h2 {
+    margin: 0 0 4px;
+    font: 900 clamp(14px, 3.6vw, 18px) system-ui, sans-serif;
+    letter-spacing: 3px; color: #ffd93d;
+    text-shadow: 2px 2px 0 #000;
+  }
+  #controls-menu .ctrl-hint {
+    font: bold clamp(9px, 2.4vw, 11px) system-ui, sans-serif;
+    letter-spacing: 1.4px; color: #d0dbe8;
+    text-shadow: 1px 1px 0 #000;
+  }
+  #controls-menu .ctrl-actions {
+    position: absolute;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+    left: 0; right: 0;
+    display: flex; flex-wrap: wrap; gap: 10px;
+    justify-content: center;
+    padding: 0 16px;
+    pointer-events: none;
+  }
+  #controls-menu .ctrl-btn {
+    pointer-events: auto;
+    padding: 12px 18px;
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,0.85);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font: bold clamp(11px, 2.8vw, 13px) system-ui, sans-serif;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #000;
+    transition: transform 0.1s ease, filter 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.6);
+  }
+  #controls-menu .ctrl-btn.primary {
+    background: linear-gradient(180deg, #ff9a4a, #e05a10);
+    border-color: #ffc080;
+  }
+  #controls-menu .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.6); filter: brightness(1.1); }
+
+  /* Modo edición */
+  body.editing-controls #mode-menu .menu-content { display: none !important; }
+  body.editing-controls #loadout-menu { display: none !important; }
+
+  /* Overlay oscuro detrás de los controles */
+  body.touch-edit-mode::before {
+    content: '';
+    position: fixed; inset: 0;
+    z-index: 504;
+    background: rgba(0,0,0,0.5);
+    pointer-events: auto;
+    touch-action: none;
+  }
+
+  body.touch-edit-mode #joystick,
+  body.touch-edit-mode #shoot-btn,
+  body.touch-edit-mode #aim-btn,
+  body.touch-edit-mode #jump-btn,
+  body.touch-edit-mode #swap-btn,
+  body.touch-edit-mode #grenade-btn,
+  body.touch-edit-mode #crouch-btn,
+  body.touch-edit-mode #debug-btn {
+    display: flex !important;
+    pointer-events: auto !important;
+    z-index: 510 !important;
+    opacity: 1 !important;
+    outline: 2px dashed rgba(255,217,61,0.9);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.4), 0 0 22px rgba(255,217,61,0.28);
+    animation: editPulse 1.8s ease-in-out infinite;
+    transition: none !important;
+    touch-action: none;
+  }
+  body.touch-edit-mode #joystick { display: block !important; }
+
+  body.touch-edit-mode #joystick::after,
+  body.touch-edit-mode #shoot-btn::after,
+  body.touch-edit-mode #aim-btn::after,
+  body.touch-edit-mode #jump-btn::after,
+  body.touch-edit-mode #swap-btn::after,
+  body.touch-edit-mode #grenade-btn::after,
+  body.touch-edit-mode #crouch-btn::after,
+  body.touch-edit-mode #debug-btn::after {
+    content: '';
+    position: absolute;
+    right: 3px; bottom: 3px;
+    width: 18px; height: 18px;
+    background: linear-gradient(135deg, transparent 45%, #ffd93d 45%);
+    border-bottom-right-radius: inherit;
+    pointer-events: none;
+    filter: drop-shadow(0 0 3px rgba(0,0,0,0.7));
+  }
+  body.touch-edit-mode #debug-btn::after { display: none; }
+
+  @keyframes editPulse {
+    0%, 100% { outline-color: rgba(255,217,61,0.9); }
+    50%      { outline-color: rgba(255,217,61,0.35); }
+  }
 </style>
 </head>
 <body class="in-menu">
@@ -223,6 +372,10 @@
       <span class="chip-dot"></span>
       <span id="menu-player-name">Jugador</span>
     </div>
+    <button class="config-btn" id="config-controls-btn" type="button">
+      <span>⚙</span>
+      <span>CONFIGURAR CONTROLES</span>
+    </button>
   </div>
 </div>
 
@@ -244,6 +397,18 @@
         <span class="loadout-desc">Daño masivo · Lenta · 7 cartuchos</span>
       </button>
     </div>
+  </div>
+</div>
+
+<div id="controls-menu">
+  <div class="ctrl-header">
+    <h2>CONTROLES TÁCTILES</h2>
+    <div class="ctrl-hint">Arrastrá para mover · Esquina inferior derecha para redimensionar</div>
+  </div>
+  <div class="ctrl-actions">
+    <button class="ctrl-btn" id="ctrl-reset" type="button">↺ RESTABLECER</button>
+    <button class="ctrl-btn" id="ctrl-cancel" type="button">✕ CANCELAR</button>
+    <button class="ctrl-btn primary" id="ctrl-save" type="button">✓ GUARDAR</button>
   </div>
 </div>
 
@@ -2436,7 +2601,7 @@ const clickOverlay = document.getElementById('click-overlay');
 const touchInput = { x: 0, y: 0 };
 let joystickActiveId = null;
 let joystickOrigin = { x: 0, y: 0 };
-const JOYSTICK_RADIUS = 45;
+let JOYSTICK_RADIUS = 45;
 
 const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (isTouch) document.body.classList.add('is-touch');
@@ -3906,6 +4071,223 @@ function updateMenuCamera(dt) {
   camera.updateProjectionMatrix();
 }
 
+/* ═══════════════════════════════════════════
+   CONFIGURACIÓN DE CONTROLES TÁCTILES
+   ═══════════════════════════════════════════ */
+const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'debug-btn'];
+
+const DEFAULT_TOUCH_CONFIG = {
+  'joystick':    { cx: 0.19, cy: 0.90, size: 110 },
+  'shoot-btn':   { cx: 0.85, cy: 0.91, size: 88 },
+  'aim-btn':     { cx: 0.72, cy: 0.90, size: 68 },
+  'jump-btn':    { cx: 0.85, cy: 0.78, size: 68 },
+  'swap-btn':    { cx: 0.72, cy: 0.80, size: 68 },
+  'grenade-btn': { cx: 0.42, cy: 0.90, size: 68 },
+  'crouch-btn':  { cx: 0.25, cy: 0.90, size: 68 },
+  'debug-btn':   { cx: 0.91, cy: 0.05, size: 50 }
+};
+
+const BASE_FONT_SIZES = {
+  'shoot-btn': 34, 'aim-btn': 26, 'jump-btn': 11,
+  'swap-btn': 22, 'grenade-btn': 26, 'crouch-btn': 24
+};
+
+const TOUCH_CONFIG_KEY = 'lp_touch_controls_v1';
+
+let touchConfig = {};
+let editMode = false;
+let dragState = null;
+
+function loadTouchConfigRaw() {
+  try {
+    const s = localStorage.getItem(TOUCH_CONFIG_KEY);
+    if (s) return JSON.parse(s);
+  } catch (e) {}
+  return {};
+}
+function saveTouchConfigRaw(cfg) {
+  try { localStorage.setItem(TOUCH_CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
+}
+
+function applySingleTouchControl(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const c = touchConfig[id];
+  if (!c) return;
+  const W = innerWidth, H = innerHeight;
+  const maxSize = Math.min(W, H) * 0.5;
+  const size = Math.max(40, Math.min(maxSize, c.size));
+  let left = c.cx * W - size / 2;
+  let top  = c.cy * H - size / 2;
+  left = Math.max(0, Math.min(W - size, left));
+  top  = Math.max(0, Math.min(H - size, top));
+
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  el.style.right = 'auto';
+  el.style.bottom = 'auto';
+  el.style.width = size + 'px';
+  el.style.height = size + 'px';
+
+  const baseSize = DEFAULT_TOUCH_CONFIG[id].size;
+  const ratio = size / baseSize;
+
+  if (id === 'joystick') {
+    const stick = document.getElementById('stick');
+    if (stick) {
+      const ss = 46 * ratio;
+      stick.style.width = ss + 'px';
+      stick.style.height = ss + 'px';
+      stick.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
+    }
+    JOYSTICK_RADIUS = 45 * ratio;
+    const zone = document.getElementById('joystick-zone');
+    if (zone) {
+      const margin = 90;
+      zone.style.left = Math.max(0, left - margin) + 'px';
+      zone.style.top = Math.max(0, top - margin) + 'px';
+      zone.style.right = 'auto';
+      zone.style.bottom = 'auto';
+      zone.style.width = Math.min(W, size + margin * 2) + 'px';
+      zone.style.height = Math.min(H, size + margin * 2) + 'px';
+    }
+  } else if (BASE_FONT_SIZES[id]) {
+    el.style.fontSize = (BASE_FONT_SIZES[id] * ratio) + 'px';
+  }
+}
+
+function applyTouchConfig() {
+  if (!isTouch) return;
+  for (const id of TOUCH_CONTROLS) applySingleTouchControl(id);
+}
+
+function initTouchConfig() {
+  const saved = loadTouchConfigRaw();
+  touchConfig = {};
+  for (const id of TOUCH_CONTROLS) {
+    const def = DEFAULT_TOUCH_CONFIG[id];
+    const s = saved[id];
+    touchConfig[id] = s ? {
+      cx: typeof s.cx === 'number' ? s.cx : def.cx,
+      cy: typeof s.cy === 'number' ? s.cy : def.cy,
+      size: typeof s.size === 'number' ? s.size : def.size
+    } : { ...def };
+  }
+  applyTouchConfig();
+}
+
+/* ─────── Editor ─────── */
+const controlsMenu = document.getElementById('controls-menu');
+const configControlsBtn = document.getElementById('config-controls-btn');
+
+function openControlsEditor() {
+  if (editMode) return;
+  editMode = true;
+  initAudio();
+  document.body.classList.add('editing-controls', 'touch-edit-mode');
+  controlsMenu.classList.add('active');
+  for (const id of TOUCH_CONTROLS) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+}
+
+function closeControlsEditor(save) {
+  if (!editMode) return;
+  editMode = false;
+  dragState = null;
+  document.body.classList.remove('editing-controls', 'touch-edit-mode');
+  controlsMenu.classList.remove('active');
+  for (const id of TOUCH_CONTROLS) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  }
+  if (save) saveTouchConfigRaw(touchConfig);
+  else initTouchConfig();
+}
+
+if (configControlsBtn) {
+  configControlsBtn.addEventListener('click', e => { e.preventDefault(); openControlsEditor(); });
+  configControlsBtn.addEventListener('touchend', e => { e.preventDefault(); openControlsEditor(); }, { passive: false });
+}
+document.getElementById('ctrl-save').addEventListener('click', e => { e.preventDefault(); closeControlsEditor(true); });
+document.getElementById('ctrl-cancel').addEventListener('click', e => { e.preventDefault(); closeControlsEditor(false); });
+document.getElementById('ctrl-reset').addEventListener('click', e => {
+  e.preventDefault();
+  for (const id of TOUCH_CONTROLS) touchConfig[id] = { ...DEFAULT_TOUCH_CONFIG[id] };
+  applyTouchConfig();
+});
+
+/* Bloquear pointerdown de los botones en modo edición */
+document.addEventListener('pointerdown', e => {
+  if (!editMode) return;
+  const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
+  if (!el || TOUCH_CONTROLS.indexOf(el.id) === -1) return;
+  e.preventDefault();
+  e.stopPropagation();
+}, true);
+
+/* Drag / resize con eventos táctiles */
+document.addEventListener('touchstart', e => {
+  if (!editMode) return;
+  const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
+  if (!el || TOUCH_CONTROLS.indexOf(el.id) === -1) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const t = e.changedTouches[0];
+  if (!t) return;
+  const rect = el.getBoundingClientRect();
+  const rz = Math.min(28, rect.width * 0.35);
+  const isResize = (t.clientX > rect.right - rz) && (t.clientY > rect.bottom - rz);
+  const cfg = touchConfig[el.id];
+  dragState = {
+    el, id: el.id, isResize,
+    startX: t.clientX, startY: t.clientY,
+    startCx: cfg.cx, startCy: cfg.cy, startSize: cfg.size,
+    touchId: t.identifier
+  };
+}, { capture: true, passive: false });
+
+document.addEventListener('touchmove', e => {
+  if (!dragState) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier !== dragState.touchId) continue;
+    e.preventDefault();
+    e.stopPropagation();
+    const dx = t.clientX - dragState.startX;
+    const dy = t.clientY - dragState.startY;
+    const cfg = touchConfig[dragState.id];
+    if (dragState.isResize) {
+      const delta = (dx + dy) * 0.5;
+      let newSize = dragState.startSize + delta * 2;
+      const maxSize = Math.min(innerWidth, innerHeight) * 0.5;
+      newSize = Math.max(40, Math.min(maxSize, newSize));
+      cfg.size = newSize;
+    } else {
+      cfg.cx = dragState.startCx + dx / innerWidth;
+      cfg.cy = dragState.startCy + dy / innerHeight;
+      const halfW = (cfg.size / 2) / innerWidth;
+      const halfH = (cfg.size / 2) / innerHeight;
+      cfg.cx = Math.max(halfW, Math.min(1 - halfW, cfg.cx));
+      cfg.cy = Math.max(halfH, Math.min(1 - halfH, cfg.cy));
+    }
+    applySingleTouchControl(dragState.id);
+    break;
+  }
+}, { capture: true, passive: false });
+
+function endEditTouch(e) {
+  if (!dragState) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier === dragState.touchId) { dragState = null; break; }
+  }
+}
+document.addEventListener('touchend', endEditTouch, { capture: true });
+document.addEventListener('touchcancel', endEditTouch, { capture: true });
+
+/* Aplicar config y reaplicar en resize */
+initTouchConfig();
+
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
 player.position.set(0, 0, 30);
@@ -3952,6 +4334,7 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  applyTouchConfig();
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
 
