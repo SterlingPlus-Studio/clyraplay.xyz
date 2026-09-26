@@ -206,14 +206,11 @@
   #joystick {
     position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), rgba(255,255,255,0.01) 72%);
-    border: 1.5px solid rgba(255,255,255,0.28);
-    backdrop-filter: blur(6px) saturate(150%);
-    -webkit-backdrop-filter: blur(6px) saturate(150%);
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.35);
     box-shadow:
-      0 8px 24px rgba(0,0,0,0.28),
-      inset 0 1px 0 rgba(255,255,255,0.14),
-      inset 0 0 24px rgba(120,180,255,0.06);
+      0 6px 20px rgba(0,0,0,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.14);
     display: none; touch-action: none; z-index: 10;
   }
   #joystick.active { display: block; }
@@ -233,23 +230,18 @@
   #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; }
   #camera-zone.active { display: block; }
 
-  /* ═══════ BOTONES TÁCTILES (más transparentes) ═══════ */
+  /* ═══════ BOTONES TÁCTILES (fondo totalmente transparente) ═══════ */
   .btn {
     position: fixed; display: none; align-items: center; justify-content: center;
     z-index: 10; touch-action: none; cursor: pointer;
     color: #fff;
     font: 700 14px/1 system-ui, -apple-system, sans-serif;
     letter-spacing: 0.4px;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.6);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,1);
     border-radius: 50%;
-    border: 1.5px solid rgba(255,255,255,0.55);
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(4px) saturate(140%);
-    -webkit-backdrop-filter: blur(4px) saturate(140%);
-    box-shadow:
-      0 2px 10px rgba(0,0,0,0.28),
-      inset 0 1px 0 rgba(255,255,255,0.20),
-      inset 0 0 12px rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.7);
+    background: transparent;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.20);
     transition: transform 0.12s cubic-bezier(.34,.8,.4,1.3),
                 background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     will-change: transform;
@@ -258,15 +250,15 @@
   .btn.active { display: flex; }
   .btn:active {
     transform: scale(0.92);
-    background: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.20);
     border-color: #fff;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.35), inset 0 0 18px rgba(255,255,255,0.35);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.35), inset 0 0 18px rgba(255,255,255,0.28);
   }
   #shoot-btn {
     right: 25px; bottom: 40px; width: 100px; height: 100px; font-size: 40px;
-    background: rgba(255,60,60,0.14);
-    border-color: rgba(255,140,140,0.80);
-    box-shadow: 0 3px 14px rgba(220,40,40,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+    background: transparent;
+    border-color: rgba(255,140,140,0.85);
+    box-shadow: 0 3px 14px rgba(220,40,40,0.22);
   }
   #shoot-btn:active {
     background: rgba(255,80,80,0.42);
@@ -275,8 +267,8 @@
   }
   #aim-btn {
     right: 140px; bottom: 55px; width: 75px; height: 75px; font-size: 30px;
-    background: rgba(255,220,80,0.12);
-    border-color: rgba(255,235,150,0.75);
+    background: transparent;
+    border-color: rgba(255,235,150,0.8);
   }
   #aim-btn.held {
     background: rgba(255,235,120,0.55);
@@ -287,19 +279,19 @@
   #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; letter-spacing: 1.6px; }
   #swap-btn {
     right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px;
-    background: rgba(120,200,255,0.12);
-    border-color: rgba(180,225,255,0.75);
+    background: transparent;
+    border-color: rgba(180,225,255,0.8);
   }
   #grenade-btn {
     right: 235px; bottom: 55px; width: 75px; height: 75px; font-size: 30px;
-    background: rgba(160,120,255,0.12);
-    border-color: rgba(210,190,255,0.75);
+    background: transparent;
+    border-color: rgba(210,190,255,0.8);
   }
   #grenade-btn.cooling { opacity: 0.35; }
   #crouch-btn {
     right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px;
-    background: rgba(120,220,170,0.12);
-    border-color: rgba(180,255,205,0.75);
+    background: transparent;
+    border-color: rgba(180,255,205,0.8);
   }
   #crouch-btn.held {
     background: rgba(160,245,190,0.55);
@@ -308,8 +300,8 @@
   }
   #debug-btn {
     top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
-    background: rgba(80,220,130,0.12);
-    border-color: rgba(160,255,180,0.75);
+    background: transparent;
+    border-color: rgba(160,255,180,0.8);
   }
 
   #online-panel {
@@ -330,7 +322,6 @@
   body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
   body.is-touch #info { display: none; }
 
-  /* HUD táctil (a la derecha del minimapa) */
   body.is-touch #minimap-wrap {
     top: calc(env(safe-area-inset-top, 0px) + 8px);
     left: calc(env(safe-area-inset-left, 0px) + 8px);
@@ -1752,70 +1743,12 @@ function computeBoxPenetration(px, pz, radius, box) {
 }
 
 /* ═══════════════════════════════════════════
-   BODEGA DE CONTENEDORES
+   BODEGA DE CONTENEDORES — SOLO FBX
    ═══════════════════════════════════════════ */
 const FENCE_X = 54;
 const FENCE_Z = 52;
 
-function darkenHex(hex, f) {
-  const c = new THREE.Color(hex);
-  c.multiplyScalar(f);
-  return c.getHex();
-}
-
 const CONT_L = 6.0, CONT_W = 2.5, CONT_H = 2.6, CONT_GAP = 0.15;
-
-function createSingleContainer(color) {
-  const g = new THREE.Group();
-  const mBody = cachedMat(color);
-  const mDark = cachedMat(darkenHex(color, 0.55));
-  const mFrame = cachedMat(0x181818);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(CONT_L, CONT_H, CONT_W), mBody);
-  body.position.y = CONT_H / 2;
-  body.castShadow = true; body.receiveShadow = true;
-  g.add(body);
-  const ribCount = 6;
-  const ribGeo = new THREE.BoxGeometry(0.08, CONT_H - 0.35, 0.05);
-  for (let i = 0; i < ribCount; i++) {
-    const px = -CONT_L/2 + 0.7 + i * (CONT_L - 1.4) / (ribCount - 1);
-    const rf = new THREE.Mesh(ribGeo, mDark);
-    rf.position.set(px, CONT_H/2,  CONT_W/2 + 0.013); g.add(rf);
-    const rb = new THREE.Mesh(ribGeo, mDark);
-    rb.position.set(px, CONT_H/2, -CONT_W/2 - 0.013); g.add(rb);
-  }
-  const postGeo = new THREE.BoxGeometry(0.24, CONT_H + 0.04, 0.24);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
-    const post = new THREE.Mesh(postGeo, mFrame);
-    post.position.set(sx * (CONT_L/2 - 0.12), CONT_H/2, sz * (CONT_W/2 - 0.12));
-    g.add(post);
-  }
-  const rimGeo = new THREE.BoxGeometry(CONT_L + 0.05, 0.1, CONT_W + 0.05);
-  const topRim = new THREE.Mesh(rimGeo, mFrame); topRim.position.y = CONT_H - 0.05; g.add(topRim);
-  const botRim = new THREE.Mesh(rimGeo, mFrame); botRim.position.y = 0.05; g.add(botRim);
-  const doorGeo = new THREE.BoxGeometry(0.06, CONT_H - 0.4, CONT_W - 0.15);
-  const door = new THREE.Mesh(doorGeo, mDark);
-  door.position.set(CONT_L/2 + 0.015, CONT_H/2, 0);
-  g.add(door);
-  return g;
-}
-
-function buildProceduralStack(colors) {
-  const g = new THREE.Group();
-  const stepX = CONT_L + CONT_GAP;
-  const stepZ = CONT_W + CONT_GAP;
-  const offsets = [
-    [-stepX/2, -stepZ/2, colors[0]],
-    [-stepX/2,  stepZ/2, colors[1]],
-    [ stepX/2, -stepZ/2, colors[2]],
-    [ stepX/2,  stepZ/2, colors[3]],
-  ];
-  for (const [ox, oz, col] of offsets) {
-    const c = createSingleContainer(col);
-    c.position.set(ox, 0, oz);
-    g.add(c);
-  }
-  return g;
-}
 
 const C_RED    = [0xb03a2e, 0xc0453a, 0x8b2c20, 0xa33a2e];
 const C_RED2   = [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e];
@@ -1856,8 +1789,6 @@ for (const def of containerLayout) {
     rot: def.rot, kind: 'wall'
   });
 }
-
-const containerFbxStatus = { c1: false, c2: false };
 
 function loadContainerFBX(url) {
   return new Promise((resolve) => {
@@ -1905,12 +1836,9 @@ Promise.all([
   loadContainerFBX('modelos3d/Container1.fbx'),
   loadContainerFBX('modelos3d/Container2.fbx')
 ]).then(([c1, c2]) => {
-  containerFbxStatus.c1 = !!c1;
-  containerFbxStatus.c2 = !!c2;
   const anyLoaded = c1 || c2;
   if (!anyLoaded) {
-    logFbxError('Contenedores FBX no disponibles, usando procedural.');
-    for (const { def, group } of containerGroups) group.add(buildProceduralStack(def.colors));
+    logFbxError('Contenedores FBX no disponibles. No se agregan contenedores.');
     try { applyOptimizations(); } catch (e) {}
     return;
   }
@@ -1921,7 +1849,7 @@ Promise.all([
     let template = null;
     if (def.type === 1) template = c1 || c2;
     else                template = c2 || c1;
-    if (!template) { group.add(buildProceduralStack(def.colors)); continue; }
+    if (!template) continue;
     for (const [ox, oz] of offsets) {
       const c = template.clone(true);
       c.position.set(ox, 0, oz);
@@ -1933,15 +1861,11 @@ Promise.all([
   try { applyOptimizations(); } catch (e) {}
 }).catch(err => {
   logFbxError('Error general contenedores: ' + err.message);
-  for (const { def, group } of containerGroups) group.add(buildProceduralStack(def.colors));
 });
 
 /* ═══════════════════════════════════════════
-   VEHÍCULOS FBX
+   VEHÍCULOS — SOLO FBX
    ═══════════════════════════════════════════ */
-const vehicleFbxStatus = { military: false, pickup: false, cart: false };
-const vehicleMeshCounts = { military: 0, pickup: 0, cart: 0 };
-
 function loadVehicleFBX(url, targetLen) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
@@ -2004,28 +1928,6 @@ function loadVehicleFBX(url, targetLen) {
   });
 }
 
-function buildVehicleFallback(type) {
-  const g = new THREE.Group();
-  const cols = { military: 0x4a5a3a, pickup: 0x8a2b1e, cart: 0xc0392b };
-  const mBody = cachedMat(cols[type] || 0x555555);
-  const mDark = cachedMat(0x111111);
-  const mGlass = cachedMat(0x1a2a3a);
-  let L = 5.5, W = 2.2, H = 0.9;
-  const body = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), mBody);
-  body.position.y = H / 2 + 0.35; body.castShadow = true; g.add(body);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(L * 0.5, 0.7, W * 0.95), mGlass);
-  cabin.position.set(-L * 0.05, H + 0.7, 0); cabin.castShadow = true; g.add(cabin);
-  const wGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 8);
-  for (const [wx, wz] of [[-L*0.35, -W*0.5], [L*0.35, -W*0.5], [-L*0.35, W*0.5], [L*0.35, W*0.5]]) {
-    const wm = new THREE.Mesh(wGeo, mDark);
-    wm.rotation.x = Math.PI / 2;
-    wm.position.set(wx, 0.35, wz);
-    wm.castShadow = true;
-    g.add(wm);
-  }
-  return g;
-}
-
 const vehicleSpawns = [
   { type: 'military', x: -12, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
   { type: 'military', x:  14, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
@@ -2074,12 +1976,6 @@ Promise.all([
   const milBase  = milRes  && milRes.obj  ? milRes.obj  : null;
   const pickBase = pickRes && pickRes.obj ? pickRes.obj : null;
   const cartBase = cartRes && cartRes.obj ? cartRes.obj : null;
-  vehicleFbxStatus.military = !!milBase;
-  vehicleFbxStatus.pickup   = !!pickBase;
-  vehicleFbxStatus.cart     = !!cartBase;
-  vehicleMeshCounts.military = milRes  && milRes.meshCount  ? milRes.meshCount  : 0;
-  vehicleMeshCounts.pickup   = pickRes && pickRes.meshCount ? pickRes.meshCount : 0;
-  vehicleMeshCounts.cart     = cartRes && cartRes.meshCount ? cartRes.meshCount : 0;
   const templates = {
     military: milBase  ? rescaleToLength(milBase,  6.5) : null,
     pickup:   pickBase ? rescaleToLength(pickBase, 5.5) : null,
@@ -2087,15 +1983,7 @@ Promise.all([
   };
   for (const spawn of vehicleSpawns) {
     const tmpl = templates[spawn.type];
-    if (!tmpl) {
-      if (spawn.type === 'cart') continue;
-      const v = buildVehicleFallback(spawn.type);
-      v.position.set(spawn.x, 0, spawn.z);
-      v.rotation.y = spawn.rot;
-      scene.add(v);
-      colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
-      continue;
-    }
+    if (!tmpl) continue;
     const inner = tmpl.clone(true);
     inner.position.set(0, 0, 0);
     inner.rotation.set(0, 0, 0);
@@ -2125,14 +2013,6 @@ Promise.all([
   try { applyOptimizations(); } catch (e) {}
 }).catch(err => {
   logFbxError('Error general vehículos: ' + err.message);
-  for (const spawn of vehicleSpawns) {
-    if (spawn.type === 'cart') continue;
-    const v = buildVehicleFallback(spawn.type);
-    v.position.set(spawn.x, 0, spawn.z);
-    v.rotation.y = spawn.rot;
-    scene.add(v);
-    colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
-  }
 });
 
 /* ─────────────── ALMACÉN NORTE ─────────────── */
@@ -3736,7 +3616,6 @@ function drawMinimap() {
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.clip();
 
-  // Fondo con gradiente radial
   const bgGrad = ctx.createRadialGradient(cx, cy, 4, cx, cy, radius);
   bgGrad.addColorStop(0, '#12203a');
   bgGrad.addColorStop(0.65, '#0a1222');
@@ -3744,7 +3623,6 @@ function drawMinimap() {
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, MM_W, MM_H);
 
-  // Anillos concéntricos tácticos
   ctx.strokeStyle = 'rgba(120,180,255,0.10)';
   ctx.lineWidth = 1;
   for (let i = 1; i <= 3; i++) {
@@ -3752,7 +3630,6 @@ function drawMinimap() {
     ctx.arc(cx, cy, (radius * i) / 4, 0, Math.PI * 2);
     ctx.stroke();
   }
-  // Cruz táctica
   ctx.strokeStyle = 'rgba(120,180,255,0.14)';
   ctx.beginPath();
   ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius);
@@ -3762,21 +3639,17 @@ function drawMinimap() {
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + cx;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + cy;
 
-  // Cerco perimetral
   ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
   ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE);
 
-  // Almacén
   const wh = wx2mm(0), wz = wz2mm(-40);
   ctx.fillStyle = '#7d7a6e';
   ctx.fillRect(wh - 23 * MM_SCALE, wz - 7 * MM_SCALE, 46 * MM_SCALE, 14 * MM_SCALE);
 
-  // Oficina
   const ox = wx2mm(-38), oz = wz2mm(38);
   ctx.fillStyle = '#e8dcc0';
   ctx.fillRect(ox - 7 * MM_SCALE, oz - 4.5 * MM_SCALE, 14 * MM_SCALE, 9 * MM_SCALE);
 
-  // Contenedores
   for (const c of containerLayout) {
     const px = wx2mm(c.x), py = wz2mm(c.z);
     if (px < -30 || px > MM_W + 30 || py < -30 || py > MM_H + 30) continue;
@@ -3792,7 +3665,6 @@ function drawMinimap() {
     ctx.stroke();
   }
 
-  // Grúas
   for (const cxg of [46]) for (const czg of [-12, 12]) {
     const px = wx2mm(cxg), py = wz2mm(czg);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
@@ -3800,7 +3672,6 @@ function drawMinimap() {
     ctx.fillRect(px - 2, py - 2, 4, 4);
   }
 
-  // Torres
   for (const [tx, tz] of [[-FENCE_X+5,-FENCE_Z+5],[FENCE_X-5,-FENCE_Z+5],[FENCE_X-5,FENCE_Z-5],[-FENCE_X+5,FENCE_Z-5]]) {
     const px = wx2mm(tx), py = wz2mm(tz);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
@@ -3808,7 +3679,6 @@ function drawMinimap() {
     ctx.fillRect(px - 2, py - 2, 4, 4);
   }
 
-  // Vehículos
   for (const c of colliders) {
     if (c.kind !== 'lamp') continue;
     const px = wx2mm(c.x), py = wz2mm(c.z);
@@ -3817,7 +3687,6 @@ function drawMinimap() {
     ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
   }
 
-  // Jugadores remotos
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
@@ -3826,7 +3695,6 @@ function drawMinimap() {
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
 
-  // Triángulo del jugador (centro)
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(-cameraYaw);
@@ -3847,16 +3715,14 @@ function drawMinimap() {
   ctx.stroke();
   ctx.restore();
 
-  ctx.restore(); // fin del clip circular
+  ctx.restore();
 
-  // Anillo exterior
   ctx.strokeStyle = 'rgba(120,180,255,0.42)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(cx, cy, radius - 0.5, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Brújula N
   ctx.fillStyle = '#ffd93d';
   ctx.font = 'bold 10px ui-monospace, monospace';
   ctx.textAlign = 'center';
