@@ -29,80 +29,145 @@
   @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
   @media (max-height: 500px) { #mode-menu .menu-content { gap: 16px; } #mode-menu h1 { font-size: clamp(30px, 7.5vh, 52px); letter-spacing: 5px; } #mode-menu .subtitle { margin-top: 6px; font-size: 10px; letter-spacing: 3px; } #mode-menu .divider { margin-top: 10px; width: 50px; } .play-btn { min-height: 58px; padding: 14px 22px; font-size: clamp(16px, 4.5vh, 22px); } .player-chip { padding: 7px 14px; font-size: 11px; } }
 
+  /* ═══════════════════════════════════════════
+     ARMERO (loadout 3D)
+     ═══════════════════════════════════════════ */
   #loadout-menu {
     position: fixed; inset: 0; z-index: 490;
     display: none; align-items: center; justify-content: center;
-    padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
     box-sizing: border-box;
     background:
-      radial-gradient(ellipse at 50% 40%, rgba(30,45,85,0.5) 0%, rgba(5,8,18,0.95) 70%),
+      radial-gradient(ellipse at 50% 30%, rgba(30,45,85,0.5) 0%, rgba(5,8,18,0.95) 70%),
       linear-gradient(180deg, rgba(8,12,24,0.75) 0%, rgba(8,12,24,0.95) 100%);
     color: #fff; cursor: default; opacity: 0; transition: opacity 0.3s ease;
+    overflow: hidden;
   }
   #loadout-menu.active { display: flex; opacity: 1; }
   #loadout-menu .loadout-content {
     display: flex; flex-direction: column; align-items: center;
-    gap: clamp(20px, 4vh, 40px);
-    width: 100%; max-width: 780px; text-align: center;
+    gap: clamp(10px, 2vh, 18px);
+    width: 100%; max-width: 720px; text-align: center;
     animation: menuFadeIn 0.5s ease both;
+    max-height: 100%;
   }
   #loadout-menu h2 {
-    font: 900 clamp(22px, 5vw, 36px)/1 system-ui, sans-serif;
-    letter-spacing: clamp(3px, 1vw, 6px);
+    font: 900 clamp(20px, 4.4vw, 30px)/1 system-ui, sans-serif;
+    letter-spacing: clamp(3px, 1vw, 5px);
     margin: 0;
     color: #ffd93d;
     text-shadow: 3px 3px 0 #000, 0 0 30px rgba(255,200,80,0.5);
   }
   #loadout-menu .loadout-sub {
-    font: bold clamp(11px, 2.6vw, 14px) system-ui, sans-serif;
+    font: bold clamp(10px, 2.2vw, 12px) system-ui, sans-serif;
     letter-spacing: 2px; color: #ffb76b;
     text-shadow: 2px 2px 0 #000; opacity: 0.9;
   }
-  .loadout-options {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: clamp(14px, 3vw, 28px);
+  .armory-body {
+    display: flex; flex-direction: column;
+    gap: clamp(10px, 1.6vh, 16px);
     width: 100%;
   }
-  @media (max-width: 560px) { .loadout-options { grid-template-columns: 1fr; } }
-  .loadout-btn {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 10px;
-    min-height: 200px;
-    padding: 24px 18px;
-    background: linear-gradient(180deg, rgba(60,80,110,0.6), rgba(20,30,50,0.9));
-    border: 3px solid rgba(180,200,240,0.6);
-    border-radius: 16px;
+  .armory-preview-wrap {
+    position: relative;
+    width: 100%;
+    height: clamp(130px, 20vh, 200px);
+    border-radius: 14px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 65%, rgba(90,120,180,0.28) 0%, rgba(8,12,22,0.9) 70%),
+      linear-gradient(180deg, rgba(20,28,44,0.85), rgba(6,10,18,0.95));
+    border: 2px solid rgba(255,217,61,0.45);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.6), 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .armory-preview-wrap::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34%;
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.5));
+    pointer-events: none;
+  }
+  #armory-canvas { display: block; width: 100%; height: 100%; position: relative; z-index: 1; }
+  .armory-preview-label {
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    z-index: 3;
+    font: 900 clamp(15px, 3.4vw, 22px)/1 system-ui, sans-serif;
+    letter-spacing: 3px; color: #ffd93d;
+    text-shadow: 2px 2px 0 #000, 0 0 14px rgba(255,217,61,0.5);
+    pointer-events: none;
+  }
+  .armory-preview-hint {
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+    z-index: 3;
+    font: bold clamp(9px, 2vw, 11px) system-ui, sans-serif;
+    letter-spacing: 1.2px; color: #b7c6dd;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 92%; overflow: hidden; text-overflow: ellipsis;
+  }
+  .armory-options {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: clamp(8px, 1.6vw, 14px);
+    width: 100%;
+  }
+  .armory-card {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px;
+    padding: clamp(8px, 1.6vh, 14px) 6px;
+    background: linear-gradient(180deg, rgba(60,80,110,0.55), rgba(20,30,50,0.9));
+    border: 2px solid rgba(180,200,240,0.4);
+    border-radius: 12px;
     color: #fff;
-    font: bold clamp(16px, 3vw, 22px)/1.2 system-ui, sans-serif;
-    letter-spacing: 2px;
     cursor: pointer;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
-    box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 30px rgba(0,0,0,0.4);
-    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, border-color 0.15s ease;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.7);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 8px 18px rgba(0,0,0,0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, border-color 0.15s ease, background 0.2s ease;
     user-select: none; -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
   }
-  .loadout-btn .loadout-icon {
-    width: min(82%, 360px);
-    height: clamp(78px, 14vw, 120px);
-    display: block;
-    margin: 0 auto;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 8px;
-    background: #4c4c4c;
-    border: 1px solid rgba(255,255,255,0.18);
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 0 3px 9px rgba(0,0,0,0.24);
+  .armory-card .armory-card-icon {
+    font-size: clamp(22px, 5vw, 30px); line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
   }
-  .loadout-btn .loadout-name { font-size: clamp(18px, 3.4vw, 24px); letter-spacing: 3px; }
-  .loadout-btn .loadout-side { font-size: clamp(11px, 2.2vw, 13px); color: #ffd93d; letter-spacing: 2px; font-weight: bold; }
-  .loadout-btn .loadout-desc { font-size: clamp(10px, 2vw, 12px); color: #a8c0e0; font-weight: normal; letter-spacing: 1px; }
-  .loadout-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.55); }
+  .armory-card .armory-card-name {
+    font: 900 clamp(11px, 2.6vw, 14px) system-ui, sans-serif;
+    letter-spacing: 1.5px;
+  }
+  .armory-card .armory-card-tag {
+    font: bold clamp(8px, 1.8vw, 10px) ui-monospace, monospace;
+    letter-spacing: 1.5px;
+    color: #ffb76b; opacity: 0.9;
+  }
+  .armory-card:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+  .armory-card.selected {
+    border-color: #ffd93d;
+    background: linear-gradient(180deg, rgba(120,90,30,0.7), rgba(60,40,10,0.95));
+    box-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 0 26px rgba(255,217,61,0.5);
+    filter: brightness(1.1);
+  }
   @media (hover: hover) and (pointer: fine) {
-    .loadout-btn:hover { border-color: #ffd93d; filter: brightness(1.1); box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 40px rgba(255,200,80,0.35); }
+    .armory-card:hover { border-color: #ffd93d; filter: brightness(1.1); }
   }
-  .loadout-btn[data-primary="rifle"]:hover { border-color: #6fb8ff; box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 40px rgba(100,180,255,0.4); }
-  .loadout-btn[data-primary="shotgun"]:hover { border-color: #ff8c50; box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 40px rgba(255,140,80,0.4); }
+  .armory-play {
+    width: 100%;
+    max-width: 420px;
+    padding: clamp(12px, 2.4vh, 18px) 24px;
+    background: linear-gradient(180deg, #ff9a4a 0%, #e05a10 100%);
+    border: 3px solid #ffc080;
+    border-radius: 14px;
+    color: #fff;
+    font: 900 clamp(15px, 3.6vw, 20px)/1 system-ui, sans-serif;
+    letter-spacing: clamp(2px, 0.8vw, 4px);
+    cursor: pointer;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    box-shadow: 0 6px 0 #8a3200, 0 12px 26px rgba(255,130,60,0.45);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    animation: menuFadeIn 0.5s 0.2s ease both;
+  }
+  .armory-play:active { transform: translateY(5px); box-shadow: 0 1px 0 #8a3200; filter: brightness(1.12); }
+  @media (hover: hover) and (pointer: fine) {
+    .armory-play:hover { filter: brightness(1.08); }
+  }
 
   #click-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 200; cursor: pointer; color: #fff; text-align: center; }
   #click-overlay.active { display: flex; }
@@ -177,6 +242,32 @@
   #online-panel .ok { color: #4cdf7b; }
   #online-panel .bad { color: #ff6b6b; }
   #online-panel .name { color: #ffd93d; }
+
+  /* ─── HUD del arma (esquina superior derecha) ─── */
+  #weapon-hud {
+    position: fixed; top: 10px; right: 10px;
+    width: 170px; height: 128px;
+    z-index: 21; display: none; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 70%, rgba(90,120,180,0.22) 0%, rgba(8,12,22,0.75) 70%),
+      linear-gradient(180deg, rgba(20,28,44,0.7), rgba(6,10,18,0.85));
+    border: 2px solid rgba(255,217,61,0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 6px 18px rgba(0,0,0,0.45);
+  }
+  #weapon-hud.active { display: block; }
+  #weapon-hud canvas { display: block; width: 100%; height: 100%; }
+  #weapon-hud-label {
+    position: absolute; bottom: 3px; left: 0; right: 0;
+    text-align: center;
+    font: bold 10px ui-monospace, monospace;
+    letter-spacing: 1.4px;
+    color: #ffd93d;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+  }
+
   body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
   body.is-touch #info { display: none; }
   body.is-touch #minimap-wrap { top: calc(env(safe-area-inset-top, 0px) + 6px); left: 6px; width: 96px; height: 96px; border-width: 2px; }
@@ -195,6 +286,9 @@
   body.is-touch #aim-btn { right: calc(env(safe-area-inset-right, 0px) + 118px); bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 26px; }
   body.is-touch #jump-btn { right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 130px); width: 68px; height: 68px; font-size: 11px; }
   body.is-touch #swap-btn { right: calc(env(safe-area-inset-right, 0px) + 118px); bottom: calc(env(safe-area-inset-bottom, 0px) + 122px); width: 68px; height: 68px; font-size: 22px; }
+  body.is-touch #weapon-hud { top: calc(env(safe-area-inset-top, 0px) + 6px); right: 6px; width: 128px; height: 96px; border-radius: 8px; }
+  body.is-touch #weapon-hud-label { font-size: 9px; }
+  body.is-touch #debug-btn { top: calc(env(safe-area-inset-top, 0px) + 110px); right: 6px; width: 44px; height: 44px; font-size: 18px; }
 
   body.in-menu #minimap-wrap,
   body.in-menu #health-wrap,
@@ -203,6 +297,7 @@
   body.in-menu #info,
   body.in-menu #crosshair,
   body.in-menu #online-panel,
+  body.in-menu #weapon-hud,
   body.in-menu #debug { display: none !important; }
 
   /* ═══════════════════════════════════════════
@@ -295,11 +390,9 @@
   }
   #controls-menu .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.6); filter: brightness(1.1); }
 
-  /* Modo edición */
   body.editing-controls #mode-menu .menu-content { display: none !important; }
   body.editing-controls #loadout-menu { display: none !important; }
 
-  /* Overlay oscuro detrás de los controles */
   body.touch-edit-mode::before {
     content: '';
     position: fixed; inset: 0;
@@ -381,22 +474,33 @@
 
 <div id="loadout-menu">
   <div class="loadout-content">
-    <h2>ELEGÍ TU ARSENAL</h2>
-    <div class="loadout-sub">— PRIMARIA + PISTOLA —</div>
-    <div class="loadout-options">
-      <button class="loadout-btn" data-primary="rifle" type="button" aria-label="Elegir M4A1 con pistola">
-        <img class="loadout-icon" src="texturas/selector_m4a1_pistola.png" alt="M4A1 y pistola" draggable="false">
-        <span class="loadout-name">M4A1</span>
-        <span class="loadout-side">+ PISTOLA</span>
-        <span class="loadout-desc">Automática · Rápida · 30 balas</span>
-      </button>
-      <button class="loadout-btn" data-primary="shotgun" type="button" aria-label="Elegir escopeta con pistola">
-        <img class="loadout-icon" src="texturas/selector_escopeta_pistola.png" alt="Escopeta y pistola" draggable="false">
-        <span class="loadout-name">ESCOPETA</span>
-        <span class="loadout-side">+ PISTOLA</span>
-        <span class="loadout-desc">Daño masivo · Lenta · 7 cartuchos</span>
-      </button>
+    <h2>ARMERO</h2>
+    <div class="loadout-sub">— ELEGÍ TU EQUIPAMIENTO —</div>
+    <div class="armory-body">
+      <div class="armory-preview-wrap">
+        <canvas id="armory-canvas"></canvas>
+        <div class="armory-preview-label" id="armory-preview-label">M4A1</div>
+        <div class="armory-preview-hint" id="armory-preview-hint">Automática · Rápida · 30 balas</div>
+      </div>
+      <div class="armory-options" id="armory-options">
+        <button class="armory-card" data-primary="rifle" type="button">
+          <span class="armory-card-icon">🔫</span>
+          <span class="armory-card-name">M4A1</span>
+          <span class="armory-card-tag">RIFLE</span>
+        </button>
+        <button class="armory-card" data-primary="shotgun" type="button">
+          <span class="armory-card-icon">💥</span>
+          <span class="armory-card-name">ESCOPETA</span>
+          <span class="armory-card-tag">CQC</span>
+        </button>
+        <button class="armory-card" data-primary="sword" type="button">
+          <span class="armory-card-icon">⚔</span>
+          <span class="armory-card-name">ESPADA</span>
+          <span class="armory-card-tag">MELEE</span>
+        </button>
+      </div>
     </div>
+    <button class="armory-play" id="armory-play" type="button">▶ DESPLEGAR</button>
   </div>
 </div>
 
@@ -415,6 +519,10 @@
 <div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
+<div id="weapon-hud">
+  <canvas id="weapon-hud-canvas"></canvas>
+  <div id="weapon-hud-label">M4A1</div>
+</div>
 <div id="click-overlay">
   <div class="inner">
     CLICK PARA JUGAR
@@ -581,6 +689,33 @@ function playPistolShot(distance = 0) {
   filt.frequency.setValueAtTime(5000, t); filt.frequency.exponentialRampToValueAtTime(400, t + 0.09);
   const g = audioCtx.createGain(); g.gain.setValueAtTime(0.45 * vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
   src.connect(filt).connect(g).connect(masterGain); src.start(t); src.stop(t + 0.11);
+}
+function playSwordSwingSound() {
+  if (!audioCtx || !audioEnabled) return;
+  const t = audioCtx.currentTime;
+  const src = audioCtx.createBufferSource();
+  src.buffer = _noiseBuffer(0.24, 1.6);
+  const filt = audioCtx.createBiquadFilter();
+  filt.type = 'bandpass';
+  filt.frequency.setValueAtTime(1100, t);
+  filt.frequency.exponentialRampToValueAtTime(3200, t + 0.20);
+  filt.Q.value = 1.6;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.30, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+  src.connect(filt).connect(g).connect(masterGain);
+  src.start(t); src.stop(t + 0.26);
+
+  const osc = audioCtx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(900, t);
+  osc.frequency.exponentialRampToValueAtTime(220, t + 0.18);
+  const g2 = audioCtx.createGain();
+  g2.gain.setValueAtTime(0.10, t);
+  g2.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  osc.connect(g2).connect(masterGain);
+  osc.start(t); osc.stop(t + 0.24);
 }
 function playHitMarker() {
   if (!audioCtx || !audioEnabled) return;
@@ -890,16 +1025,10 @@ const firebaseConfig = {
 let onlineMode = false, db = null;
 let playerId = null, playerName = null, playerNetRef = null;
 const ROOM = 'main';
-// NET_SEND_HZ: rate máximo de envío. sendLocalPlayerState filtra cambios reales.
 const NET_SEND_HZ = 8;
-// NET_STALE_MS: tiempo sin actualización real de un remoto antes de quitarlo.
 const NET_STALE_MS = 30000;
-// HEARTBEAT_MS: aunque no haya cambios, enviamos un latido cada X ms para que
-// los otros no nos consideren inactivos.
 const HEARTBEAT_MS = 5000;
-// DAMAGE_GRACE_MS: ventana de invulnerabilidad tras respawnear.
 const DAMAGE_GRACE_MS = 1500;
-// HIT_MAX_AGE_MS: hits más viejos que esto se descartan.
 const HIT_MAX_AGE_MS = 5000;
 
 const onlinePanel = document.getElementById('online-panel');
@@ -1204,6 +1333,19 @@ function createShotgunModel() {
   group.add(pumpMarker);
   return { group, flash, gripMarker, pumpMarker, fbxModel: null };
 }
+function createSwordModel() {
+  const group = new THREE.Group();
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.001, 4, 3),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })
+  );
+  flash.visible = false;
+  group.add(flash);
+  const gripMarker = new THREE.Object3D();
+  gripMarker.position.set(0, -0.02, 0.06);
+  group.add(gripMarker);
+  return { group, flash, gripMarker, fbxModel: null };
+}
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -1256,6 +1398,46 @@ function createLowPolyPistolRemote() {
   g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker };
 }
+function createLowPolySwordRemote() {
+  const g = new THREE.Group();
+  const mBlade = new THREE.MeshLambertMaterial({ color: 0xd8dde3, flatShading: true });
+  const mBladeEdge = new THREE.MeshLambertMaterial({ color: 0xf4f6fa, flatShading: true });
+  const mHilt  = new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true });
+  const mGuard = new THREE.MeshLambertMaterial({ color: 0xa8842a, flatShading: true });
+
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.014, 0.62), mBlade);
+  blade.position.set(0, 0, -0.34);
+  g.add(blade);
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(0.010, 0.016, 0.62), mBladeEdge);
+  edge.position.set(0.031, 0.001, -0.34);
+  g.add(edge);
+  const edge2 = edge.clone(); edge2.position.x = -0.031; g.add(edge2);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.034, 0.10, 4), mBladeEdge);
+  tip.rotation.x = -Math.PI / 2;
+  tip.rotation.y = Math.PI / 4;
+  tip.position.set(0, 0, -0.70);
+  g.add(tip);
+
+  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.045, 0.06), mGuard);
+  guard.position.set(0, 0, -0.02);
+  g.add(guard);
+  const guardCap = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), mGuard);
+  guardCap.position.set(0.09, 0, -0.02); g.add(guardCap);
+  const guardCap2 = guardCap.clone(); guardCap2.position.x = -0.09; g.add(guardCap2);
+
+  const hilt = new THREE.Mesh(new THREE.BoxGeometry(0.040, 0.040, 0.16), mHilt);
+  hilt.position.set(0, 0, 0.08);
+  g.add(hilt);
+  const pommel = new THREE.Mesh(new THREE.SphereGeometry(0.032, 6, 5), mGuard);
+  pommel.position.set(0, 0, 0.17);
+  g.add(pommel);
+
+  const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.02, 0.06); g.add(gripMarker);
+  const flash = new THREE.Mesh(new THREE.SphereGeometry(0.001, 4, 3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }));
+  flash.visible = false; g.add(flash);
+  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  return { group: g, flash, gripMarker };
+}
 function buildGrenadeModel(opts = {}) {
   const withHand = opts.withHand !== false;
   const scale = opts.scale ?? 1;
@@ -1295,6 +1477,7 @@ disableShadows(player);
 const WEAPONS = {
   rifle:   { key: 'rifle',   name: 'M4A1',     icon: '🔫', magSize: 30, fireRate: 0.10, reloadTime: 1.5, damage: 20, aimFov: 45, auto: true  },
   shotgun: { key: 'shotgun', name: 'ESCOPETA', icon: '💥', magSize: 7,  fireRate: 0.85, reloadTime: 2.6, damage: 14, aimFov: 55, auto: false, pellets: 8, spread: 0.09 },
+  sword:   { key: 'sword',   name: 'ESPADA',   icon: '⚔',  magSize: 1,  fireRate: 0.55, reloadTime: 0,   damage: 75, aimFov: 62, auto: false, melee: true, range: 2.7 },
   pistol:  { key: 'pistol',  name: 'PISTOLA',  icon: '🔫', magSize: 12, fireRate: 0.18, reloadTime: 1.2, damage: 30, aimFov: 55, auto: false }
 };
 
@@ -1302,17 +1485,20 @@ const playerLoadout = { primary: 'rifle', secondary: 'pistol' };
 let currentWeaponKey = 'rifle';
 
 const weaponState = {
-  rifle:   { ammo: 30, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
-  shotgun: { ammo: 7,  reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 },
-  pistol:  { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0 }
+  rifle:   { ammo: 30, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0, swing: 0 },
+  shotgun: { ammo: 7,  reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0, swing: 0 },
+  sword:   { ammo: 1,  reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0, swing: 0 },
+  pistol:  { ammo: 12, reloading: false, reloadTimer: 0, cooldown: 0, recoil: 0, swing: 0 }
 };
 
 const rifleModel   = createRifleModel();
 const pistolModel  = createPistolModel();
 const shotgunModel = createShotgunModel();
+const swordModel   = createSwordModel();
 const weaponRifle   = rifleModel.group;
 const weaponPistol  = pistolModel.group;
 const weaponShotgun = shotgunModel.group;
+const weaponSword   = swordModel.group;
 
 const _fbxLoader = new FBXLoader();
 
@@ -1386,27 +1572,43 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
 
+  // Espada: normalmente Y-arriba → rotamos X para orientar la hoja hacia -Z (al frente).
+  const sw = await loadWeaponFBX('modelos3d/espada.fbx', 0.95, 0, -Math.PI / 2, 0);
+  if (sw) { swordModel.fbxModel = sw; swordModel.group.add(sw); }
+
   forceWeaponVisibility();
+  onWeaponsLoaded();
 })();
+
+function onWeaponsLoaded() {
+  // Refrescar previews (armario + HUD) para mostrar los modelos FBX reales.
+  hudCurrentKey = null;
+  if (armoryPreviewReady) refreshArmoryPreview();
+}
 
 function forceWeaponVisibility() {
   if (playerDead || !gameMode) {
     weaponRifle.visible   = false;
     weaponShotgun.visible = false;
+    weaponSword.visible   = false;
     weaponPistol.visible  = false;
     if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = false;
     if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = false;
+    if (swordModel.fbxModel)   swordModel.fbxModel.visible   = false;
     if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = false;
     return;
   }
   const isRifle   = (currentWeaponKey === 'rifle');
   const isShotgun = (currentWeaponKey === 'shotgun');
+  const isSword   = (currentWeaponKey === 'sword');
   const isPistol  = (currentWeaponKey === 'pistol');
   weaponRifle.visible   = isRifle;
   weaponShotgun.visible = isShotgun;
+  weaponSword.visible   = isSword;
   weaponPistol.visible  = isPistol;
   if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = isRifle;
   if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = isShotgun;
+  if (swordModel.fbxModel)   swordModel.fbxModel.visible   = isSword;
   if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = isPistol;
 }
 
@@ -1424,6 +1626,11 @@ function createRemoteWeaponInstance(weaponKey) {
     flashCfg = { radius: 0.12, pos: [0, 0.03, -0.42], color: 0xffcc55 };
     gripCfg  = [0, -0.11, 0.12];
     extraMarker = { key: 'pumpMarker', pos: [0, 0.01, -0.22] };
+  } else if (weaponKey === 'sword') {
+    fbxSource = swordModel.fbxModel;
+    flashCfg = { radius: 0.001, pos: [0, 0, -0.5], color: 0xffffff };
+    gripCfg  = [0, -0.02, 0.06];
+    extraMarker = null;
   } else {
     fbxSource = pistolModel.fbxModel;
     flashCfg = { radius: 0.07, pos: [0, 0.04, -0.20], color: 0xffdd66 };
@@ -1475,6 +1682,7 @@ function createRemoteWeaponInstance(weaponKey) {
 
   if (weaponKey === 'rifle')   return createLowPolyRifleRemote();
   if (weaponKey === 'shotgun') return createLowPolyShotgunRemote();
+  if (weaponKey === 'sword')   return createLowPolySwordRemote();
   return createLowPolyPistolRemote();
 }
 
@@ -1539,24 +1747,36 @@ _fpSHandL.position.set(0.015, -0.11, -0.08);
 _fpSHandL.rotation.set(1.05, 0.02, -0.48);
 weaponShotgun.add(_fpSHandL);
 
+// Mano derecha para la espada (empuñadura)
+const _fpSwHandR = makeFPSHand('right');
+_fpSwHandR.scale.setScalar(0.58);
+_fpSwHandR.position.set(0.008, -0.055, 0.04);
+_fpSwHandR.rotation.set(0.5, 0.05, 0.10);
+weaponSword.add(_fpSwHandR);
+
 const WEAPON_POS = {
   rifle:   new THREE.Vector3(0.15, -0.14, -0.34),
   shotgun: new THREE.Vector3(0.15, -0.15, -0.36),
+  sword:   new THREE.Vector3(0.22, -0.24, -0.46),
   pistol:  new THREE.Vector3(0.13, -0.15, -0.32)
 };
 const WEAPON_HIDDEN_POS = new THREE.Vector3(0, -1000, 0);
 weaponRifle.position.copy(WEAPON_POS.rifle);
 weaponShotgun.position.copy(WEAPON_POS.shotgun);
+weaponSword.position.copy(WEAPON_POS.sword);
 weaponPistol.position.copy(WEAPON_POS.pistol);
 weaponRifle.visible  = false;
 weaponShotgun.visible = false;
+weaponSword.visible  = false;
 weaponPistol.visible = false;
 camera.add(weaponRifle);
 camera.add(weaponShotgun);
+camera.add(weaponSword);
 camera.add(weaponPistol);
 
 disableShadows(weaponRifle);
 disableShadows(weaponShotgun);
+disableShadows(weaponSword);
 disableShadows(weaponPistol);
 
 const muzzleLight = new THREE.PointLight(0xffdd66, 0, 8);
@@ -1568,28 +1788,34 @@ function curWepState() { return weaponState[currentWeaponKey]; }
 function curWeaponGroup() {
   if (currentWeaponKey === 'rifle')   return weaponRifle;
   if (currentWeaponKey === 'shotgun') return weaponShotgun;
+  if (currentWeaponKey === 'sword')   return weaponSword;
   return weaponPistol;
 }
 function curWeaponFlash() {
   if (currentWeaponKey === 'rifle')   return rifleModel.flash;
   if (currentWeaponKey === 'shotgun') return shotgunModel.flash;
+  if (currentWeaponKey === 'sword')   return swordModel.flash;
   return pistolModel.flash;
 }
 function setLocalWeaponsVisible(v) {
   weaponRifle.visible   = v && currentWeaponKey === 'rifle';
   weaponShotgun.visible = v && currentWeaponKey === 'shotgun';
+  weaponSword.visible   = v && currentWeaponKey === 'sword';
   weaponPistol.visible  = v && currentWeaponKey === 'pistol';
   if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = weaponRifle.visible;
   if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = weaponShotgun.visible;
+  if (swordModel.fbxModel)   swordModel.fbxModel.visible   = weaponSword.visible;
   if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = weaponPistol.visible;
   if (!v) {
     weaponRifle.position.copy(WEAPON_HIDDEN_POS);
     weaponShotgun.position.copy(WEAPON_HIDDEN_POS);
+    weaponSword.position.copy(WEAPON_HIDDEN_POS);
     weaponPistol.position.copy(WEAPON_HIDDEN_POS);
     grenadeViewModel.visible = false;
   } else {
     weaponRifle.position.copy(WEAPON_POS.rifle);
     weaponShotgun.position.copy(WEAPON_POS.shotgun);
+    weaponSword.position.copy(WEAPON_POS.sword);
     weaponPistol.position.copy(WEAPON_POS.pistol);
   }
 }
@@ -2789,10 +3015,10 @@ function updateDebug(dt) {
 <span class="val">Ambiente:</span>  ${ambientStarted ? '✅ activo' : '⏸ inactivo'}
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Arma:</span>      ${curWepDef().name}
-<span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
-<span class="val">Vis:</span>       rifle=${weaponRifle.visible?'1':'0'} shot=${weaponShotgun.visible?'1':'0'} pist=${weaponPistol.visible?'1':'0'}
+<span class="val">Balas:</span>     ${curWepDef().melee ? '∞ (melee)' : ws.ammo + ' / ' + curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
+<span class="val">Vis:</span>       rifle=${weaponRifle.visible?'1':'0'} shot=${weaponShotgun.visible?'1':'0'} sword=${weaponSword.visible?'1':'0'} pist=${weaponPistol.visible?'1':'0'}
 <span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
-<span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
+<span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} sword=${swordModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
   `.trim();
 }
 
@@ -2896,7 +3122,7 @@ const bulletHoleMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent
 
 function getTopParent(obj) { let top = obj; while (top.parent && top.parent !== scene) top = top.parent; return top; }
 function isPartOfPlayer(obj) { let p = obj; while (p) { if (p === player) return true; p = p.parent; } return false; }
-function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weaponRifle || p === weaponPistol || p === weaponShotgun || p === grenadeViewModel) return true; p = p.parent; } return false; }
+function isPartOfWeapon(obj) { let p = obj; while (p) { if (p === weaponRifle || p === weaponPistol || p === weaponShotgun || p === weaponSword || p === grenadeViewModel) return true; p = p.parent; } return false; }
 function getRemotePlayerId(obj) { let p = obj; while (p) { if (p.userData && p.userData.remotePlayerId) return p.userData.remotePlayerId; p = p.parent; } return null; }
 
 function spawnBulletHole(hit, normal) {
@@ -2988,7 +3214,6 @@ function killPlayer() {
   playDeathSound();
   deathUI.classList.add('active');
   if (pointerLocked) document.exitPointerLock();
-  // FIX: limpiar hits pendientes para que no se apliquen al respawnear.
   if (onlineMode) {
     remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
     sendLocalPlayerState(true);
@@ -2996,15 +3221,15 @@ function killPlayer() {
 }
 function respawnPlayer() {
   playerDead = false; deathTimer = 0;
-  // FIX: periodo de gracia para no recibir daño inmediato al respawnear.
   aliveSince = Date.now();
   for (const p of playerPieces) scene.remove(p.mesh);
   playerPieces.length = 0;
   health = 100; updateHealthBar();
   weaponState.rifle.ammo = WEAPONS.rifle.magSize;
   weaponState.shotgun.ammo = WEAPONS.shotgun.magSize;
+  weaponState.sword.ammo = 1;
   weaponState.pistol.ammo = WEAPONS.pistol.magSize;
-  for (const k in weaponState) { weaponState[k].reloading = false; weaponState[k].reloadTimer = 0; weaponState[k].cooldown = 0; weaponState[k].recoil = 0; }
+  for (const k in weaponState) { weaponState[k].reloading = false; weaponState[k].reloadTimer = 0; weaponState[k].cooldown = 0; weaponState[k].recoil = 0; weaponState[k].swing = 0; }
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
@@ -3023,7 +3248,6 @@ function respawnPlayer() {
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
-  // FIX: limpiar hits y mandar estado con force.
   if (onlineMode) {
     remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
     sendLocalPlayerState(true);
@@ -3033,13 +3257,12 @@ respawnBtn.addEventListener('click', respawnPlayer);
 
 /* ─────────────── ARMAS ─────────────── */
 const raycaster = new THREE.Raycaster();
-const screenCenter = new THREE.Vector2(0, 0);
 
 function selectWeapon(key, silent = false, force = false) {
-  if (key !== 'rifle' && key !== 'pistol' && key !== 'shotgun') return;
+  if (key !== 'rifle' && key !== 'pistol' && key !== 'shotgun' && key !== 'sword') return;
   if (key === currentWeaponKey && !force) return;
   const old = curWepState();
-  old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
+  old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0; old.swing = 0;
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
   if (!playerDead) {
@@ -3059,6 +3282,7 @@ function swapWeapon() {
 function startReload() {
   if (playerDead) return;
   const ws = curWepState(), def = curWepDef();
+  if (def.melee) return;
   if (ws.reloading || ws.ammo >= def.magSize) return;
   ws.reloading = true; ws.reloadTimer = def.reloadTime;
   ammoWrap.classList.add('reloading');
@@ -3066,6 +3290,7 @@ function startReload() {
 }
 function finishReload() {
   const ws = curWepState(), def = curWepDef();
+  if (def.melee) return;
   ws.reloading = false; ws.ammo = def.magSize;
   updateAmmoBar(); ammoWrap.classList.remove('reloading');
 }
@@ -3102,7 +3327,6 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
     } else normal = finalDir.clone().negate();
     const remoteId = getRemotePlayerId(hit.object);
     if (remoteId && !playerDead) {
-      // FIX: no escribir hits si el objetivo ya está muerto (evita hits fantasma).
       const target = remotePlayers.get(remoteId);
       if (onlineMode && target && !target.dead) {
         const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -3119,10 +3343,54 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
   return false;
 }
 
+function fireMelee(def) {
+  const origin = camera.position.clone();
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+  raycaster.set(origin, dir);
+  raycaster.far = def.range;
+  const hits = raycaster.intersectObjects(scene.children, true);
+  for (const hit of hits) {
+    if (hit.object.userData.isBulletHole) continue;
+    if (isPartOfWeapon(hit.object)) continue;
+    if (isPartOfPlayer(hit.object)) continue;
+    // Chispas
+    spawnBurst(hit.point.clone(), [0xffffff, 0xffddaa, 0xffaa55], 8, 1.5, 4.5);
+    const remoteId = getRemotePlayerId(hit.object);
+    if (remoteId && !playerDead) {
+      const target = remotePlayers.get(remoteId);
+      if (onlineMode && target && !target.dead) {
+        const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        set(ref(db, `rooms/${ROOM}/players/${remoteId}/hits/${hitId}`), { damage: def.damage, from: playerId, ts: Date.now() }).catch(() => {});
+        playHitMarker();
+      }
+      return true;
+    }
+    return false;
+  }
+  return false;
+}
+
 function tryShoot() {
   if (playerDead || !gameMode) return;
   const ws = curWepState(), def = curWepDef();
   if (ws.reloading || ws.cooldown > 0) return;
+
+  // Ataque cuerpo a cuerpo (espada)
+  if (def.melee) {
+    ws.cooldown = def.fireRate;
+    ws.recoil = 1.6;
+    ws.swing = 1;
+    playSwordSwingSound();
+    fireMelee(def);
+    if (onlineMode) {
+      set(ref(db, `rooms/${ROOM}/shots/${playerId}`), {
+        ts: Date.now(), yaw: +cameraYaw.toFixed(3), pitch: +cameraPitch.toFixed(3), weapon: 'sword'
+      }).catch(() => {});
+    }
+    return;
+  }
+
   if (ws.ammo <= 0) { startReload(); return; }
   ws.cooldown = def.fireRate;
   ws.ammo--;
@@ -3232,7 +3500,7 @@ function updatePlayer(dt) {
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
-  const swayMul = currentWeaponKey === 'rifle' ? 1.0 : (currentWeaponKey === 'shotgun' ? 1.15 : 0.82);
+  const swayMul = currentWeaponKey === 'rifle' ? 1.0 : (currentWeaponKey === 'shotgun' ? 1.15 : (currentWeaponKey === 'sword' ? 1.05 : 0.82));
   const swayX = Math.sin(weaponWalkPhase) * 0.012 * swayMul * weaponMoveBlend;
   const swayY = (1 - Math.cos(weaponWalkPhase * 2)) * 0.0045 * swayMul * weaponMoveBlend;
   const swayZ = Math.cos(weaponWalkPhase) * 0.004 * swayMul * weaponMoveBlend;
@@ -3242,7 +3510,23 @@ function updatePlayer(dt) {
   const targetX = basePos.x + swayX;
   const targetY = basePos.y + swayY;
   const targetZ = basePos.z + swayZ;
-  if (ws.reloading) {
+
+  if (currentWeaponKey === 'sword') {
+    // Animación de estocada / swing
+    if (ws.swing > 0) ws.swing = Math.max(0, ws.swing - dt * 3.4);
+    const arc = ws.swing > 0 ? Math.sin((1 - ws.swing) * Math.PI) : 0;
+    const swRotX = -arc * 0.55;
+    const swRotY = -arc * 1.35;
+    const swRotZ =  arc * 1.05;
+    const swPosZ = -arc * 0.18;
+    const swPosY = -arc * 0.04;
+    g.position.x += (targetX - g.position.x) * Math.min(1, dt * 22);
+    g.position.y += (targetY + swPosY - g.position.y) * Math.min(1, dt * 22);
+    g.position.z += (targetZ + swPosZ - g.position.z) * Math.min(1, dt * 22);
+    g.rotation.x += (swayRotX + swRotX - g.rotation.x) * Math.min(1, dt * 22);
+    g.rotation.y += (swayRotY + swRotY - g.rotation.y) * Math.min(1, dt * 22);
+    g.rotation.z += (swayRotZ + swRotZ - g.rotation.z) * Math.min(1, dt * 22);
+  } else if (ws.reloading) {
     ws.reloadTimer -= dt;
     const t = 1 - Math.max(0, ws.reloadTimer) / def.reloadTime;
     const dip = Math.sin(t * Math.PI);
@@ -3339,15 +3623,22 @@ function addRemotePlayer(id, data) {
   shotgun.group.visible = false;
   aimPivot.add(shotgun.group);
 
+  const sword = createRemoteWeaponInstance('sword');
+  sword.group.position.set(0, -0.10, 0.42);
+  sword.group.rotation.y = Math.PI;
+  sword.group.visible = false;
+  aimPivot.add(sword.group);
+
   const pistol = createRemoteWeaponInstance('pistol');
   pistol.group.position.set(0, -0.09, 0.30);
   pistol.group.rotation.y = Math.PI;
   pistol.group.visible = false;
   aimPivot.add(pistol.group);
 
-  const weaponKey = (data.weapon === 'pistol' || data.weapon === 'shotgun') ? data.weapon : 'rifle';
+  const weaponKey = (data.weapon === 'pistol' || data.weapon === 'shotgun' || data.weapon === 'sword') ? data.weapon : 'rifle';
   rifle.group.visible   = weaponKey === 'rifle';
   shotgun.group.visible = weaponKey === 'shotgun';
+  sword.group.visible   = weaponKey === 'sword';
   pistol.group.visible  = weaponKey === 'pistol';
   char.root.userData.remotePlayerId = id;
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
@@ -3355,7 +3646,7 @@ function addRemotePlayer(id, data) {
   scene.add(char.root);
   remotePlayers.set(id, {
     id, root: char.root, body: char.body, parts: char.parts, mats: char.mats,
-    aimPivot, rifle, shotgun, pistol, weaponKey, name: data.name || 'Jugador',
+    aimPivot, rifle, shotgun, sword, pistol, weaponKey, name: data.name || 'Jugador',
     targetX: char.root.position.x, targetY: char.root.position.y, targetZ: char.root.position.z,
     targetYaw: char.root.rotation.y, targetPitch: data.pitch ?? 0, pitchSmooth: data.pitch ?? 0,
     lastSeen: Date.now(),
@@ -3368,10 +3659,6 @@ function addRemotePlayer(id, data) {
   });
 }
 
-/* FIX CLAVE: solo refrescamos lastSeen cuando el ts remoto cambia.
-   Así, si onValue dispara por otros jugadores, no mantenemos "vivo"
-   artificialmente a alguien inactivo. Y usamos lastSeen (local) para
-   el chequeo de stale, así evitamos problemas de clock skew. */
 function updateRemotePlayer(id, data) {
   if (!data) return;
   const now = Date.now();
@@ -3381,12 +3668,10 @@ function updateRemotePlayer(id, data) {
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
 
-  // Solo si llegó un ts NUEVO (más reciente), refrescamos lastSeen.
   if (remoteTs > 0 && remoteTs !== r.lastRemoteTs) {
     r.lastSeen = now;
     r.lastRemoteTs = remoteTs;
   } else if (r.lastRemoteTs === 0 && remoteTs > 0) {
-    // primera vez con ts válido
     r.lastSeen = now;
     r.lastRemoteTs = remoteTs;
   }
@@ -3396,7 +3681,7 @@ function updateRemotePlayer(id, data) {
   if (typeof data.z === 'number') r.targetZ = data.z;
   if (typeof data.yaw === 'number') r.targetYaw = data.yaw + Math.PI;
   if (typeof data.pitch === 'number') r.targetPitch = data.pitch;
-  if (data.weapon === 'pistol' || data.weapon === 'rifle' || data.weapon === 'shotgun') r.weaponKey = data.weapon;
+  if (data.weapon === 'pistol' || data.weapon === 'rifle' || data.weapon === 'shotgun' || data.weapon === 'sword') r.weaponKey = data.weapon;
 
   r.targetCrouch = data.crouch ? 1 : 0;
   r.targetSlide  = data.slide  ? 1 : 0;
@@ -3439,17 +3724,22 @@ function reviveRemotePlayer(r) {
   r.targetSlide = 0;
   if (r.rifle) r.rifle.flash.visible = false;
   if (r.shotgun) r.shotgun.flash.visible = false;
+  if (r.sword) r.sword.flash.visible = false;
   if (r.pistol) r.pistol.flash.visible = false;
 }
 function triggerRemoteShot(r) {
   if (r.dead) return;
-  r.recoil = r.weaponKey === 'shotgun' ? 1.8 : 1;
+  r.recoil = r.weaponKey === 'shotgun' ? 1.8 : (r.weaponKey === 'sword' ? 2.2 : 1);
   r.flashTimer = 0.05;
   if (r.rifle) r.rifle.flash.visible = false;
   if (r.shotgun) r.shotgun.flash.visible = false;
+  if (r.sword) r.sword.flash.visible = false;
   if (r.pistol) r.pistol.flash.visible = false;
-  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : (r.weaponKey === 'shotgun' ? r.shotgun : r.rifle);
-  if (activeWeapon) activeWeapon.flash.visible = true;
+  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol
+                     : r.weaponKey === 'shotgun' ? r.shotgun
+                     : r.weaponKey === 'sword' ? r.sword
+                     : r.rifle;
+  if (activeWeapon && r.weaponKey !== 'sword') activeWeapon.flash.visible = true;
 }
 
 const _ikShoulderWorld = new THREE.Vector3();
@@ -3536,6 +3826,7 @@ function animateRemotePlayer(r, dt) {
   r.aimPivot.visible = true;
   if (r.rifle)   r.rifle.group.visible   = r.weaponKey === 'rifle';
   if (r.shotgun) r.shotgun.group.visible = r.weaponKey === 'shotgun';
+  if (r.sword)   r.sword.group.visible   = r.weaponKey === 'sword';
   if (r.pistol)  r.pistol.group.visible  = r.weaponKey === 'pistol';
   const walking = r.moveSpeed > 0.5;
   if (walking) {
@@ -3586,11 +3877,15 @@ function animateRemotePlayer(r, dt) {
     if (r.flashTimer <= 0) {
       if (r.rifle)   r.rifle.flash.visible   = false;
       if (r.shotgun) r.shotgun.flash.visible = false;
+      if (r.sword)   r.sword.flash.visible   = false;
       if (r.pistol)  r.pistol.flash.visible  = false;
     }
   }
   r.root.updateMatrixWorld(true);
-  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol : (r.weaponKey === 'shotgun' ? r.shotgun : r.rifle);
+  const activeWeapon = r.weaponKey === 'pistol' ? r.pistol
+                     : r.weaponKey === 'shotgun' ? r.shotgun
+                     : r.weaponKey === 'sword' ? r.sword
+                     : r.rifle;
   if (activeWeapon && activeWeapon.gripMarker) {
     activeWeapon.gripMarker.getWorldPosition(_gripWorldTmp);
     const distToLocal = r.root.position.distanceTo(player.position);
@@ -3601,6 +3896,10 @@ function animateRemotePlayer(r, dt) {
     if (fwdMarker) {
       fwdMarker.getWorldPosition(_handguardWorldTmp);
       if (distToLocal < 40) solveArmIK(r.parts.leftArm, _handguardWorldTmp, _poleLeft);
+    } else {
+      // Sin marcador de mano izquierda (pistola / espada): dejar el brazo colgando.
+      r.parts.leftArm.shoulder.quaternion.set(0, 0, 0, 1);
+      r.parts.leftArm.elbow.quaternion.set(0, 0, 0, 1);
     }
   }
 }
@@ -3615,19 +3914,16 @@ function handleRemoteShots(all) {
     if (!r || r.dead) continue;
     if (d.ts <= (r.lastShotTs || 0)) continue;
     r.lastShotTs = d.ts;
-    if (d.weapon === 'pistol' || d.weapon === 'rifle' || d.weapon === 'shotgun') r.weaponKey = d.weapon;
+    if (d.weapon === 'pistol' || d.weapon === 'rifle' || d.weapon === 'shotgun' || d.weapon === 'sword') r.weaponKey = d.weapon;
     triggerRemoteShot(r);
     const dist = r.root.position.distanceTo(player.position);
     if (d.weapon === 'pistol') playPistolShot(dist);
     else if (d.weapon === 'shotgun') playShotgunShot(dist);
+    else if (d.weapon === 'sword') playSwordSwingSound();
     else playGunshot(dist);
   }
 }
 
-/* FIX: sendLocalPlayerState con detección de cambios.
-   Solo escribe en Firebase si hay un cambio significativo en la posición/estado
-   O si ya pasó HEARTBEAT_MS desde el último envío. Esto reduce muchísimo el
-   tráfico cuando estás quieto o cuando sólo rotás un poco la cámara. */
 let lastSentTime = 0;
 let lastSentState = null;
 function sendLocalPlayerState(force = false) {
@@ -3679,9 +3975,6 @@ function updateNetwork(dt) {
   }
   const now = Date.now();
   for (const [id, r] of remotePlayers) {
-    // FIX: ahora usamos lastSeen (local). Sólo se actualiza cuando llega
-    // un ts nuevo de ese jugador, así que no se queda "pegado" por otros
-    // onValue disparados por el resto.
     if (now - r.lastSeen > NET_STALE_MS) {
       removeRemotePlayer(id);
       continue;
@@ -3758,13 +4051,9 @@ async function initOnline() {
   onChildAdded(myHitsRef, snap => {
     const hit = snap.val();
     if (!hit) { return; }
-    // FIX: descartar el nodo inmediatamente para que no se re-aplique.
     remove(snap.ref).catch(() => {});
-    // FIX: nada de daño si estamos muertos.
     if (playerDead) return;
-    // FIX: grace period tras respawnear.
     if ((Date.now() - aliveSince) < DAMAGE_GRACE_MS) return;
-    // FIX: descartar hits viejos (evita daño acumulado tras reconexiones).
     if (hit.ts && (Date.now() - hit.ts) > HIT_MAX_AGE_MS) return;
     const dmg = hit.damage || 20;
     health = Math.max(0, health - dmg);
@@ -3774,10 +4063,6 @@ async function initOnline() {
     else sendLocalPlayerState(true);
   });
 
-  // FIX: sweep MUY conservador. Solo elimina LOCALMENTE (no toca Firebase).
-  // Si un jugador se fue sin que onDisconnect se disparara, cada cliente lo
-  // eliminará de su lista cuando su lastSeen local venza. El nodo Firebase
-  // se limpia solo con onDisconnect o cuando el dueño se reconecte.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const nowSweep = Date.now();
@@ -3788,8 +4073,6 @@ async function initOnline() {
     }
   }, 15000);
 
-  // Limpieza opcional de nodos huérfanos en Firebase (una vez cada 60 s):
-  // si un nodo tiene ts muy viejo (> 90 s), lo borramos.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const playersRef2 = ref(db, `rooms/${ROOM}/players`);
@@ -3806,7 +4089,6 @@ async function initOnline() {
   }, 60000);
 
   sendLocalPlayerState(true);
-  // Heartbeat de respaldo (por si algo se pierde). sendLocalPlayerState decide si enviar.
   setInterval(() => { if (!playerDead) sendLocalPlayerState(false); }, HEARTBEAT_MS);
 }
 
@@ -3899,11 +4181,18 @@ function updateHealthBar() {
 }
 function updateAmmoBar() {
   const ws = curWepState(), def = curWepDef();
+  weaponNameEl.textContent = `${def.icon} ${def.name}`;
+  if (def.melee) {
+    ammoBarInner.style.width = '100%';
+    ammoBarInner.style.background = '#a0a0ff';
+    ammoNumEl.textContent = '∞';
+    ammoMaxEl.textContent = '∞';
+    return;
+  }
   const pct = Math.max(0, Math.min(100, ws.ammo / def.magSize * 100));
   ammoBarInner.style.width = pct + '%';
   ammoNumEl.textContent = ws.ammo;
   ammoMaxEl.textContent = def.magSize;
-  weaponNameEl.textContent = `${def.icon} ${def.name}`;
   if (pct > 60) ammoBarInner.style.background = '#f1c40f';
   else if (pct > 30) ammoBarInner.style.background = '#e67e22';
   else ammoBarInner.style.background = '#e74c3c';
@@ -3927,8 +4216,9 @@ function updateUI(dt = 0) {
     if (hintTimer <= 0) hint.classList.remove('active');
     return;
   }
-  const ws = curWepState();
+  const ws = curWepState(), def = curWepDef();
   if (playerDead || !gameMode) hint.classList.remove('active');
+  else if (def.melee) hint.classList.remove('active');
   else if (ws.reloading) { hint.textContent = '🔄 Recargando...'; hint.classList.add('active'); }
   else if (ws.ammo === 0) { hint.textContent = '🔫 Sin balas · Pulsa R para recargar'; hint.classList.add('active'); }
   else hint.classList.remove('active');
@@ -3938,7 +4228,7 @@ function updateUI(dt = 0) {
    OPTIMIZACIÓN
    ═══════════════════════════════════════════ */
 function applyOptimizations() {
-  const dynamicRoots = new Set([player, camera, weaponRifle, weaponShotgun, weaponPistol, grenadeViewModel, sun]);
+  const dynamicRoots = new Set([player, camera, weaponRifle, weaponShotgun, weaponSword, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
   scene.traverse(obj => {
     let p = obj, isDynamic = false;
@@ -3964,6 +4254,163 @@ function applyOptimizations() {
 }
 
 /* ═══════════════════════════════════════════
+   PREVIEW 3D (armario + HUD)
+   ═══════════════════════════════════════════ */
+function buildPreviewWeapon(key) {
+  const inst = createRemoteWeaponInstance(key);
+  const g = inst.group;
+  g.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(g);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  g.position.sub(center);
+  const wrapper = new THREE.Group();
+  wrapper.add(g);
+  wrapper.scale.setScalar(1.0 / maxDim);
+  return wrapper;
+}
+
+/* --- Armario --- */
+let armoryRenderer = null;
+let armoryScene = null;
+let armoryCamera = null;
+let armoryTilt = null;
+let armoryPivot = null;
+let armoryPreviewKey = 'rifle';
+let armoryPreviewRot = 0;
+let armoryPreviewReady = false;
+
+function setupArmoryRenderer() {
+  if (armoryRenderer) return;
+  const canvas = document.getElementById('armory-canvas');
+  if (!canvas) return;
+  armoryRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+  armoryRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  armoryRenderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  armoryScene = new THREE.Scene();
+  armoryCamera = new THREE.PerspectiveCamera(38, 1.6, 0.1, 100);
+  armoryCamera.position.set(0, 0.06, 1.25);
+  armoryCamera.lookAt(0, 0, 0);
+
+  armoryScene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.7));
+  const d1 = new THREE.DirectionalLight(0xffffff, 2.0);
+  d1.position.set(2, 4, 3);
+  armoryScene.add(d1);
+  const d2 = new THREE.DirectionalLight(0xffb070, 1.0);
+  d2.position.set(-3, -1, 2);
+  armoryScene.add(d2);
+  const d3 = new THREE.DirectionalLight(0x80c0ff, 0.8);
+  d3.position.set(0, 2, -3);
+  armoryScene.add(d3);
+
+  armoryTilt = new THREE.Group();
+  armoryTilt.rotation.x = -0.18;
+  armoryTilt.rotation.z = 0.06;
+  armoryScene.add(armoryTilt);
+  armoryPivot = new THREE.Group();
+  armoryTilt.add(armoryPivot);
+
+  armoryPreviewReady = true;
+}
+
+function resizeArmoryRenderer() {
+  if (!armoryRenderer) return;
+  const canvas = armoryRenderer.domElement;
+  const w = canvas.clientWidth || 300;
+  const h = canvas.clientHeight || 160;
+  armoryRenderer.setSize(w, h, false);
+  armoryCamera.aspect = w / h;
+  armoryCamera.updateProjectionMatrix();
+}
+
+function refreshArmoryPreview() {
+  if (!armoryPivot) return;
+  for (let i = armoryPivot.children.length - 1; i >= 0; i--) {
+    armoryPivot.remove(armoryPivot.children[i]);
+  }
+  armoryPivot.add(buildPreviewWeapon(armoryPreviewKey));
+  const def = WEAPONS[armoryPreviewKey];
+  const labelEl = document.getElementById('armory-preview-label');
+  const hintEl = document.getElementById('armory-preview-hint');
+  if (labelEl) labelEl.textContent = def.name;
+  if (hintEl) {
+    if (def.melee) hintEl.textContent = 'Cuerpo a cuerpo · Sin munición · 75 daño';
+    else if (def.key === 'shotgun') hintEl.textContent = 'Daño masivo · Lenta · 7 cartuchos';
+    else hintEl.textContent = 'Automática · Rápida · 30 balas';
+  }
+  document.querySelectorAll('.armory-card').forEach(c => {
+    c.classList.toggle('selected', c.getAttribute('data-primary') === armoryPreviewKey);
+  });
+}
+
+/* --- HUD del arma (esquina superior derecha) --- */
+let hudRenderer = null;
+let hudScene = null;
+let hudCamera = null;
+let hudTilt = null;
+let hudPivot = null;
+let hudRot = 0;
+let hudCurrentKey = null;
+
+function setupHudRenderer() {
+  if (hudRenderer) return;
+  const canvas = document.getElementById('weapon-hud-canvas');
+  if (!canvas) return;
+  hudRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+  hudRenderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  hudRenderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  hudScene = new THREE.Scene();
+  hudCamera = new THREE.PerspectiveCamera(38, 1.4, 0.1, 100);
+  hudCamera.position.set(0, 0.06, 1.2);
+  hudCamera.lookAt(0, 0, 0);
+
+  hudScene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 1.7));
+  const d1 = new THREE.DirectionalLight(0xffffff, 2.0);
+  d1.position.set(2, 4, 3);
+  hudScene.add(d1);
+  const d2 = new THREE.DirectionalLight(0xffb070, 1.0);
+  d2.position.set(-3, -1, 2);
+  hudScene.add(d2);
+  const d3 = new THREE.DirectionalLight(0x80c0ff, 0.9);
+  d3.position.set(0, 2, -3);
+  hudScene.add(d3);
+
+  hudTilt = new THREE.Group();
+  hudTilt.rotation.x = -0.20;
+  hudTilt.rotation.z = 0.05;
+  hudScene.add(hudTilt);
+  hudPivot = new THREE.Group();
+  hudTilt.add(hudPivot);
+}
+
+function resizeHudRenderer() {
+  if (!hudRenderer) return;
+  const canvas = hudRenderer.domElement;
+  const w = canvas.clientWidth || 170;
+  const h = canvas.clientHeight || 128;
+  if (canvas.width !== Math.round(w * hudRenderer.getPixelRatio()) || canvas.height !== Math.round(h * hudRenderer.getPixelRatio())) {
+    hudRenderer.setSize(w, h, false);
+    hudCamera.aspect = w / h;
+    hudCamera.updateProjectionMatrix();
+  }
+}
+
+function refreshHudWeapon() {
+  if (!hudPivot) return;
+  if (hudCurrentKey === currentWeaponKey && hudPivot.children.length > 0) return;
+  hudCurrentKey = currentWeaponKey;
+  for (let i = hudPivot.children.length - 1; i >= 0; i--) {
+    hudPivot.remove(hudPivot.children[i]);
+  }
+  hudPivot.add(buildPreviewWeapon(currentWeaponKey));
+  const lbl = document.getElementById('weapon-hud-label');
+  if (lbl) lbl.textContent = WEAPONS[currentWeaponKey].name;
+}
+
+/* ═══════════════════════════════════════════
    MENÚ + SELECCIÓN DE ARSENAL
    ═══════════════════════════════════════════ */
 const modeMenu = document.getElementById('mode-menu');
@@ -3975,32 +4422,49 @@ function handlePlay() {
   initAudio();
   modeMenu.classList.add('hidden');
   loadoutMenu.classList.add('active');
+  armoryPreviewKey = playerLoadout.primary;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setupArmoryRenderer();
+      resizeArmoryRenderer();
+      refreshArmoryPreview();
+    });
+  });
 }
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
 
-document.querySelectorAll('.loadout-icon').forEach(img => {
-  img.addEventListener('error', () => {
-    img.style.visibility = 'hidden';
-    img.parentElement.style.background = 'linear-gradient(135deg,#343434,#555)';
-  }, { once: true });
+document.querySelectorAll('.armory-card').forEach(btn => {
+  const select = (e) => {
+    if (e) e.preventDefault();
+    const primary = btn.getAttribute('data-primary');
+    if (primary !== 'rifle' && primary !== 'shotgun' && primary !== 'sword') return;
+    armoryPreviewKey = primary;
+    refreshArmoryPreview();
+  };
+  btn.addEventListener('click', select);
+  btn.addEventListener('mouseenter', select);
+  btn.addEventListener('touchstart', select, { passive: true });
 });
 
-document.querySelectorAll('.loadout-btn').forEach(btn => {
-  const applyLoadout = (e) => {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (gameMode) return;
-    const primary = btn.getAttribute('data-primary');
-    if (primary !== 'rifle' && primary !== 'shotgun') return;
-    playerLoadout.primary = primary;
-    playerLoadout.secondary = 'pistol';
-    currentWeaponKey = primary;
-    loadoutMenu.classList.remove('active');
-    selectGameMode('battle');
-  };
-  btn.addEventListener('click', applyLoadout);
-  btn.addEventListener('touchend', applyLoadout, { passive: false });
+document.getElementById('armory-play').addEventListener('click', e => {
+  e.preventDefault();
+  if (gameMode) return;
+  playerLoadout.primary = armoryPreviewKey;
+  playerLoadout.secondary = 'pistol';
+  currentWeaponKey = armoryPreviewKey;
+  loadoutMenu.classList.remove('active');
+  selectGameMode('battle');
 });
+document.getElementById('armory-play').addEventListener('touchend', e => {
+  e.preventDefault();
+  if (gameMode) return;
+  playerLoadout.primary = armoryPreviewKey;
+  playerLoadout.secondary = 'pistol';
+  currentWeaponKey = armoryPreviewKey;
+  loadoutMenu.classList.remove('active');
+  selectGameMode('battle');
+}, { passive: false });
 
 function selectGameMode(mode) {
   if (gameMode) return;
@@ -4017,6 +4481,7 @@ function selectGameMode(mode) {
   if (!playerDead) {
     weaponRifle.visible   = currentWeaponKey === 'rifle';
     weaponShotgun.visible = currentWeaponKey === 'shotgun';
+    weaponSword.visible   = currentWeaponKey === 'sword';
     weaponPistol.visible  = currentWeaponKey === 'pistol';
     forceWeaponVisibility();
   }
@@ -4039,6 +4504,19 @@ function selectGameMode(mode) {
     grenadeBtn.classList.add('active');
     crouchBtn.classList.add('active');
   }
+
+  // Mostrar HUD del arma
+  const hudEl = document.getElementById('weapon-hud');
+  if (hudEl) hudEl.classList.add('active');
+  hudCurrentKey = null;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      setupHudRenderer();
+      resizeHudRenderer();
+      refreshHudWeapon();
+    });
+  });
+
   try {
     const app = initializeApp(firebaseConfig);
     db = getDatabase(app);
@@ -4133,12 +4611,12 @@ function applySingleTouchControl(id) {
   const ratio = size / baseSize;
 
   if (id === 'joystick') {
-    const stick = document.getElementById('stick');
-    if (stick) {
+    const stickEl = document.getElementById('stick');
+    if (stickEl) {
       const ss = 46 * ratio;
-      stick.style.width = ss + 'px';
-      stick.style.height = ss + 'px';
-      stick.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
+      stickEl.style.width = ss + 'px';
+      stickEl.style.height = ss + 'px';
+      stickEl.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
     }
     JOYSTICK_RADIUS = 45 * ratio;
     const zone = document.getElementById('joystick-zone');
@@ -4176,7 +4654,6 @@ function initTouchConfig() {
   applyTouchConfig();
 }
 
-/* ─────── Editor ─────── */
 const controlsMenu = document.getElementById('controls-menu');
 const configControlsBtn = document.getElementById('config-controls-btn');
 
@@ -4218,7 +4695,6 @@ document.getElementById('ctrl-reset').addEventListener('click', e => {
   applyTouchConfig();
 });
 
-/* Bloquear pointerdown de los botones en modo edición */
 document.addEventListener('pointerdown', e => {
   if (!editMode) return;
   const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
@@ -4227,7 +4703,6 @@ document.addEventListener('pointerdown', e => {
   e.stopPropagation();
 }, true);
 
-/* Drag / resize con eventos táctiles */
 document.addEventListener('touchstart', e => {
   if (!editMode) return;
   const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
@@ -4285,7 +4760,6 @@ function endEditTouch(e) {
 document.addEventListener('touchend', endEditTouch, { capture: true });
 document.addEventListener('touchcancel', endEditTouch, { capture: true });
 
-/* Aplicar config y reaplicar en resize */
 initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
@@ -4298,6 +4772,14 @@ function animate() {
   if (menuActive) {
     updateMenuCamera(dt);
     renderer.render(scene, camera);
+
+    // Render del preview del armario si está abierto
+    if (loadoutMenu.classList.contains('active') && armoryRenderer && armoryScene && armoryCamera) {
+      armoryPreviewRot += dt * 0.55;
+      if (armoryPivot) armoryPivot.rotation.y = armoryPreviewRot;
+      resizeArmoryRenderer();
+      armoryRenderer.render(armoryScene, armoryCamera);
+    }
     return;
   }
   if (gameMode) {
@@ -4325,6 +4807,18 @@ function animate() {
     updateUI(dt);
     updateDebug(dt);
     drawMinimap();
+
+    // HUD del arma (esquina superior derecha)
+    if (!playerDead) {
+      setupHudRenderer();
+      if (hudRenderer) {
+        resizeHudRenderer();
+        refreshHudWeapon();
+        hudRot += dt * 0.6;
+        if (hudPivot) hudPivot.rotation.y = hudRot;
+        hudRenderer.render(hudScene, hudCamera);
+      }
+    }
   }
   renderer.render(scene, camera);
 }
@@ -4335,6 +4829,8 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
   applyTouchConfig();
+  if (armoryRenderer) resizeArmoryRenderer();
+  if (hudRenderer) resizeHudRenderer();
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
 
