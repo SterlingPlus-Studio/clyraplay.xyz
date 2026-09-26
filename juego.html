@@ -22,7 +22,6 @@
   #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; }
   #hint.active { display: block; }
 
-  /* MENÚ PRINCIPAL (estilo Call of Duty) */
   #mode-menu {
     position: fixed; inset: 0; z-index: 500;
     color: #fff; cursor: default; overflow: hidden;
@@ -43,7 +42,6 @@
     animation: menuFadeIn 0.5s ease both;
   }
 
-  /* ── FICHA DEL OPERADOR (nombre reemplaza al rango) ── */
   .player-card {
     position: relative;
     display: flex; align-items: center; gap: 14px;
@@ -96,7 +94,6 @@
     animation: pulseDot 1.6s ease-in-out infinite;
   }
 
-  /* ── ACCIONES SUPERIORES (Ajustes) ── */
   .menu-top-actions { display: flex; gap: 10px; pointer-events: auto; }
   .icon-btn {
     width: 48px; height: 48px;
@@ -116,7 +113,6 @@
     .icon-btn:hover { border-color: #ff9a1a; color: #ff9a1a; box-shadow: 0 4px 20px rgba(255,154,26,0.35); }
   }
 
-  /* ── BOTÓN JUGAR ABAJO A LA DERECHA ── */
   .menu-right-panel {
     position: absolute;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
@@ -176,31 +172,18 @@
   @keyframes menuFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.82); } }
 
-  /* ── Móvil / pantallas chicas: el botón baja pero sigue a la derecha ── */
   @media (max-width: 720px) {
     .menu-top-bar { padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 0; }
-    .player-card {
-      min-width: 0;
-      padding: 10px 34px 10px 10px;
-      gap: 10px;
-    }
+    .player-card { min-width: 0; padding: 10px 34px 10px 10px; gap: 10px; }
     .player-avatar { width: 40px; height: 40px; font-size: 18px; }
     .player-name { font-size: 16px; letter-spacing: 2px; }
     .player-label { font-size: 8px; letter-spacing: 3px; }
     .player-status { font-size: 9px; letter-spacing: 1.5px; }
-
-    .menu-right-panel {
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
-      padding-right: 18px;
-    }
+    .menu-right-panel { bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); padding-right: 18px; }
     .menu-deploy-label { font-size: 9px; letter-spacing: 3px; }
     .play-btn {
-      min-width: 190px;
-      min-height: 64px;
-      padding: 14px 22px;
-      font-size: 22px;
-      letter-spacing: 4px;
-      border-left-width: 5px;
+      min-width: 190px; min-height: 64px; padding: 14px 22px; font-size: 22px;
+      letter-spacing: 4px; border-left-width: 5px;
       clip-path: polygon(0 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px));
     }
     .play-btn .play-icon { font-size: 22px; }
@@ -214,7 +197,6 @@
     .play-btn { min-height: 58px; padding: 12px 20px; font-size: 20px; }
   }
 
-  /* PANEL AJUSTES */
   #settings-panel {
     position: fixed; inset: 0; z-index: 550;
     display: none; align-items: center; justify-content: center;
@@ -237,21 +219,16 @@
     margin: 0 0 4px;
     font: 900 20px system-ui, sans-serif;
     letter-spacing: 3px; color: #ffd93d;
-    text-shadow: 2px 2px 0 #000;
-    text-align: center;
+    text-shadow: 2px 2px 0 #000; text-align: center;
   }
   .settings-item {
     display: flex; align-items: center; gap: 12px;
-    width: 100%;
-    padding: 14px 16px;
+    width: 100%; padding: 14px 16px;
     background: rgba(30,42,68,0.7);
     border: 2px solid rgba(120,150,200,0.3);
     border-radius: 10px;
-    color: #fff;
-    font: bold 14px system-ui, sans-serif;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    text-align: left;
+    color: #fff; font: bold 14px system-ui, sans-serif;
+    letter-spacing: 1.5px; cursor: pointer; text-align: left;
     transition: transform 0.1s ease, border-color 0.15s ease, filter 0.15s ease;
     -webkit-tap-highlight-color: transparent;
   }
@@ -283,8 +260,7 @@
   #loadout-menu h2 {
     font: 900 clamp(22px, 5vw, 36px)/1 system-ui, sans-serif;
     letter-spacing: clamp(3px, 1vw, 6px);
-    margin: 0;
-    color: #ffd93d;
+    margin: 0; color: #ffd93d;
     text-shadow: 3px 3px 0 #000, 0 0 30px rgba(255,200,80,0.5);
   }
   #loadout-menu .loadout-sub {
@@ -294,23 +270,18 @@
   }
   .loadout-options {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: clamp(14px, 3vw, 28px);
-    width: 100%;
+    gap: clamp(14px, 3vw, 28px); width: 100%;
   }
   @media (max-width: 560px) { .loadout-options { grid-template-columns: 1fr; } }
   .loadout-btn {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 10px;
-    min-height: 200px;
-    padding: 24px 18px;
+    gap: 10px; min-height: 200px; padding: 24px 18px;
     background: linear-gradient(180deg, rgba(60,80,110,0.6), rgba(20,30,50,0.9));
     border: 3px solid rgba(180,200,240,0.6);
-    border-radius: 16px;
-    color: #fff;
+    border-radius: 16px; color: #fff;
     font: bold clamp(16px, 3vw, 22px)/1.2 system-ui, sans-serif;
-    letter-spacing: 2px;
-    cursor: pointer;
+    letter-spacing: 2px; cursor: pointer;
     text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
     box-shadow: 0 6px 0 rgba(0,0,0,0.55), 0 14px 30px rgba(0,0,0,0.4);
     transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease, border-color 0.15s ease;
@@ -319,12 +290,9 @@
   .loadout-btn .loadout-icon {
     width: min(82%, 360px);
     height: clamp(78px, 14vw, 120px);
-    display: block;
-    margin: 0 auto;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 8px;
-    background: #4c4c4c;
+    display: block; margin: 0 auto;
+    object-fit: cover; object-position: center;
+    border-radius: 8px; background: #4c4c4c;
     border: 1px solid rgba(255,255,255,0.18);
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25), 0 3px 9px rgba(0,0,0,0.24);
   }
@@ -1123,6 +1091,89 @@ const menuAmbient = new THREE.AmbientLight(0xffffff, 0.55);
 scene.add(menuAmbient);
 menuAmbient.intensity = 0;
 
+// Luces acento lobby
+const lobbySpot1 = new THREE.PointLight(0xff9a1a, 0, 12);
+lobbySpot1.position.set(-2.5, 0.4, 0);
+scene.add(lobbySpot1);
+const lobbySpot2 = new THREE.PointLight(0x4ea8ff, 0, 14);
+lobbySpot2.position.set(2.5, 0.4, -1.5);
+scene.add(lobbySpot2);
+
+/* Fondo del lobby: gradiente + grid + contenedores silueta */
+const lobbyOnly = new THREE.Group();
+scene.add(lobbyOnly);
+
+function makeLobbyGradient() {
+  const c = document.createElement('canvas');
+  c.width = 4; c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0.00, '#050912');
+  g.addColorStop(0.35, '#0b1626');
+  g.addColorStop(0.70, '#16243d');
+  g.addColorStop(1.00, '#0a1526');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 4, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+const LOBBY_BG = makeLobbyGradient();
+
+const lobbyFloor = new THREE.Mesh(
+  new THREE.PlaneGeometry(80, 80),
+  new THREE.MeshBasicMaterial({ color: 0x0b1424, fog: false })
+);
+lobbyFloor.rotation.x = -Math.PI / 2;
+lobbyFloor.position.y = -0.02;
+lobbyOnly.add(lobbyFloor);
+
+const lobbyGrid = new THREE.GridHelper(80, 80, 0x2f6ea8, 0x1a3a5a);
+lobbyGrid.material.opacity = 0.35;
+lobbyGrid.material.transparent = true;
+lobbyGrid.position.y = 0.0;
+lobbyOnly.add(lobbyGrid);
+
+// Siluetas de contenedores alrededor del lobby
+const lobbySilhouetteColors = [0x1a2438, 0x1a3040, 0x242a3c, 0x1c2840, 0x182838];
+for (let i = 0; i < 14; i++) {
+  const angle = (i / 14) * Math.PI * 2 + 0.3;
+  const radius = 14 + (i % 3) * 2.5;
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(5.8, 2.5, 2.4),
+    new THREE.MeshBasicMaterial({ color: lobbySilhouetteColors[i % lobbySilhouetteColors.length], fog: false })
+  );
+  box.position.set(Math.cos(angle) * radius, 1.25, Math.sin(angle) * radius);
+  box.rotation.y = angle + Math.PI / 2;
+  lobbyOnly.add(box);
+  // Segunda fila más alta (silueta warehouse)
+  if (i % 2 === 0) {
+    const box2 = new THREE.Mesh(
+      new THREE.BoxGeometry(6.5, 3.5, 2.8),
+      new THREE.MeshBasicMaterial({ color: 0x0f1a2c, fog: false })
+    );
+    const r2 = radius + 4;
+    box2.position.set(Math.cos(angle + 0.15) * r2, 1.75, Math.sin(angle + 0.15) * r2);
+    box2.rotation.y = angle + 0.15 + Math.PI / 2;
+    lobbyOnly.add(box2);
+  }
+}
+// Grúas lejanas (silueta)
+for (const [x, z] of [[-18, -12], [18, -10]]) {
+  const mast = new THREE.Mesh(
+    new THREE.BoxGeometry(0.9, 18, 0.9),
+    new THREE.MeshBasicMaterial({ color: 0x101a2e, fog: false })
+  );
+  mast.position.set(x, 9, z);
+  lobbyOnly.add(mast);
+  const boom = new THREE.Mesh(
+    new THREE.BoxGeometry(16, 0.5, 0.5),
+    new THREE.MeshBasicMaterial({ color: 0x101a2e, fog: false })
+  );
+  boom.position.set(x - 6, 18, z);
+  lobbyOnly.add(boom);
+}
+
 /* CACHE MATERIALES */
 const _matCache = new Map();
 function cachedMat(color, opts = {}) {
@@ -1298,7 +1349,7 @@ const menuPlatformInner = new THREE.Mesh(
 menuPlatformInner.position.set(0, 0.19, 0);
 scene.add(menuPlatformInner);
 
-const menuOnlyObjects = new Set([menuPlatform, menuPlatformRing, menuPlatformInner, menuKeyLight, menuFillLight, menuRimLight, menuAmbient]);
+const menuOnlyObjects = new Set([menuPlatform, menuPlatformRing, menuPlatformInner, menuKeyLight, menuFillLight, menuRimLight, menuAmbient, lobbyOnly, lobbyFloor, lobbyGrid, lobbySpot1, lobbySpot2]);
 
 function setupMenuCharacter() {
   menuChar = buildCharacter({
@@ -1314,6 +1365,8 @@ function setupMenuCharacter() {
   });
   menuChar.root.position.set(0, 0.19, 0);
   menuChar.root.rotation.y = 0;
+  // ↓ Personaje un poquito más chico en el lobby
+  menuChar.root.scale.setScalar(0.82);
   scene.add(menuChar.root);
 
   menuChar.root.traverse(n => {
@@ -1322,7 +1375,6 @@ function setupMenuCharacter() {
   menuOnlyObjects.add(menuChar.root);
 }
 
-/* Coloca las armas FBX en el personaje del menú (los brazos por IK). */
 function refreshMenuWeapons() {
   if (!menuChar || !rifleModel.fbxModel) return;
   if (menuRifleRef) { menuChar.body.remove(menuRifleRef.group); menuRifleRef = null; }
@@ -1359,15 +1411,19 @@ function setWorldVisibleForMenu(inMenu) {
     menuFillLight.intensity  = 2.0;
     menuRimLight.intensity   = 2.6;
     menuAmbient.intensity    = 0.55;
+    lobbySpot1.intensity     = 1.4;
+    lobbySpot2.intensity     = 1.6;
     sun.intensity  = 1.6;
     hemi.intensity = 1.4;
-    scene.background = new THREE.Color(0x0a0d16);
+    scene.background = LOBBY_BG;
     scene.fog = null;
   } else {
     menuKeyLight.intensity  = 0;
     menuFillLight.intensity = 0;
     menuRimLight.intensity  = 0;
     menuAmbient.intensity   = 0;
+    lobbySpot1.intensity    = 0;
+    lobbySpot2.intensity    = 0;
     sun.intensity  = 2.3;
     hemi.intensity = 1.4;
   }
@@ -1478,42 +1534,76 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
-  lastWeaponVisKey = null;
   forceWeaponVisibility();
   refreshMenuWeapons();
   setWorldVisibleForMenu(menuActive);
 })();
 
-/* Cache de visibilidad para evitar traversals cada frame y garantizar que el
-   modelo FBX clonado se oculte de verdad al cambiar de arma. */
-let lastWeaponVisKey = null;
-function _applyFbxVisible(model, on) {
-  if (!model) return;
-  model.visible = on;
-  model.traverse(n => {
-    if (n.isMesh || n.isSkinnedMesh) n.visible = on;
+/* ────────────────────────────────────────────────────────────
+   VISIBILIDAD DE ARMAS — VERSIÓN BLINDADA
+   Aplica triple protección cada vez:
+   1) visible=false en el grupo del arma
+   2) traverse forzado sobre el FBX clonado
+   3) posición a WEAPON_HIDDEN_POS (lejos del frustum)
+   No hay cache: se ejecuta siempre, es barato y garantiza que
+   el M4A1 no se quede pegado al cambiar a pistola/escopeta.
+   ──────────────────────────────────────────────────────────── */
+const WEAPON_HIDDEN_POS = new THREE.Vector3(0, -1000, 0);
+function _forceHideFbx(fbxModel) {
+  if (!fbxModel) return;
+  fbxModel.visible = false;
+  fbxModel.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) n.visible = false;
+  });
+}
+function _forceShowFbx(fbxModel) {
+  if (!fbxModel) return;
+  fbxModel.visible = true;
+  fbxModel.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) n.visible = true;
   });
 }
 function forceWeaponVisibility() {
   const inGame = !!gameMode && !playerDead;
-  const key = inGame ? currentWeaponKey : 'off';
-  if (key === lastWeaponVisKey) return;
-  lastWeaponVisKey = key;
+  const isRifle   = inGame && currentWeaponKey === 'rifle';
+  const isShotgun = inGame && currentWeaponKey === 'shotgun';
+  const isPistol  = inGame && currentWeaponKey === 'pistol';
 
-  const isRifle   = key === 'rifle';
-  const isShotgun = key === 'shotgun';
-  const isPistol  = key === 'pistol';
-
+  // 1) Visibilidad del grupo (barato)
   weaponRifle.visible   = isRifle;
   weaponShotgun.visible = isShotgun;
   weaponPistol.visible  = isPistol;
 
-  _applyFbxVisible(rifleModel.fbxModel,   isRifle);
-  _applyFbxVisible(shotgunModel.fbxModel, isShotgun);
-  _applyFbxVisible(pistolModel.fbxModel,  isPistol);
+  // 2) Traverse forzado solo cuando el modelo no coincide con lo esperado
+  if (rifleModel.fbxModel) {
+    const cur = rifleModel.fbxModel.visible;
+    if (cur !== isRifle) {
+      if (isRifle) _forceShowFbx(rifleModel.fbxModel);
+      else _forceHideFbx(rifleModel.fbxModel);
+    }
+  }
+  if (shotgunModel.fbxModel) {
+    const cur = shotgunModel.fbxModel.visible;
+    if (cur !== isShotgun) {
+      if (isShotgun) _forceShowFbx(shotgunModel.fbxModel);
+      else _forceHideFbx(shotgunModel.fbxModel);
+    }
+  }
+  if (pistolModel.fbxModel) {
+    const cur = pistolModel.fbxModel.visible;
+    if (cur !== isPistol) {
+      if (isPistol) _forceShowFbx(pistolModel.fbxModel);
+      else _forceHideFbx(pistolModel.fbxModel);
+    }
+  }
+
+  // 3) Posición: mandar lejos del frustum si no es el arma activa
+  if (!isRifle)   weaponRifle.position.copy(WEAPON_HIDDEN_POS);
+  if (!isShotgun) weaponShotgun.position.copy(WEAPON_HIDDEN_POS);
+  if (!isPistol)  weaponPistol.position.copy(WEAPON_HIDDEN_POS);
 }
 
-/* SOLO FBX: construye instancia remota desde el modelo cargado. */
+/* Instancia remota */
 function createRemoteWeaponInstance(weaponKey) {
   let fbxSource = null, flashCfg, gripCfg, extraMarker;
   if (weaponKey === 'rifle') {
@@ -1624,7 +1714,6 @@ const WEAPON_POS = {
   shotgun: new THREE.Vector3(0.15, -0.15, -0.36),
   pistol:  new THREE.Vector3(0.13, -0.15, -0.32)
 };
-const WEAPON_HIDDEN_POS = new THREE.Vector3(0, -1000, 0);
 weaponRifle.position.copy(WEAPON_POS.rifle);
 weaponShotgun.position.copy(WEAPON_POS.shotgun);
 weaponPistol.position.copy(WEAPON_POS.pistol);
@@ -1650,22 +1739,20 @@ function curWeaponFlash() {
 }
 function setLocalWeaponsVisible(v) {
   if (!v) {
+    _forceHideFbx(rifleModel.fbxModel);
+    _forceHideFbx(shotgunModel.fbxModel);
+    _forceHideFbx(pistolModel.fbxModel);
     weaponRifle.visible   = false;
     weaponShotgun.visible = false;
     weaponPistol.visible  = false;
-    _applyFbxVisible(rifleModel.fbxModel,   false);
-    _applyFbxVisible(shotgunModel.fbxModel, false);
-    _applyFbxVisible(pistolModel.fbxModel,  false);
     weaponRifle.position.copy(WEAPON_HIDDEN_POS);
     weaponShotgun.position.copy(WEAPON_HIDDEN_POS);
     weaponPistol.position.copy(WEAPON_HIDDEN_POS);
     grenadeViewModel.visible = false;
-    lastWeaponVisKey = null;
   } else {
-    weaponRifle.position.copy(WEAPON_POS.rifle);
-    weaponShotgun.position.copy(WEAPON_POS.shotgun);
-    weaponPistol.position.copy(WEAPON_POS.pistol);
-    lastWeaponVisKey = null;
+    // El arma activa se reposiciona en su slot; las otras quedan lejos
+    const g = curWeaponGroup();
+    g.position.copy(WEAPON_POS[currentWeaponKey]);
     forceWeaponVisibility();
   }
 }
@@ -2716,7 +2803,6 @@ function selectWeapon(key, silent = false, force = false) {
   old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
-  lastWeaponVisKey = null;
   if (!playerDead) {
     forceWeaponVisibility();
     curWeaponGroup().position.copy(WEAPON_POS[key]);
@@ -3608,7 +3694,6 @@ function handlePlay() {
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
 
-/* Drag para rotar personaje del menú */
 modeMenu.addEventListener('pointerdown', e => {
   if (!menuActive) return;
   if (e.target.closest('button, .icon-btn, .player-card, .menu-right-panel')) return;
@@ -3683,12 +3768,10 @@ function selectGameMode(mode) {
 
   aliveSince = Date.now();
   currentWeaponKey = playerLoadout.primary;
-  lastWeaponVisKey = null;
   if (!playerDead) {
-    weaponRifle.visible   = currentWeaponKey === 'rifle';
-    weaponShotgun.visible = currentWeaponKey === 'shotgun';
-    weaponPistol.visible  = currentWeaponKey === 'pistol';
     forceWeaponVisibility();
+    curWeaponGroup().position.copy(WEAPON_POS[currentWeaponKey]);
+    curWeaponGroup().rotation.set(0, 0, 0);
   }
   updateAmmoBar();
   (function tryAmbient(attempt = 0) {
@@ -3757,10 +3840,11 @@ function updateMenuCamera(dt) {
     }
   }
 
+  // Cámara ajustada al personaje ahora más chico
   const bob = Math.sin(menuCamAngle * 0.8) * 0.045;
   const sway = Math.sin(menuCamAngle * 0.5) * 0.10;
-  camera.position.set(sway, 1.70 + bob, 3.85);
-  camera.lookAt(0, 1.15, 0);
+  camera.position.set(sway, 1.52 + bob, 3.55);
+  camera.lookAt(0, 0.92, 0);
   camera.fov = 44;
   camera.updateProjectionMatrix();
   menuKeyLight.intensity = 3.2 + Math.sin(menuCamAngle * 1.4) * 0.15;
