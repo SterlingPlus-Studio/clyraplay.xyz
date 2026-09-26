@@ -117,8 +117,22 @@
   #respawn-btn { padding: 18px 48px; font: bold 22px system-ui, sans-serif; background: #1a1a1a; color: #fff; border: 3px solid #fff; cursor: pointer; letter-spacing: 3px; transition: all 0.15s; text-shadow: 2px 2px 0 #000; }
   #respawn-btn:hover { background: #fff; color: #000; text-shadow: none; transform: scale(1.05); }
   #damage-overlay { position: fixed; inset: 0; background: radial-gradient(ellipse at center, rgba(255,0,0,0) 25%, rgba(220,0,0,0.45) 65%, rgba(150,0,0,0.9) 100%); opacity: 0; pointer-events: none; z-index: 250; will-change: opacity; }
-  #minimap-wrap { position: fixed; top: 10px; left: 10px; width: 150px; height: 150px; border: 3px solid #000; box-shadow: 0 0 0 2px #fff inset, 0 0 12px rgba(0,0,0,0.5); background: #1a1a1a; z-index: 20; }
-  #minimap { display: block; width: 100%; height: 100%; }
+
+  #minimap-wrap {
+    position: fixed; top: 10px; left: 10px; width: 150px; height: 150px;
+    border-radius: 14px; overflow: hidden;
+    border: 1.5px solid rgba(255,255,255,0.22);
+    background: rgba(10,14,24,0.55);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    box-shadow:
+      0 10px 28px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      0 0 0 1px rgba(0,0,0,0.35);
+    z-index: 20;
+  }
+  #minimap { display: block; width: 100%; height: 100%; border-radius: inherit; }
+
   #health-wrap { position: fixed; top: 166px; left: 10px; width: 150px; z-index: 20; }
   #health-label { color: #fff; font: bold 11px ui-monospace, monospace; text-shadow: 1px 1px 0 #000; letter-spacing: 1px; margin-bottom: 3px; display: flex; justify-content: space-between; }
   #health-bar-outer { width: 100%; height: 22px; background: #1a1a1a; border: 3px solid #000; box-shadow: 0 0 0 2px #fff inset; box-sizing: border-box; padding: 2px; }
@@ -137,10 +151,18 @@
   #grenade-wrap.cooldown #grenade-status { color: #c39bd3; }
   #grenade-bar-outer { width: 100%; height: 22px; background: #1a1a1a; border: 3px solid #000; box-shadow: 0 0 0 2px #fff inset; box-sizing: border-box; padding: 2px; }
   #grenade-bar-inner { height: 100%; background: #2ecc71; width: 100%; transition: width 0.15s linear, background 0.15s; }
-  #grenade-btn { right: 235px; bottom: 55px; width: 75px; height: 75px; font-size: 30px; background: rgba(150,110,255,0.30); border-color: rgba(200,180,255,0.9); }
-  #grenade-btn.cooling { opacity: 0.35; }
-  #crouch-btn { right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px; background: rgba(120,200,150,0.3); border-color: rgba(180,255,200,0.9); }
-  #crouch-btn.held { background: rgba(150,240,180,0.75); border-color: #fff; }
+
+  #crouch-btn {
+    right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px;
+    background: radial-gradient(circle at 50% 32%, rgba(155,235,185,0.45), rgba(45,160,110,0.32));
+    border-color: rgba(180,255,205,0.72);
+  }
+  #crouch-btn.held {
+    background: radial-gradient(circle at 50% 32%, rgba(190,255,205,0.92), rgba(70,200,130,0.72));
+    border-color: #fff;
+    box-shadow: 0 0 22px rgba(120,240,170,0.65), 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+
   #debug { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #7cf47c; font: 11px/1.4 ui-monospace, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; z-index: 100; display: none; min-width: 250px; border: 2px solid rgba(124,244,124,0.5); max-height: 90vh; overflow: hidden; }
   #debug.active { display: block; }
   #debug .title { color: #fff; font-weight: bold; }
@@ -155,23 +177,107 @@
   #crosshair .l-left   { left: 0;   top: 50%; height: 2px; width: 12px; transform: translateX(-50%) translateY(-50%); }
   #crosshair .l-right  { right: 0;  top: 50%; height: 2px; width: 12px; transform: translateX(50%) translateY(-50%); }
   #crosshair .dot { position: absolute; top: 50%; left: 50%; width: 3px; height: 3px; background: #ff3b30; transform: translate(-50%, -50%); box-shadow: 0 0 3px #000; }
-  #joystick { position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); display: none; touch-action: none; z-index: 10; }
+
+  #joystick {
+    position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.10), rgba(255,255,255,0.02) 72%);
+    border: 1.5px solid rgba(255,255,255,0.32);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow:
+      0 10px 30px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      inset 0 -1px 0 rgba(0,0,0,0.2),
+      inset 0 0 30px rgba(120,180,255,0.08);
+    display: none; touch-action: none; z-index: 10;
+  }
   #joystick.active { display: block; }
-  #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: rgba(255,255,255,0.7); border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); pointer-events: none; }
+  #stick {
+    position: absolute; top: 50%; left: 50%; width: 60px; height: 60px;
+    margin: -30px 0 0 -30px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.98), rgba(195,215,240,0.78));
+    border: 1.5px solid rgba(255,255,255,0.9);
+    box-shadow:
+      0 6px 18px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.9),
+      inset 0 -3px 8px rgba(0,0,0,0.14);
+    pointer-events: none;
+  }
   #joystick-zone { position: fixed; left: 0; bottom: 0; width: 50%; height: 55%; display: none; z-index: 9; touch-action: none; }
   #joystick-zone.active { display: block; }
   #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; }
   #camera-zone.active { display: block; }
-  .btn { position: fixed; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.6); color: #fff; font: bold 14px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; display: none; align-items: center; justify-content: center; z-index: 10; touch-action: none; cursor: pointer; }
+
+  .btn {
+    position: fixed; display: none; align-items: center; justify-content: center;
+    z-index: 10; touch-action: none; cursor: pointer;
+    color: #fff; font: 700 14px/1 system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.4px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.32);
+    background: rgba(18,24,38,0.42);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow:
+      0 8px 22px rgba(0,0,0,0.38),
+      inset 0 1px 0 rgba(255,255,255,0.18),
+      inset 0 -1px 0 rgba(0,0,0,0.22);
+    transition: transform 0.12s cubic-bezier(.34,.8,.4,1.3),
+                background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+  }
   .btn.active { display: flex; }
-  .btn:active { background: rgba(255,255,255,0.45); }
-  #shoot-btn { right: 25px; bottom: 40px; width: 100px; height: 100px; background: rgba(230,60,60,0.35); border-color: rgba(255,120,120,0.9); font-size: 40px; }
-  #aim-btn { right: 140px; bottom: 55px; width: 75px; height: 75px; background: rgba(255,200,80,0.3); border-color: rgba(255,240,150,0.9); font-size: 30px; }
-  #aim-btn.held { background: rgba(255,220,80,0.75); border-color: #fff; }
-  #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; }
-  #swap-btn { right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px; background: rgba(120,200,255,0.3); border-color: rgba(180,230,255,0.9); }
-  #debug-btn { top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px; background: rgba(50,220,100,0.3); border-color: rgba(150,255,150,0.9); }
-  #online-panel { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; font: bold 12px ui-monospace, monospace; padding: 6px 12px; border: 2px solid rgba(100,220,150,0.7); border-radius: 5px; z-index: 22; pointer-events: none; white-space: nowrap; text-shadow: 1px 1px 0 #000; }
+  .btn:active {
+    transform: scale(0.92);
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.7);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  #shoot-btn {
+    right: 25px; bottom: 40px; width: 100px; height: 100px; font-size: 40px;
+    background: radial-gradient(circle at 50% 32%, rgba(255,120,120,0.55), rgba(190,32,32,0.42));
+    border-color: rgba(255,150,150,0.72);
+    box-shadow: 0 10px 28px rgba(220,40,40,0.35), 0 6px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+  }
+  #shoot-btn:active {
+    background: radial-gradient(circle at 50% 32%, rgba(255,160,160,0.9), rgba(220,60,60,0.72));
+    box-shadow: 0 4px 14px rgba(220,40,40,0.55), inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  #aim-btn {
+    right: 140px; bottom: 55px; width: 75px; height: 75px; font-size: 30px;
+    background: radial-gradient(circle at 50% 32%, rgba(255,225,130,0.45), rgba(210,140,25,0.32));
+    border-color: rgba(255,235,150,0.72);
+  }
+  #aim-btn.held {
+    background: radial-gradient(circle at 50% 32%, rgba(255,245,140,0.92), rgba(255,190,50,0.75));
+    border-color: #fff;
+    box-shadow: 0 0 26px rgba(255,220,80,0.7), 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+    transform: scale(0.96);
+  }
+  #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; letter-spacing: 1.6px; }
+  #swap-btn {
+    right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px;
+    background: radial-gradient(circle at 50% 32%, rgba(150,215,255,0.45), rgba(35,120,210,0.32));
+    border-color: rgba(180,225,255,0.72);
+  }
+  #debug-btn {
+    top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
+    background: radial-gradient(circle at 50% 32%, rgba(130,240,160,0.45), rgba(35,180,80,0.32));
+    border-color: rgba(160,255,180,0.72);
+  }
+  #online-panel {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(8,12,20,0.72); color: #fff;
+    font: bold 12px ui-monospace, monospace; padding: 6px 14px;
+    border: 1px solid rgba(100,220,150,0.45); border-radius: 999px;
+    z-index: 22; pointer-events: none; white-space: nowrap;
+    text-shadow: 0 1px 2px #000;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  }
   #online-panel.offline { border-color: rgba(220,80,80,0.7); }
   #online-panel.hidden { display: none; }
   #online-panel .ok { color: #4cdf7b; }
@@ -179,7 +285,7 @@
   #online-panel .name { color: #ffd93d; }
   body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
   body.is-touch #info { display: none; }
-  body.is-touch #minimap-wrap { top: calc(env(safe-area-inset-top, 0px) + 6px); left: 6px; width: 96px; height: 96px; border-width: 2px; }
+  body.is-touch #minimap-wrap { top: calc(env(safe-area-inset-top, 0px) + 6px); left: 6px; width: 96px; height: 96px; border-width: 1.5px; border-radius: 12px; }
   body.is-touch #health-wrap { top: calc(env(safe-area-inset-top, 0px) + 106px); left: 6px; width: 96px; }
   body.is-touch #health-label, body.is-touch #ammo-label { font-size: 9px; margin-bottom: 2px; }
   body.is-touch #health-bar-outer, body.is-touch #ammo-bar-outer { height: 14px; border-width: 2px; padding: 1px; }
@@ -890,16 +996,10 @@ const firebaseConfig = {
 let onlineMode = false, db = null;
 let playerId = null, playerName = null, playerNetRef = null;
 const ROOM = 'main';
-// NET_SEND_HZ: rate máximo de envío. sendLocalPlayerState filtra cambios reales.
 const NET_SEND_HZ = 8;
-// NET_STALE_MS: tiempo sin actualización real de un remoto antes de quitarlo.
 const NET_STALE_MS = 30000;
-// HEARTBEAT_MS: aunque no haya cambios, enviamos un latido cada X ms para que
-// los otros no nos consideren inactivos.
 const HEARTBEAT_MS = 5000;
-// DAMAGE_GRACE_MS: ventana de invulnerabilidad tras respawnear.
 const DAMAGE_GRACE_MS = 1500;
-// HIT_MAX_AGE_MS: hits más viejos que esto se descartan.
 const HIT_MAX_AGE_MS = 5000;
 
 const onlinePanel = document.getElementById('online-panel');
@@ -1221,7 +1321,7 @@ function createLowPolyRifleRemote() {
   const handguardMarker = new THREE.Object3D(); handguardMarker.position.set(0, 0.01, -0.20); g.add(handguardMarker);
   const flash = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 }));
   flash.position.set(0, 0.028, -0.49); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker, handguardMarker };
 }
 function createLowPolyShotgunRemote() {
@@ -1239,7 +1339,7 @@ function createLowPolyShotgunRemote() {
   const pumpMarker = new THREE.Object3D(); pumpMarker.position.set(0, 0.01, -0.22); g.add(pumpMarker);
   const flash = new THREE.Mesh(new THREE.SphereGeometry(0.10, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffcc55, transparent: true, opacity: 0.95 }));
   flash.position.set(0, 0.04, -0.62); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker, pumpMarker };
 }
 function createLowPolyPistolRemote() {
@@ -1253,7 +1353,7 @@ function createLowPolyPistolRemote() {
   const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.085, 0.07); g.add(gripMarker);
   const flash = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 }));
   flash.position.set(0, 0.025, -0.21); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
   return { group: g, flash, gripMarker };
 }
 function buildGrenadeModel(opts = {}) {
@@ -1437,8 +1537,8 @@ function createRemoteWeaponInstance(weaponKey) {
       if (n.isMesh || n.isSkinnedMesh) {
         n.visible = true;
         n.frustumCulled = false;
-        n.castShadow = true;
-        n.receiveShadow = true;
+        n.castShadow = false;
+        n.receiveShadow = false;
         if (n.material) {
           const mats = Array.isArray(n.material) ? n.material : [n.material];
           for (const m of mats) forceMaterialOpaque(m);
@@ -2988,7 +3088,6 @@ function killPlayer() {
   playDeathSound();
   deathUI.classList.add('active');
   if (pointerLocked) document.exitPointerLock();
-  // FIX: limpiar hits pendientes para que no se apliquen al respawnear.
   if (onlineMode) {
     remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
     sendLocalPlayerState(true);
@@ -2996,7 +3095,6 @@ function killPlayer() {
 }
 function respawnPlayer() {
   playerDead = false; deathTimer = 0;
-  // FIX: periodo de gracia para no recibir daño inmediato al respawnear.
   aliveSince = Date.now();
   for (const p of playerPieces) scene.remove(p.mesh);
   playerPieces.length = 0;
@@ -3023,7 +3121,6 @@ function respawnPlayer() {
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
-  // FIX: limpiar hits y mandar estado con force.
   if (onlineMode) {
     remove(ref(db, `rooms/${ROOM}/players/${playerId}/hits`)).catch(() => {});
     sendLocalPlayerState(true);
@@ -3102,7 +3199,6 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
     } else normal = finalDir.clone().negate();
     const remoteId = getRemotePlayerId(hit.object);
     if (remoteId && !playerDead) {
-      // FIX: no escribir hits si el objetivo ya está muerto (evita hits fantasma).
       const target = remotePlayers.get(remoteId);
       if (onlineMode && target && !target.dead) {
         const hitId = 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
@@ -3353,6 +3449,7 @@ function addRemotePlayer(id, data) {
   char.root.position.set(data.x ?? 0, data.y ?? 0, data.z ?? 0);
   char.root.rotation.y = (data.yaw ?? 0) + Math.PI;
   scene.add(char.root);
+  disableShadows(char.root);
   remotePlayers.set(id, {
     id, root: char.root, body: char.body, parts: char.parts, mats: char.mats,
     aimPivot, rifle, shotgun, pistol, weaponKey, name: data.name || 'Jugador',
@@ -3368,10 +3465,6 @@ function addRemotePlayer(id, data) {
   });
 }
 
-/* FIX CLAVE: solo refrescamos lastSeen cuando el ts remoto cambia.
-   Así, si onValue dispara por otros jugadores, no mantenemos "vivo"
-   artificialmente a alguien inactivo. Y usamos lastSeen (local) para
-   el chequeo de stale, así evitamos problemas de clock skew. */
 function updateRemotePlayer(id, data) {
   if (!data) return;
   const now = Date.now();
@@ -3381,12 +3474,10 @@ function updateRemotePlayer(id, data) {
   if (!r) { addRemotePlayer(id, data); r = remotePlayers.get(id); }
   if (!r) return;
 
-  // Solo si llegó un ts NUEVO (más reciente), refrescamos lastSeen.
   if (remoteTs > 0 && remoteTs !== r.lastRemoteTs) {
     r.lastSeen = now;
     r.lastRemoteTs = remoteTs;
   } else if (r.lastRemoteTs === 0 && remoteTs > 0) {
-    // primera vez con ts válido
     r.lastSeen = now;
     r.lastRemoteTs = remoteTs;
   }
@@ -3624,10 +3715,6 @@ function handleRemoteShots(all) {
   }
 }
 
-/* FIX: sendLocalPlayerState con detección de cambios.
-   Solo escribe en Firebase si hay un cambio significativo en la posición/estado
-   O si ya pasó HEARTBEAT_MS desde el último envío. Esto reduce muchísimo el
-   tráfico cuando estás quieto o cuando sólo rotás un poco la cámara. */
 let lastSentTime = 0;
 let lastSentState = null;
 function sendLocalPlayerState(force = false) {
@@ -3679,9 +3766,6 @@ function updateNetwork(dt) {
   }
   const now = Date.now();
   for (const [id, r] of remotePlayers) {
-    // FIX: ahora usamos lastSeen (local). Sólo se actualiza cuando llega
-    // un ts nuevo de ese jugador, así que no se queda "pegado" por otros
-    // onValue disparados por el resto.
     if (now - r.lastSeen > NET_STALE_MS) {
       removeRemotePlayer(id);
       continue;
@@ -3758,13 +3842,9 @@ async function initOnline() {
   onChildAdded(myHitsRef, snap => {
     const hit = snap.val();
     if (!hit) { return; }
-    // FIX: descartar el nodo inmediatamente para que no se re-aplique.
     remove(snap.ref).catch(() => {});
-    // FIX: nada de daño si estamos muertos.
     if (playerDead) return;
-    // FIX: grace period tras respawnear.
     if ((Date.now() - aliveSince) < DAMAGE_GRACE_MS) return;
-    // FIX: descartar hits viejos (evita daño acumulado tras reconexiones).
     if (hit.ts && (Date.now() - hit.ts) > HIT_MAX_AGE_MS) return;
     const dmg = hit.damage || 20;
     health = Math.max(0, health - dmg);
@@ -3774,10 +3854,6 @@ async function initOnline() {
     else sendLocalPlayerState(true);
   });
 
-  // FIX: sweep MUY conservador. Solo elimina LOCALMENTE (no toca Firebase).
-  // Si un jugador se fue sin que onDisconnect se disparara, cada cliente lo
-  // eliminará de su lista cuando su lastSeen local venza. El nodo Firebase
-  // se limpia solo con onDisconnect o cuando el dueño se reconecte.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const nowSweep = Date.now();
@@ -3788,8 +3864,6 @@ async function initOnline() {
     }
   }, 15000);
 
-  // Limpieza opcional de nodos huérfanos en Firebase (una vez cada 60 s):
-  // si un nodo tiene ts muy viejo (> 90 s), lo borramos.
   setInterval(() => {
     if (!onlineMode || !db) return;
     const playersRef2 = ref(db, `rooms/${ROOM}/players`);
@@ -3806,7 +3880,6 @@ async function initOnline() {
   }, 60000);
 
   sendLocalPlayerState(true);
-  // Heartbeat de respaldo (por si algo se pierde). sendLocalPlayerState decide si enviar.
   setInterval(() => { if (!playerDead) sendLocalPlayerState(false); }, HEARTBEAT_MS);
 }
 
@@ -3820,9 +3893,14 @@ const MM_SCALE = MM_W / (MM_RANGE * 2);
 function drawMinimap() {
   const ctx = mmCtx;
   const cxWorld = player.position.x, czWorld = player.position.z;
-  ctx.fillStyle = '#15181c';
+
+  const bgGrad = ctx.createRadialGradient(MM_W / 2, MM_H / 2, 8, MM_W / 2, MM_H / 2, MM_W / 1.25);
+  bgGrad.addColorStop(0, '#1a2233');
+  bgGrad.addColorStop(1, '#080c14');
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, MM_W, MM_H);
-  ctx.strokeStyle = 'rgba(120,160,200,0.12)'; ctx.lineWidth = 1;
+
+  ctx.strokeStyle = 'rgba(120,180,255,0.10)'; ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const p = (i / 5) * MM_W;
     ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, MM_H); ctx.stroke();
@@ -3879,11 +3957,16 @@ function drawMinimap() {
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
   ctx.save(); ctx.translate(MM_W / 2, MM_H / 2); ctx.rotate(-cameraYaw);
-  ctx.fillStyle = playerDead ? '#666' : '#e74c3c';
-  ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.closePath(); ctx.fill();
+  const pCol = playerDead ? '#666' : '#ff4d4d';
+  ctx.shadowColor = playerDead ? 'transparent' : pCol;
+  ctx.shadowBlur = playerDead ? 0 : 8;
+  ctx.fillStyle = pCol;
+  ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(5.5, 6); ctx.lineTo(0, 3.2); ctx.lineTo(-5.5, 6); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1; ctx.stroke();
   ctx.restore();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-  ctx.strokeRect(1, 1, MM_W - 2, MM_H - 2);
+  ctx.strokeStyle = 'rgba(120,180,255,0.22)'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(0.75, 0.75, MM_W - 1.5, MM_H - 1.5);
   ctx.fillStyle = '#ffd93d'; ctx.font = 'bold 11px ui-monospace, monospace';
   ctx.fillText('N', 4, 13);
 }
@@ -4218,7 +4301,6 @@ document.getElementById('ctrl-reset').addEventListener('click', e => {
   applyTouchConfig();
 });
 
-/* Bloquear pointerdown de los botones en modo edición */
 document.addEventListener('pointerdown', e => {
   if (!editMode) return;
   const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
@@ -4227,7 +4309,6 @@ document.addEventListener('pointerdown', e => {
   e.stopPropagation();
 }, true);
 
-/* Drag / resize con eventos táctiles */
 document.addEventListener('touchstart', e => {
   if (!editMode) return;
   const el = e.target && e.target.closest ? e.target.closest('#joystick, .btn') : null;
@@ -4285,7 +4366,6 @@ function endEditTouch(e) {
 document.addEventListener('touchend', endEditTouch, { capture: true });
 document.addEventListener('touchcancel', endEditTouch, { capture: true });
 
-/* Aplicar config y reaplicar en resize */
 initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
