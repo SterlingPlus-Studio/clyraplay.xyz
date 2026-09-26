@@ -26,7 +26,7 @@
   #mode-menu {
     position: fixed; inset: 0; z-index: 500;
     color: #fff; cursor: default; overflow: hidden;
-    pointer-events: none; opacity: 1; transition: opacity 0.5s ease;
+    pointer-events: auto; opacity: 1; transition: opacity 0.5s ease;
     background:
       linear-gradient(180deg, rgba(4,8,18,0.30) 0%, rgba(4,8,18,0.55) 55%, rgba(2,4,10,0.88) 100%),
       radial-gradient(ellipse at 30% 45%, rgba(25,45,80,0.22) 0%, rgba(8,12,24,0.45) 50%, rgba(2,4,10,0.85) 82%);
@@ -116,11 +116,11 @@
     .icon-btn:hover { border-color: #ff9a1a; color: #ff9a1a; box-shadow: 0 4px 20px rgba(255,154,26,0.35); }
   }
 
-  /* ── BOTÓN JUGAR A LA DERECHA DE LA PANTALLA ── */
+  /* ── BOTÓN JUGAR ABAJO A LA DERECHA ── */
   .menu-right-panel {
     position: absolute;
-    top: 50%; right: 0;
-    transform: translateY(-50%);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+    right: 0;
     display: flex; flex-direction: column; align-items: flex-end;
     gap: 12px;
     padding-right: clamp(24px, 4vw, 60px);
@@ -173,19 +173,6 @@
     }
   }
 
-  .menu-hint-drag {
-    position: absolute;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
-    left: 50%;
-    transform: translateX(-50%);
-    font: bold 11px ui-monospace, monospace;
-    letter-spacing: 3px;
-    color: rgba(255,220,150,0.75);
-    text-shadow: 1px 1px 0 #000;
-    pointer-events: none;
-    animation: menuFadeIn 1s 0.6s ease both;
-  }
-
   @keyframes menuFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.82); } }
 
@@ -203,11 +190,8 @@
     .player-status { font-size: 9px; letter-spacing: 1.5px; }
 
     .menu-right-panel {
-      top: auto;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
-      transform: none;
       padding-right: 18px;
-      align-items: flex-end;
     }
     .menu-deploy-label { font-size: 9px; letter-spacing: 3px; }
     .play-btn {
@@ -228,7 +212,6 @@
     .player-name { font-size: 14px; }
     .menu-right-panel { padding-right: 16px; gap: 8px; }
     .play-btn { min-height: 58px; padding: 12px 20px; font-size: 20px; }
-    .menu-hint-drag { display: none; }
   }
 
   /* PANEL AJUSTES */
@@ -580,8 +563,6 @@
       </button>
     </div>
   </div>
-
-  <div class="menu-hint-drag">◀ ARRASTRÁ PARA GIRAR ▶</div>
 
   <div class="menu-right-panel">
     <div class="menu-deploy-label">LISTO PARA DESPLEGAR</div>
@@ -1347,14 +1328,12 @@ function refreshMenuWeapons() {
   if (menuRifleRef) { menuChar.body.remove(menuRifleRef.group); menuRifleRef = null; }
   if (menuPistolRef) { menuChar.body.remove(menuPistolRef.group); menuPistolRef = null; }
 
-  // Rifle cruzado al pecho, cañón apuntando al frente-izquierda
   const r = createRemoteWeaponInstance('rifle');
   r.group.position.set(0.02, 1.28, 0.30);
   r.group.rotation.set(0, Math.PI / 2 + 0.30, 0);
   menuChar.body.add(r.group);
   menuRifleRef = r;
 
-  // Pistola enfundada en la cadera derecha
   if (pistolModel.fbxModel) {
     const p = createRemoteWeaponInstance('pistol');
     p.group.position.set(0.42, 1.02, 0.02);
@@ -1499,28 +1478,39 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
+  lastWeaponVisKey = null;
   forceWeaponVisibility();
   refreshMenuWeapons();
   setWorldVisibleForMenu(menuActive);
 })();
 
+/* Cache de visibilidad para evitar traversals cada frame y garantizar que el
+   modelo FBX clonado se oculte de verdad al cambiar de arma. */
+let lastWeaponVisKey = null;
+function _applyFbxVisible(model, on) {
+  if (!model) return;
+  model.visible = on;
+  model.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) n.visible = on;
+  });
+}
 function forceWeaponVisibility() {
-  if (playerDead || !gameMode) {
-    weaponRifle.visible = false; weaponShotgun.visible = false; weaponPistol.visible = false;
-    if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = false;
-    if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = false;
-    if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = false;
-    return;
-  }
-  const isRifle   = (currentWeaponKey === 'rifle');
-  const isShotgun = (currentWeaponKey === 'shotgun');
-  const isPistol  = (currentWeaponKey === 'pistol');
+  const inGame = !!gameMode && !playerDead;
+  const key = inGame ? currentWeaponKey : 'off';
+  if (key === lastWeaponVisKey) return;
+  lastWeaponVisKey = key;
+
+  const isRifle   = key === 'rifle';
+  const isShotgun = key === 'shotgun';
+  const isPistol  = key === 'pistol';
+
   weaponRifle.visible   = isRifle;
   weaponShotgun.visible = isShotgun;
   weaponPistol.visible  = isPistol;
-  if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = isRifle;
-  if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = isShotgun;
-  if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = isPistol;
+
+  _applyFbxVisible(rifleModel.fbxModel,   isRifle);
+  _applyFbxVisible(shotgunModel.fbxModel, isShotgun);
+  _applyFbxVisible(pistolModel.fbxModel,  isPistol);
 }
 
 /* SOLO FBX: construye instancia remota desde el modelo cargado. */
@@ -1659,21 +1649,24 @@ function curWeaponFlash() {
   return pistolModel.flash;
 }
 function setLocalWeaponsVisible(v) {
-  weaponRifle.visible   = v && currentWeaponKey === 'rifle';
-  weaponShotgun.visible = v && currentWeaponKey === 'shotgun';
-  weaponPistol.visible  = v && currentWeaponKey === 'pistol';
-  if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = weaponRifle.visible;
-  if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = weaponShotgun.visible;
-  if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = weaponPistol.visible;
   if (!v) {
+    weaponRifle.visible   = false;
+    weaponShotgun.visible = false;
+    weaponPistol.visible  = false;
+    _applyFbxVisible(rifleModel.fbxModel,   false);
+    _applyFbxVisible(shotgunModel.fbxModel, false);
+    _applyFbxVisible(pistolModel.fbxModel,  false);
     weaponRifle.position.copy(WEAPON_HIDDEN_POS);
     weaponShotgun.position.copy(WEAPON_HIDDEN_POS);
     weaponPistol.position.copy(WEAPON_HIDDEN_POS);
     grenadeViewModel.visible = false;
+    lastWeaponVisKey = null;
   } else {
     weaponRifle.position.copy(WEAPON_POS.rifle);
     weaponShotgun.position.copy(WEAPON_POS.shotgun);
     weaponPistol.position.copy(WEAPON_POS.pistol);
+    lastWeaponVisKey = null;
+    forceWeaponVisibility();
   }
 }
 
@@ -2703,7 +2696,6 @@ function respawnPlayer() {
   crouchBtn.classList.remove('held');
   selectWeapon(playerLoadout.primary, true, true);
   setLocalWeaponsVisible(true);
-  forceWeaponVisibility();
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
@@ -2724,6 +2716,7 @@ function selectWeapon(key, silent = false, force = false) {
   old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
+  lastWeaponVisKey = null;
   if (!playerDead) {
     forceWeaponVisibility();
     curWeaponGroup().position.copy(WEAPON_POS[key]);
@@ -3390,11 +3383,9 @@ function drawMinimap() {
   const wx2mm = x => (x - cxW) * MM_SCALE + MM_W / 2;
   const wz2mm = z => (z - czW) * MM_SCALE + MM_H / 2;
 
-  // Fondo
   ctx.fillStyle = '#0d1117';
   ctx.fillRect(0, 0, MM_W, MM_H);
 
-  // Rejilla métrica
   ctx.strokeStyle = 'rgba(80,120,170,0.10)';
   ctx.lineWidth = 1;
   const step = 10;
@@ -3407,14 +3398,12 @@ function drawMinimap() {
     ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(MM_W, py); ctx.stroke();
   }
 
-  // Perímetro del recinto
   ctx.strokeStyle = 'rgba(255,200,80,0.55)';
   ctx.lineWidth = 3;
   ctx.setLineDash([12, 7]);
   ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), FENCE_X * 2 * MM_SCALE, FENCE_Z * 2 * MM_SCALE);
   ctx.setLineDash([]);
 
-  // Portón de entrada
   ctx.strokeStyle = '#4cdf7b';
   ctx.lineWidth = 5;
   ctx.beginPath();
@@ -3422,12 +3411,10 @@ function drawMinimap() {
   ctx.lineTo(wx2mm(ENTRY_GAP / 2), wz2mm(FENCE_Z));
   ctx.stroke();
 
-  // Edificios (almacén + oficina)
   ctx.fillStyle = 'rgba(150,165,190,0.5)';
   ctx.fillRect(wx2mm(-23), wz2mm(-47), 46 * MM_SCALE, 14 * MM_SCALE);
   ctx.fillRect(wx2mm(-45), wz2mm(33.5), 14 * MM_SCALE, 9 * MM_SCALE);
 
-  // Contenedores
   for (const c of containerLayout) {
     const px = wx2mm(c.x), py = wz2mm(c.z);
     const w = (CONT_L * 2 + CONT_GAP) * MM_SCALE;
@@ -3442,7 +3429,6 @@ function drawMinimap() {
     ctx.strokeRect(px - w / 2, py - h / 2, w, h);
   }
 
-  // Vehículos
   for (const v of vehicleSpawns) {
     const px = wx2mm(v.x), py = wz2mm(v.z);
     if (px < -14 || px > MM_W + 14 || py < -14 || py > MM_H + 14) continue;
@@ -3461,7 +3447,6 @@ function drawMinimap() {
     ctx.restore();
   }
 
-  // Cono de visión del jugador
   ctx.save();
   ctx.translate(MM_W / 2, MM_H / 2);
   ctx.rotate(-cameraYaw);
@@ -3476,7 +3461,6 @@ function drawMinimap() {
   ctx.fill();
   ctx.restore();
 
-  // Jugadores remotos (con anillo de vida)
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -14 || px > MM_W + 14 || py < -14 || py > MM_H + 14) continue;
@@ -3498,7 +3482,6 @@ function drawMinimap() {
     }
   }
 
-  // Jugador local
   ctx.save();
   ctx.translate(MM_W / 2, MM_H / 2);
   ctx.rotate(-cameraYaw);
@@ -3515,13 +3498,11 @@ function drawMinimap() {
   ctx.stroke();
   ctx.restore();
 
-  // Brújula
   ctx.fillStyle = 'rgba(255,220,120,0.9)';
   ctx.font = 'bold 16px ui-monospace, monospace';
   ctx.textAlign = 'center';
   ctx.fillText('N', MM_W / 2, 18);
 
-  // Marco
   ctx.strokeStyle = 'rgba(255,255,255,0.85)';
   ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, MM_W - 2, MM_H - 2);
@@ -3702,6 +3683,7 @@ function selectGameMode(mode) {
 
   aliveSince = Date.now();
   currentWeaponKey = playerLoadout.primary;
+  lastWeaponVisKey = null;
   if (!playerDead) {
     weaponRifle.visible   = currentWeaponKey === 'rifle';
     weaponShotgun.visible = currentWeaponKey === 'shotgun';
@@ -3760,7 +3742,6 @@ function updateMenuCamera(dt) {
     menuChar.root.updateMatrixWorld(true);
   }
 
-  // Pose de brazos por IK hacia el arma (brazos hacia el frente, nunca a la espalda)
   if (menuChar && menuRifleRef) {
     const q = menuChar.root.quaternion;
     _menuPoleR.set(0.60, -1.0, -0.25).applyQuaternion(q).normalize();
