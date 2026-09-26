@@ -23,13 +23,12 @@
     color: #fff; cursor: default; overflow: hidden;
     pointer-events: none; opacity: 1; transition: opacity 0.5s ease;
     background:
-      radial-gradient(ellipse at 50% 45%, rgba(20,35,65,0.05) 0%, rgba(8,12,24,0.35) 45%, rgba(2,4,10,0.85) 78%),
-      linear-gradient(180deg, rgba(4,8,18,0.35) 0%, rgba(4,8,18,0.7) 100%);
+      radial-gradient(ellipse at 50% 45%, rgba(20,35,65,0.15) 0%, rgba(8,12,24,0.55) 45%, rgba(2,4,10,0.96) 78%),
+      linear-gradient(180deg, rgba(4,8,18,0.55) 0%, rgba(4,8,18,0.85) 100%);
   }
   #mode-menu.hidden { opacity: 0; pointer-events: none; }
   #mode-menu.hidden * { pointer-events: none !important; }
 
-  /* Barra superior */
   .menu-top-bar {
     position: absolute;
     top: 0; left: 0; right: 0;
@@ -82,7 +81,6 @@
     .icon-btn:hover { border-color: #ffd93d; color: #ffd93d; box-shadow: 0 4px 20px rgba(255,200,80,0.35); }
   }
 
-  /* Bloque inferior */
   .menu-bottom {
     position: absolute;
     bottom: 0; left: 0; right: 0;
@@ -157,6 +155,18 @@
     .play-btn:hover { filter: brightness(1.08); box-shadow: 0 8px 0 #7a3b00, 0 22px 50px rgba(255,150,60,0.7), inset 0 1px 0 rgba(255,255,255,0.35); }
   }
 
+  .menu-hint-drag {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, calc(-50% + 220px));
+    font: bold 11px ui-monospace, monospace;
+    letter-spacing: 2px;
+    color: rgba(255,220,150,0.65);
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+    animation: menuFadeIn 1s 0.6s ease both;
+  }
+
   @keyframes menuFadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.82); } }
 
@@ -170,6 +180,7 @@
     .player-avatar { width: 32px; height: 32px; font-size: 18px; }
     .player-name { font-size: 13px; }
     .play-btn { min-height: 62px; padding: 14px 24px; font-size: clamp(18px, 4.5vh, 22px); }
+    .menu-hint-drag { display: none; }
   }
 
   /* ═══════════════════════════════════════════
@@ -407,9 +418,6 @@
   body.in-menu #online-panel,
   body.in-menu #debug { display: none !important; }
 
-  /* Configuración de controles táctiles */
-  .config-btn { display: none; }
-
   #controls-menu { position: fixed; inset: 0; z-index: 507; display: none; pointer-events: none; color: #fff; }
   #controls-menu.active { display: block; }
   #controls-menu .ctrl-header {
@@ -515,9 +523,7 @@
 </head>
 <body class="in-menu">
 
-<!-- ═══════════════════════════════════════════
-     MENÚ PRINCIPAL
-     ═══════════════════════════════════════════ -->
+<!-- MENÚ PRINCIPAL -->
 <div id="mode-menu">
   <div class="menu-top-bar">
     <div class="rank-block">
@@ -535,6 +541,8 @@
       </button>
     </div>
   </div>
+
+  <div class="menu-hint-drag">◀ ARRASTRÁ PARA GIRAR ▶</div>
 
   <div class="menu-bottom">
     <div class="player-card">
@@ -558,9 +566,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     PANEL DE AJUSTES
-     ═══════════════════════════════════════════ -->
+<!-- PANEL DE AJUSTES -->
 <div id="settings-panel">
   <div class="settings-content">
     <h2>AJUSTES</h2>
@@ -726,21 +732,11 @@ import {
   onDisconnect, remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/* ═══════════════════════════════════════════
-   ICONOS SVG (para textos generados por JS)
-   ═══════════════════════════════════════════ */
+/* SVG_ICON para textos generados */
 const SVG_ICON = {
-  heart:      '<svg class="icon" viewBox="0 0 24 24" fill="currentColor" style="color:#ff5a5a"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
-  rifle:      '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 9V6h-3l-1-1H7L5 8H2v2h2v3h2v-2h2l1 1v2h2v-2h2l2 2h2v-4h2z"/></svg>',
-  shotgun:    '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M22 8h-6l-1-2H8L6 8H2v3h2v2h3l1 2h2v-2h2l2-2h2v3h2v-3h4z"/></svg>',
-  pistol:     '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 8h-2V6h-3l-1-1H7v3H3v3h3v3h2v-2h3l1-1h4v3h3v-5h2z"/></svg>',
-  grenade:    '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M10 2h4v2h-1v1.5c3.86.5 6.5 3.32 6.5 7v5a4 4 0 0 1-4 4h-7a4 4 0 0 1-4-4v-5c0-3.68 2.64-6.5 6.5-7V4h-1V2z"/></svg>',
-  reload:     '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>',
-  play:       '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
-  gear:       '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
-  close:      '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
-  soundOn:    '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>',
-  soundOff:   '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z"/></svg>'
+  rifle:  '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 9V6h-3l-1-1H7L5 8H2v2h2v3h2v-2h2l1 1v2h2v-2h2l2 2h2v-4h2z"/></svg>',
+  shotgun:'<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M22 8h-6l-1-2H8L6 8H2v3h2v2h3l1 2h2v-2h2l2-2h2v3h2v-3h4z"/></svg>',
+  pistol: '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 8h-2V6h-3l-1-1H7v3H3v3h3v3h2v-2h3l1-1h4v3h3v-5h2z"/></svg>'
 };
 
 let gameMode = null;
@@ -776,7 +772,6 @@ function initAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
   } catch (e) { audioEnabled = false; console.warn('Audio init error:', e); }
 }
-
 function resumeAudioGlobal() {
   initAudio();
   if (audioCtx && audioCtx.state === 'running') {
@@ -792,7 +787,6 @@ document.addEventListener('mousedown', resumeAudioGlobal, true);
 document.addEventListener('touchstart', resumeAudioGlobal, true);
 document.addEventListener('keydown', resumeAudioGlobal, true);
 document.addEventListener('click', resumeAudioGlobal, true);
-
 document.addEventListener('visibilitychange', () => { if (!document.hidden) initAudio(); });
 
 function _noiseBuffer(duration, curve = 2) {
@@ -919,9 +913,7 @@ function playExplosionSound(distance = 0) {
   osc.connect(g2).connect(masterGain); osc.start(t); osc.stop(t + 0.7);
 }
 
-/* ═══════════════════════════════════════════
-   AUDIO AMBIENTAL
-   ═══════════════════════════════════════════ */
+/* AUDIO AMBIENTAL */
 let ambientGain = null, ambientStarted = false, windGainNode = null;
 let windModTimer = null, birdTimer = null, industrialTimer = null;
 let droneOsc = null, droneOsc2 = null;
@@ -1096,15 +1088,12 @@ try {
   }
   playerName = stored;
 } catch (e) { playerName = 'Jugador' + Math.floor(1000 + Math.random() * 9000); }
-
 try {
   const menuNameEl = document.getElementById('menu-player-name');
   if (menuNameEl) menuNameEl.textContent = playerName;
 } catch (e) {}
 
-/* ═══════════════════════════════════════════
-   RNG
-   ═══════════════════════════════════════════ */
+/* RNG */
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
@@ -1121,7 +1110,7 @@ const mapRandom = mulberry32(MAP_SEED);
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0d16);
-scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
+scene.fog = null;
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
 scene.add(camera);
@@ -1146,9 +1135,18 @@ sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 200 });
 scene.add(sun);
 
-/* ═══════════════════════════════════════════
-   CACHE DE MATERIALES
-   ═══════════════════════════════════════════ */
+/* Luces del MENÚ (encendidas solo en el lobby) */
+const menuKeyLight = new THREE.DirectionalLight(0xbfd8ff, 1.2);
+menuKeyLight.position.set(2.5, 4.5, 3.5);
+scene.add(menuKeyLight);
+const menuFillLight = new THREE.DirectionalLight(0xffddaa, 0.6);
+menuFillLight.position.set(-3, 2.2, 2);
+scene.add(menuFillLight);
+const menuRimLight = new THREE.DirectionalLight(0x9ac8ff, 1.4);
+menuRimLight.position.set(-1, 3, -4.5);
+scene.add(menuRimLight);
+
+/* CACHE MATERIALES */
 const _matCache = new Map();
 function cachedMat(color, opts = {}) {
   const side = opts.side ?? THREE.FrontSide;
@@ -1181,15 +1179,12 @@ function disableShadows(obj) {
 const grass = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1), cachedMat(0x6ab04c));
 grass.rotation.x = -Math.PI / 2; grass.receiveShadow = true;
 scene.add(grass);
-
 const concretePad = new THREE.Mesh(new THREE.PlaneGeometry(112, 108), cachedMat(0x8a8578, { flatShading: false }));
 concretePad.rotation.x = -Math.PI / 2;
 concretePad.position.y = 0.02; concretePad.receiveShadow = true;
 scene.add(concretePad);
 
-/* ═══════════════════════════════════════════
-   PERSONAJE
-   ═══════════════════════════════════════════ */
+/* ─────────────── PERSONAJE ─────────────── */
 function buildCharacter(opts = {}) {
   const root = new THREE.Group();
   const body = new THREE.Group();
@@ -1230,6 +1225,7 @@ function buildCharacter(opts = {}) {
   const strapGeo = new THREE.BoxGeometry(0.07, 0.85, 0.04);
   const strapL = new THREE.Mesh(strapGeo, mStrap); strapL.position.set(-0.22, 1.42, 0.23); body.add(strapL);
   const strapR = new THREE.Mesh(strapGeo, mStrap); strapR.position.set( 0.22, 1.42, 0.23); body.add(strapR);
+
   const head = new THREE.Group(); head.position.y = 1.8; body.add(head);
   const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.48, 0.46), mSkin); headMesh.position.y = 0.24; head.add(headMesh);
   const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.28, 0.56), mHelmet); helmet.position.y = 0.50; head.add(helmet);
@@ -1274,7 +1270,7 @@ function buildCharacter(opts = {}) {
   };
 }
 
-/* ─────────────── ARMAS BAJO POLI (remoto + menú) ─────────────── */
+/* ─────────────── ARMAS BAJO POLI ─────────────── */
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -1351,23 +1347,12 @@ function buildGrenadeModel(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   PERSONAJE DEL MENÚ (preview 3D en lobby)
+   PERSONAJE DEL MENÚ + LOBBY (plataforma)
    ═══════════════════════════════════════════ */
 let menuCharYaw = 0;
 let menuDragActive = false;
 let menuDragLastX = 0;
 let menuDragVelocity = 0;
-
-// Luces exclusivas del menú
-const menuKeyLight = new THREE.DirectionalLight(0xbfd8ff, 0);
-menuKeyLight.position.set(2.5, 4.5, 3.5);
-scene.add(menuKeyLight);
-const menuFillLight = new THREE.DirectionalLight(0xffddaa, 0);
-menuFillLight.position.set(-3, 2.2, 2);
-scene.add(menuFillLight);
-const menuRimLight = new THREE.DirectionalLight(0x9ac8ff, 0);
-menuRimLight.position.set(-1, 3, -4.5);
-scene.add(menuRimLight);
 
 // Plataforma circular del lobby
 const menuPlatform = new THREE.Mesh(
@@ -1376,6 +1361,7 @@ const menuPlatform = new THREE.Mesh(
 );
 menuPlatform.position.set(0, 0.09, 0);
 scene.add(menuPlatform);
+
 const menuPlatformRing = new THREE.Mesh(
   new THREE.TorusGeometry(1.72, 0.045, 8, 64),
   new THREE.MeshBasicMaterial({ color: 0xffb84a, transparent: true, opacity: 0.9 })
@@ -1383,6 +1369,7 @@ const menuPlatformRing = new THREE.Mesh(
 menuPlatformRing.rotation.x = Math.PI / 2;
 menuPlatformRing.position.set(0, 0.185, 0);
 scene.add(menuPlatformRing);
+
 const menuPlatformInner = new THREE.Mesh(
   new THREE.CylinderGeometry(1.55, 1.55, 0.02, 40),
   new THREE.MeshLambertMaterial({ color: 0x1e2a3f, flatShading: false })
@@ -1390,8 +1377,10 @@ const menuPlatformInner = new THREE.Mesh(
 menuPlatformInner.position.set(0, 0.19, 0);
 scene.add(menuPlatformInner);
 
-const menuOnlyObjects = new Set();
+// Objetos que SOLO se ven en el menú (el resto del mundo se oculta)
+const menuOnlyObjects = new Set([menuPlatform, menuPlatformRing, menuPlatformInner, menuKeyLight, menuFillLight, menuRimLight]);
 
+// Aclara los materiales del arma del menú para que se vean bien
 function brightenMenuWeapon(root) {
   root.traverse(n => {
     if (n.isMesh && n.material) {
@@ -1404,7 +1393,9 @@ function brightenMenuWeapon(root) {
           c.b = Math.min(1, c.b * 2.4 + 0.14);
           m.color.copy(c);
         }
-        if ('emissive' in m) m.emissive = new THREE.Color(0x14161f);
+        if ('emissive' in m && m.emissive) {
+          m.emissive = new THREE.Color(0x14161f);
+        }
         if ('flatShading' in m) m.flatShading = true;
         m.needsUpdate = true;
       }
@@ -1428,6 +1419,7 @@ function setupMenuCharacter() {
   menuChar.root.rotation.y = 0;
   scene.add(menuChar.root);
 
+  // Pose
   menuChar.parts.rightArm.shoulder.rotation.x = -0.85;
   menuChar.parts.rightArm.shoulder.rotation.z = -0.20;
   menuChar.parts.rightArm.elbow.rotation.x = 1.05;
@@ -1435,12 +1427,14 @@ function setupMenuCharacter() {
   menuChar.parts.leftArm.shoulder.rotation.z = 0.15;
   menuChar.parts.leftArm.elbow.rotation.x = 1.15;
 
+  // Rifle en mano derecha (aclarado)
   const menuRifle = createLowPolyRifleRemote();
   brightenMenuWeapon(menuRifle.group);
   menuRifle.group.position.set(0.32, 1.15, 0.32);
   menuRifle.group.rotation.set(-0.35, -0.55, 0.25);
   menuChar.body.add(menuRifle.group);
 
+  // Pistola en mano izquierda (aclarada)
   const menuPistol = createLowPolyPistolRemote();
   brightenMenuWeapon(menuPistol.group);
   menuPistol.group.position.set(-0.34, 0.85, 0.20);
@@ -1452,14 +1446,10 @@ function setupMenuCharacter() {
   });
 
   menuOnlyObjects.add(menuChar.root);
-  menuOnlyObjects.add(menuKeyLight);
-  menuOnlyObjects.add(menuFillLight);
-  menuOnlyObjects.add(menuRimLight);
-  menuOnlyObjects.add(menuPlatform);
-  menuOnlyObjects.add(menuPlatformRing);
-  menuOnlyObjects.add(menuPlatformInner);
 }
+setupMenuCharacter();
 
+/* Muestra / oculta el mundo del juego según el modo */
 function setWorldVisibleForMenu(inMenu) {
   for (const child of scene.children) {
     if (menuOnlyObjects.has(child)) { child.visible = inMenu; continue; }
@@ -1471,9 +1461,9 @@ function setWorldVisibleForMenu(inMenu) {
     child.visible = !inMenu;
   }
   if (inMenu) {
-    menuKeyLight.intensity  = 1.2;
-    menuFillLight.intensity = 0.6;
-    menuRimLight.intensity  = 1.4;
+    menuKeyLight.intensity   = 1.2;
+    menuFillLight.intensity  = 0.6;
+    menuRimLight.intensity   = 1.4;
     sun.intensity  = 0.9;
     hemi.intensity = 0.75;
     scene.background = new THREE.Color(0x0a0d16);
@@ -1486,9 +1476,6 @@ function setWorldVisibleForMenu(inMenu) {
     hemi.intensity = 1.4;
   }
 }
-
-setupMenuCharacter();
-setWorldVisibleForMenu(true);
 
 /* ═══════════════════════════════════════════
    JUGADOR LOCAL
@@ -1508,7 +1495,6 @@ const WEAPONS = {
   shotgun: { key: 'shotgun', name: 'ESCOPETA', iconSvg: SVG_ICON.shotgun, magSize: 7,  fireRate: 0.85, reloadTime: 2.6, damage: 14, aimFov: 55, auto: false, pellets: 8, spread: 0.09 },
   pistol:  { key: 'pistol',  name: 'PISTOLA',  iconSvg: SVG_ICON.pistol,  magSize: 12, fireRate: 0.18, reloadTime: 1.2, damage: 30, aimFov: 55, auto: false }
 };
-
 const playerLoadout = { primary: 'rifle', secondary: 'pistol' };
 let currentWeaponKey = 'rifle';
 
@@ -1528,8 +1514,7 @@ function createFlash(radius, x, y, z, color) {
 }
 function createRifleModel() {
   const group = new THREE.Group();
-  const flash = createFlash(0.10, 0, 0.025, -0.35, 0xffee88);
-  group.add(flash);
+  const flash = createFlash(0.10, 0, 0.025, -0.35, 0xffee88); group.add(flash);
   const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.11, 0.10); group.add(gripMarker);
   const handguardMarker = new THREE.Object3D(); handguardMarker.position.set(0, 0.02, -0.22); group.add(handguardMarker);
   return { group, flash, gripMarker, handguardMarker, fbxModel: null };
@@ -1798,9 +1783,7 @@ function setLocalWeaponsVisible(v) {
   }
 }
 
-/* ═══════════════════════════════════════════
-   GRANADA
-   ═══════════════════════════════════════════ */
+/* ─────────────── GRANADA ─────────────── */
 const GRENADE_COOLDOWN = 60;
 const GRENADE_FUSE     = 2.6;
 const GRENADE_RADIUS   = 9;
@@ -1939,9 +1922,7 @@ function explodeGrenade(pos) {
   }
 }
 
-/* ═══════════════════════════════════════════
-   COLISIONES
-   ═══════════════════════════════════════════ */
+/* ─────────────── COLISIONES ─────────────── */
 const colliders = [];
 const boxColliders = [];
 const PLAYER_RADIUS = 0.45;
@@ -1973,9 +1954,7 @@ function computeBoxPenetration(px, pz, radius, box) {
   return { dx: wx - px, dz: wz - pz };
 }
 
-/* ═══════════════════════════════════════════
-   BODEGA DE CONTENEDORES
-   ═══════════════════════════════════════════ */
+/* ─────────────── BODEGA ─────────────── */
 const FENCE_X = 54;
 const FENCE_Z = 52;
 
@@ -2060,7 +2039,6 @@ for (const def of containerLayout) {
   containerGroups.push({ def, group: g });
   boxColliders.push({ x: def.x, z: def.z, hw: CONT_L + CONT_GAP / 2, hd: CONT_W + CONT_GAP / 2, rot: def.rot, kind: 'wall' });
 }
-const containerFbxStatus = { c1: false, c2: false };
 
 function loadContainerFBX(url) {
   return new Promise((resolve) => {
@@ -2099,7 +2077,6 @@ Promise.all([
   loadContainerFBX('modelos3d/Container1.fbx'),
   loadContainerFBX('modelos3d/Container2.fbx')
 ]).then(([c1, c2]) => {
-  containerFbxStatus.c1 = !!c1; containerFbxStatus.c2 = !!c2;
   const anyLoaded = c1 || c2;
   if (!anyLoaded) {
     logFbxError('Contenedores FBX no disponibles, usando procedural.');
@@ -2129,9 +2106,7 @@ Promise.all([
   for (const { def, group } of containerGroups) group.add(buildProceduralStack(def.colors));
 });
 
-/* ═══════════════════════════════════════════
-   VEHÍCULOS FBX
-   ═══════════════════════════════════════════ */
+/* ─────────────── VEHÍCULOS ─────────────── */
 function loadVehicleFBX(url, targetLen) {
   return new Promise((resolve) => {
     _fbxLoader.load(url, (obj) => {
@@ -2165,7 +2140,6 @@ function loadVehicleFBX(url, targetLen) {
           n.visible = true;
           if (n.isMesh || n.isSkinnedMesh) {
             meshCount++; n.visible = true; n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false;
-            if (n.isSkinnedMesh && n.skeleton && typeof n.skeleton.update === 'function') { try { n.skeleton.update(); } catch (e) {} }
             if (!n.material) n.material = new THREE.MeshLambertMaterial({ color: 0x666666, flatShading: true });
             else {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
@@ -2173,7 +2147,6 @@ function loadVehicleFBX(url, targetLen) {
             }
           }
         });
-        console.log(`[FBX] ${url}: ${meshCount} mallas cargadas`);
         resolve({ obj, meshCount });
       } catch (e) { logFbxError('vehicle ' + url + ': ' + e.message); resolve(null); }
     }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
@@ -2467,7 +2440,6 @@ const damageOverlay = document.getElementById('damage-overlay');
 let damageFlash = 0;
 function showDamageFlash(amount = 0.7) { damageFlash = Math.min(1, damageFlash + amount); playDamageSound(); }
 
-/* ─────────────── AGACHARSE / DESLIZARSE ─────────────── */
 const SLIDE_DURATION = 1.1;
 const SLIDE_INITIAL_SPEED = 18;
 const CROUCH_EYE_HEIGHT = 1.05;
@@ -2637,7 +2609,7 @@ function setAiming(v) { aiming = v; aimBtn.classList.toggle('held', aiming); }
 aimBtn.addEventListener('pointerdown', e => { e.preventDefault(); setAiming(!aiming); });
 aimBtn.addEventListener('click', e => e.preventDefault());
 
-/* ─────────────── POINTER LOCK ─────────────── */
+/* POINTER LOCK */
 let pointerLocked = false;
 function requestLock() {
   if (playerDead || !gameMode) return;
@@ -2712,7 +2684,7 @@ function handleCamEnd(e) {
 addEventListener('touchend', handleCamEnd);
 addEventListener('touchcancel', handleCamEnd);
 
-/* ─────────────── DEBUG ─────────────── */
+/* DEBUG */
 let debugEnabled = false;
 const fpsSamples = [];
 function toggleDebug() { debugEnabled = !debugEnabled; debugPanel.classList.toggle('active', debugEnabled); fpsSamples.length = 0; }
@@ -2730,17 +2702,15 @@ function updateDebug(dt) {
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no ctx'}
-<span class="val">Ambiente:</span>  ${ambientStarted ? '[ON] activo' : '[--] inactivo'}
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
-<span class="val">Vis:</span>       rifle=${weaponRifle.visible?'1':'0'} shot=${weaponShotgun.visible?'1':'0'} pist=${weaponPistol.visible?'1':'0'}
 <span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
 <span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '[OK]' : '[X]'} shotgun=${shotgunModel.fbxModel ? '[OK]' : '[X]'} pistol=${pistolModel.fbxModel ? '[OK]' : '[X]'}${errLines}
   `.trim();
 }
 
-/* ─────────────── CÁMARA ─────────────── */
+/* CÁMARA */
 let cameraYaw = 0, cameraPitch = 0;
 let bobOffset = 0, shakeAmount = 0, hintTimer = 0;
 let weaponWalkPhase = 0, weaponMoveBlend = 0;
@@ -2895,9 +2865,7 @@ function spawnRemoteBulletHole(pos, normal) {
   }
 }
 
-/* ═══════════════════════════════════════════
-   MUERTE / RESPAWN
-   ═══════════════════════════════════════════ */
+/* MUERTE / RESPAWN */
 function killPlayer() {
   if (playerDead) return;
   playerDead = true; deathTimer = 0;
@@ -2971,7 +2939,7 @@ function respawnPlayer() {
 }
 respawnBtn.addEventListener('click', respawnPlayer);
 
-/* ─────────────── ARMAS ─────────────── */
+/* ARMAS */
 const raycaster = new THREE.Raycaster();
 const screenCenter = new THREE.Vector2(0, 0);
 
@@ -3095,7 +3063,7 @@ function tryShoot() {
   if (ws.ammo <= 0 && !ws.reloading) startReload();
 }
 
-/* ─────────────── UPDATE JUGADOR ─────────────── */
+/* UPDATE PLAYER */
 function updatePlayer(dt) {
   const def = curWepDef(), ws = curWepState();
   let ix = 0, iz = 0;
@@ -3237,9 +3205,7 @@ function updateDeathCamera(dt) {
   camera.updateProjectionMatrix();
 }
 
-/* ═══════════════════════════════════════════
-   JUGADORES REMOTOS
-   ═══════════════════════════════════════════ */
+/* REMOTOS */
 const remotePlayers = new Map();
 const REMOTE_AIM_POS = new THREE.Vector3(0.20, 1.55, 0.28);
 
@@ -3569,9 +3535,7 @@ function updateOnlineUI() {
   setOnlineStatus(`<span class="ok">ONLINE</span> · <span class="name">${playerName}</span> · ${n} jugador${n === 1 ? '' : 'es'}`);
 }
 
-/* ═══════════════════════════════════════════
-   FIREBASE INIT
-   ═══════════════════════════════════════════ */
+/* FIREBASE INIT */
 async function initOnline() {
   if (!onlineMode) return;
   onValue(ref(db, '.info/connected'), snap => {
@@ -3646,25 +3610,11 @@ async function initOnline() {
       if (nowSweep - r.lastSeen > NET_STALE_MS * 2) removeRemotePlayer(id);
     }
   }, 15000);
-  setInterval(() => {
-    if (!onlineMode || !db) return;
-    const playersRef2 = ref(db, `rooms/${ROOM}/players`);
-    onValue(playersRef2, snap => {
-      const all = snap.val() || {};
-      const now2 = Date.now();
-      for (const [id, data] of Object.entries(all)) {
-        if (id === playerId) continue;
-        if (data && typeof data.ts === 'number' && (now2 - data.ts) > 90000) {
-          remove(ref(db, `rooms/${ROOM}/players/${id}`)).catch(() => {});
-        }
-      }
-    }, { onlyOnce: true });
-  }, 60000);
   sendLocalPlayerState(true);
   setInterval(() => { if (!playerDead) sendLocalPlayerState(false); }, HEARTBEAT_MS);
 }
 
-/* ─────────────── MINIMAPA ─────────────── */
+/* MINIMAPA */
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
 const MM_W = minimapCanvas.width, MM_H = minimapCanvas.height;
@@ -3698,28 +3648,6 @@ function drawMinimap() {
     const w = (CONT_L * 2 + CONT_GAP) * MM_SCALE;
     const h = (CONT_W * 2 + CONT_GAP) * MM_SCALE;
     ctx.fillRect(px - w/2, py - h/2, w, h);
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 0.6;
-    ctx.strokeRect(px - w/2, py - h/2, w, h);
-    ctx.beginPath();
-    ctx.moveTo(px, py - h/2); ctx.lineTo(px, py + h/2);
-    ctx.moveTo(px - w/2, py); ctx.lineTo(px + w/2, py);
-    ctx.stroke();
-  }
-  for (const cx of [46]) for (const cz of [-12, 12]) {
-    const px = wx2mm(cx), py = wz2mm(cz);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = '#f1c40f'; ctx.fillRect(px - 2, py - 2, 4, 4);
-  }
-  for (const [tx, tz] of [[-FENCE_X+5,-FENCE_Z+5],[FENCE_X-5,-FENCE_Z+5],[FENCE_X-5,FENCE_Z-5],[-FENCE_X+5,FENCE_Z-5]]) {
-    const px = wx2mm(tx), py = wz2mm(tz);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = '#c0392b'; ctx.fillRect(px - 2, py - 2, 4, 4);
-  }
-  for (const c of colliders) {
-    if (c.kind !== 'lamp') continue;
-    const px = wx2mm(c.x), py = wz2mm(c.z);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = '#e6a419'; ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
   }
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
@@ -3738,7 +3666,7 @@ function drawMinimap() {
   ctx.fillText('N', 4, 13);
 }
 
-/* ─────────────── VIDA / MUNICIÓN ─────────────── */
+/* VIDA / MUNICIÓN */
 function updateHealthBar() {
   const pct = Math.max(0, Math.min(100, health));
   healthBarInner.style.width = pct + '%';
@@ -3784,9 +3712,7 @@ function updateUI(dt = 0) {
   else hint.classList.remove('active');
 }
 
-/* ═══════════════════════════════════════════
-   OPTIMIZACIÓN
-   ═══════════════════════════════════════════ */
+/* OPTIMIZACIÓN */
 function applyOptimizations() {
   const dynamicRoots = new Set([player, camera, weaponRifle, weaponShotgun, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
@@ -3810,9 +3736,7 @@ function applyOptimizations() {
   });
 }
 
-/* ═══════════════════════════════════════════
-   MENÚ + SELECCIÓN DE ARSENAL
-   ═══════════════════════════════════════════ */
+/* MENÚ + AJUSTES + LOADOUT */
 const modeMenu = document.getElementById('mode-menu');
 const playBtn = document.getElementById('play-btn');
 const loadoutMenu = document.getElementById('loadout-menu');
@@ -3837,7 +3761,7 @@ settingsSoundBtn.addEventListener('click', e => {
 settingsControlsBtn.addEventListener('click', e => {
   e.preventDefault();
   if (isTouch) { closeSettings(); openControlsEditor(); }
-  else { closeSettings(); showTempHint('Los controles táctiles solo están disponibles en dispositivos táctiles.'); }
+  else { closeSettings(); }
 });
 
 function handlePlay() {
@@ -3849,17 +3773,15 @@ function handlePlay() {
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
 
-/* ═══════════════════════════════════════════
-   DRAG PARA ROTAR EL PERSONAJE EN EL MENÚ
-   ═══════════════════════════════════════════ */
+/* DRAG para rotar personaje del menú */
 modeMenu.addEventListener('pointerdown', e => {
   if (!menuActive) return;
   if (e.target.closest('button, .icon-btn, .player-card, .rank-block')) return;
   menuDragActive = true;
   menuDragLastX = e.clientX;
   menuDragVelocity = 0;
-}, { passive: true });
-
+  e.preventDefault();
+}, { passive: false });
 window.addEventListener('pointermove', e => {
   if (!menuDragActive) return;
   const dx = e.clientX - menuDragLastX;
@@ -3867,7 +3789,6 @@ window.addEventListener('pointermove', e => {
   menuCharYaw += dx * 0.008;
   menuDragVelocity = dx * 0.008;
 });
-
 window.addEventListener('pointerup',     () => { menuDragActive = false; });
 window.addEventListener('pointercancel', () => { menuDragActive = false; });
 
@@ -3879,7 +3800,6 @@ modeMenu.addEventListener('touchstart', e => {
   menuDragLastX = t.clientX;
   menuDragVelocity = 0;
 }, { passive: true });
-
 modeMenu.addEventListener('touchmove', e => {
   if (!menuDragActive) return;
   const t = e.changedTouches[0]; if (!t) return;
@@ -3888,7 +3808,6 @@ modeMenu.addEventListener('touchmove', e => {
   menuCharYaw += dx * 0.008;
   menuDragVelocity = dx * 0.008;
 }, { passive: true });
-
 modeMenu.addEventListener('touchend',    () => { menuDragActive = false; }, { passive: true });
 modeMenu.addEventListener('touchcancel', () => { menuDragActive = false; }, { passive: true });
 
@@ -3925,7 +3844,7 @@ function selectGameMode(mode) {
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
-  // Restaurar mundo y apagar luces del lobby
+  // Restaurar mundo y apagar luces de lobby
   setWorldVisibleForMenu(false);
   scene.background = new THREE.Color(0x87ceeb);
   scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
@@ -3972,11 +3891,11 @@ function selectGameMode(mode) {
   if (!isTouch) clickOverlay.classList.add('active');
 }
 
-/* ─────────────── CÁMARA DEL MENÚ ─────────────── */
+/* CÁMARA DEL MENÚ */
 function updateMenuCamera(dt) {
   menuCamAngle += dt;
 
-  // Auto-rotación suave + inercia del drag del usuario
+  // Auto-rotación con inercia
   if (!menuDragActive) {
     if (Math.abs(menuDragVelocity) > 0.0005) {
       menuCharYaw += menuDragVelocity * dt * 30;
@@ -3988,7 +3907,7 @@ function updateMenuCamera(dt) {
   }
   if (menuChar) menuChar.root.rotation.y = menuCharYaw;
 
-  // Cámara fija mirando al personaje con pequeño bob
+  // Cámara fija con leve bob
   const bob = Math.sin(menuCamAngle * 0.8) * 0.045;
   const sway = Math.sin(menuCamAngle * 0.5) * 0.10;
   camera.position.set(sway, 1.70 + bob, 3.85);
@@ -3996,14 +3915,12 @@ function updateMenuCamera(dt) {
   camera.fov = 44;
   camera.updateProjectionMatrix();
 
+  // Pulso en la luz clave
   menuKeyLight.intensity = 1.2 + Math.sin(menuCamAngle * 1.4) * 0.08;
-
   if (menuPlatformRing) menuPlatformRing.rotation.z = menuCamAngle * 0.3;
 }
 
-/* ═══════════════════════════════════════════
-   CONFIGURACIÓN DE CONTROLES TÁCTILES
-   ═══════════════════════════════════════════ */
+/* CONFIGURACIÓN DE CONTROLES TÁCTILES */
 const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'debug-btn'];
 
 const DEFAULT_TOUCH_CONFIG = {
@@ -4051,11 +3968,11 @@ function applySingleTouchControl(id) {
   const baseSize = DEFAULT_TOUCH_CONFIG[id].size;
   const ratio = size / baseSize;
   if (id === 'joystick') {
-    const stickEl = document.getElementById('stick');
-    if (stickEl) {
+    const stick = document.getElementById('stick');
+    if (stick) {
       const ss = 46 * ratio;
-      stickEl.style.width = ss + 'px'; stickEl.style.height = ss + 'px';
-      stickEl.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
+      stick.style.width = ss + 'px'; stick.style.height = ss + 'px';
+      stick.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
     }
     JOYSTICK_RADIUS = 45 * ratio;
     const zone = document.getElementById('joystick-zone');
@@ -4178,9 +4095,12 @@ document.addEventListener('touchcancel', endEditTouch, { capture: true });
 
 initTouchConfig();
 
-/* ─────────────── LOOP ─────────────── */
+/* LOOP */
 const clock = new THREE.Clock();
 player.position.set(0, 0, 30);
+
+// Inicialmente mostrar solo el lobby
+setWorldVisibleForMenu(true);
 
 function animate() {
   requestAnimationFrame(animate);
