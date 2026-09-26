@@ -23,8 +23,8 @@
     color: #fff; cursor: default; overflow: hidden;
     pointer-events: none; opacity: 1; transition: opacity 0.5s ease;
     background:
-      radial-gradient(ellipse at 50% 45%, rgba(20,35,65,0.15) 0%, rgba(8,12,24,0.55) 45%, rgba(2,4,10,0.96) 78%),
-      linear-gradient(180deg, rgba(4,8,18,0.55) 0%, rgba(4,8,18,0.85) 100%);
+      radial-gradient(ellipse at 50% 45%, rgba(20,35,65,0.05) 0%, rgba(8,12,24,0.35) 45%, rgba(2,4,10,0.85) 78%),
+      linear-gradient(180deg, rgba(4,8,18,0.35) 0%, rgba(4,8,18,0.7) 100%);
   }
   #mode-menu.hidden { opacity: 0; pointer-events: none; }
   #mode-menu.hidden * { pointer-events: none !important; }
@@ -409,7 +409,6 @@
 
   /* Configuración de controles táctiles */
   .config-btn { display: none; }
-  body.is-touch #controls-menu .ctrl-actions { display: flex; }
 
   #controls-menu { position: fixed; inset: 0; z-index: 507; display: none; pointer-events: none; color: #fff; }
   #controls-menu.active { display: block; }
@@ -520,7 +519,6 @@
      MENÚ PRINCIPAL
      ═══════════════════════════════════════════ -->
 <div id="mode-menu">
-  <!-- Barra superior -->
   <div class="menu-top-bar">
     <div class="rank-block">
       <div class="rank-badge">
@@ -538,7 +536,6 @@
     </div>
   </div>
 
-  <!-- Bloque inferior -->
   <div class="menu-bottom">
     <div class="player-card">
       <div class="player-avatar">
@@ -1123,7 +1120,7 @@ const mapRandom = mulberry32(MAP_SEED);
 
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b1220);
+scene.background = new THREE.Color(0x0a0d16);
 scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
@@ -1148,11 +1145,6 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 200 });
 scene.add(sun);
-
-// Luz frontal del menú (solo ilumina al personaje)
-const menuKeyLight = new THREE.DirectionalLight(0xaaccff, 0);
-menuKeyLight.position.set(2, 4, 3);
-scene.add(menuKeyLight);
 
 /* ═══════════════════════════════════════════
    CACHE DE MATERIALES
@@ -1282,7 +1274,7 @@ function buildCharacter(opts = {}) {
   };
 }
 
-/* ─────────────── ARMAS BAJO POLI (para vista remota y menú) ─────────────── */
+/* ─────────────── ARMAS BAJO POLI (remoto + menú) ─────────────── */
 function createLowPolyRifleRemote() {
   const g = new THREE.Group();
   const matBody = new THREE.MeshLambertMaterial({ color: 0x2a2a25, flatShading: true });
@@ -1359,25 +1351,83 @@ function buildGrenadeModel(opts = {}) {
 }
 
 /* ═══════════════════════════════════════════
-   PERSONAJE DEL MENÚ (preview 3D)
+   PERSONAJE DEL MENÚ (preview 3D en lobby)
    ═══════════════════════════════════════════ */
+let menuCharYaw = 0;
+let menuDragActive = false;
+let menuDragLastX = 0;
+let menuDragVelocity = 0;
+
+// Luces exclusivas del menú
+const menuKeyLight = new THREE.DirectionalLight(0xbfd8ff, 0);
+menuKeyLight.position.set(2.5, 4.5, 3.5);
+scene.add(menuKeyLight);
+const menuFillLight = new THREE.DirectionalLight(0xffddaa, 0);
+menuFillLight.position.set(-3, 2.2, 2);
+scene.add(menuFillLight);
+const menuRimLight = new THREE.DirectionalLight(0x9ac8ff, 0);
+menuRimLight.position.set(-1, 3, -4.5);
+scene.add(menuRimLight);
+
+// Plataforma circular del lobby
+const menuPlatform = new THREE.Mesh(
+  new THREE.CylinderGeometry(1.7, 1.9, 0.18, 40),
+  new THREE.MeshLambertMaterial({ color: 0x141b2a, flatShading: false })
+);
+menuPlatform.position.set(0, 0.09, 0);
+scene.add(menuPlatform);
+const menuPlatformRing = new THREE.Mesh(
+  new THREE.TorusGeometry(1.72, 0.045, 8, 64),
+  new THREE.MeshBasicMaterial({ color: 0xffb84a, transparent: true, opacity: 0.9 })
+);
+menuPlatformRing.rotation.x = Math.PI / 2;
+menuPlatformRing.position.set(0, 0.185, 0);
+scene.add(menuPlatformRing);
+const menuPlatformInner = new THREE.Mesh(
+  new THREE.CylinderGeometry(1.55, 1.55, 0.02, 40),
+  new THREE.MeshLambertMaterial({ color: 0x1e2a3f, flatShading: false })
+);
+menuPlatformInner.position.set(0, 0.19, 0);
+scene.add(menuPlatformInner);
+
+const menuOnlyObjects = new Set();
+
+function brightenMenuWeapon(root) {
+  root.traverse(n => {
+    if (n.isMesh && n.material) {
+      const mats = Array.isArray(n.material) ? n.material : [n.material];
+      for (const m of mats) {
+        if (m.color) {
+          const c = m.color.clone();
+          c.r = Math.min(1, c.r * 2.4 + 0.14);
+          c.g = Math.min(1, c.g * 2.4 + 0.14);
+          c.b = Math.min(1, c.b * 2.4 + 0.14);
+          m.color.copy(c);
+        }
+        if ('emissive' in m) m.emissive = new THREE.Color(0x14161f);
+        if ('flatShading' in m) m.flatShading = true;
+        m.needsUpdate = true;
+      }
+    }
+  });
+}
+
 function setupMenuCharacter() {
   menuChar = buildCharacter({
-    uniform:     0x2d3547,
-    uniformDark: 0x1c2230,
-    vest:        0x151a25,
-    helmet:      0x252b38,
-    boots:       0x0a0a0c,
-    strap:       0x101014,
-    pouch:       0x353d4d,
+    uniform:     0x354260,
+    uniformDark: 0x222b42,
+    vest:        0x1a2233,
+    helmet:      0x2a3550,
+    boots:       0x0c0e16,
+    strap:       0x131826,
+    pouch:       0x415072,
     skin:        0xc99a6b,
-    eye:         0x05070a
+    eye:         0x070a12
   });
-  menuChar.root.position.set(0, 0, 0);
+  menuChar.root.position.set(0, 0.19, 0);
   menuChar.root.rotation.y = 0;
   scene.add(menuChar.root);
 
-  // Pose: brazos ligeramente flexionados, con rifle "colgado" al frente
   menuChar.parts.rightArm.shoulder.rotation.x = -0.85;
   menuChar.parts.rightArm.shoulder.rotation.z = -0.20;
   menuChar.parts.rightArm.elbow.rotation.x = 1.05;
@@ -1385,23 +1435,60 @@ function setupMenuCharacter() {
   menuChar.parts.leftArm.shoulder.rotation.z = 0.15;
   menuChar.parts.leftArm.elbow.rotation.x = 1.15;
 
-  // Rifle en la mano derecha, apuntando ligeramente hacia abajo y al frente
   const menuRifle = createLowPolyRifleRemote();
-  menuRifle.group.position.set(0.30, 1.15, 0.28);
+  brightenMenuWeapon(menuRifle.group);
+  menuRifle.group.position.set(0.32, 1.15, 0.32);
   menuRifle.group.rotation.set(-0.35, -0.55, 0.25);
   menuChar.body.add(menuRifle.group);
 
-  // Pistola en la mano izquierda, colgando hacia abajo
   const menuPistol = createLowPolyPistolRemote();
-  menuPistol.group.position.set(-0.32, 0.85, 0.18);
+  brightenMenuWeapon(menuPistol.group);
+  menuPistol.group.position.set(-0.34, 0.85, 0.20);
   menuPistol.group.rotation.set(-0.9, 0.4, 0.15);
   menuChar.body.add(menuPistol.group);
 
   menuChar.root.traverse(n => {
     if (n.isMesh || n.isSkinnedMesh) { n.castShadow = false; n.receiveShadow = false; }
   });
+
+  menuOnlyObjects.add(menuChar.root);
+  menuOnlyObjects.add(menuKeyLight);
+  menuOnlyObjects.add(menuFillLight);
+  menuOnlyObjects.add(menuRimLight);
+  menuOnlyObjects.add(menuPlatform);
+  menuOnlyObjects.add(menuPlatformRing);
+  menuOnlyObjects.add(menuPlatformInner);
 }
+
+function setWorldVisibleForMenu(inMenu) {
+  for (const child of scene.children) {
+    if (menuOnlyObjects.has(child)) { child.visible = inMenu; continue; }
+    if (child === camera) continue;
+    if (child === player) continue;
+    if (child === weaponRifle || child === weaponShotgun || child === weaponPistol) continue;
+    if (child === grenadeViewModel) continue;
+    if (child.isLight) continue;
+    child.visible = !inMenu;
+  }
+  if (inMenu) {
+    menuKeyLight.intensity  = 1.2;
+    menuFillLight.intensity = 0.6;
+    menuRimLight.intensity  = 1.4;
+    sun.intensity  = 0.9;
+    hemi.intensity = 0.75;
+    scene.background = new THREE.Color(0x0a0d16);
+    scene.fog = null;
+  } else {
+    menuKeyLight.intensity  = 0;
+    menuFillLight.intensity = 0;
+    menuRimLight.intensity  = 0;
+    sun.intensity  = 2.3;
+    hemi.intensity = 1.4;
+  }
+}
+
 setupMenuCharacter();
+setWorldVisibleForMenu(true);
 
 /* ═══════════════════════════════════════════
    JUGADOR LOCAL
@@ -3762,6 +3849,49 @@ function handlePlay() {
 playBtn.addEventListener('click', e => { e.preventDefault(); handlePlay(); });
 playBtn.addEventListener('touchend', e => { e.preventDefault(); handlePlay(); }, { passive: false });
 
+/* ═══════════════════════════════════════════
+   DRAG PARA ROTAR EL PERSONAJE EN EL MENÚ
+   ═══════════════════════════════════════════ */
+modeMenu.addEventListener('pointerdown', e => {
+  if (!menuActive) return;
+  if (e.target.closest('button, .icon-btn, .player-card, .rank-block')) return;
+  menuDragActive = true;
+  menuDragLastX = e.clientX;
+  menuDragVelocity = 0;
+}, { passive: true });
+
+window.addEventListener('pointermove', e => {
+  if (!menuDragActive) return;
+  const dx = e.clientX - menuDragLastX;
+  menuDragLastX = e.clientX;
+  menuCharYaw += dx * 0.008;
+  menuDragVelocity = dx * 0.008;
+});
+
+window.addEventListener('pointerup',     () => { menuDragActive = false; });
+window.addEventListener('pointercancel', () => { menuDragActive = false; });
+
+modeMenu.addEventListener('touchstart', e => {
+  if (!menuActive) return;
+  if (e.target.closest('button, .icon-btn, .player-card, .rank-block')) return;
+  const t = e.changedTouches[0]; if (!t) return;
+  menuDragActive = true;
+  menuDragLastX = t.clientX;
+  menuDragVelocity = 0;
+}, { passive: true });
+
+modeMenu.addEventListener('touchmove', e => {
+  if (!menuDragActive) return;
+  const t = e.changedTouches[0]; if (!t) return;
+  const dx = t.clientX - menuDragLastX;
+  menuDragLastX = t.clientX;
+  menuCharYaw += dx * 0.008;
+  menuDragVelocity = dx * 0.008;
+}, { passive: true });
+
+modeMenu.addEventListener('touchend',    () => { menuDragActive = false; }, { passive: true });
+modeMenu.addEventListener('touchcancel', () => { menuDragActive = false; }, { passive: true });
+
 document.querySelectorAll('.loadout-icon').forEach(img => {
   img.addEventListener('error', () => {
     img.style.visibility = 'hidden';
@@ -3795,10 +3925,10 @@ function selectGameMode(mode) {
   document.body.classList.remove('in-menu');
   document.body.style.cursor = 'none';
 
-  // Ocultar personaje del menú y su luz
-  if (menuChar) menuChar.root.visible = false;
-  menuKeyLight.intensity = 0;
+  // Restaurar mundo y apagar luces del lobby
+  setWorldVisibleForMenu(false);
   scene.background = new THREE.Color(0x87ceeb);
+  scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
 
   aliveSince = Date.now();
   currentWeaponKey = playerLoadout.primary;
@@ -3846,23 +3976,29 @@ function selectGameMode(mode) {
 function updateMenuCamera(dt) {
   menuCamAngle += dt;
 
-  // Cámara fija en frente del personaje, con un sutil balanceo
-  const bob = Math.sin(menuCamAngle * 0.8) * 0.06;
-  const orbit = Math.sin(menuCamAngle * 0.35) * 0.35;
-  const dist = 3.9;
-  const camX = Math.sin(orbit) * dist;
-  const camZ = Math.cos(orbit) * dist;
-  camera.position.set(camX, 1.75 + bob, camZ);
+  // Auto-rotación suave + inercia del drag del usuario
+  if (!menuDragActive) {
+    if (Math.abs(menuDragVelocity) > 0.0005) {
+      menuCharYaw += menuDragVelocity * dt * 30;
+      menuDragVelocity *= 0.93;
+    } else {
+      menuDragVelocity = 0;
+      menuCharYaw += dt * 0.35;
+    }
+  }
+  if (menuChar) menuChar.root.rotation.y = menuCharYaw;
+
+  // Cámara fija mirando al personaje con pequeño bob
+  const bob = Math.sin(menuCamAngle * 0.8) * 0.045;
+  const sway = Math.sin(menuCamAngle * 0.5) * 0.10;
+  camera.position.set(sway, 1.70 + bob, 3.85);
   camera.lookAt(0, 1.15, 0);
   camera.fov = 44;
   camera.updateProjectionMatrix();
 
-  // El personaje gira lentamente mostrándose
-  if (menuChar) {
-    menuChar.root.rotation.y = menuCamAngle * 0.35;
-  }
-  // Luz clave solo para el menú
-  menuKeyLight.intensity = 0.9;
+  menuKeyLight.intensity = 1.2 + Math.sin(menuCamAngle * 1.4) * 0.08;
+
+  if (menuPlatformRing) menuPlatformRing.rotation.z = menuCamAngle * 0.3;
 }
 
 /* ═══════════════════════════════════════════
@@ -3915,11 +4051,11 @@ function applySingleTouchControl(id) {
   const baseSize = DEFAULT_TOUCH_CONFIG[id].size;
   const ratio = size / baseSize;
   if (id === 'joystick') {
-    const stick = document.getElementById('stick');
-    if (stick) {
+    const stickEl = document.getElementById('stick');
+    if (stickEl) {
       const ss = 46 * ratio;
-      stick.style.width = ss + 'px'; stick.style.height = ss + 'px';
-      stick.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
+      stickEl.style.width = ss + 'px'; stickEl.style.height = ss + 'px';
+      stickEl.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
     }
     JOYSTICK_RADIUS = 45 * ratio;
     const zone = document.getElementById('joystick-zone');
