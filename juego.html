@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Low Poly FPS - Mapa FBX</title>
+<title>Low Poly FPS - Mapa</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
   body { margin: 0; overflow: hidden; background: #87ceeb; touch-action: none; user-select: none; font-family: system-ui, sans-serif; cursor: none; }
@@ -452,7 +452,7 @@
   <div class="menu-content">
     <div class="brand-block">
       <h1>LOW<br>POLY<br>FPS</h1>
-      <div class="subtitle">MAPA FBX</div>
+      <div class="subtitle">MAPA PERSONALIZADO</div>
       <div class="divider"></div>
     </div>
     <button class="play-btn" id="play-btn" type="button">
@@ -951,12 +951,28 @@ try {
   if (menuNameEl) menuNameEl.textContent = playerName;
 } catch (e) {}
 
+/* ═══════════════════════════════════════════
+   RNG
+   ═══════════════════════════════════════════ */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), 1 | t);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const MAP_SEED = 20240617;
+const mapRandom = mulberry32(MAP_SEED);
+
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 90, 240);
+scene.fog = new THREE.Fog(0x87ceeb, 90, 220);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 260);
 scene.add(camera);
 
 const BASE_FOV = 70;
@@ -1038,6 +1054,17 @@ function optimizeMeshForRender(mesh) {
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const m of mats) forceMaterialOpaque(m);
   }
+}
+
+function optimizeModelForRender(root, freezeStatic) {
+  if (!root) return;
+  root.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) optimizeMeshForRender(n);
+    if (freezeStatic && n.matrixAutoUpdate !== undefined && !n.isBone) {
+      n.updateMatrix();
+      n.matrixAutoUpdate = false;
+    }
+  });
 }
 
 function disableShadows(obj) {
@@ -1335,14 +1362,12 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
 }
 
 (async () => {
-  _fbxLoader.setResourcePath('modelos3d/');
   const r = await loadWeaponFBX('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
   const p = await loadWeaponFBX('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
-  _fbxLoader.setResourcePath('texturas/');
   forceWeaponVisibility();
 })();
 
@@ -1783,206 +1808,154 @@ function computeBoxPenetration(px, pz, radius, box) {
 }
 
 /* ═══════════════════════════════════════════
-   MAPA — CARGADO DESDE modelos3d/map.fbx
+   MAPA PRINCIPAL — modelos3d/map.fbx
    ═══════════════════════════════════════════ */
-let FENCE_X = 100;
-let FENCE_Z = 100;
+let FENCE_X = 60;
+let FENCE_Z = 60;
 
-function isNormalMapTex(name) {
-  if (!name) return false;
-  const n = name.toLowerCase();
-  return n.includes('normal') || n.endsWith('_n') || n.includes('_nrm');
-}
-function isVegetationTex(name) {
-  if (!name) return false;
-  const n = name.toLowerCase();
-  return n.includes('branch') || n.includes('kust') ||
-         n.includes('tree')   || n.includes('leaf') ||
-         n.includes('grass')  || n.includes('plant') ||
-         n.includes('hoja')   || n.includes('arbol');
-}
+const MAP_FBX_PATH = 'modelos3d/map.fbx';
+const MAP_TEX_DIR  = 'modelos3d/map/';
 
-function fixMapMaterial(mesh) {
-  if (!mesh || !mesh.material) return;
-  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-  for (const m of mats) {
-    if (!m) continue;
-
-    if (m.map) {
-      m.map.colorSpace = THREE.SRGBColorSpace;
-      m.map.anisotropy = 4;
-      m.map.needsUpdate = true;
-    }
-
-    if (m.normalMap) {
-      m.normalMap.colorSpace = THREE.LinearSRGBColorSpace;
-      m.normalMap.needsUpdate = true;
-    }
-    if (m.roughnessMap) {
-      m.roughnessMap.colorSpace = THREE.LinearSRGBColorSpace;
-      m.roughnessMap.needsUpdate = true;
-    }
-    if (m.metalnessMap) {
-      m.metalnessMap.colorSpace = THREE.LinearSRGBColorSpace;
-      m.metalnessMap.needsUpdate = true;
-    }
-
-    const colorName = (m.map && m.map.name) || '';
-    const meshName  = (mesh.name || '').toLowerCase();
-    const isVeg = isVegetationTex(colorName) || isVegetationTex(meshName);
-
-    if (isVeg) {
-      m.transparent = true;
-      m.alphaTest = 0.5;
-      m.side = THREE.DoubleSide;
-      m.depthWrite = true;
-      m.opacity = 1;
-    } else {
-      m.transparent = false;
-      m.alphaTest = 0;
-      m.opacity = 1;
-      m.side = THREE.FrontSide;
-      m.depthWrite = true;
-    }
-
-    m.depthTest = true;
-    m.needsUpdate = true;
+// LoadingManager para redirigir las texturas del FBX a la carpeta modelos3d/map/
+const mapLoadManager = new THREE.LoadingManager();
+mapLoadManager.setURLModifier((url) => {
+  if (!url) return url;
+  // No tocar URLs absolutas o embebidas
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+  const clean = url.replace(/\\/g, '/');
+  const filename = clean.split('/').pop().split('?')[0];
+  if (!filename) return url;
+  // Solo redirigir archivos de imagen
+  if (/\.(png|jpg|jpeg|tga|bmp|dds|ktx|webp)$/i.test(filename)) {
+    return MAP_TEX_DIR + filename;
   }
+  return url;
+});
+
+const _mapFbxLoader = new FBXLoader(mapLoadManager);
+let mapRoot = null;
+
+function computeMapColliders(root) {
+  // Recopilar mallas con bounding box significativa
+  const candidates = [];
+  root.updateMatrixWorld(true);
+  root.traverse(n => {
+    if (!n.isMesh && !n.isSkinnedMesh) return;
+    const b = new THREE.Box3().setFromObject(n);
+    if (!isFinite(b.min.x)) return;
+    const size = b.getSize(new THREE.Vector3());
+    const center = b.getCenter(new THREE.Vector3());
+    // Ignorar cosas planas (suelo)
+    if (size.y < 0.55) return;
+    // Ignorar cosas muy finas
+    if (size.x < 0.30 && size.z < 0.30) return;
+    // Ignorar cosas gigantes (suelo total / skybox)
+    if (size.x > 300 || size.z > 300) return;
+    // Ignorar cosas demasiado altas (domos del cielo)
+    if (size.y > 80) return;
+    candidates.push({ center, size });
+  });
+
+  const MAX_COLLIDERS = 300;
+  if (candidates.length > MAX_COLLIDERS) {
+    // Ordenar por volumen descendente y quedarse con los más grandes
+    candidates.sort((a, b) =>
+      (b.size.x * b.size.y * b.size.z) - (a.size.x * a.size.y * a.size.z)
+    );
+    candidates.length = MAX_COLLIDERS;
+  }
+
+  for (const c of candidates) {
+    boxColliders.push({
+      x: c.center.x,
+      z: c.center.z,
+      hw: c.size.x / 2,
+      hd: c.size.z / 2,
+      rot: 0,
+      kind: 'map'
+    });
+  }
+  console.log(`[Map] ${candidates.length} colliders automáticos generados`);
 }
 
 function loadMapFBX() {
   return new Promise((resolve) => {
-    // Las texturas del map.fbx viven en texturas/ (Branches.png, Color.png, kust.png, Normal*.png, normal_wood.png)
-    _fbxLoader.setResourcePath('texturas/');
-    console.log('[MAP] Cargando modelos3d/map.fbx (resourcePath = texturas/)');
-
-    _fbxLoader.load('modelos3d/map.fbx', (obj) => {
+    _mapFbxLoader.load(MAP_FBX_PATH, (obj) => {
       try {
-        console.log('[MAP] ✅ FBX parseado. Hijos raíz:', obj.children.length);
-
-        let totalMeshes = 0;
-        obj.traverse(n => { if (n.isMesh || n.isSkinnedMesh) totalMeshes++; });
-        console.log('[MAP] Meshes:', totalMeshes);
-
         obj.position.set(0, 0, 0);
         obj.rotation.set(0, 0, 0);
         obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
 
-        // Auto-orientar si el modelo viene en Z-up
-        let box = new THREE.Box3().setFromObject(obj);
-        let size = box.getSize(new THREE.Vector3());
-        console.log('[MAP] Tamaño original:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
-        if (size.y < size.x * 0.5 && size.y < size.z * 0.5) {
-          console.log('[MAP] Detectado Z-up, rotando -90° en X');
-          obj.rotation.x = -Math.PI / 2;
-          obj.updateMatrixWorld(true);
-        }
-
-        // Centrar en el origen y apoyar la base en y = 0
-        obj.updateMatrixWorld(true);
-        box = new THREE.Box3().setFromObject(obj);
-        const center = box.getCenter(new THREE.Vector3());
-        obj.position.x -= center.x;
-        obj.position.z -= center.z;
-        obj.position.y -= box.min.y;
-        obj.updateMatrixWorld(true);
-
-        const finalBox = new THREE.Box3().setFromObject(obj);
-        const finalSize = finalBox.getSize(new THREE.Vector3());
-        console.log('[MAP] Tamaño final:', finalSize.x.toFixed(2), finalSize.y.toFixed(2), finalSize.z.toFixed(2));
-
+        // Ajustar materiales (texturas, colorSpace, etc.)
         obj.traverse(n => {
-          n.visible = true;
           if (n.isMesh || n.isSkinnedMesh) {
             n.castShadow = false;
             n.receiveShadow = false;
             n.frustumCulled = true;
-
-            // Si viene skinned sin esqueleto válido, degradar a mesh estático
-            if (n.isSkinnedMesh && (!n.skeleton || !n.skeleton.bones || n.skeleton.bones.length === 0)) {
-              n.isSkinnedMesh = false;
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) {
+                if (m.map) {
+                  m.map.colorSpace = THREE.SRGBColorSpace;
+                  m.map.anisotropy = 4;
+                  m.map.needsUpdate = true;
+                }
+                if (m.color && m.map && m.color.r === 0 && m.color.g === 0 && m.color.b === 0) {
+                  m.color.setHex(0xffffff);
+                }
+                m.side = THREE.FrontSide;
+                m.needsUpdate = true;
+              }
             }
-
-            const colorName = (n.material && n.material.map && n.material.map.name) || '';
-            const meshName  = (n.name || '').toLowerCase();
-            const isVeg = isVegetationTex(colorName) || isVegetationTex(meshName);
-            if (isVeg) n.userData.skipOpacityForce = true;
-
-            n.userData.isMapMesh = true;
-            fixMapMaterial(n);
           }
         });
 
         scene.add(obj);
-        console.log('[MAP] ✅ Añadido a la escena');
+        mapRoot = obj;
+        obj.updateMatrixWorld(true);
+
+        // Re-centrar el mapa en el origen
+        const box = new THREE.Box3().setFromObject(obj);
+        const centerX = (box.min.x + box.max.x) / 2;
+        const centerZ = (box.min.z + box.max.z) / 2;
+        obj.position.x -= centerX;
+        obj.position.z -= centerZ;
+        // Elevar si el mapa tiene min.y < 0 para que el piso quede en y=0
+        if (box.min.y < -0.05) {
+          obj.position.y -= box.min.y;
+        }
+        obj.updateMatrixWorld(true);
+
+        // Recalcular límites
+        const box2 = new THREE.Box3().setFromObject(obj);
+        FENCE_X = Math.max(20, (box2.max.x - box2.min.x) / 2 - 2);
+        FENCE_Z = Math.max(20, (box2.max.z - box2.min.z) / 2 - 2);
+        console.log(`[Map] Límites: ${FENCE_X.toFixed(1)} x ${FENCE_Z.toFixed(1)}`);
+
+        // Colocar al jugador cerca del centro si aún no empezó la partida
+        if (!gameMode) {
+          player.position.set(0, 0, Math.min(FENCE_Z * 0.55, 20));
+        }
+
+        // Generar colliders
+        computeMapColliders(obj);
+
         resolve(obj);
       } catch (e) {
-        console.error('[MAP] ❌ Error procesando:', e);
         logFbxError('map.fbx: ' + e.message);
         resolve(null);
       }
-    },
-    (xhr) => {
-      if (xhr.total) {
-        const pct = (xhr.loaded / xhr.total * 100).toFixed(1);
-        console.log(`[MAP] Cargando... ${pct}%`);
-      }
-    },
-    (err) => {
-      console.error('[MAP] ❌ Error de red al cargar modelos3d/map.fbx:', err);
-      console.error('[MAP] Verificá que exista:', new URL('modelos3d/map.fbx', location.href).href);
-      logFbxError('No se pudo cargar modelos3d/map.fbx');
+    }, undefined, () => {
+      logFbxError('No se pudo cargar ' + MAP_FBX_PATH);
       resolve(null);
     });
   });
 }
 
-loadMapFBX().then((mapObj) => {
-  if (!mapObj) {
-    const fallback = new THREE.Mesh(
-      new THREE.PlaneGeometry(140, 140),
-      cachedMat(0x9a9080, { flatShading: false })
-    );
-    fallback.rotation.x = -Math.PI / 2;
-    fallback.position.y = 0.02;
-    scene.add(fallback);
-    try { applyOptimizations(); } catch (e) {}
-    return;
-  }
-
-  mapObj.updateMatrixWorld(true);
-
-  const worldBox = new THREE.Box3().setFromObject(mapObj);
-  const worldSize = worldBox.getSize(new THREE.Vector3());
-  FENCE_X = Math.max(20, worldSize.x / 2 - 1);
-  FENCE_Z = Math.max(20, worldSize.z / 2 - 1);
-
-  // Auto-generar colliders desde las mallas del mapa
-  mapObj.traverse(n => {
-    if (!n.isMesh || !n.geometry) return;
-    if (!n.geometry.boundingBox) n.geometry.computeBoundingBox();
-    const bb = n.geometry.boundingBox.clone();
-    bb.applyMatrix4(n.matrixWorld);
-    const s = bb.getSize(new THREE.Vector3());
-    const c = bb.getCenter(new THREE.Vector3());
-
-    if (s.y < 0.4) return;                                          // piso
-    if (s.x < 0.3 && s.z < 0.3) return;                             // basura
-    if (s.x > worldSize.x * 0.9 && s.z > worldSize.z * 0.9) return; // terreno
-
-    boxColliders.push({
-      x: c.x, z: c.z,
-      hw: Math.max(0.25, s.x / 2),
-      hd: Math.max(0.25, s.z / 2),
-      rot: 0,
-      kind: 'wall'
-    });
-  });
-
-  console.log('[MAP] Colliders generados:', boxColliders.length);
+loadMapFBX().then(() => {
   try { applyOptimizations(); } catch (e) {}
-}).catch(err => logFbxError('Error general map.fbx: ' + err.message));
+});
 
 /* ═══════════════════════════════════════════
    ESTADO
@@ -2470,7 +2443,9 @@ function respawnPlayer() {
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
   const dist = 5 + Math.random() * 8;
-  player.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
+  // Reaparecer cerca del centro del mapa (o borde inferior)
+  const rz = Math.min(FENCE_Z * 0.55, 20);
+  player.position.set(Math.cos(angle) * dist, 0, rz + Math.sin(angle) * dist);
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
@@ -2551,7 +2526,7 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
     finalDir.add(perp).normalize();
   }
   raycaster.set(origin, finalDir);
-  raycaster.far = 200;
+  raycaster.far = 120;
   const hits = raycaster.intersectObjects(scene.children, true);
   for (const hit of hits) {
     if (hit.object.userData.isBulletHole) continue;
@@ -2688,8 +2663,8 @@ function updatePlayer(dt) {
     bobOffset *= Math.max(0, 1 - dt * 8);
     weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 5);
   }
-  player.position.x = THREE.MathUtils.clamp(player.position.x, -FENCE_X, FENCE_X);
-  player.position.z = THREE.MathUtils.clamp(player.position.z, -FENCE_Z, FENCE_Z);
+  player.position.x = THREE.MathUtils.clamp(player.position.x, -FENCE_X + 1, FENCE_X - 1);
+  player.position.z = THREE.MathUtils.clamp(player.position.z, -FENCE_Z + 1, FENCE_Z - 1);
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
@@ -3294,12 +3269,12 @@ async function initOnline() {
 }
 
 /* ═══════════════════════════════════════════
-   MINIMAPA CIRCULAR MODERNO
+   MINIMAPA CIRCULAR
    ═══════════════════════════════════════════ */
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
 const MM_W = minimapCanvas.width, MM_H = minimapCanvas.height;
-const MM_RANGE = 75;
+const MM_RANGE = 90;
 const MM_SCALE = MM_W / (MM_RANGE * 2);
 
 function drawMinimap() {
@@ -3338,24 +3313,23 @@ function drawMinimap() {
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + cx;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + cy;
 
+  // Borde del mapa
   ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
-  ctx.strokeRect(
-    wx2mm(-FENCE_X), wz2mm(-FENCE_Z),
-    (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE
-  );
+  ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE);
 
+  // Colliders del mapa (obstáculos)
   for (const b of boxColliders) {
+    if (b.kind !== 'map') continue;
     const px = wx2mm(b.x), py = wz2mm(b.z);
     const w = b.hw * 2 * MM_SCALE;
     const h = b.hd * 2 * MM_SCALE;
-    if (px + w/2 < -20 || px - w/2 > MM_W + 20 ||
-        py + h/2 < -20 || py - h/2 > MM_H + 20) continue;
-    ctx.fillStyle = 'rgba(110,140,170,0.7)';
+    if (px + w < -20 || px - w > MM_W + 20) continue;
+    if (py + h < -20 || py - h > MM_H + 20) continue;
+    ctx.fillStyle = 'rgba(120,140,170,0.35)';
     ctx.fillRect(px - w/2, py - h/2, w, h);
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 0.6;
-    ctx.strokeRect(px - w/2, py - h/2, w, h);
   }
 
+  // Jugadores remotos
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
@@ -3364,6 +3338,7 @@ function drawMinimap() {
     ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
 
+  // Jugador local
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(-cameraYaw);
@@ -3484,20 +3459,18 @@ function applyOptimizations() {
     if (isDynamic) return;
     obj.frustumCulled = true;
     if (obj.isMesh || obj.isSkinnedMesh) {
-      obj.castShadow = false;
-      obj.receiveShadow = false;
-      // ⚠️ NO tocamos los materiales del mapa (ya procesados por fixMapMaterial)
-      const isMapMesh = obj.userData && obj.userData.isMapMesh;
-      if (!isMapMesh && obj.material) {
+      // No congelar si es el mapa (podría tener animaciones internas futuras)
+      if (obj.material) {
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
         for (const m of mats) {
-          if (!m) continue;
-          if (obj.userData && obj.userData.skipOpacityForce) continue;
-          forceMaterialOpaque(m);
+          if (m.map) {
+            m.map.colorSpace = THREE.SRGBColorSpace;
+            m.map.anisotropy = 4;
+          }
         }
       }
     }
-    if (obj.matrixAutoUpdate !== undefined) {
+    if (obj.matrixAutoUpdate !== undefined && obj !== mapRoot) {
       obj.updateMatrix();
       obj.matrixAutoUpdate = false;
     }
@@ -3602,12 +3575,12 @@ function selectGameMode(mode) {
 /* ─────────────── CÁMARA DEL MENÚ ─────────────── */
 function updateMenuCamera(dt) {
   menuCamAngle += dt * 0.12;
-  const r = 90;
+  const r = Math.max(FENCE_X, FENCE_Z) * 0.9;
   const cx = Math.cos(menuCamAngle) * r;
   const cz = Math.sin(menuCamAngle) * r;
-  const cy = 42 + Math.sin(menuCamAngle * 0.7) * 10;
+  const cy = 38 + Math.sin(menuCamAngle * 0.7) * 8;
   camera.position.set(cx, cy, cz);
-  camera.lookAt(0, 4, 0);
+  camera.lookAt(0, 3, 0);
   camera.fov = 62;
   camera.updateProjectionMatrix();
 }
@@ -3673,12 +3646,12 @@ function applySingleTouchControl(id) {
   const ratio = size / baseSize;
 
   if (id === 'joystick') {
-    const stickEl = document.getElementById('stick');
-    if (stickEl) {
+    const stick = document.getElementById('stick');
+    if (stick) {
       const ss = 46 * ratio;
-      stickEl.style.width = ss + 'px';
-      stickEl.style.height = ss + 'px';
-      stickEl.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
+      stick.style.width = ss + 'px';
+      stick.style.height = ss + 'px';
+      stick.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
     }
     JOYSTICK_RADIUS = 45 * ratio;
     const zone = document.getElementById('joystick-zone');
@@ -3827,7 +3800,7 @@ initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(0, 0, 5);
+player.position.set(0, 0, 25);
 
 function animate() {
   requestAnimationFrame(animate);
