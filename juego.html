@@ -22,6 +22,8 @@
   #mode-menu .divider { width: 72px; height: 3px; margin: clamp(16px, 3.5vw, 24px) auto 0; background: linear-gradient(90deg, transparent, #ffb76b, transparent); border-radius: 2px; box-shadow: 0 0 14px rgba(255,183,107,0.55); }
   .play-btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; width: 100%; min-height: 78px; padding: 22px 28px; background: linear-gradient(180deg, #ff9a4a 0%, #e05a10 100%); border: 3px solid #ffc080; border-radius: 18px; color: #fff; font: 900 clamp(20px, 5.8vw, 28px)/1 system-ui, sans-serif; letter-spacing: clamp(3px, 1.2vw, 5px); cursor: pointer; pointer-events: auto; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); box-shadow: 0 8px 0 #8a3200, 0 16px 34px rgba(255,130,60,0.5); transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease; animation: menuFadeIn 0.7s 0.15s ease both; }
   .play-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #8a3200, 0 6px 18px rgba(255,130,60,0.4); filter: brightness(1.12); }
+  .play-btn.loading { opacity: 0.72; filter: saturate(0.65); cursor: wait; }
+  .play-btn[disabled] { pointer-events: auto; }
   @media (hover: hover) and (pointer: fine) { .play-btn:hover { filter: brightness(1.08); box-shadow: 0 8px 0 #8a3200, 0 20px 44px rgba(255,130,60,0.65); } }
   .player-chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(14,18,30,0.7); border: 2px solid rgba(120,140,180,0.5); border-radius: 999px; font: bold clamp(11px, 3vw, 13px) ui-monospace, monospace; letter-spacing: 1.5px; color: #d0dbe8; backdrop-filter: blur(6px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: menuFadeIn 0.7s 0.3s ease both; }
   .player-chip .chip-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: #4cdf7b; box-shadow: 0 0 10px #4cdf7b; animation: pulseDot 1.6s ease-in-out infinite; }
@@ -1081,13 +1083,9 @@ function disableShadows(obj) {
   });
 }
 
-/* ─────────────── SUELO (sin pasto, concreto total) ─────────────── */
-// Se eliminó el plano de pasto para optimizar. Todo el terreno es concreto.
-const concretePad = new THREE.Mesh(new THREE.PlaneGeometry(112, 108), cachedMat(0x9a9080, { flatShading: false }));
-concretePad.rotation.x = -Math.PI / 2;
-concretePad.position.y = 0.02;
-concretePad.receiveShadow = false;
-scene.add(concretePad);
+/* ─────────────── MAPA 3D NUEVO ─────────────── */
+// El terreno y la geometría del mapa antiguo fueron eliminados.
+// El nuevo escenario se carga desde mapa/lowpoly asset.fbx más sus texturas.
 
 /* ═══════════════════════════════════════════
    PERSONAJE
@@ -1812,8 +1810,13 @@ function computeBoxPenetration(px, pz, radius, box) {
   if (d < 0.0001) {
     const ox = box.hw - Math.abs(lx);
     const oz = box.hd - Math.abs(lz);
-    if (ox < oz) { pushLx = (lx >= 0 ? box.hw + radius : -box.hw - radius); pushLz = lz; }
-    else { pushLx = lx; pushLz = (lz >= 0 ? box.hd + radius : -box.hd - radius); }
+    if (ox < oz) {
+      pushLx = (lx >= 0 ? box.hw + radius : -box.hw - radius);
+      pushLz = lz;
+    } else {
+      pushLx = lx;
+      pushLz = (lz >= 0 ? box.hd + radius : -box.hd - radius);
+    }
   } else {
     const push = radius - d;
     pushLx = lx + (diffX / d) * push;
@@ -1825,487 +1828,240 @@ function computeBoxPenetration(px, pz, radius, box) {
 }
 
 /* ═══════════════════════════════════════════
-   BODEGA DE CONTENEDORES — SOLO FBX
+   MAPA NUEVO — LOW POLY INDUSTRIAL ZONE
    ═══════════════════════════════════════════ */
-const FENCE_X = 54;
-const FENCE_Z = 52;
+const MAP_FILE = 'mapa/lowpoly asset.fbx';
+const MAP_TEXTURES = new Set([
+  'Color.png',
+  'Branches.png',
+  'kust.png',
+  'Normal.png',
+  'Normal_block.png',
+  'normal_wood.png'
+]);
 
-const CONT_L = 6.0, CONT_W = 2.5, CONT_H = 2.6, CONT_GAP = 0.15;
+let mapReady = false;
+let mapRoot = null;
+let mapSpawnX = 0;
+let mapSpawnZ = 0;
+let mapBounds = { minX: -56, maxX: 56, minZ: -54, maxZ: 54 };
+const MAP_TARGET_SPAN = 112;
+const MAP_EDGE_PADDING = 1.4;
+const MAP_COLLIDER_LIMIT = 420;
 
-const C_RED    = [0xb03a2e, 0xc0453a, 0x8b2c20, 0xa33a2e];
-const C_RED2   = [0xa8352a, 0xbc4033, 0x7a2218, 0xb03a2e];
-const C_GREEN  = [0x2e7d4f, 0x35935c, 0x24774a, 0x2a8a52];
-const C_GREEN2 = [0x27704a, 0x3a9a63, 0x1e6a42, 0x2e7d4f];
-const C_BLUE   = [0x2874a6, 0x3585b8, 0x1f5d8a, 0x2874a6];
-const C_BLUE2  = [0x1f5d8a, 0x2874a6, 0x184a70, 0x2d7cb8];
-const C_BROWN  = [0x8d6e4a, 0xa07e58, 0x6f5538, 0x8d6e4a];
-const C_BROWN2 = [0x7a5d3d, 0x96734e, 0x5f4a30, 0x8d6e4a];
-
-const containerLayout = [
-  { x: -38, z: -20, rot: 0, type: 1, colors: C_RED },
-  { x: -38, z:   2, rot: 0, type: 2, colors: C_RED2 },
-  { x: -20, z: -20, rot: 0, type: 1, colors: C_GREEN },
-  { x: -20, z:   2, rot: 0, type: 2, colors: C_RED2 },
-  { x:  -2, z: -20, rot: 0, type: 2, colors: C_GREEN2 },
-  { x:  -2, z:   2, rot: 0, type: 1, colors: C_BROWN },
-  { x:  -2, z:  24, rot: 0, type: 2, colors: C_BROWN2 },
-  { x:  16, z: -20, rot: 0, type: 1, colors: C_BLUE },
-  { x:  16, z:   2, rot: 0, type: 2, colors: C_BROWN },
-  { x:  16, z:  24, rot: 0, type: 1, colors: C_BROWN2 },
-  { x:  34, z: -20, rot: 0, type: 2, colors: C_BLUE2 },
-  { x:  34, z:   2, rot: 0, type: 1, colors: C_BLUE },
-  { x:  34, z:  24, rot: 0, type: 2, colors: C_BROWN },
-];
-
-const containerGroups = [];
-for (const def of containerLayout) {
-  const g = new THREE.Group();
-  g.position.set(def.x, 0, def.z);
-  g.rotation.y = def.rot;
-  scene.add(g);
-  containerGroups.push({ def, group: g });
-  boxColliders.push({
-    x: def.x, z: def.z,
-    hw: CONT_L + CONT_GAP / 2,
-    hd: CONT_W + CONT_GAP / 2,
-    rot: def.rot, kind: 'wall'
-  });
-}
-
-function loadContainerFBX(url) {
-  return new Promise((resolve) => {
-    _fbxLoader.load(url, (obj) => {
-      try {
-        obj.position.set(0, 0, 0);
-        obj.rotation.set(0, 0, 0);
-        obj.scale.setScalar(1);
-        obj.updateMatrixWorld(true);
-        let box = new THREE.Box3().setFromObject(obj);
-        let size = box.getSize(new THREE.Vector3());
-        if (size.y < size.x && size.y < size.z) {
-          obj.rotation.x = -Math.PI / 2;
-          obj.updateMatrixWorld(true);
-          box = new THREE.Box3().setFromObject(obj);
-          size = box.getSize(new THREE.Vector3());
-        }
-        const s = CONT_H / Math.max(size.y, 0.001);
-        obj.scale.setScalar(s);
-        obj.updateMatrixWorld(true);
-        const box2 = new THREE.Box3().setFromObject(obj);
-        const c2 = box2.getCenter(new THREE.Vector3());
-        obj.position.x -= c2.x;
-        obj.position.z -= c2.z;
-        obj.position.y -= box2.min.y;
-        obj.updateMatrixWorld(true);
-        obj.traverse(n => {
-          if (n.isMesh) {
-            optimizeMeshForRender(n);
-            if (n.material) {
-              const mats = Array.isArray(n.material) ? n.material : [n.material];
-              for (const m of mats) forceMaterialOpaque(m);
-            }
-          }
-        });
-        resolve(obj);
-      } catch (e) { logFbxError('container ' + url + ': ' + e.message); resolve(null); }
-    }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
-  });
-}
-
-Promise.all([
-  loadContainerFBX('modelos3d/Container1.fbx'),
-  loadContainerFBX('modelos3d/Container2.fbx')
-]).then(([c1, c2]) => {
-  const anyLoaded = c1 || c2;
-  if (!anyLoaded) {
-    logFbxError('Contenedores FBX no disponibles. No se agregan contenedores.');
-    try { applyOptimizations(); } catch (e) {}
-    return;
-  }
-  const stepX = CONT_L + CONT_GAP;
-  const stepZ = CONT_W + CONT_GAP;
-  const offsets = [[-stepX/2, -stepZ/2],[-stepX/2, stepZ/2],[stepX/2, -stepZ/2],[stepX/2, stepZ/2]];
-  for (const { def, group } of containerGroups) {
-    let template = null;
-    if (def.type === 1) template = c1 || c2;
-    else                template = c2 || c1;
-    if (!template) continue;
-    for (const [ox, oz] of offsets) {
-      const c = template.clone(true);
-      c.position.set(ox, 0, oz);
-      c.rotation.y = (Math.random() - 0.5) * 0.02;
-      c.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = true; } });
-      group.add(c);
-    }
-  }
-  try { applyOptimizations(); } catch (e) {}
-}).catch(err => {
-  logFbxError('Error general contenedores: ' + err.message);
+const mapManager = new THREE.LoadingManager();
+mapManager.setURLModifier((url) => {
+  try {
+    const normalized = decodeURIComponent(String(url).replace(/\\/g, '/'));
+    const base = normalized.substring(normalized.lastIndexOf('/') + 1);
+    if (MAP_TEXTURES.has(base)) return 'mapa/texturas/' + base;
+  } catch (e) {}
+  return url;
 });
 
-/* ═══════════════════════════════════════════
-   VEHÍCULOS — SOLO FBX
-   ═══════════════════════════════════════════ */
-function loadVehicleFBX(url, targetLen) {
-  return new Promise((resolve) => {
-    _fbxLoader.load(url, (obj) => {
+const mapLoader = new FBXLoader(mapManager);
+
+function prepareMapMaterial(mat) {
+  if (!mat) return;
+  if (mat.map) {
+    mat.map.colorSpace = THREE.SRGBColorSpace;
+    mat.map.anisotropy = 1;
+    mat.map.needsUpdate = true;
+  }
+  if (mat.normalMap) {
+    mat.normalMap.anisotropy = 1;
+    mat.normalMap.needsUpdate = true;
+  }
+  mat.needsUpdate = true;
+}
+
+function shouldCreateMapCollider(mesh, box, size, worldSpan) {
+  if (!mesh || !mesh.geometry) return false;
+  if (!Number.isFinite(size.x) || !Number.isFinite(size.y) || !Number.isFinite(size.z)) return false;
+  if (size.y < 0.28) return false;              // suelo / planos finos
+  if (size.x < 0.10 && size.z < 0.10) return false;
+  if (size.y > 24 && Math.max(size.x, size.z) > 14) return false;
+  const horizontalArea = size.x * size.z;
+  if (horizontalArea > worldSpan * worldSpan * 0.18) return false;
+  if (horizontalArea > 240 && size.y < 2.0) return false;
+  if (box.max.y < 0.24) return false;
+  return true;
+}
+
+function rebuildMapColliders(root, bounds) {
+  boxColliders.length = 0;
+  const span = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
+  const candidates = [];
+
+  root.traverse((node) => {
+    if (!(node.isMesh || node.isSkinnedMesh)) return;
+    try {
+      const box = new THREE.Box3().setFromObject(node);
+      const size = box.getSize(new THREE.Vector3());
+      if (!shouldCreateMapCollider(node, box, size, span)) return;
+
+      const center = box.getCenter(new THREE.Vector3());
+      const score = Math.min(size.x * size.z, 240) + Math.max(0, 2 - size.y) * 8;
+      candidates.push({
+        score,
+        x: center.x,
+        z: center.z,
+        hw: Math.max(size.x * 0.5, 0.10),
+        hd: Math.max(size.z * 0.5, 0.10),
+        rot: 0,
+        kind: 'map'
+      });
+    } catch (e) {}
+  });
+
+  candidates.sort((a, b) => a.score - b.score);
+  const keep = Math.min(MAP_COLLIDER_LIMIT, candidates.length);
+  for (let i = 0; i < keep; i++) boxColliders.push(candidates[i]);
+}
+
+function pointBlockedForSpawn(x, z, radius = 1.0) {
+  for (const b of boxColliders) {
+    if (computeBoxPenetration(x, z, radius, b)) return true;
+  }
+  return false;
+}
+
+function chooseMapSpawn() {
+  const cx = (mapBounds.minX + mapBounds.maxX) * 0.5;
+  const cz = (mapBounds.minZ + mapBounds.maxZ) * 0.5;
+  const step = Math.min(
+    (mapBounds.maxX - mapBounds.minX) * 0.12,
+    (mapBounds.maxZ - mapBounds.minZ) * 0.12
+  );
+  const candidates = [
+    [cx, cz],
+    [cx, cz + step], [cx, cz - step], [cx + step, cz], [cx - step, cz],
+    [cx + step, cz + step], [cx - step, cz + step],
+    [cx + step, cz - step], [cx - step, cz - step],
+    [cx, cz + step * 2], [cx, cz - step * 2],
+    [cx + step * 2, cz], [cx - step * 2, cz]
+  ];
+
+  for (const [x, z] of candidates) {
+    if (x <= mapBounds.minX + 2 || x >= mapBounds.maxX - 2 ||
+        z <= mapBounds.minZ + 2 || z >= mapBounds.maxZ - 2) continue;
+    if (!pointBlockedForSpawn(x, z, PLAYER_RADIUS + 0.25)) {
+      return { x, z };
+    }
+  }
+  return { x: cx, z: cz };
+}
+
+function clampPlayerToMap() {
+  const minX = mapBounds.minX + MAP_EDGE_PADDING;
+  const maxX = mapBounds.maxX - MAP_EDGE_PADDING;
+  const minZ = mapBounds.minZ + MAP_EDGE_PADDING;
+  const maxZ = mapBounds.maxZ - MAP_EDGE_PADDING;
+  player.position.x = THREE.MathUtils.clamp(player.position.x, minX, maxX);
+  player.position.z = THREE.MathUtils.clamp(player.position.z, minZ, maxZ);
+}
+
+function loadNewMap() {
+  mapLoader.load(
+    MAP_FILE,
+    (obj) => {
       try {
+        obj.visible = true;
         obj.position.set(0, 0, 0);
         obj.rotation.set(0, 0, 0);
         obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
-        obj.traverse(n => { n.visible = true; });
-        obj.traverse(n => {
-          if (n.isMesh || n.isSkinnedMesh) {
-            if (n.material) {
-              const mats = Array.isArray(n.material) ? n.material : [n.material];
-              for (const m of mats) forceMaterialOpaque(m);
-            }
-          }
-        });
-        let box = new THREE.Box3().setFromObject(obj);
-        let size = box.getSize(new THREE.Vector3());
-        if (size.y < size.x * 0.7 && size.y < size.z * 0.7) {
-          obj.rotation.x = -Math.PI / 2;
-          obj.updateMatrixWorld(true);
-          box = new THREE.Box3().setFromObject(obj);
-          size = box.getSize(new THREE.Vector3());
+
+        let rawBox = new THREE.Box3().setFromObject(obj);
+        let rawSize = rawBox.getSize(new THREE.Vector3());
+        const rawSpan = Math.max(rawSize.x, rawSize.z);
+
+        if (!Number.isFinite(rawSpan) || rawSpan < 0.001) {
+          throw new Error('El FBX no tiene dimensiones válidas');
         }
-        const maxHorizontal = Math.max(size.x, size.z);
-        const s = targetLen / Math.max(maxHorizontal, 0.001);
-        obj.scale.setScalar(s);
+
+        // Normaliza el escenario para que ocupe un área jugable estable.
+        const scale = MAP_TARGET_SPAN / rawSpan;
+        obj.scale.setScalar(scale);
         obj.updateMatrixWorld(true);
-        const box2 = new THREE.Box3().setFromObject(obj);
-        const c2 = box2.getCenter(new THREE.Vector3());
-        obj.position.x -= c2.x;
-        obj.position.z -= c2.z;
-        obj.position.y -= box2.min.y;
+
+        let box = new THREE.Box3().setFromObject(obj);
+        const center = box.getCenter(new THREE.Vector3());
+
+        obj.position.x -= center.x;
+        obj.position.z -= center.z;
+        obj.position.y -= box.min.y;
         obj.updateMatrixWorld(true);
-        let meshCount = 0;
-        obj.traverse(n => {
-          n.visible = true;
-          if (n.isMesh || n.isSkinnedMesh) {
-            meshCount++;
-            n.visible = true;
-            optimizeMeshForRender(n);
-            if (n.isSkinnedMesh && n.skeleton && typeof n.skeleton.update === 'function') {
-              try { n.skeleton.update(); } catch (e) {}
-            }
-            if (!n.material) {
-              n.material = new THREE.MeshLambertMaterial({ color: 0x666666, flatShading: true });
-            } else {
-              const mats = Array.isArray(n.material) ? n.material : [n.material];
-              for (const m of mats) forceMaterialOpaque(m);
-            }
+
+        box = new THREE.Box3().setFromObject(obj);
+        const size = box.getSize(new THREE.Vector3());
+
+        mapBounds = {
+          minX: box.min.x,
+          maxX: box.max.x,
+          minZ: box.min.z,
+          maxZ: box.max.z
+        };
+
+        obj.traverse((node) => {
+          if (!(node.isMesh || node.isSkinnedMesh)) return;
+          node.visible = true;
+          node.castShadow = false;
+          node.receiveShadow = false;
+          node.frustumCulled = true;
+
+          if (node.material) {
+            const mats = Array.isArray(node.material) ? node.material : [node.material];
+            for (const mat of mats) prepareMapMaterial(mat);
           }
         });
-        console.log(`[FBX] ${url}: ${meshCount} mallas cargadas`);
-        resolve({ obj, meshCount });
-      } catch (e) { logFbxError('vehicle ' + url + ': ' + e.message); resolve(null); }
-    }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
-  });
-}
 
-const vehicleSpawns = [
-  { type: 'military', x: -12, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
-  { type: 'military', x:  14, z: -28, rot:  0,           len: 6.5, collR: 2.4 },
-  { type: 'pickup',   x: -44, z:  25, rot:  Math.PI / 2, len: 5.5, collR: 2.2 },
-  { type: 'pickup',   x:  44, z:  28, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
-  { type: 'pickup',   x:  44, z:  35, rot: -Math.PI / 2, len: 5.5, collR: 2.2 },
-  { type: 'cart',     x: -30, z:  12, rot:  Math.PI / 3, len: 4.0, collR: 1.6 },
-  { type: 'cart',     x:  -8, z: -12, rot: -Math.PI / 5, len: 4.0, collR: 1.6 },
-  { type: 'cart',     x:  24, z:  12, rot:  Math.PI / 6, len: 4.0, collR: 1.6 },
-  { type: 'cart',     x:  -8, z:  12, rot:  Math.PI,     len: 4.0, collR: 1.6 },
-];
+        mapRoot = obj;
+        scene.add(mapRoot);
 
-function rescaleToLength(template, targetLen) {
-  if (!template) return null;
-  const t = template.clone(true);
-  t.scale.setScalar(1);
-  t.rotation.set(0, 0, 0);
-  t.position.set(0, 0, 0);
-  t.updateMatrixWorld(true);
-  const b = new THREE.Box3().setFromObject(t);
-  const s = b.getSize(new THREE.Vector3());
-  const maxH = Math.max(s.x, s.z);
-  if (maxH < 0.001) return t;
-  t.scale.setScalar(targetLen / maxH);
-  t.updateMatrixWorld(true);
-  const b2 = new THREE.Box3().setFromObject(t);
-  const c = b2.getCenter(new THREE.Vector3());
-  t.position.x -= c.x;
-  t.position.z -= c.z;
-  t.position.y -= b2.min.y;
-  t.updateMatrixWorld(true);
-  t.traverse(n => {
-    if (n.isMesh || n.isSkinnedMesh) {
-      const mats = Array.isArray(n.material) ? n.material : [n.material];
-      for (const m of mats) forceMaterialOpaque(m);
-    }
-  });
-  return t;
-}
+        rebuildMapColliders(mapRoot, mapBounds);
+        const spawn = chooseMapSpawn();
+        mapSpawnX = spawn.x;
+        mapSpawnZ = spawn.z;
 
-Promise.all([
-  loadVehicleFBX('modelos3d/auto militar.fbx',  6.5),
-  loadVehicleFBX('modelos3d/camioneta.fbx',     5.5),
-  loadVehicleFBX('modelos3d/Carrito de carga.fbx', 4.0)
-]).then(([milRes, pickRes, cartRes]) => {
-  const milBase  = milRes  && milRes.obj  ? milRes.obj  : null;
-  const pickBase = pickRes && pickRes.obj ? pickRes.obj : null;
-  const cartBase = cartRes && cartRes.obj ? cartRes.obj : null;
-  const templates = {
-    military: milBase  ? rescaleToLength(milBase,  6.5) : null,
-    pickup:   pickBase ? rescaleToLength(pickBase, 5.5) : null,
-    cart:     cartBase ? rescaleToLength(cartBase, 4.0) : null,
-  };
-  for (const spawn of vehicleSpawns) {
-    const tmpl = templates[spawn.type];
-    if (!tmpl) continue;
-    const inner = tmpl.clone(true);
-    inner.position.set(0, 0, 0);
-    inner.rotation.set(0, 0, 0);
-    inner.updateMatrixWorld(true);
-    const b = new THREE.Box3().setFromObject(inner);
-    const c = b.getCenter(new THREE.Vector3());
-    inner.position.x -= c.x;
-    inner.position.z -= c.z;
-    inner.position.y -= b.min.y;
-    const wrapper = new THREE.Group();
-    wrapper.add(inner);
-    wrapper.position.set(spawn.x, 0, spawn.z);
-    wrapper.rotation.y = spawn.rot;
-    wrapper.traverse(n => {
-      n.visible = true;
-      if (n.isMesh || n.isSkinnedMesh) {
-        optimizeMeshForRender(n);
-        const mats = Array.isArray(n.material) ? n.material : [n.material];
-        for (const m of mats) forceMaterialOpaque(m);
+        mapReady = true;
+        const playText = document.querySelector('#play-btn .play-text');
+        if (playText) playText.textContent = 'JUGAR';
+        playBtn.classList.remove('loading');
+        playBtn.removeAttribute('disabled');
+
+        try { applyOptimizations(); } catch (e) {}
+        clampPlayerToMap();
+
+        console.log('[MAPA] Low Poly Industrial Zone cargado', {
+          size: { x: size.x.toFixed(2), y: size.y.toFixed(2), z: size.z.toFixed(2) },
+          colliders: boxColliders.length,
+          spawn: { x: mapSpawnX.toFixed(2), z: mapSpawnZ.toFixed(2) }
+        });
+      } catch (e) {
+        logFbxError('Error preparando el mapa nuevo: ' + e.message);
       }
-    });
-    scene.add(wrapper);
-    colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
-  }
-  try { applyOptimizations(); } catch (e) {}
-}).catch(err => {
-  logFbxError('Error general vehículos: ' + err.message);
-});
-
-/* ─────────────── ALMACÉN NORTE ─────────────── */
-function createWarehouse(x, z, w, d, h) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mWall = cachedMat(0x9a9382);
-  const mRoof = cachedMat(0x3f4244);
-  const mDoor = cachedMat(0x2c2e30);
-  const mTrim = cachedMat(0x1e1e1e);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
-  body.position.y = h / 2;
-  body.castShadow = false; body.receiveShadow = false;
-  g.add(body);
-  const stripeGeo = new THREE.BoxGeometry(w + 0.05, 0.12, d + 0.05);
-  for (let i = 0; i < 5; i++) {
-    const stripe = new THREE.Mesh(stripeGeo, mTrim);
-    stripe.position.y = 1.2 + i * (h - 2.4) / 4;
-    g.add(stripe);
-  }
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.5, d + 1), mRoof);
-  roof.position.y = h + 0.25;
-  roof.castShadow = false;
-  g.add(roof);
-  const doorCount = 3;
-  const innerW = w - 2.5;
-  const doorW = innerW / doorCount - 0.6;
-  const doorH = h * 0.72;
-  for (let i = 0; i < doorCount; i++) {
-    const dx = -innerW/2 + 0.5 + (doorW + 0.6) * (i + 0.5);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, 0.2), mDoor);
-    door.position.set(dx, doorH / 2, d / 2 + 0.06);
-    g.add(door);
-    const slatGeo = new THREE.BoxGeometry(doorW - 0.1, 0.06, 0.05);
-    for (let j = 1; j < 8; j++) {
-      const slat = new THREE.Mesh(slatGeo, mTrim);
-      slat.position.set(dx, doorH * j / 8, d / 2 + 0.18);
-      g.add(slat);
+    },
+    undefined,
+    (err) => {
+      logFbxError('No se pudo cargar el mapa nuevo: ' + MAP_FILE);
+      console.error(err);
+      const playText = document.querySelector('#play-btn .play-text');
+      if (playText) playText.textContent = 'MAPA NO DISPONIBLE';
+      playBtn.classList.add('loading');
     }
-  }
-  boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
-  return g;
+  );
 }
-scene.add(createWarehouse(0, -40, 46, 14, 8));
 
-/* ─────────────── OFICINA ─────────────── */
-function createOffice(x, z, w, d, h) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mWall = cachedMat(0xe8dcc0);
-  const mRoof = cachedMat(0x5d4037);
-  const mTrim = cachedMat(0x2a2520);
-  const mWindow = cachedMat(0x2b3a4a);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
-  body.position.y = h / 2;
-  body.castShadow = false; body.receiveShadow = false;
-  g.add(body);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, 0.4, d + 0.6), mRoof);
-  roof.position.y = h + 0.2;
-  roof.castShadow = false;
-  g.add(roof);
-  for (let i = 0; i < 3; i++) {
-    const wx = -w/2 + 1.6 + i * (w - 3.2) / 2;
-    const win = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 0.1), mWindow);
-    win.position.set(wx, h * 0.65, d/2 + 0.05);
-    g.add(win);
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.08), mTrim);
-    frame.position.set(wx, h * 0.65, d/2 + 0.02);
-    g.add(frame);
-  }
-  const door = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.0, 0.12), mTrim);
-  door.position.set(0, 1.0, d/2 + 0.06);
-  g.add(door);
-  const ac = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 1.0), cachedMat(0xaaaaaa));
-  ac.position.set(w/2 - 1.2, h + 0.55, 0);
-  ac.castShadow = false;
-  g.add(ac);
-  boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
-  return g;
+const playBtnMapWatcher = document.getElementById('play-btn');
+if (playBtnMapWatcher) {
+  playBtnMapWatcher.classList.add('loading');
+  playBtnMapWatcher.setAttribute('disabled', 'disabled');
+  const mapPlayText = playBtnMapWatcher.querySelector('.play-text');
+  if (mapPlayText) mapPlayText.textContent = 'CARGANDO MAPA...';
 }
-scene.add(createOffice(-38, 38, 14, 9, 4.5));
 
-/* ─────────────── CERCO PERIMETRAL ─────────────── */
-function createFence(x1, z1, x2, z2) {
-  const dx = x2 - x1, dz = z2 - z1;
-  const len = Math.hypot(dx, dz);
-  if (len < 0.1) return null;
-  const g = new THREE.Group();
-  const mPost = cachedMat(0x3a3a3a);
-  const mRail = cachedMat(0x222222);
-  const mFence = new THREE.MeshLambertMaterial({
-    color: 0x8a9aa8, transparent: true, opacity: 0.32,
-    side: THREE.DoubleSide, depthWrite: false, flatShading: false
-  });
-  const postGeo = new THREE.BoxGeometry(0.14, 3.2, 0.14);
-  const postCount = Math.max(1, Math.ceil(len / 3));
-  for (let i = 0; i <= postCount; i++) {
-    const t = i / postCount;
-    const post = new THREE.Mesh(postGeo, mPost);
-    post.position.set(t * len - len / 2, 1.6, 0);
-    post.castShadow = false;
-    g.add(post);
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.25, 4), mPost);
-    cap.position.set(t * len - len / 2, 3.32, 0);
-    g.add(cap);
-  }
-  const panel = new THREE.Mesh(new THREE.PlaneGeometry(len, 3.0), mFence);
-  panel.position.set(0, 1.55, 0);
-  panel.userData.skipOpacityForce = true;
-  g.add(panel);
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.08), mRail);
-  rail.position.set(0, 3.05, 0);
-  g.add(rail);
-  const bRail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), mRail);
-  bRail.position.set(0, 0.15, 0);
-  g.add(bRail);
-  g.position.set((x1 + x2) / 2, 0, (z1 + z2) / 2);
-  g.rotation.y = Math.atan2(-dz, dx);
-  const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
-  const rot = Math.atan2(-dz, dx);
-  boxColliders.push({ x: cx, z: cz, hw: len / 2, hd: 0.15, rot, kind: 'wall' });
-  return g;
-}
-const ENTRY_GAP = 9;
-scene.add(createFence(-FENCE_X, -FENCE_Z, FENCE_X, -FENCE_Z));
-scene.add(createFence( FENCE_X, -FENCE_Z, FENCE_X, FENCE_Z));
-scene.add(createFence(-FENCE_X, -FENCE_Z, -FENCE_X, FENCE_Z));
-scene.add(createFence(-FENCE_X, FENCE_Z, -ENTRY_GAP / 2, FENCE_Z));
-scene.add(createFence( ENTRY_GAP / 2, FENCE_Z, FENCE_X, FENCE_Z));
-
-/* ─────────────── PUERTA DE ENTRADA ─────────────── */
-function createEntryGate(x, z) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mPost = cachedMat(0x2a2a2a);
-  const mYellow = cachedMat(0xf1c40f);
-  const mRed = cachedMat(0xc0392b);
-  const mWhite = cachedMat(0xeeeeee);
-  for (const sx of [-1, 1]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.5, 0.5), mPost);
-    post.position.set(sx * (ENTRY_GAP / 2 + 0.3), 2.25, 0);
-    post.castShadow = false;
-    g.add(post);
-  }
-  const booth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 3.0), cachedMat(0xd6d6d6));
-  booth.position.set(-ENTRY_GAP / 2 - 2.5, 1.4, 1.5);
-  booth.castShadow = false;
-  g.add(booth);
-  const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 3.4), cachedMat(0x2a2a2a));
-  boothRoof.position.set(-ENTRY_GAP / 2 - 2.5, 2.9, 1.5);
-  g.add(boothRoof);
-  const win = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 1.6), cachedMat(0x2b3a4a));
-  win.position.set(-ENTRY_GAP / 2 - 2.5 + 1.55, 1.7, 1.5);
-  g.add(win);
-  const barrierBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.5), mPost);
-  barrierBase.position.set(ENTRY_GAP / 2 - 0.6, 0.5, 0);
-  g.add(barrierBase);
-  const armPivot = new THREE.Group();
-  armPivot.position.set(ENTRY_GAP / 2 - 0.6, 1.0, 0);
-  armPivot.rotation.z = -Math.PI / 12;
-  g.add(armPivot);
-  const armLen = ENTRY_GAP - 1.4;
-  const armSegments = 8;
-  for (let i = 0; i < armSegments; i++) {
-    const segLen = armLen / armSegments;
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(segLen, 0.18, 0.14), i % 2 ? mRed : mWhite);
-    seg.position.set(-segLen / 2 - i * segLen, 0, 0);
-    armPivot.add(seg);
-  }
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(ENTRY_GAP, 0.02, 1.4), mYellow);
-  stripe.position.set(0, 0.03, 0);
-  g.add(stripe);
-  boxColliders.push({ x: -ENTRY_GAP / 2 - 2.5, z: 1.5, hw: 1.5, hd: 1.5, rot: 0, kind: 'wall' });
-  boxColliders.push({ x: ENTRY_GAP / 2 - 0.6, z: 0, hw: 0.35, hd: 0.35, rot: 0, kind: 'wall' });
-  return g;
-}
-scene.add(createEntryGate(0, FENCE_Z));
-
-/* ─────────────── DECORACIÓN EXTERIOR ELIMINADA ─────────────── */
-// Se eliminaron por completo las torres de vigilancia y las grúas gigantes.
-
-/* ─────────────── MARCAS DE PISO ─────────────── */
-const roadMat = new THREE.MeshBasicMaterial({ color: 0xf4d03f });
-function addGroundLine(x1, z1, x2, z2, width = 0.18) {
-  const dx = x2 - x1, dz = z2 - z1;
-  const len = Math.hypot(dx, dz);
-  if (len < 0.1) return;
-  const m = new THREE.Mesh(new THREE.BoxGeometry(len, 0.02, width), roadMat);
-  m.position.set((x1 + x2) / 2, 0.04, (z1 + z2) / 2);
-  m.rotation.y = Math.atan2(-dz, dx);
-  scene.add(m);
-}
-addGroundLine(-44, -8, -44, 30, 0.15);
-addGroundLine(-32, -8, -32, 30, 0.15);
-addGroundLine(-26, -8, -26, 30, 0.15);
-addGroundLine(-14, -8, -14, 30, 0.15);
-addGroundLine(-8, -8, -8, 30, 0.15);
-addGroundLine(4, -8, 4, 30, 0.15);
-addGroundLine(10, -8, 10, 30, 0.15);
-addGroundLine(22, -8, 22, 30, 0.15);
-addGroundLine(28, -8, 28, 30, 0.15);
-addGroundLine(40, -8, 40, 30, 0.15);
-
-const slotMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
-function addSlotMark(x, z, w, d) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.015, 0.1), slotMat);
-  m.position.set(x, 0.035, z - d / 2); scene.add(m);
-  const m2 = new THREE.Mesh(new THREE.BoxGeometry(w, 0.015, 0.1), slotMat);
-  m2.position.set(x, 0.035, z + d / 2); scene.add(m2);
-}
-for (const c of containerLayout) {
-  addSlotMark(c.x, c.z, CONT_L * 2 + CONT_GAP + 0.4, CONT_W * 2 + CONT_GAP + 0.4);
-}
-addGroundLine(-20, -32, 20, -32, 0.25);
-addGroundLine(-20, -30, 20, -30, 0.15);
-addGroundLine(-20, -32, -20, -30, 0.15);
-addGroundLine(20, -32, 20, -30, 0.15);
+loadNewMap();
 
 /* ═══════════════════════════════════════════
    ESTADO
@@ -2793,8 +2549,11 @@ function respawnPlayer() {
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
-  const dist = 5 + Math.random() * 8;
-  player.position.set(Math.cos(angle) * dist, 0, -32 + Math.sin(angle) * dist);
+  const dist = 2 + Math.random() * 4;
+  const spawnX = mapReady ? mapSpawnX + Math.cos(angle) * dist : 0;
+  const spawnZ = mapReady ? mapSpawnZ + Math.sin(angle) * dist : 30;
+  player.position.set(spawnX, 0, spawnZ);
+  if (mapReady) clampPlayerToMap();
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
@@ -3012,8 +2771,7 @@ function updatePlayer(dt) {
     bobOffset *= Math.max(0, 1 - dt * 8);
     weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 5);
   }
-  player.position.x = THREE.MathUtils.clamp(player.position.x, -FENCE_X + 1, FENCE_X - 1);
-  player.position.z = THREE.MathUtils.clamp(player.position.z, -FENCE_Z + 1, FENCE_Z - 1);
+  if (mapReady) clampPlayerToMap();
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
@@ -3620,7 +3378,8 @@ async function initOnline() {
 }
 
 /* ═══════════════════════════════════════════
-   MINIMAPA CIRCULAR MODERNO
+/* ═══════════════════════════════════════════
+   MINIMAPA CIRCULAR DEL MAPA NUEVO
    ═══════════════════════════════════════════ */
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
@@ -3655,69 +3414,50 @@ function drawMinimap() {
     ctx.arc(cx, cy, (radius * i) / 4, 0, Math.PI * 2);
     ctx.stroke();
   }
-  ctx.strokeStyle = 'rgba(120,180,255,0.14)';
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius);
-  ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy);
-  ctx.stroke();
 
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + cx;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + cy;
 
-  ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
-  ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE);
+  // Límite del escenario nuevo.
+  const mapLeft = wx2mm(mapBounds.minX);
+  const mapTop = wz2mm(mapBounds.minZ);
+  const mapW = (mapBounds.maxX - mapBounds.minX) * MM_SCALE;
+  const mapH = (mapBounds.maxZ - mapBounds.minZ) * MM_SCALE;
+  ctx.strokeStyle = 'rgba(200,220,240,0.52)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(mapLeft, mapTop, mapW, mapH);
 
-  const wh = wx2mm(0), wz = wz2mm(-40);
-  ctx.fillStyle = '#7d7a6e';
-  ctx.fillRect(wh - 23 * MM_SCALE, wz - 7 * MM_SCALE, 46 * MM_SCALE, 14 * MM_SCALE);
-
-  const ox = wx2mm(-38), oz = wz2mm(38);
-  ctx.fillStyle = '#e8dcc0';
-  ctx.fillRect(ox - 7 * MM_SCALE, oz - 4.5 * MM_SCALE, 14 * MM_SCALE, 9 * MM_SCALE);
-
-  for (const c of containerLayout) {
-    const px = wx2mm(c.x), py = wz2mm(c.z);
-    if (px < -30 || px > MM_W + 30 || py < -30 || py > MM_H + 30) continue;
-    ctx.fillStyle = '#' + c.colors[0].toString(16).padStart(6, '0');
-    const w = (CONT_L * 2 + CONT_GAP) * MM_SCALE;
-    const h = (CONT_W * 2 + CONT_GAP) * MM_SCALE;
-    ctx.fillRect(px - w/2, py - h/2, w, h);
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 0.6;
-    ctx.strokeRect(px - w/2, py - h/2, w, h);
-    ctx.beginPath();
-    ctx.moveTo(px, py - h/2); ctx.lineTo(px, py + h/2);
-    ctx.moveTo(px - w/2, py); ctx.lineTo(px + w/2, py);
-    ctx.stroke();
+  // Obstáculos extraídos del FBX.
+  ctx.fillStyle = 'rgba(160,175,190,0.46)';
+  ctx.strokeStyle = 'rgba(220,230,240,0.34)';
+  ctx.lineWidth = 0.6;
+  for (const b of boxColliders) {
+    const px = wx2mm(b.x), py = wz2mm(b.z);
+    const w = Math.max(2, b.hw * 2 * MM_SCALE);
+    const h = Math.max(2, b.hd * 2 * MM_SCALE);
+    if (px + w < -30 || px - w > MM_W + 30 || py + h < -30 || py - h > MM_H + 30) continue;
+    ctx.fillRect(px - w / 2, py - h / 2, w, h);
+    ctx.strokeRect(px - w / 2, py - h / 2, w, h);
   }
 
-  for (const cxg of [46]) for (const czg of [-12, 12]) {
-    const px = wx2mm(cxg), py = wz2mm(czg);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = '#f1c40f';
-    ctx.fillRect(px - 2, py - 2, 4, 4);
-  }
-
-  for (const [tx, tz] of [[-FENCE_X+5,-FENCE_Z+5],[FENCE_X-5,-FENCE_Z+5],[FENCE_X-5,FENCE_Z-5],[-FENCE_X+5,FENCE_Z-5]]) {
-    const px = wx2mm(tx), py = wz2mm(tz);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = '#c0392b';
-    ctx.fillRect(px - 2, py - 2, 4, 4);
-  }
-
-  for (const c of colliders) {
-    if (c.kind !== 'lamp') continue;
-    const px = wx2mm(c.x), py = wz2mm(c.z);
-    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
-    ctx.fillStyle = '#e6a419';
-    ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
+  if (mapReady) {
+    const sx = wx2mm(mapSpawnX), sz = wz2mm(mapSpawnZ);
+    if (sx > -10 && sx < MM_W + 10 && sz > -10 && sz < MM_H + 10) {
+      ctx.fillStyle = '#4cdf7b';
+      ctx.fillRect(sx - 2, sz - 2, 4, 4);
+    }
   }
 
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
     ctx.fillStyle = r.dead ? '#666' : '#f39c12';
-    ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
 
   ctx.save();
@@ -3858,6 +3598,11 @@ const loadoutMenu = document.getElementById('loadout-menu');
 
 function handlePlay() {
   if (gameMode) return;
+  if (!mapReady) {
+    initAudio();
+    showTempHint('CARGANDO MAPA...', 1.8);
+    return;
+  }
   initAudio();
   modeMenu.classList.add('hidden');
   loadoutMenu.classList.add('active');
@@ -4172,7 +3917,7 @@ initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(0, 0, 30);
+player.position.set(mapReady ? mapSpawnX : 0, 0, mapReady ? mapSpawnZ : 30);
 
 function animate() {
   requestAnimationFrame(animate);
