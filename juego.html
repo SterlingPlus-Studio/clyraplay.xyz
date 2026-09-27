@@ -1000,28 +1000,39 @@ scene.add(camera);
 
 const BASE_FOV = 70;
 
-/* Perfil de rendimiento conservador: mantiene la misma escena y funciones,
-   pero evita renderizar demasiados píxeles y sombras innecesarias en equipos
-   móviles/medios. */
+/* ═══════════════════════════════════════════════════════════
+   PERFIL DE RENDIMIENTO — NÍTIDO
+   Se mantiene antialias activo y se usa la resolución real
+   de pantalla (hasta 2.5x DPR) para que el juego se vea
+   completamente nítido. El sistema adaptativo sólo reduce
+   si el FPS cae por debajo de 40, y nunca baja de 1.0.
+   ═══════════════════════════════════════════════════════════ */
 const _perfTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const _perfCores = navigator.hardwareConcurrency || 4;
 const _perfLow = _perfTouch || _perfCores <= 4;
-const _perfMaxDpr = _perfTouch ? 1.15 : (_perfCores <= 4 ? 1.25 : 1.5);
-const _perfMinDpr = 0.75;
-let _perfCurrentDpr = Math.min(devicePixelRatio || 1, _perfMaxDpr);
+
+// DPR objetivo: siempre la resolución real (hasta 2.5 para pantallas Retina/HiDPI).
+const _deviceDpr = window.devicePixelRatio || 1;
+const _perfMaxDpr = Math.min(_deviceDpr, 2.5);
+// DPR mínimo: nunca por debajo de 1 (evita que se vea borroso).
+const _perfMinDpr = 1.0;
+let _perfCurrentDpr = _perfMaxDpr;
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: false,
+  antialias: true,              // ← Antialiasing activado (bordes suaves)
   powerPreference: 'high-performance',
   stencil: false,
   depth: true,
-  alpha: false
+  alpha: false,
+  precision: 'highp'
 });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(_perfCurrentDpr);
-// Sombras 3D completamente desactivadas para reducir el coste de GPU.
+// Sombras 3D desactivadas para mantener fluidez sin sacrificar nitidez.
 renderer.shadowMap.enabled = false;
 renderer.sortObjects = true;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NoToneMapping;
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 renderer.domElement.setAttribute('aria-label', 'Juego 3D');
@@ -1057,8 +1068,6 @@ function forceMaterialOpaque(mat) {
   if ('alphaMap' in mat) mat.alphaMap = null;
   mat.depthWrite = true;
   mat.depthTest = true;
-  // No se renderizan las caras traseras de los modelos: evita dibujar interiores
-  // que normalmente no son visibles desde fuera.
   mat.side = THREE.FrontSide;
   mat.shadowSide = THREE.FrontSide;
   if (mat.color && mat.map && mat.color.r === 0 && mat.color.g === 0 && mat.color.b === 0) {
@@ -1095,7 +1104,6 @@ function optimizeModelForRender(root, freezeStatic) {
 }
 
 function cullModelInterior(root, freezeStatic) {
-  // Back-face culling: las caras orientadas hacia dentro no se dibujan.
   optimizeModelForRender(root, freezeStatic);
 }
 
@@ -1500,7 +1508,6 @@ function createRemoteWeaponInstance(weaponKey) {
 
 /* ─────────────── MANOS FPS ─────────────── */
 function makeFPSHand(side = 'right') {
-  // Mano FPS simplificada: menos geometría para mantener rendimiento y un aspecto más limpio.
   const g = new THREE.Group();
   const matGlove  = new THREE.MeshLambertMaterial({ color: 0x1a1a17, flatShading: true });
   const matGloveDk = new THREE.MeshLambertMaterial({ color: 0x101010, flatShading: true });
@@ -2637,6 +2644,7 @@ function updateDebug(dt) {
   debugPanel.innerHTML = `
 <span class="title">═══ DEBUG (F3) ═══</span>
 <span class="val">FPS:</span>       ${avg.toFixed(1)}
+<span class="val">DPR:</span>       ${_perfCurrentDpr.toFixed(2)}
 <span class="val">Draws:</span>     ${renderer.info.render.calls}
 <span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no ctx'}
 <span class="val">Ambiente:</span>  ${ambientStarted ? '✅ activo' : '⏸ inactivo'}
@@ -2655,7 +2663,6 @@ let bobOffset = 0, shakeAmount = 0, hintTimer = 0;
 let weaponWalkPhase = 0;
 let weaponMoveBlend = 0;
 
-// Movimiento estilo bodycam: inclinación lateral e inercia suave.
 let weaponLean = 0;
 let bodycamRoll = 0;
 let bodycamSwayX = 0;
@@ -3098,12 +3105,6 @@ function updatePlayer(dt) {
   const swayRotY = Math.sin(weaponWalkPhase * 0.5) * 0.008 * swayMul * weaponMoveBlend;
   const swayRotZ = Math.sin(weaponWalkPhase) * 0.016 * swayMul * weaponMoveBlend;
 
-  // ═══════════════════════════════════════════
-  // MOVIMIENTO BODYCAM REALISTA
-  // El cuerpo, las manos y el arma reaccionan al
-  // strafe con inercia: no giran de golpe.
-  // ═══════════════════════════════════════════
-  // Inclinación bodycam asimétrica: el strafe a la izquierda se marca más.
   const baseLean = aiming ? 0.032 : (crouching ? 0.145 : 0.110);
   const leftBoost = ix < -0.01 ? 1.48 : 1.0;
   const leanStrength = baseLean * leftBoost;
@@ -3111,8 +3112,6 @@ function updatePlayer(dt) {
   const targetWeaponLean = -ix * leanStrength;
   weaponLean += (targetWeaponLean - weaponLean) * Math.min(1, dt * 13);
 
-  // El arma se desplaza ligeramente al lado contrario del movimiento,
-  // como sucede cuando el soporte de cámara sigue el torso.
   const targetSwayX = -ix * lateralSway;
   const targetSwayY = moving
     ? Math.abs(Math.sin(weaponWalkPhase * 0.5)) * (aiming ? 0.0025 : 0.0055)
@@ -3120,7 +3119,6 @@ function updatePlayer(dt) {
   bodycamSwayX += (targetSwayX - bodycamSwayX) * Math.min(1, dt * 10);
   bodycamSwayY += (targetSwayY - bodycamSwayY) * Math.min(1, dt * 10);
 
-  // Pequeña rotación de yaw y balanceo longitudinal para dar peso al arma.
   const strafeYaw = ix * (aiming ? 0.012 : 0.024) * (ix < 0 ? 1.18 : 1.0);
   const strafePitch = Math.abs(ix) * (aiming ? 0.002 : 0.006);
 
@@ -3180,9 +3178,6 @@ function updateCamera(dt) {
   const lookX = -Math.sin(cameraYaw) * cosP, lookY = -sinP, lookZ = -Math.cos(cameraYaw) * cosP;
   camera.lookAt(eyeX + lookX, eyeY + lookY, eyeZ + lookZ);
 
-  // Roll corporal: el conjunto cámara/pecho acompaña el strafe con inercia.
-  // A/D produce una inclinación pequeña y natural, más marcada al correr.
-  // La caída hacia la izquierda es más visible, pero sigue filtrada por inercia.
   const rollStrength = aiming ? 0.028 : (crouching ? 0.052 : 0.060);
   const leftRollBoost = strafeInput < -0.01 ? 1.60 : 1.0;
   const targetBodycamRoll = -strafeInput * rollStrength * leftRollBoost;
@@ -3400,8 +3395,6 @@ const _gripWorldTmp = new THREE.Vector3();
 const _handguardWorldTmp = new THREE.Vector3();
 
 function animateRemotePlayer(r, dt) {
-  // Los jugadores muy lejanos se actualizan a menor frecuencia para ahorrar CPU;
-  // siguen moviéndose y sincronizándose, pero se evita recalcular toda su animación cada frame.
   const dxL = r.root.position.x - player.position.x;
   const dzL = r.root.position.z - player.position.z;
   const far = (dxL * dxL + dzL * dzL) > 110 * 110;
@@ -3893,8 +3886,11 @@ function updateAdaptivePerformance(dt) {
 
   const avgFps = _perfFrameAcc / Math.max(_perfTimeAcc, 0.001);
   let next = _perfCurrentDpr;
-  if (avgFps < 48 && next > _perfMinDpr) next = Math.max(_perfMinDpr, next - 0.15);
-  else if (avgFps > 60 && next < _perfMaxDpr) next = Math.min(_perfMaxDpr, next + 0.05);
+  // Sólo bajamos si el FPS cae por debajo de 40 y nunca por debajo de 1.0
+  // (evita que el juego se vea borroso).
+  if (avgFps < 40 && next > _perfMinDpr) next = Math.max(_perfMinDpr, next - 0.10);
+  // Subimos agresivamente si hay margen.
+  else if (avgFps > 55 && next < _perfMaxDpr) next = Math.min(_perfMaxDpr, next + 0.10);
 
   if (Math.abs(next - _perfCurrentDpr) >= 0.05) {
     _perfCurrentDpr = next;
@@ -4307,7 +4303,9 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  // En resize, no bajamos el DPR por debajo de 1.
   _perfCurrentDpr = Math.min(_perfCurrentDpr, _perfMaxDpr);
+  if (_perfCurrentDpr < _perfMinDpr) _perfCurrentDpr = _perfMinDpr;
   renderer.setPixelRatio(_perfCurrentDpr);
   _perfTimeAcc = 0;
   _perfFrameAcc = 0;
