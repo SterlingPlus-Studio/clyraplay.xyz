@@ -565,6 +565,8 @@
 <script type="module">
 import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { Octree } from 'three/addons/math/Octree.js';
+import { Capsule } from 'three/addons/math/Capsule.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, update, onValue, onChildAdded, onChildRemoved,
@@ -972,15 +974,15 @@ const mapRandom = mulberry32(MAP_SEED);
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
+scene.fog = new THREE.Fog(0x87ceeb, 130, 360);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 220);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 420);
 scene.add(camera);
 
 const BASE_FOV = 70;
 
 const _deviceDpr = window.devicePixelRatio || 1;
-const _perfMaxDpr = Math.min(_deviceDpr, 2.5);
+const _perfMaxDpr = Math.min(_deviceDpr, 2.0);
 const _perfMinDpr = 1.0;
 let _perfCurrentDpr = _perfMaxDpr;
 
@@ -1851,9 +1853,18 @@ let mapMaxY = 20;
 const mapGroundRaycaster = new THREE.Raycaster();
 const mapGroundOrigin = new THREE.Vector3();
 const mapGroundDirection = new THREE.Vector3(0, -1, 0);
-const MAP_TARGET_SPAN = 112;
-const MAP_EDGE_PADDING = 1.4;
-const MAP_COLLIDER_LIMIT = 420;
+const MAP_TARGET_SPAN = 180;
+const MAP_EDGE_PADDING = 3.0;
+const MAP_COLLIDER_LIMIT = 900;
+const MAP_PLAYER_HEIGHT = 1.8;
+const MAP_CAPSULE_RADIUS = 0.42;
+const mapWorldOctree = new Octree();
+const playerCapsule = new Capsule(
+  new THREE.Vector3(0, 0.35, 0),
+  new THREE.Vector3(0, 1.45, 0),
+  MAP_CAPSULE_RADIUS
+);
+let mapOctreeReady = false;
 
 const mapManager = new THREE.LoadingManager();
 mapManager.setURLModifier((url) => {
@@ -1867,30 +1878,73 @@ mapManager.setURLModifier((url) => {
 
 const mapLoader = new FBXLoader(mapManager);
 
+function getTextureFileName(tex) {
+  try {
+    const img = tex && tex.image;
+    const src = img && (img.currentSrc || img.src || (img.data && img.data.src));
+    if (!src) return '';
+    const clean = String(src).split('?')[0].replace(/\\/g, '/');
+    return clean.substring(clean.lastIndexOf('/') + 1).toLowerCase();
+  } catch (e) { return ''; }
+}
+
+function isMapFoliageMaterial(mat) {
+  if (!mat) return false;
+  const matName = String(mat.name || '').toLowerCase();
+  const texName = getTextureFileName(mat.map);
+  return texName === 'branches.png' || texName === 'kust.png' ||
+         matName.indexOf('branches') >= 0 || matName === 'kust' || matName.indexOf('foliage') >= 0 ||
+         matName.indexOf('leaf') >= 0 || matName.indexOf('leaves') >= 0;
+}
+
 function prepareMapMaterial(mat) {
   if (!mat) return;
+  const foliage = isMapFoliageMaterial(mat);
   if (mat.map) {
     mat.map.colorSpace = THREE.SRGBColorSpace;
-    mat.map.anisotropy = 1;
+    mat.map.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
     mat.map.needsUpdate = true;
+    if (mat.color && mat.color.r === 0 && mat.color.g === 0 && mat.color.b === 0) {
+      mat.color.setHex(0xffffff);
+    }
   }
   if (mat.normalMap) {
-    mat.normalMap.anisotropy = 1;
+    mat.normalMap.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
     mat.normalMap.needsUpdate = true;
+  }
+  if (foliage) {
+    // Las texturas del árbol/vegetación son PNG con transparencia indexada.
+    // AlphaTest elimina el fondo negro sin convertir el bosque en una masa opaca.
+    mat.transparent = false;
+    mat.opacity = 1;
+    mat.alphaTest = 0.32;
+    mat.depthWrite = true;
+    mat.depthTest = true;
+    mat.side = THREE.DoubleSide;
+    mat.shadowSide = THREE.DoubleSide;
+  } else {
+    mat.transparent = false;
+    mat.opacity = 1;
+    mat.alphaTest = 0;
+    mat.depthWrite = true;
+    mat.depthTest = true;
+    mat.side = THREE.FrontSide;
+    mat.shadowSide = THREE.FrontSide;
   }
   mat.needsUpdate = true;
 }
 
 function shouldCreateMapCollider(mesh, box, size, worldSpan) {
   if (!mesh || !mesh.geometry) return false;
+  if (isMapFoliageObject(mesh)) return false;
   if (!Number.isFinite(size.x) || !Number.isFinite(size.y) || !Number.isFinite(size.z)) return false;
-  if (size.y < 0.28) return false;              // suelo / planos finos
-  if (size.x < 0.10 && size.z < 0.10) return false;
-  if (size.y > 24 && Math.max(size.x, size.z) > 14) return false;
+  if (size.y < 0.34) return false;              // suelo/planos finos se resuelven con el raycast + octree
+  if (size.x < 0.12 && size.z < 0.12) return false;
+  if (size.y > 28 && Math.max(size.x, size.z) > 18) return false;
   const horizontalArea = size.x * size.z;
-  if (horizontalArea > worldSpan * worldSpan * 0.18) return false;
-  if (horizontalArea > 240 && size.y < 2.0) return false;
-  if (box.max.y < 0.24) return false;
+  if (horizontalArea > worldSpan * worldSpan * 0.12 && size.y < 4.0) return false;
+  if (horizontalArea > 520 && size.y < 2.5) return false;
+  if (box.max.y < 0.20) return false;
   return true;
 }
 
@@ -1907,6 +1961,8 @@ function rebuildMapColliders(root, bounds) {
       if (!shouldCreateMapCollider(node, box, size, span)) return;
 
       const center = box.getCenter(new THREE.Vector3());
+      let worldRotY = 0;
+      try { worldRotY = new THREE.Euler().setFromQuaternion(node.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y; } catch (e) {}
       const score = Math.min(size.x * size.z, 240) + Math.max(0, 2 - size.y) * 8;
       candidates.push({
         score,
@@ -1914,7 +1970,9 @@ function rebuildMapColliders(root, bounds) {
         z: center.z,
         hw: Math.max(size.x * 0.5, 0.10),
         hd: Math.max(size.z * 0.5, 0.10),
-        rot: 0,
+        rot: worldRotY,
+        minY: box.min.y,
+        maxY: box.max.y,
         kind: 'map'
       });
     } catch (e) {}
@@ -1929,6 +1987,15 @@ function pointBlockedForSpawn(x, z, radius = 1.0) {
   for (const b of boxColliders) {
     if (computeBoxPenetration(x, z, radius, b)) return true;
   }
+  return false;
+}
+
+function isMapFoliageObject(obj) {
+  if (!obj) return false;
+  const objName = String(obj.name || '').toLowerCase();
+  if (objName.indexOf('branch') >= 0 || objName.indexOf('leaf') >= 0 || objName.indexOf('leaves') >= 0 || objName.indexOf('foliage') >= 0 || objName.indexOf('tree') >= 0) return true;
+  const mats = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
+  for (const mat of mats) if (isMapFoliageMaterial(mat)) return true;
   return false;
 }
 
@@ -1947,6 +2014,7 @@ function getMapGroundInfo(x, z) {
   for (const hit of hits) {
     if (!hit.object || !hit.object.isMesh) continue;
     if (hit.object.userData.isBulletHole || hit.object.userData.isExplosionMark) continue;
+    if (isMapFoliageObject(hit.object)) continue;
 
     let ny = 1;
     if (hit.face) {
@@ -2061,6 +2129,8 @@ function loadNewMap() {
           node.castShadow = false;
           node.receiveShadow = false;
           node.frustumCulled = true;
+          // El optimizador global no debe borrar la transparencia/indexación de las texturas del mapa.
+          node.userData.skipOpacityForce = true;
 
           if (node.material) {
             const mats = Array.isArray(node.material) ? node.material : [node.material];
@@ -2070,6 +2140,13 @@ function loadNewMap() {
 
         mapRoot = obj;
         scene.add(mapRoot);
+        mapRoot.updateMatrixWorld(true);
+
+        // Colisión de triángulos real del escenario. Evita atravesar paredes/edificios
+        // y no depende de cajas aproximadas para el movimiento principal.
+        mapWorldOctree.clear();
+        mapWorldOctree.fromGraphNode(mapRoot);
+        mapOctreeReady = true;
 
         rebuildMapColliders(mapRoot, mapBounds);
         const spawn = chooseMapSpawn();
@@ -2094,6 +2171,7 @@ function loadNewMap() {
         console.log('[MAPA] Low Poly Industrial Zone cargado', {
           size: { x: size.x.toFixed(2), y: size.y.toFixed(2), z: size.z.toFixed(2) },
           colliders: boxColliders.length,
+          octree: mapOctreeReady,
           spawn: { x: mapSpawnX.toFixed(2), y: mapSpawnY.toFixed(2), z: mapSpawnZ.toFixed(2) },
           verticalRange: { minY: mapMinY.toFixed(2), maxY: mapMaxY.toFixed(2) }
         });
@@ -2413,6 +2491,26 @@ const deathPosition = new THREE.Vector3();
 const deathStartCamPos = new THREE.Vector3();
 
 function resolveCollisions(entity, radius) {
+  if (entity === player && mapOctreeReady && mapRoot) {
+    // Cápsula 3D: permite rozar esquinas, bordillos, paredes y geometría irregular
+    // sin quedar atrapado por cajas AABB demasiado grandes.
+    playerCapsule.radius = radius || MAP_CAPSULE_RADIUS;
+    playerCapsule.start.set(entity.position.x, entity.position.y + 0.35, entity.position.z);
+    playerCapsule.end.set(entity.position.x, entity.position.y + Math.max(0.85, MAP_PLAYER_HEIGHT - 0.35), entity.position.z);
+
+    for (let iter = 0; iter < 4; iter++) {
+      const result = mapWorldOctree.capsuleIntersect(playerCapsule);
+      if (!result) break;
+      const push = result.normal.clone().multiplyScalar(result.depth + 0.002);
+      playerCapsule.translate(push);
+      if (result.normal.y > 0.45 && velocityY < 0) velocityY = 0;
+    }
+
+    entity.position.set(playerCapsule.start.x, playerCapsule.start.y - 0.35, playerCapsule.start.z);
+    return;
+  }
+
+  // Respaldo para cualquier entidad cuando todavía no hay Octree.
   for (let iter = 0; iter < 4; iter++) {
     let any = false;
     for (const c of colliders) {
@@ -2428,7 +2526,9 @@ function resolveCollisions(entity, radius) {
       }
     }
     for (const b of boxColliders) {
-      if (b.blockBelowY !== undefined && entity.position.y > b.blockBelowY) continue;
+      const bottom = entity.position.y;
+      const top = bottom + MAP_PLAYER_HEIGHT;
+      if (b.minY !== undefined && b.maxY !== undefined && (top < b.minY || bottom > b.maxY)) continue;
       const pen = computeBoxPenetration(entity.position.x, entity.position.z, radius, b);
       if (pen) { entity.position.x += pen.dx; entity.position.z += pen.dz; any = true; }
     }
@@ -3765,7 +3865,7 @@ function selectGameMode(mode) {
 /* ─────────────── CÁMARA DEL MENÚ ─────────────── */
 function updateMenuCamera(dt) {
   menuCamAngle += dt * 0.12;
-  const r = 85;
+  const r = 120;
   const cx = Math.cos(menuCamAngle) * r;
   const cz = Math.sin(menuCamAngle) * r;
   const cy = 38 + Math.sin(menuCamAngle * 0.7) * 8;
