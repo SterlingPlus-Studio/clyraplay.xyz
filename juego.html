@@ -1869,6 +1869,9 @@ const playerCapsule = new Capsule(
   MAP_CAPSULE_RADIUS
 );
 let mapOctreeReady = false;
+const lastSafePosition = new THREE.Vector3();
+let lastSafeGroundY = 0;
+let hasSafePosition = false;
 
 const mapManager = new THREE.LoadingManager();
 mapManager.setURLModifier((url) => {
@@ -2075,40 +2078,124 @@ function getMapGroundY(x, z, fallback = 0) {
   return info ? info.y : fallback;
 }
 
+function sampleWalkableGround(x, z) {
+  const g = getMapGroundInfo(x, z);
+  if (!g || !Number.isFinite(g.y) || g.normalY < 0.82) return null;
+  if (pointBlockedForSpawn(x, z, PLAYER_RADIUS + 0.10)) return null;
+  return g;
+}
+
 function chooseMapSpawn() {
-  const cx = (mapBounds.minX + mapBounds.maxX) * 0.5;
-  const cz = (mapBounds.minZ + mapBounds.maxZ) * 0.5;
+  // El centro geométrico del FBX no necesariamente coincide con una calle o
+  // una zona transitable. Buscamos una superficie horizontal REAL y estable.
   const spanX = mapBounds.maxX - mapBounds.minX;
   const spanZ = mapBounds.maxZ - mapBounds.minZ;
-  const step = Math.max(3, Math.min(spanX, spanZ) * 0.09);
+  const insetX = Math.min(8, spanX * 0.10);
+  const insetZ = Math.min(8, spanZ * 0.10);
+  const nx = 17, nz = 17;
+  const sx = (spanX - insetX * 2) / (nx - 1);
+  const sz = (spanZ - insetZ * 2) / (nz - 1);
+  const neighborStep = Math.max(1.8, Math.min(spanX, spanZ) * 0.018);
+  const candidates = [];
+  const minPreferredY = mapMinY + Math.max(0.8, (mapMaxY - mapMinY) * 0.14);
 
-  const offsets = [
-    [0,0],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1],
-    [2,0],[-2,0],[0,2],[0,-2],[2,1],[-2,1],[2,-1],[-2,-1],
-    [1,2],[-1,2],[1,-2],[-1,-2],[3,0],[-3,0],[0,3],[0,-3]
-  ];
+  for (let iz = 0; iz < nz; iz++) {
+    for (let ix = 0; ix < nx; ix++) {
+      const x = mapBounds.minX + insetX + ix * sx;
+      const z = mapBounds.minZ + insetZ + iz * sz;
+      const center = sampleWalkableGround(x, z);
+      if (!center) continue;
 
-  // Buscamos una zona abierta con suelo real. Tomamos la primera válida
-  // y evitamos bordes/objetos sólidos mediante los colliders existentes.
-  let best = null;
-  for (const [ox, oz] of offsets) {
-    const x = cx + ox * step;
-    const z = cz + oz * step;
-    if (x <= mapBounds.minX + 3 || x >= mapBounds.maxX - 3 ||
-        z <= mapBounds.minZ + 3 || z >= mapBounds.maxZ - 3) continue;
+      const around = [];
+      const offs = [
+        [neighborStep, 0], [-neighborStep, 0],
+        [0, neighborStep], [0, -neighborStep],
+        [neighborStep, neighborStep], [-neighborStep, neighborStep],
+        [neighborStep, -neighborStep], [-neighborStep, -neighborStep]
+      ];
+      let validNeighbors = 0;
+      let minY = center.y, maxY = center.y;
+      for (const [dx, dz] of offs) {
+        const n = getMapGroundInfo(x + dx, z + dz);
+        if (!n || !Number.isFinite(n.y) || n.normalY < 0.75 || isMapFoliageObject(n.object)) continue;
+        validNeighbors++;
+        around.push(n.y);
+        minY = Math.min(minY, n.y);
+        maxY = Math.max(maxY, n.y);
+      }
+      if (validNeighbors < 5) continue;
 
-    const ground = getMapGroundInfo(x, z);
-    if (!ground || ground.normalY < 0.55) continue;
-    if (pointBlockedForSpawn(x, z, PLAYER_RADIUS + 0.25)) continue;
+      const heightSpread = maxY - minY;
+      if (heightSpread > 0.75) continue;
 
-    const score = Math.abs(ground.y - getMapGroundY(cx, cz, ground.y)) + Math.abs(ox) * 0.15 + Math.abs(oz) * 0.15;
-    if (!best || score < best.score) best = { x, y: ground.y, z, score };
+      // Preferimos superficies bajas, anchas y planas. Esto evita que un techo,
+      // una montaña o una plataforma elevada sea elegida como spawn.
+      const lowPenalty = Math.max(0, center.y - mapMinY);
+      const elevatedPenalty = Math.max(0, center.y - minPreferredY) * 2.0;
+      const flatPenalty = heightSpread * 12;
+      const edgePenalty = (
+        Math.abs(x - (mapBounds.minX + mapBounds.maxX) * 0.5) / Math.max(1, spanX) +
+        Math.abs(z - (mapBounds.minZ + mapBounds.maxZ) * 0.5) / Math.max(1, spanZ)
+      ) * 0.15;
+
+      candidates.push({
+        x, z, y: center.y,
+        score: lowPenalty * 0.45 + elevatedPenalty + flatPenalty + edgePenalty,
+        heightSpread,
+        validNeighbors
+      });
+    }
   }
 
-  if (best) return { x: best.x, y: best.y + 0.06, z: best.z };
+  candidates.sort((a, b) => a.score - b.score);
+  const best = candidates[0];
+  if (best) {
+    console.log('[MAPA] Spawn seguro seleccionado', best, 'total candidatos:', candidates.length);
+    return { x: best.x, y: best.y + 0.10, z: best.z };
+  }
 
-  const centerGround = getMapGroundInfo(cx, cz);
-  return { x: cx, y: centerGround ? centerGround.y + 0.06 : 0.06, z: cz };
+  // Último recurso: recorrer una malla más densa hasta encontrar el punto más
+  // bajo que tenga una superficie razonablemente horizontal.
+  let fallbackBest = null;
+  const fxn = 25, fzn = 25;
+  for (let iz = 0; iz < fzn; iz++) {
+    for (let ix = 0; ix < fxn; ix++) {
+      const x = THREE.MathUtils.lerp(mapBounds.minX + 5, mapBounds.maxX - 5, ix / (fxn - 1));
+      const z = THREE.MathUtils.lerp(mapBounds.minZ + 5, mapBounds.maxZ - 5, iz / (fzn - 1));
+      const g = sampleWalkableGround(x, z);
+      if (!g) continue;
+      if (!fallbackBest || g.y < fallbackBest.y) fallbackBest = { x, y: g.y, z };
+    }
+  }
+  if (fallbackBest) return { x: fallbackBest.x, y: fallbackBest.y + 0.10, z: fallbackBest.z };
+
+  // Nunca devolvemos el centro del mapa con Y=0 a ciegas.
+  return { x: 0, y: Math.max(1.0, mapMinY + 1.0), z: 0 };
+}
+
+function rememberSafePosition() {
+  if (!mapReady) return;
+  if (!Number.isFinite(player.position.x) || !Number.isFinite(player.position.y) || !Number.isFinite(player.position.z)) return;
+  lastSafePosition.copy(player.position);
+  lastSafeGroundY = player.position.y;
+  hasSafePosition = true;
+}
+
+function recoverPlayerToMap(reason) {
+  if (!mapReady) return;
+  const fallback = chooseMapSpawn();
+  const target = hasSafePosition ? lastSafePosition.clone() : new THREE.Vector3(fallback.x, fallback.y, fallback.z);
+  const ground = getMapRuntimeGroundInfo(target.x, target.z, target.y, fallback.y);
+  if (ground && ground.normalY >= 0.65) {
+    target.y = ground.y + 0.10;
+  } else {
+    target.set(fallback.x, fallback.y, fallback.z);
+  }
+  player.position.copy(target);
+  velocityY = 0;
+  isGrounded = true;
+  clampPlayerToMap();
+  if (reason) console.warn('[MAPA] Recuperación de jugador:', reason, target);
 }
 
 function clampPlayerToMap() {
@@ -2221,10 +2308,11 @@ function loadNewMap() {
         mapReady = true;
         // Coloca inmediatamente al jugador sobre la superficie encontrada.
         player.position.set(mapSpawnX, mapSpawnY, mapSpawnZ);
-        const spawnSurface = getMapRuntimeGroundInfo(mapSpawnX, mapSpawnZ, mapSpawnY, mapSpawnY);
-        if (spawnSurface) player.position.y = spawnSurface.y + 0.10;
+        const spawnSurface = getMapGroundInfo(mapSpawnX, mapSpawnZ);
+        if (spawnSurface && spawnSurface.normalY >= 0.70) player.position.y = spawnSurface.y + 0.10;
         velocityY = 0;
         isGrounded = true;
+        rememberSafePosition();
 
         const playText = document.querySelector('#play-btn .play-text');
         if (playText) playText.textContent = 'JUGAR';
@@ -2790,6 +2878,7 @@ function respawnPlayer() {
   player.position.set(spawnX, respawnY, spawnZ);
   velocityY = 0;
   isGrounded = true;
+  rememberSafePosition();
   if (mapReady) clampPlayerToMap();
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
@@ -2983,9 +3072,15 @@ function updatePlayer(dt) {
     player.position.z += moveZ * moveSpeed * dt;
   }
   resolveCollisions(player, PLAYER_RADIUS);
-  const terrainGroundY = mapReady ? getMapGroundYAtPlayer(player.position.x, player.position.z, mapSpawnY) : 0;
+  const terrainInfo = mapReady ? getMapRuntimeGroundInfo(player.position.x, player.position.z, player.position.y, mapSpawnY) : null;
+  const terrainGroundY = terrainInfo ? terrainInfo.y : (hasSafePosition ? lastSafeGroundY : mapSpawnY);
   const groundY = terrainGroundY + 0.06;
   const groundTolerance = 0.14;
+
+  if (!terrainInfo && mapReady && player.position.y < mapMinY + 2.0) {
+    recoverPlayerToMap('superficie no encontrada');
+    return;
+  }
 
   if (!isGrounded && velocityY <= 0 && player.position.y <= groundY + groundTolerance) {
     player.position.y = groundY;
@@ -3002,6 +3097,7 @@ function updatePlayer(dt) {
   if (isGrounded) {
     player.position.y = groundY;
     velocityY = 0;
+    if (terrainInfo && terrainInfo.normalY >= 0.70) rememberSafePosition();
   } else {
     velocityY -= GRAVITY * dt;
     player.position.y += velocityY * dt;
@@ -3009,7 +3105,15 @@ function updatePlayer(dt) {
       player.position.y = groundY;
       velocityY = 0;
       isGrounded = true;
+      if (terrainInfo && terrainInfo.normalY >= 0.70) rememberSafePosition();
     }
+  }
+
+  // Seguro contra cualquier fallo de colisión/raycast: nunca permitimos que
+  // el jugador permanezca debajo del volumen jugable del mapa.
+  if (mapReady && player.position.y < mapMinY - 3.0) {
+    recoverPlayerToMap('jugador cayó por debajo del mapa');
+    return;
   }
   if (moving && isGrounded && !sliding) {
     walkPhase += dt * (crouching ? 7 : 11);
