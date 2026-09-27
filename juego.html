@@ -228,7 +228,7 @@
   }
   #joystick-zone { position: fixed; left: 0; bottom: 0; width: 50%; height: 55%; display: none; z-index: 9; touch-action: none; }
   #joystick-zone.active { display: block; }
-  #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; -webkit-user-select: none; user-select: none; }
+  #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   #camera-zone.active { display: block; }
   canvas { touch-action: none; -webkit-user-select: none; user-select: none; }
 
@@ -248,6 +248,7 @@
                 background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     will-change: transform;
     -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
   .btn.active { display: flex; }
   .btn:active {
@@ -431,8 +432,12 @@
     transform-origin: center center;
   }
   body.bodycam-active .game-renderer {
-    filter: url(#bodycamLensDistortion) saturate(0.98) contrast(1.035);
+    filter: none;
   }
+  /* Efectos bodycam ópticos desactivados: se conserva el código original
+     para no alterar la estructura del proyecto, pero no se pinta ningún
+     oscurecimiento, distorsión, viñeta ni aberración cromática. */
+  #bodycam-overlay { display: none !important; }
 
   #debug-btn {
     top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
@@ -1149,15 +1154,18 @@ scene.add(camera);
 
 const BASE_FOV = 70;
 
+const touchDeviceForRenderer = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: !touchDeviceForRenderer,
   powerPreference: 'high-performance',
-  stencil: false
+  stencil: false,
+  depth: true
 });
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, touchDeviceForRenderer ? 1.35 : 1.75));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = true;
 renderer.sortObjects = true;
 renderer.domElement.classList.add('game-renderer');
 document.body.appendChild(renderer.domElement);
@@ -1168,7 +1176,7 @@ scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff2cc, 2.3);
 sun.position.set(40, 55, 25);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(touchDeviceForRenderer ? 768 : 1536, touchDeviceForRenderer ? 768 : 1536);
 Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 200 });
 scene.add(sun);
 
@@ -2529,9 +2537,9 @@ function startSlide(ix, iz) {
 let leanLeftHeld = false;
 let leanRightHeld = false;
 let leanCurrent = 0;
-const LEAN_MAX = 0.155;
-const LEAN_SHIFT = 0.055;
-const LEAN_HEIGHT = 0.018;
+const LEAN_MAX = 0.18;
+const LEAN_SHIFT = 0.105;
+const LEAN_HEIGHT = 0.022;
 function getLeanTarget() {
   // Corregido: el signo se invierte para que izquierda/derecha
   // coincidan visualmente con el lado hacia el que se inclina la cabeza.
@@ -2685,14 +2693,65 @@ crouchBtn.addEventListener('pointerdown', e => {
 });
 
 let shootHeld = false;
-shootBtn.addEventListener('pointerdown', e => { e.preventDefault(); shootHeld = true; tryShoot(); });
-shootBtn.addEventListener('pointerup',   e => { e.preventDefault(); shootHeld = false; });
-shootBtn.addEventListener('pointerleave',e => { shootHeld = false; });
-shootBtn.addEventListener('pointercancel',e => { shootHeld = false; });
+let shootTouchId = null;
+
+function beginShootInput(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  if (playerDead || !gameMode) return;
+  shootHeld = true;
+  tryShoot();
+}
+function endShootInput(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  shootHeld = false;
+  shootTouchId = null;
+}
+
+// Pointer Events permiten disparar con un dedo mientras otro dedo mueve la cámara.
+shootBtn.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch') shootTouchId = e.pointerId;
+  beginShootInput(e);
+  try { shootBtn.setPointerCapture(e.pointerId); } catch (_) {}
+}, { passive: false });
+shootBtn.addEventListener('pointerup', endShootInput, { passive: false });
+shootBtn.addEventListener('pointercancel', endShootInput, { passive: false });
+shootBtn.addEventListener('lostpointercapture', endShootInput, { passive: false });
+shootBtn.addEventListener('contextmenu', e => e.preventDefault());
+
+// Fallback táctil para WebViews antiguos que no entregan Pointer Events correctamente.
+const HAS_POINTER_EVENTS = 'PointerEvent' in window;
+if (!HAS_POINTER_EVENTS) {
+  shootBtn.addEventListener('touchstart', e => {
+    e.preventDefault(); e.stopPropagation();
+    const t = e.changedTouches[0];
+    if (!t || shootTouchId !== null) return;
+    shootTouchId = t.identifier;
+    beginShootInput(e);
+  }, { passive: false });
+  const endShootTouch = e => {
+    for (const t of e.changedTouches) {
+      if (t.identifier === shootTouchId) { endShootInput(e); break; }
+    }
+  };
+  shootBtn.addEventListener('touchend', endShootTouch, { passive: false });
+  shootBtn.addEventListener('touchcancel', endShootTouch, { passive: false });
+}
 
 function setAiming(v) { aiming = v; aimBtn.classList.toggle('held', aiming); }
-aimBtn.addEventListener('pointerdown', e => { e.preventDefault(); setAiming(!aiming); });
+aimBtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  if (playerDead || !gameMode) return;
+  setAiming(!aiming);
+  try { aimBtn.setPointerCapture(e.pointerId); } catch (_) {}
+}, { passive: false });
 aimBtn.addEventListener('click', e => e.preventDefault());
+if (!HAS_POINTER_EVENTS) {
+  aimBtn.addEventListener('touchstart', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (playerDead || !gameMode) return;
+    setAiming(!aiming);
+  }, { passive: false });
+}
 
 function bindLeanTouchButton(el, side) {
   if (!el) return;
@@ -2761,52 +2820,101 @@ document.addEventListener('mouseup', e => {
   else if (e.button === 2) setAiming(false);
 });
 
-let cameraTouchId = null;
+let cameraTouchPointerId = null;
+let lastCameraPointerX = 0, lastCameraPointerY = 0;
+let cameraTouchId = null; // compatibilidad con WebViews táctiles antiguos
 let lastTouchX = 0, lastTouchY = 0;
-function startCameraTouch(e) {
-  initAudio();
-  if (playerDead || !gameMode || editMode) return;
-  e.preventDefault();
-  e.stopPropagation();
-  if (cameraTouchId !== null) return;
-  for (const t of e.changedTouches) {
-    if (t.identifier === joystickActiveId) continue;
-    if (isPointInJoystick(t.clientX, t.clientY, 60)) continue;
-    cameraTouchId = t.identifier;
-    lastTouchX = t.clientX;
-    lastTouchY = t.clientY;
-    break;
-  }
+
+function beginCameraLook(clientX, clientY, id) {
+  if (playerDead || !gameMode || editMode) return false;
+  if (cameraTouchPointerId !== null) return false;
+  cameraTouchPointerId = id;
+  lastCameraPointerX = clientX;
+  lastCameraPointerY = clientY;
+  cameraTouchId = id;
+  lastTouchX = clientX;
+  lastTouchY = clientY;
+  return true;
 }
-function moveCameraTouch(e) {
-  if (cameraTouchId === null || playerDead || !gameMode || editMode) return;
-  e.preventDefault();
-  e.stopPropagation();
-  for (const t of e.changedTouches) {
-    if (t.identifier === cameraTouchId) {
-      const dx = t.clientX - lastTouchX, dy = t.clientY - lastTouchY;
-      lastTouchX = t.clientX; lastTouchY = t.clientY;
-      const sens = aiming ? 0.003 : 0.005;
-      cameraYaw -= dx * sens;
-      cameraPitch += dy * sens;
-      cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
-      break;
+function moveCameraLook(clientX, clientY, id) {
+  if (cameraTouchPointerId === null || id !== cameraTouchPointerId || playerDead || !gameMode || editMode) return;
+  const dx = clientX - lastCameraPointerX;
+  const dy = clientY - lastCameraPointerY;
+  lastCameraPointerX = clientX;
+  lastCameraPointerY = clientY;
+  const sens = aiming ? 0.003 : 0.005;
+  cameraYaw -= dx * sens;
+  cameraPitch += dy * sens;
+  cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
+}
+function endCameraLook(id) {
+  if (cameraTouchPointerId !== id) return;
+  cameraTouchPointerId = null;
+  cameraTouchId = null;
+}
+
+if (HAS_POINTER_EVENTS) {
+  cameraZone.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    if (!beginCameraLook(e.clientX, e.clientY, e.pointerId)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    try { cameraZone.setPointerCapture(e.pointerId); } catch (_) {}
+  }, { passive: false });
+  cameraZone.addEventListener('pointermove', e => {
+    if (e.pointerId !== cameraTouchPointerId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    moveCameraLook(e.clientX, e.clientY, e.pointerId);
+  }, { passive: false });
+  cameraZone.addEventListener('pointerup', e => {
+    if (e.pointerId !== cameraTouchPointerId) return;
+    e.preventDefault();
+    e.stopPropagation();
+    endCameraLook(e.pointerId);
+  }, { passive: false });
+  cameraZone.addEventListener('pointercancel', e => endCameraLook(e.pointerId), { passive: false });
+  cameraZone.addEventListener('lostpointercapture', e => endCameraLook(e.pointerId), { passive: false });
+} else {
+  function startCameraTouch(e) {
+    initAudio();
+    if (playerDead || !gameMode || editMode) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (cameraTouchId !== null) return;
+    for (const t of e.changedTouches) {
+      if (t.identifier === joystickActiveId) continue;
+      if (isPointInJoystick(t.clientX, t.clientY, 60)) continue;
+      if (beginCameraLook(t.clientX, t.clientY, t.identifier)) break;
     }
   }
-}
-function handleCamEnd(e) {
-  if (cameraTouchId === null) return;
-  for (const t of e.changedTouches) {
-    if (t.identifier === cameraTouchId) {
-      cameraTouchId = null;
-      break;
+  function moveCameraTouch(e) {
+    if (cameraTouchId === null || playerDead || !gameMode || editMode) return;
+    for (const t of e.changedTouches) {
+      if (t.identifier === cameraTouchId) {
+        e.preventDefault();
+        e.stopPropagation();
+        moveCameraLook(t.clientX, t.clientY, t.identifier);
+        break;
+      }
     }
   }
+  function handleCamEnd(e) {
+    if (cameraTouchId === null) return;
+    for (const t of e.changedTouches) {
+      if (t.identifier === cameraTouchId) {
+        e.preventDefault();
+        endCameraLook(t.identifier);
+        break;
+      }
+    }
+  }
+  cameraZone.addEventListener('touchstart', startCameraTouch, { passive: false });
+  cameraZone.addEventListener('touchmove', moveCameraTouch, { passive: false });
+  cameraZone.addEventListener('touchend', handleCamEnd, { passive: false });
+  cameraZone.addEventListener('touchcancel', handleCamEnd, { passive: false });
 }
-cameraZone.addEventListener('touchstart', startCameraTouch, { passive: false });
-cameraZone.addEventListener('touchmove', moveCameraTouch, { passive: false });
-cameraZone.addEventListener('touchend', handleCamEnd, { passive: false });
-cameraZone.addEventListener('touchcancel', handleCamEnd, { passive: false });
+
 cameraZone.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 cameraZone.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
 cameraZone.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
@@ -2817,10 +2925,14 @@ document.addEventListener('gestureend', e => e.preventDefault(), { passive: fals
 /* ─────────────── DEBUG ─────────────── */
 let debugEnabled = false;
 const fpsSamples = [];
+let debugRefreshAccum = 0;
 function toggleDebug() { debugEnabled = !debugEnabled; debugPanel.classList.toggle('active', debugEnabled); fpsSamples.length = 0; }
 function updateDebug(dt) {
   if (!debugEnabled) return;
+  debugRefreshAccum += dt;
   fpsSamples.push(1 / Math.max(dt, 0.0001));
+  if (debugRefreshAccum < 0.12) return;
+  debugRefreshAccum = 0;
   if (fpsSamples.length > 30) fpsSamples.shift();
   const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
   const ws = curWepState();
@@ -3325,6 +3437,9 @@ let bodycamSide = 0;
 let bodycamForward = 0;
 let bodycamRoll = 0;
 let bodycamPitch = 0;
+let bodycamSwayX = 0;
+let bodycamSwayY = 0;
+let bodycamSwayZ = 0;
 let bodycamInitialized = false;
 
 function updateCamera(dt) {
@@ -3382,17 +3497,32 @@ function updateCamera(dt) {
   // Balanceo visual muy ligero. No usamos el desplazamiento lateral
   // relativo a la cámara para el roll: al girar la vista no se inclina
   // accidentalmente toda la escena.
+  // Movilidad bodycam: balanceo e inercia visibles, pero sin tocar el control de apuntado.
   const targetRoll =
-    walkWave * 0.0028 * speed +
-    walkWave2 * 0.0012 * speed +
-    idleWave * (1 - speed);
+    walkWave * 0.0042 * speed +
+    walkWave2 * 0.0018 * speed +
+    idleWave * (1 - speed) -
+    THREE.MathUtils.clamp(bodycamSide * 0.0018, -0.014, 0.014);
 
   const targetMicroPitch =
-    THREE.MathUtils.clamp(-bodycamForward * 0.0018, -0.012, 0.012) +
-    walkWave2 * 0.0016 * speed;
+    THREE.MathUtils.clamp(-bodycamForward * 0.0027, -0.018, 0.018) +
+    walkWave2 * 0.0024 * speed;
 
-  bodycamRoll += (targetRoll - bodycamRoll) * Math.min(1, dt * 7.5);
-  bodycamPitch += (targetMicroPitch - bodycamPitch) * Math.min(1, dt * 7);
+  const targetSwayX =
+    walkWave * 0.020 * speed +
+    THREE.MathUtils.clamp(bodycamSide * 0.0028, -0.014, 0.014);
+  const targetSwayY =
+    Math.abs(Math.sin(bodycamTime * (8.2 + speed * 2.2))) * 0.010 * speed +
+    walkWave2 * 0.006 * speed;
+  const targetSwayZ =
+    walkWave2 * 0.009 * speed +
+    THREE.MathUtils.clamp(bodycamForward * 0.0018, -0.010, 0.010);
+
+  bodycamRoll += (targetRoll - bodycamRoll) * Math.min(1, dt * 8.5);
+  bodycamPitch += (targetMicroPitch - bodycamPitch) * Math.min(1, dt * 8);
+  bodycamSwayX += (targetSwayX - bodycamSwayX) * Math.min(1, dt * 10);
+  bodycamSwayY += (targetSwayY - bodycamSwayY) * Math.min(1, dt * 10);
+  bodycamSwayZ += (targetSwayZ - bodycamSwayZ) * Math.min(1, dt * 9);
 
   /* INCLINACIÓN: efecto de cámara tipo FPS/bodycam, suave y local.
      No cambia la orientación del personaje ni el movimiento del jugador. */
@@ -3409,6 +3539,11 @@ function updateCamera(dt) {
   camera.position.x += localRightX * leanSide;
   camera.position.z += localRightZ * leanSide;
   camera.position.y -= leanVertical;
+
+  // Movimiento de cabeza/cuerpo de la bodycam al desplazarse.
+  camera.position.x += bodycamSwayX;
+  camera.position.y += bodycamSwayY;
+  camera.position.z += bodycamSwayZ;
 
   // El roll se aplica explícitamente sobre el eje Z de la cámara.
   // Esto hace que la inclinación sea predecible y no dependa del yaw/pitch.
@@ -3920,6 +4055,8 @@ async function initOnline() {
 /* ═══════════════════════════════════════════
    MINIMAPA CIRCULAR MODERNO
    ═══════════════════════════════════════════ */
+let minimapAccum = 0;
+const MINIMAP_INTERVAL = touchDeviceForRenderer ? 0.10 : 0.066;
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
 const MM_W = minimapCanvas.width, MM_H = minimapCanvas.height;
@@ -4498,7 +4635,11 @@ function animate() {
     if (grenadeCooldown > 0) { grenadeCooldown = Math.max(0, grenadeCooldown - dt); updateGrenadeBar(); }
     updateUI(dt);
     updateDebug(dt);
-    drawMinimap();
+    minimapAccum += dt;
+    if (minimapAccum >= MINIMAP_INTERVAL) {
+      minimapAccum = 0;
+      drawMinimap();
+    }
   }
   renderer.render(scene, camera);
 }
@@ -4508,6 +4649,7 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, touchDeviceForRenderer ? 1.35 : 1.75));
   applyTouchConfig();
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
