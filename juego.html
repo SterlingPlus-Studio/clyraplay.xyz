@@ -1859,6 +1859,10 @@ const MAP_COLLIDER_LIMIT = 900;
 const MAP_PLAYER_HEIGHT = 1.8;
 const MAP_CAPSULE_RADIUS = 0.42;
 const mapWorldOctree = new Octree();
+let mapCollisionRoot = null;
+const mapRuntimeGroundRaycaster = new THREE.Raycaster();
+const mapRuntimeGroundOrigin = new THREE.Vector3();
+const mapRuntimeGroundDirection = new THREE.Vector3(0, -1, 0);
 const playerCapsule = new Capsule(
   new THREE.Vector3(0, 0.35, 0),
   new THREE.Vector3(0, 1.45, 0),
@@ -2029,6 +2033,43 @@ function getMapGroundInfo(x, z) {
   return null;
 }
 
+function getMapRuntimeGroundInfo(x, z, referenceY, fallback = 0) {
+  if (!mapRoot) return null;
+
+  // Buscar primero la superficie cercana al jugador. Esto evita que un rayo
+  // lanzado desde la parte superior de TODO el mapa detecte el techo de un
+  // edificio distante o una superficie equivocada.
+  const ref = Number.isFinite(referenceY) ? referenceY : fallback;
+  mapRuntimeGroundOrigin.set(x, ref + 6.0, z);
+  mapRuntimeGroundRaycaster.set(mapRuntimeGroundOrigin, mapRuntimeGroundDirection);
+  mapRuntimeGroundRaycaster.near = 0;
+  mapRuntimeGroundRaycaster.far = 14.0;
+
+  const hits = mapRuntimeGroundRaycaster.intersectObject(mapRoot, true);
+  for (const hit of hits) {
+    if (!hit.object || !hit.object.isMesh) continue;
+    if (hit.object.userData.isBulletHole || hit.object.userData.isExplosionMark) continue;
+    if (isMapFoliageObject(hit.object)) continue;
+    let ny = 1;
+    if (hit.face) {
+      const nm = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
+      ny = hit.face.normal.clone().applyMatrix3(nm).normalize().y;
+    }
+    if (ny < 0.48) continue;
+    return { y: hit.point.y, normalY: ny, object: hit.object };
+  }
+
+  // Rescate: si el jugador terminó debajo del escenario, una pasada global
+  // vuelve a encontrar la superficie real y lo devuelve al mapa.
+  const rescue = getMapGroundInfo(x, z);
+  return rescue || null;
+}
+
+function getMapGroundYAtPlayer(x, z, fallback = 0) {
+  const info = getMapRuntimeGroundInfo(x, z, player.position.y, fallback);
+  return info ? info.y : fallback;
+}
+
 function getMapGroundY(x, z, fallback = 0) {
   const info = getMapGroundInfo(x, z);
   return info ? info.y : fallback;
@@ -2142,11 +2183,34 @@ function loadNewMap() {
         scene.add(mapRoot);
         mapRoot.updateMatrixWorld(true);
 
-        // Colisión de triángulos real del escenario. Evita atravesar paredes/edificios
-        // y no depende de cajas aproximadas para el movimiento principal.
+        // Colisión de triángulos real del escenario. Construimos un grupo
+        // separado para NO meter hojas/ramas en el Octree y evitamos que el
+        // suelo/techos puedan empujar la cápsula verticalmente hacia abajo.
+        mapCollisionRoot = new THREE.Group();
+        mapCollisionRoot.matrixAutoUpdate = false;
+        mapCollisionRoot.matrixWorld.identity();
+
+        let collisionMeshCount = 0;
+        mapRoot.traverse((node) => {
+          if (!(node.isMesh || node.isSkinnedMesh)) return;
+          if (isMapFoliageObject(node)) return;
+          if (!node.geometry || !node.geometry.attributes || !node.geometry.attributes.position) return;
+          const cm = new THREE.Mesh(node.geometry);
+          cm.matrixAutoUpdate = false;
+          cm.matrix.copy(node.matrixWorld);
+          cm.matrixWorld.copy(node.matrixWorld);
+          cm.visible = true;
+          mapCollisionRoot.add(cm);
+          collisionMeshCount++;
+        });
+
         mapWorldOctree.clear();
-        mapWorldOctree.fromGraphNode(mapRoot);
-        mapOctreeReady = true;
+        if (collisionMeshCount > 0) {
+          mapWorldOctree.fromGraphNode(mapCollisionRoot);
+          mapOctreeReady = true;
+        } else {
+          mapOctreeReady = false;
+        }
 
         rebuildMapColliders(mapRoot, mapBounds);
         const spawn = chooseMapSpawn();
@@ -2157,6 +2221,8 @@ function loadNewMap() {
         mapReady = true;
         // Coloca inmediatamente al jugador sobre la superficie encontrada.
         player.position.set(mapSpawnX, mapSpawnY, mapSpawnZ);
+        const spawnSurface = getMapRuntimeGroundInfo(mapSpawnX, mapSpawnZ, mapSpawnY, mapSpawnY);
+        if (spawnSurface) player.position.y = spawnSurface.y + 0.10;
         velocityY = 0;
         isGrounded = true;
 
@@ -2492,21 +2558,29 @@ const deathStartCamPos = new THREE.Vector3();
 
 function resolveCollisions(entity, radius) {
   if (entity === player && mapOctreeReady && mapRoot) {
-    // Cápsula 3D: permite rozar esquinas, bordillos, paredes y geometría irregular
-    // sin quedar atrapado por cajas AABB demasiado grandes.
+    // Cápsula 3D para paredes, esquinas y obstáculos. IMPORTANTE: la respuesta
+    // de la colisión se proyecta al plano XZ; el eje Y queda exclusivamente bajo
+    // control del sistema de suelo/gravedad, evitando que el Octree hunda al jugador.
     playerCapsule.radius = radius || MAP_CAPSULE_RADIUS;
     playerCapsule.start.set(entity.position.x, entity.position.y + 0.35, entity.position.z);
     playerCapsule.end.set(entity.position.x, entity.position.y + Math.max(0.85, MAP_PLAYER_HEIGHT - 0.35), entity.position.z);
 
-    for (let iter = 0; iter < 4; iter++) {
+    for (let iter = 0; iter < 5; iter++) {
       const result = mapWorldOctree.capsuleIntersect(playerCapsule);
-      if (!result) break;
-      const push = result.normal.clone().multiplyScalar(result.depth + 0.002);
-      playerCapsule.translate(push);
-      if (result.normal.y > 0.45 && velocityY < 0) velocityY = 0;
+      if (!result || !Number.isFinite(result.depth)) break;
+
+      const nx = Number.isFinite(result.normal.x) ? result.normal.x : 0;
+      const nz = Number.isFinite(result.normal.z) ? result.normal.z : 0;
+      const hLen = Math.hypot(nx, nz);
+
+      // No trasladar nunca la cápsula verticalmente por una colisión del Octree.
+      if (hLen < 0.0001) break;
+
+      const pushDepth = Math.min(result.depth + 0.003, 0.55);
+      playerCapsule.translate(new THREE.Vector3((nx / hLen) * pushDepth, 0, (nz / hLen) * pushDepth));
     }
 
-    entity.position.set(playerCapsule.start.x, playerCapsule.start.y - 0.35, playerCapsule.start.z);
+    entity.position.set(playerCapsule.start.x, entity.position.y, playerCapsule.start.z);
     return;
   }
 
@@ -2709,10 +2783,13 @@ function respawnPlayer() {
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
   const dist = 2 + Math.random() * 4;
-  const spawnX = mapReady ? mapSpawnX + Math.cos(angle) * dist : 0;
-  const spawnZ = mapReady ? mapSpawnZ + Math.sin(angle) * dist : 30;
-  const respawnY = mapReady ? getMapGroundY(spawnX, spawnZ, mapSpawnY) + 0.06 : 0;
+  const spawnX = mapReady ? THREE.MathUtils.clamp(mapSpawnX + Math.cos(angle) * dist, mapBounds.minX + MAP_EDGE_PADDING, mapBounds.maxX - MAP_EDGE_PADDING) : 0;
+  const spawnZ = mapReady ? THREE.MathUtils.clamp(mapSpawnZ + Math.sin(angle) * dist, mapBounds.minZ + MAP_EDGE_PADDING, mapBounds.maxZ - MAP_EDGE_PADDING) : 30;
+  const spawnInfo = mapReady ? getMapRuntimeGroundInfo(spawnX, spawnZ, mapSpawnY, mapSpawnY) : null;
+  const respawnY = mapReady ? ((spawnInfo ? spawnInfo.y : mapSpawnY) + 0.10) : 0;
   player.position.set(spawnX, respawnY, spawnZ);
+  velocityY = 0;
+  isGrounded = true;
   if (mapReady) clampPlayerToMap();
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
@@ -2906,7 +2983,7 @@ function updatePlayer(dt) {
     player.position.z += moveZ * moveSpeed * dt;
   }
   resolveCollisions(player, PLAYER_RADIUS);
-  const terrainGroundY = mapReady ? getMapGroundY(player.position.x, player.position.z, mapSpawnY) : 0;
+  const terrainGroundY = mapReady ? getMapGroundYAtPlayer(player.position.x, player.position.z, mapSpawnY) : 0;
   const groundY = terrainGroundY + 0.06;
   const groundTolerance = 0.14;
 
@@ -4090,7 +4167,7 @@ initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(mapReady ? mapSpawnX : 0, mapReady ? mapSpawnY : 0, mapReady ? mapSpawnZ : 30);
+player.position.set(0, 0, 30);
 
 function animate() {
   requestAnimationFrame(animate);
