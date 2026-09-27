@@ -1006,30 +1006,31 @@ const BASE_FOV = 70;
 const _perfTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const _perfCores = navigator.hardwareConcurrency || 4;
 const _perfLow = _perfTouch || _perfCores <= 4;
-const _perfMaxDpr = _perfTouch ? 1.35 : (_perfCores <= 4 ? 1.5 : 1.75);
-const _perfMinDpr = 1.0;
+const _perfMaxDpr = _perfTouch ? 1.15 : (_perfCores <= 4 ? 1.25 : 1.5);
+const _perfMinDpr = 0.75;
 let _perfCurrentDpr = Math.min(devicePixelRatio || 1, _perfMaxDpr);
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: false,
   powerPreference: 'high-performance',
-  stencil: false
+  stencil: false,
+  depth: true,
+  alpha: false
 });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(_perfCurrentDpr);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = _perfLow ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+// Sombras 3D completamente desactivadas para reducir el coste de GPU.
+renderer.shadowMap.enabled = false;
 renderer.sortObjects = true;
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+renderer.domElement.setAttribute('aria-label', 'Juego 3D');
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0x445566, 1.4);
+const hemi = new THREE.HemisphereLight(0xffffff, 0x445566, 1.25);
 scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff2cc, 2.3);
+const sun = new THREE.DirectionalLight(0xfff2cc, 2.0);
 sun.position.set(40, 55, 25);
-sun.castShadow = true;
-sun.shadow.mapSize.set(_perfLow ? 1024 : 1536, _perfLow ? 1024 : 1536);
-Object.assign(sun.shadow.camera, { left: -85, right: 85, top: 85, bottom: -85, near: 1, far: 170 });
+sun.castShadow = false;
 scene.add(sun);
 
 /* ═══════════════════════════════════════════
@@ -1056,14 +1057,46 @@ function forceMaterialOpaque(mat) {
   if ('alphaMap' in mat) mat.alphaMap = null;
   mat.depthWrite = true;
   mat.depthTest = true;
+  // No se renderizan las caras traseras de los modelos: evita dibujar interiores
+  // que normalmente no son visibles desde fuera.
+  mat.side = THREE.FrontSide;
+  mat.shadowSide = THREE.FrontSide;
   if (mat.color && mat.map && mat.color.r === 0 && mat.color.g === 0 && mat.color.b === 0) {
     mat.color.setHex(0xffffff);
   }
   if (mat.map) {
     mat.map.colorSpace = THREE.SRGBColorSpace;
+    mat.map.anisotropy = 1;
     mat.map.needsUpdate = true;
   }
   mat.needsUpdate = true;
+}
+
+function optimizeMeshForRender(mesh) {
+  if (!mesh) return;
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  mesh.frustumCulled = true;
+  if (mesh.material) {
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const m of mats) forceMaterialOpaque(m);
+  }
+}
+
+function optimizeModelForRender(root, freezeStatic) {
+  if (!root) return;
+  root.traverse(n => {
+    if (n.isMesh || n.isSkinnedMesh) optimizeMeshForRender(n);
+    if (freezeStatic && n.matrixAutoUpdate !== undefined && !n.isBone) {
+      n.updateMatrix();
+      n.matrixAutoUpdate = false;
+    }
+  });
+}
+
+function cullModelInterior(root, freezeStatic) {
+  // Back-face culling: las caras orientadas hacia dentro no se dibujan.
+  optimizeModelForRender(root, freezeStatic);
 }
 
 function disableShadows(obj) {
@@ -1079,13 +1112,13 @@ function disableShadows(obj) {
 /* ─────────────── SUELO ─────────────── */
 const grass = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1), cachedMat(0x6ab04c));
 grass.rotation.x = -Math.PI / 2;
-grass.receiveShadow = true;
+grass.receiveShadow = false;
 scene.add(grass);
 
 const concretePad = new THREE.Mesh(new THREE.PlaneGeometry(112, 108), cachedMat(0x8a8578, { flatShading: false }));
 concretePad.rotation.x = -Math.PI / 2;
 concretePad.position.y = 0.02;
-concretePad.receiveShadow = true;
+concretePad.receiveShadow = false;
 scene.add(concretePad);
 
 /* ═══════════════════════════════════════════
@@ -1223,7 +1256,7 @@ function createLowPolyRifleRemote() {
   const handguardMarker = new THREE.Object3D(); handguardMarker.position.set(0, 0.01, -0.20); g.add(handguardMarker);
   const flash = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.95 }));
   flash.position.set(0, 0.028, -0.49); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { optimizeMeshForRender(n); } });
   return { group: g, flash, gripMarker, handguardMarker };
 }
 function createLowPolyShotgunRemote() {
@@ -1241,7 +1274,7 @@ function createLowPolyShotgunRemote() {
   const pumpMarker = new THREE.Object3D(); pumpMarker.position.set(0, 0.01, -0.22); g.add(pumpMarker);
   const flash = new THREE.Mesh(new THREE.SphereGeometry(0.10, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffcc55, transparent: true, opacity: 0.95 }));
   flash.position.set(0, 0.04, -0.62); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { optimizeMeshForRender(n); } });
   return { group: g, flash, gripMarker, pumpMarker };
 }
 function createLowPolyPistolRemote() {
@@ -1255,7 +1288,7 @@ function createLowPolyPistolRemote() {
   const gripMarker = new THREE.Object3D(); gripMarker.position.set(0, -0.085, 0.07); g.add(gripMarker);
   const flash = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffdd66, transparent: true, opacity: 0.95 }));
   flash.position.set(0, 0.025, -0.21); flash.visible = false; g.add(flash);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = false; } });
+  g.traverse(n => { if (n.isMesh) { optimizeMeshForRender(n); } });
   return { group: g, flash, gripMarker };
 }
 function buildGrenadeModel(opts = {}) {
@@ -1277,7 +1310,7 @@ function buildGrenadeModel(opts = {}) {
     const arm = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.36), mUni); arm.position.set(0.04, -0.27, -0.20); arm.rotation.set(0.55, 0, 0.12); g.add(arm);
   }
   g.scale.setScalar(scale);
-  g.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; } });
+  g.traverse(n => { if (n.isMesh) { optimizeMeshForRender(n); } });
   return g;
 }
 
@@ -1358,7 +1391,7 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
             n.visible = true;
             n.castShadow = false;
             n.receiveShadow = false;
-            n.frustumCulled = false;
+            n.frustumCulled = true;
             if (n.material) {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
               for (const m of mats) forceMaterialOpaque(m);
@@ -1429,7 +1462,7 @@ function createRemoteWeaponInstance(weaponKey) {
     cloned.traverse(n => {
       if (n.isMesh || n.isSkinnedMesh) {
         n.visible = true;
-        n.frustumCulled = false;
+        n.frustumCulled = true;
         n.castShadow = false;
         n.receiveShadow = false;
         if (n.material) {
@@ -1832,9 +1865,7 @@ function loadContainerFBX(url) {
         obj.updateMatrixWorld(true);
         obj.traverse(n => {
           if (n.isMesh) {
-            n.castShadow = true;
-            n.receiveShadow = true;
-            n.frustumCulled = false;
+            optimizeMeshForRender(n);
             if (n.material) {
               const mats = Array.isArray(n.material) ? n.material : [n.material];
               for (const m of mats) forceMaterialOpaque(m);
@@ -1869,7 +1900,7 @@ Promise.all([
       const c = template.clone(true);
       c.position.set(ox, 0, oz);
       c.rotation.y = (Math.random() - 0.5) * 0.02;
-      c.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.frustumCulled = false; } });
+      c.traverse(n => { if (n.isMesh) { n.castShadow = false; n.receiveShadow = false; n.frustumCulled = true; } });
       group.add(c);
     }
   }
@@ -1922,9 +1953,7 @@ function loadVehicleFBX(url, targetLen) {
           if (n.isMesh || n.isSkinnedMesh) {
             meshCount++;
             n.visible = true;
-            n.castShadow = true;
-            n.receiveShadow = true;
-            n.frustumCulled = false;
+            optimizeMeshForRender(n);
             if (n.isSkinnedMesh && n.skeleton && typeof n.skeleton.update === 'function') {
               try { n.skeleton.update(); } catch (e) {}
             }
@@ -2015,9 +2044,7 @@ Promise.all([
     wrapper.traverse(n => {
       n.visible = true;
       if (n.isMesh || n.isSkinnedMesh) {
-        n.castShadow = true;
-        n.receiveShadow = true;
-        n.frustumCulled = false;
+        optimizeMeshForRender(n);
         const mats = Array.isArray(n.material) ? n.material : [n.material];
         for (const m of mats) forceMaterialOpaque(m);
       }
@@ -2040,7 +2067,7 @@ function createWarehouse(x, z, w, d, h) {
   const mTrim = cachedMat(0x1e1e1e);
   const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
   body.position.y = h / 2;
-  body.castShadow = true; body.receiveShadow = true;
+  body.castShadow = false; body.receiveShadow = false;
   g.add(body);
   const stripeGeo = new THREE.BoxGeometry(w + 0.05, 0.12, d + 0.05);
   for (let i = 0; i < 5; i++) {
@@ -2050,7 +2077,7 @@ function createWarehouse(x, z, w, d, h) {
   }
   const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.5, d + 1), mRoof);
   roof.position.y = h + 0.25;
-  roof.castShadow = true;
+  roof.castShadow = false;
   g.add(roof);
   const doorCount = 3;
   const innerW = w - 2.5;
@@ -2083,11 +2110,11 @@ function createOffice(x, z, w, d, h) {
   const mWindow = cachedMat(0x2b3a4a);
   const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
   body.position.y = h / 2;
-  body.castShadow = true; body.receiveShadow = true;
+  body.castShadow = false; body.receiveShadow = false;
   g.add(body);
   const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, 0.4, d + 0.6), mRoof);
   roof.position.y = h + 0.2;
-  roof.castShadow = true;
+  roof.castShadow = false;
   g.add(roof);
   for (let i = 0; i < 3; i++) {
     const wx = -w/2 + 1.6 + i * (w - 3.2) / 2;
@@ -2103,7 +2130,7 @@ function createOffice(x, z, w, d, h) {
   g.add(door);
   const ac = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 1.0), cachedMat(0xaaaaaa));
   ac.position.set(w/2 - 1.2, h + 0.55, 0);
-  ac.castShadow = true;
+  ac.castShadow = false;
   g.add(ac);
   boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
   return g;
@@ -2128,7 +2155,7 @@ function createFence(x1, z1, x2, z2) {
     const t = i / postCount;
     const post = new THREE.Mesh(postGeo, mPost);
     post.position.set(t * len - len / 2, 1.6, 0);
-    post.castShadow = true;
+    post.castShadow = false;
     g.add(post);
     const cap = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.25, 4), mPost);
     cap.position.set(t * len - len / 2, 3.32, 0);
@@ -2168,12 +2195,12 @@ function createEntryGate(x, z) {
   for (const sx of [-1, 1]) {
     const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.5, 0.5), mPost);
     post.position.set(sx * (ENTRY_GAP / 2 + 0.3), 2.25, 0);
-    post.castShadow = true;
+    post.castShadow = false;
     g.add(post);
   }
   const booth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 3.0), cachedMat(0xd6d6d6));
   booth.position.set(-ENTRY_GAP / 2 - 2.5, 1.4, 1.5);
-  booth.castShadow = true;
+  booth.castShadow = false;
   g.add(booth);
   const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 3.4), cachedMat(0x2a2a2a));
   boothRoof.position.set(-ENTRY_GAP / 2 - 2.5, 2.9, 1.5);
@@ -2216,11 +2243,11 @@ function createWatchtower(x, z) {
   for (const [lx, lz] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) {
     const leg = new THREE.Mesh(legGeo, mPost);
     leg.position.set(lx, 3.5, lz);
-    leg.castShadow = true;
+    leg.castShadow = false;
     g.add(leg);
   }
   const platform = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 3.8), mTop);
-  platform.position.y = 7.15; platform.castShadow = true;
+  platform.position.y = 7.15; platform.castShadow = false;
   g.add(platform);
   const wallGeo = new THREE.BoxGeometry(3.8, 1.8, 0.15);
   const wallN = new THREE.Mesh(wallGeo, mTop); wallN.position.set(0, 8.2, -1.85); g.add(wallN);
@@ -2229,7 +2256,7 @@ function createWatchtower(x, z) {
   const wallE = new THREE.Mesh(wallGeo2, mTop); wallE.position.set(1.85, 8.2, 0); g.add(wallE);
   const wallW = new THREE.Mesh(wallGeo2, mTop); wallW.position.set(-1.85, 8.2, 0); g.add(wallW);
   const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 1.1, 4), mRoof);
-  roof.position.y = 9.7; roof.rotation.y = Math.PI / 4; roof.castShadow = true;
+  roof.position.y = 9.7; roof.rotation.y = Math.PI / 4; roof.castShadow = false;
   g.add(roof);
   colliders.push({ x, z, r: 1.9, kind: 'lamp' });
   return g;
@@ -2248,26 +2275,26 @@ function createCrane(x, z, rot) {
   const mDark = cachedMat(0x1c1c1c);
   const mSteel = cachedMat(0x555555);
   const base = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.0, 3.4), mDark);
-  base.position.y = 0.5; base.castShadow = true; g.add(base);
+  base.position.y = 0.5; base.castShadow = false; g.add(base);
   for (const sx of [-1, 1]) {
     const trk = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.7, 4.0), mSteel);
     trk.position.set(sx * 1.2, 0.35, 0);
-    trk.castShadow = true;
+    trk.castShadow = false;
     g.add(trk);
   }
   const mast = new THREE.Mesh(new THREE.BoxGeometry(1.1, 14, 1.1), mYellow);
-  mast.position.y = 8; mast.castShadow = true;
+  mast.position.y = 8; mast.castShadow = false;
   g.add(mast);
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.6, 1.8), mYellow);
   cabin.position.set(1.4, 7.0, 0);
-  cabin.castShadow = true;
+  cabin.castShadow = false;
   g.add(cabin);
   const cWin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 1.4), cachedMat(0x2b3a4a));
   cWin.position.set(2.35, 7.0, 0);
   g.add(cWin);
   const boom = new THREE.Mesh(new THREE.BoxGeometry(24, 0.7, 0.7), mYellow);
   boom.position.set(-9, 15, 0);
-  boom.castShadow = true;
+  boom.castShadow = false;
   g.add(boom);
   const cw = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 1.6), mDark);
   cw.position.set(3.2, 14.5, 0);
@@ -2277,7 +2304,7 @@ function createCrane(x, z, rot) {
   g.add(cable);
   const hook = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), mYellow);
   hook.position.set(-17, 5.0, 0);
-  hook.castShadow = true;
+  hook.castShadow = false;
   g.add(hook);
   colliders.push({ x, z, r: 2.4, kind: 'lamp' });
   return g;
@@ -3373,6 +3400,14 @@ const _gripWorldTmp = new THREE.Vector3();
 const _handguardWorldTmp = new THREE.Vector3();
 
 function animateRemotePlayer(r, dt) {
+  // Los jugadores muy lejanos se actualizan a menor frecuencia para ahorrar CPU;
+  // siguen moviéndose y sincronizándose, pero se evita recalcular toda su animación cada frame.
+  const dxL = r.root.position.x - player.position.x;
+  const dzL = r.root.position.z - player.position.z;
+  const far = (dxL * dxL + dzL * dzL) > 110 * 110;
+  r._lodAcc = (r._lodAcc || 0) + dt;
+  if (far && r._lodAcc < 0.10) return;
+  r._lodAcc = 0;
   const t = Math.min(1, dt * 12);
   const oldX = r.root.position.x, oldZ = r.root.position.z;
   r.root.position.x += (r.targetX - r.root.position.x) * t;
@@ -3854,12 +3889,12 @@ function updateAdaptivePerformance(dt) {
   if (!gameMode || document.hidden) return;
   _perfTimeAcc += dt;
   _perfFrameAcc++;
-  if (_perfTimeAcc < 1.5) return;
+  if (_perfTimeAcc < 1.75) return;
 
   const avgFps = _perfFrameAcc / Math.max(_perfTimeAcc, 0.001);
   let next = _perfCurrentDpr;
-  if (avgFps < 44 && next > _perfMinDpr) next = Math.max(_perfMinDpr, next - 0.15);
-  else if (avgFps > 58 && next < _perfMaxDpr) next = Math.min(_perfMaxDpr, next + 0.10);
+  if (avgFps < 48 && next > _perfMinDpr) next = Math.max(_perfMinDpr, next - 0.15);
+  else if (avgFps > 60 && next < _perfMaxDpr) next = Math.min(_perfMaxDpr, next + 0.05);
 
   if (Math.abs(next - _perfCurrentDpr) >= 0.05) {
     _perfCurrentDpr = next;
@@ -3880,13 +3915,8 @@ function applyOptimizations() {
     }
     if (isDynamic) return;
     obj.frustumCulled = true;
-    if (obj.isMesh) {
-      const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-      for (const m of mats) {
-        if (!m) continue;
-        if (m.side === THREE.DoubleSide) m.shadowSide = THREE.DoubleSide;
-        else { m.side = THREE.FrontSide; m.shadowSide = THREE.FrontSide; }
-      }
+    if (obj.isMesh || obj.isSkinnedMesh) {
+      cullModelInterior(obj, false);
     }
     if (obj.matrixAutoUpdate !== undefined) {
       obj.updateMatrix();
@@ -4255,15 +4285,15 @@ function animate() {
     _debugTimeAcc += dt;
     _minimapTimeAcc += dt;
 
-    if (_uiTimeAcc >= 0.08) {
+    if (_uiTimeAcc >= 0.12) {
       updateUI(_uiTimeAcc);
       _uiTimeAcc = 0;
     }
-    if (_debugTimeAcc >= 0.20) {
+    if (_debugTimeAcc >= 0.30) {
       updateDebug(_debugTimeAcc);
       _debugTimeAcc = 0;
     }
-    if (_minimapTimeAcc >= 0.08) {
+    if (_minimapTimeAcc >= 0.18) {
       drawMinimap();
       _minimapTimeAcc = 0;
     }
@@ -4277,6 +4307,8 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  _perfCurrentDpr = Math.min(_perfCurrentDpr, _perfMaxDpr);
+  renderer.setPixelRatio(_perfCurrentDpr);
   _perfTimeAcc = 0;
   _perfFrameAcc = 0;
   applyTouchConfig();
