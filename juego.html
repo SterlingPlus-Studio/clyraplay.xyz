@@ -118,7 +118,6 @@
   #respawn-btn:hover { background: #fff; color: #000; text-shadow: none; transform: scale(1.05); }
   #damage-overlay { position: fixed; inset: 0; background: radial-gradient(ellipse at center, rgba(255,0,0,0) 25%, rgba(220,0,0,0.45) 65%, rgba(150,0,0,0.9) 100%); opacity: 0; pointer-events: none; z-index: 250; will-change: opacity; }
 
-  /* ═══════ MINIMAPA CIRCULAR MODERNO ═══════ */
   #minimap-wrap {
     position: fixed; top: 12px; left: 12px;
     width: 140px; height: 140px;
@@ -135,7 +134,6 @@
   }
   #minimap { display: block; width: 100%; height: 100%; border-radius: inherit; }
 
-  /* ═══════ HUD A LA DERECHA DEL MINIMAPA ═══════ */
   #health-wrap, #ammo-wrap, #grenade-wrap {
     position: fixed;
     left: 164px;
@@ -202,7 +200,6 @@
   #crosshair .l-right  { right: 0;  top: 50%; height: 2px; width: 12px; transform: translateX(50%) translateY(-50%); }
   #crosshair .dot { position: absolute; top: 50%; left: 50%; width: 3px; height: 3px; background: #ff3b30; transform: translate(-50%, -50%); box-shadow: 0 0 3px #000; }
 
-  /* ═══════ JOYSTICK ═══════ */
   #joystick {
     position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px;
     border-radius: 50%;
@@ -230,7 +227,6 @@
   #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; }
   #camera-zone.active { display: block; }
 
-  /* ═══════ BOTONES TÁCTILES (fondo totalmente transparente) ═══════ */
   .btn {
     position: fixed; display: none; align-items: center; justify-content: center;
     z-index: 10; touch-action: none; cursor: pointer;
@@ -362,7 +358,6 @@
   body.in-menu #online-panel,
   body.in-menu #debug { display: none !important; }
 
-  /* ═══════ CONFIGURACIÓN DE CONTROLES TÁCTILES ═══════ */
   .config-btn {
     display: none;
     align-items: center;
@@ -457,9 +452,7 @@
   }
   body.touch-edit-mode #debug-btn::after { display: none; }
 
-  /* ═══════ MOVILIDAD BODYCAM ═══════ */
   canvas { transform: translateZ(0); backface-visibility: hidden; }
-
 
   @keyframes editPulse {
     0%, 100% { outline-color: rgba(255,217,61,0.9); }
@@ -1000,13 +993,6 @@ scene.add(camera);
 
 const BASE_FOV = 70;
 
-/* ═══════════════════════════════════════════════════════════
-   PERFIL DE RENDIMIENTO — NÍTIDO
-   ═══════════════════════════════════════════════════════════ */
-const _perfTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-const _perfCores = navigator.hardwareConcurrency || 4;
-const _perfLow = _perfTouch || _perfCores <= 4;
-
 const _deviceDpr = window.devicePixelRatio || 1;
 const _perfMaxDpr = Math.min(_deviceDpr, 2.5);
 const _perfMinDpr = 1.0;
@@ -1079,8 +1065,6 @@ function optimizeMeshForRender(mesh) {
   mesh.castShadow = false;
   mesh.receiveShadow = false;
   mesh.frustumCulled = true;
-  // Los meshes marcados con skipOpacityForce mantienen su material original
-  // (por ejemplo el panel translúcido del cerco que necesita DoubleSide).
   if (mesh.userData && mesh.userData.skipOpacityForce) return;
   if (mesh.material) {
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
@@ -1113,13 +1097,14 @@ function disableShadows(obj) {
   });
 }
 
-/* ─────────────── SUELO ─────────────── */
-const grass = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1), cachedMat(0x6ab04c));
-grass.rotation.x = -Math.PI / 2;
-grass.receiveShadow = false;
-scene.add(grass);
+/* ─────────────── SUELO (sin pasto, concreto total) ─────────────── */
+// Se eliminó el plano de pasto para optimizar. Todo el terreno es concreto.
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1), cachedMat(0x8a8578, { flatShading: false }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = false;
+scene.add(ground);
 
-const concretePad = new THREE.Mesh(new THREE.PlaneGeometry(112, 108), cachedMat(0x8a8578, { flatShading: false }));
+const concretePad = new THREE.Mesh(new THREE.PlaneGeometry(112, 108), cachedMat(0x9a9080, { flatShading: false }));
 concretePad.rotation.x = -Math.PI / 2;
 concretePad.position.y = 0.02;
 concretePad.receiveShadow = false;
@@ -1680,14 +1665,49 @@ function throwGrenade() {
   mesh.position.copy(camera.position).addScaledVector(dir, 0.7);
   mesh.position.y -= 0.15;
   const vel = dir.clone().multiplyScalar(17); vel.y += 5.0;
+  const gid = 'g_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
   grenades.push({
+    id: gid,
     mesh, vel,
     spin: new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12),
-    fuse: GRENADE_FUSE
+    fuse: GRENADE_FUSE,
+    remote: false
   });
   scene.add(mesh);
   grenadeViewTimer = GRENADE_VIEW_DUR;
   playThrowSound();
+
+  // Sincronizar granada con los demás jugadores
+  if (onlineMode) {
+    set(ref(db, `rooms/${ROOM}/grenades/${gid}`), {
+      x: +mesh.position.x.toFixed(2),
+      y: +mesh.position.y.toFixed(2),
+      z: +mesh.position.z.toFixed(2),
+      vx: +vel.x.toFixed(2),
+      vy: +vel.y.toFixed(2),
+      vz: +vel.z.toFixed(2),
+      from: playerId,
+      ts: Date.now()
+    }).catch(() => {});
+  }
+}
+
+// Recibir granadas lanzadas por otros jugadores
+function spawnRemoteGrenade(g) {
+  if (!g || typeof g.x !== 'number') return;
+  // Ignorar granadas muy viejas
+  if (g.ts && (Date.now() - g.ts) > 6000) return;
+  const mesh = buildGrenadeModel({ withHand: false, scale: 1 });
+  mesh.position.set(g.x, g.y, g.z);
+  const vel = new THREE.Vector3(g.vx || 0, g.vy || 0, g.vz || 0);
+  grenades.push({
+    id: 'r_' + Math.random().toString(36).slice(2, 8),
+    mesh, vel,
+    spin: new THREE.Vector3((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12),
+    fuse: GRENADE_FUSE,
+    remote: true
+  });
+  scene.add(mesh);
 }
 
 function updateGrenades(dt) {
@@ -1718,13 +1738,49 @@ function updateGrenades(dt) {
       const pos = g.mesh.position.clone();
       scene.remove(g.mesh);
       grenades.splice(i, 1);
-      explodeGrenade(pos);
+      if (g.remote) {
+        // Granada remota: el burst real vendrá del broadcast "explosions"
+        // del jugador que la lanzó. Solo aplicamos shake local aquí.
+        const d = camera.position.distanceTo(pos);
+        shakeAmount = Math.min(1.0, shakeAmount + Math.max(0, 1 - d / 26) * 0.6);
+      } else {
+        explodeGrenade(pos);
+      }
     }
+  }
+}
+
+/* ═══════════════════════════════════════════
+   MARCAS DE EXPLOSIÓN
+   ═══════════════════════════════════════════ */
+const explosionMarks = [];
+const MAX_EXPLOSION_MARKS = 10;
+const explosionMarkGeo = new THREE.CircleGeometry(2.8, 20);
+const explosionMarkMat = new THREE.MeshBasicMaterial({
+  color: 0x0a0806, transparent: true, opacity: 0.72,
+  depthWrite: false, polygonOffset: true,
+  polygonOffsetFactor: -3, polygonOffsetUnits: -3,
+  side: THREE.DoubleSide
+});
+function spawnExplosionMark(pos) {
+  const mark = new THREE.Mesh(explosionMarkGeo, explosionMarkMat);
+  mark.rotation.x = -Math.PI / 2;
+  mark.position.set(pos.x, 0.04, pos.z);
+  mark.userData.isExplosionMark = true;
+  const s = 0.7 + Math.random() * 0.6;
+  mark.scale.setScalar(s);
+  mark.rotation.z = Math.random() * Math.PI * 2;
+  scene.add(mark);
+  explosionMarks.push(mark);
+  while (explosionMarks.length > MAX_EXPLOSION_MARKS) {
+    const old = explosionMarks.shift();
+    if (old.parent) old.parent.remove(old);
   }
 }
 
 function explodeGrenade(pos) {
   spawnBurst(pos, [0xffdd44, 0xff9a1a, 0xff5511, 0x883300, 0xffffff], 70, 4, 14);
+  spawnExplosionMark(pos);
   const distSelf = camera.position.distanceTo(pos);
   playExplosionSound(distSelf);
   shakeAmount = Math.min(1.3, shakeAmount + Math.max(0, 1 - distSelf / 24) * 1.0);
@@ -2166,9 +2222,6 @@ function createFence(x1, z1, x2, z2) {
   }
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(len, 3.0), mFence);
   panel.position.set(0, 1.55, 0);
-  // El panel translúcido debe conservar su material DoubleSide original.
-  // Sin esta marca, applyOptimizations() lo convertiría a FrontSide y
-  // desaparecería al mirarlo desde el otro lado (muros "sin fondo").
   panel.userData.skipOpacityForce = true;
   g.add(panel);
   const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.08), mRail);
@@ -2651,6 +2704,8 @@ function updateDebug(dt) {
 <span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
+<span class="val">Granadas:</span>  ${grenades.length} activas
+<span class="val">Marcas:</span>    ${bulletHoles.length} balas · ${explosionMarks.length} explosiones
 <span class="val">Vis:</span>       rifle=${weaponRifle.visible?'1':'0'} shot=${weaponShotgun.visible?'1':'0'} pist=${weaponPistol.visible?'1':'0'}
 <span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
 <span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
@@ -2756,8 +2811,10 @@ function updateExplosionParticles(dt) {
   }
 }
 
+/* ─────────────── AGUJEROS DE BALA (cantidad reducida) ─────────────── */
 const bulletHoles = [];
-const MAX_BULLET_HOLES = 80;
+// Reducido de 80 a 25 para optimizar el rendimiento.
+const MAX_BULLET_HOLES = 25;
 const bulletHoleGeo = new THREE.CircleGeometry(0.07, 8);
 const bulletHoleMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, side: THREE.DoubleSide });
 
@@ -2959,6 +3016,7 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
   const hits = raycaster.intersectObjects(scene.children, true);
   for (const hit of hits) {
     if (hit.object.userData.isBulletHole) continue;
+    if (hit.object.userData.isExplosionMark) continue;
     if (isPartOfWeapon(hit.object)) continue;
     if (isPartOfPlayer(hit.object)) continue;
     let normal;
@@ -3622,6 +3680,17 @@ async function initOnline() {
     }
   });
   onValue(ref(db, `rooms/${ROOM}/shots`), snap => handleRemoteShots(snap.val()));
+
+  // ── Granadas remotas ──
+  onChildAdded(ref(db, `rooms/${ROOM}/grenades`), snap => {
+    const g = snap.val();
+    if (!g || typeof g.x !== 'number') return;
+    if (g.from === playerId) return;
+    try { spawnRemoteGrenade(g); } catch (e) {}
+    // Eliminar la entrada tras 8s
+    setTimeout(() => remove(snap.ref).catch(() => {}), 8000);
+  });
+
   const bulletHolesRef = ref(db, `rooms/${ROOM}/bulletHoles`);
   onChildAdded(bulletHolesRef, snap => {
     const h = snap.val();
@@ -3637,6 +3706,7 @@ async function initOnline() {
       const pos = new THREE.Vector3(e.x, e.y, e.z);
       const d = pos.distanceTo(camera.position);
       spawnBurst(pos, [0xffdd44, 0xff9a1a, 0xff5511, 0x883300, 0xffffff], 55, 4, 12);
+      spawnExplosionMark(pos);
       playExplosionSound(d);
       shakeAmount = Math.min(1.0, shakeAmount + Math.max(0, 1 - d / 26) * 0.85);
     }
