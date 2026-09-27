@@ -6,7 +6,8 @@
 <title>Low Poly FPS - Bodega de Contenedores</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
-  body { margin: 0; overflow: hidden; background: #87ceeb; touch-action: none; user-select: none; font-family: system-ui, sans-serif; cursor: none; }
+  html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; touch-action: none; }
+  body { background: #87ceeb; user-select: none; font-family: system-ui, sans-serif; cursor: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   #info { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 14px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; pointer-events: none; text-align: center; transition: opacity 0.4s; padding: 0 12px; }
   #info.hidden { opacity: 0; }
   #hint { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); color: #fff; font: bold 18px system-ui, sans-serif; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 8px 16px; pointer-events: none; text-align: center; display: none; border: 2px solid #fff; }
@@ -227,8 +228,9 @@
   }
   #joystick-zone { position: fixed; left: 0; bottom: 0; width: 50%; height: 55%; display: none; z-index: 9; touch-action: none; }
   #joystick-zone.active { display: block; }
-  #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; }
+  #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; -webkit-user-select: none; user-select: none; }
   #camera-zone.active { display: block; }
+  canvas { touch-action: none; -webkit-user-select: none; user-select: none; }
 
   /* ═══════ BOTONES TÁCTILES (fondo totalmente transparente) ═══════ */
   .btn {
@@ -298,84 +300,139 @@
     border-color: #fff;
     box-shadow: 0 0 20px rgba(120,240,170,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 14px rgba(255,255,255,0.4);
   }
+  #lean-left-btn, #lean-right-btn {
+    width: 64px; height: 64px; font-size: 24px;
+    background: transparent;
+    border-color: rgba(180,215,255,0.78);
+  }
+  #lean-left-btn  { right: 355px; bottom: 56px; }
+  #lean-right-btn { right: 425px; bottom: 56px; }
+  #lean-left-btn.held, #lean-right-btn.held {
+    background: rgba(120,180,255,0.28);
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(100,180,255,0.40), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 14px rgba(255,255,255,0.28);
+  }
 
   /* ═══════ EFECTO VISUAL BODYCAM ═══════ */
   #bodycam-overlay {
     position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0;
     transition: opacity 0.35s ease;
-    overflow: hidden;
     background:
-      radial-gradient(ellipse at center, rgba(0,0,0,0) 43%, rgba(0,0,0,0.10) 66%, rgba(0,0,0,0.34) 100%),
-      linear-gradient(90deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 11%, rgba(0,0,0,0) 23%, rgba(0,0,0,0) 77%, rgba(0,0,0,0.12) 89%, rgba(0,0,0,0.42) 100%),
-      linear-gradient(180deg, rgba(255,255,255,0.018), rgba(0,0,0,0.030));
-    box-shadow: inset 0 0 110px rgba(0,0,0,0.38), inset 0 0 35px rgba(0,0,0,0.28);
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 42%, rgba(0,0,0,0.08) 70%, rgba(0,0,0,0.28) 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.018));
+    box-shadow: inset 0 0 85px rgba(0,0,0,0.20);
     mix-blend-mode: normal;
-  }
-  #bodycam-overlay::before {
-    content: ''; position: absolute; inset: -3%; pointer-events: none;
-    background:
-      radial-gradient(ellipse at 0% 50%, rgba(0,0,0,0.46) 0%, rgba(0,0,0,0.22) 13%, transparent 31%),
-      radial-gradient(ellipse at 100% 50%, rgba(0,0,0,0.46) 0%, rgba(0,0,0,0.22) 13%, transparent 31%),
-      linear-gradient(90deg, rgba(255,40,40,0.035), transparent 16%, transparent 84%, rgba(70,150,255,0.035));
-    filter: blur(0.7px);
-    animation: bodycamWarp 7s ease-in-out infinite alternate;
   }
   #bodycam-overlay::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
-    background:
-      repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 1px, transparent 1px, transparent 4px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,0.009) 0px, rgba(255,255,255,0.009) 1px, transparent 1px, transparent 7px);
-    opacity: 0.30;
-    mix-blend-mode: screen;
-    animation: bodycamScan 0.22s linear infinite;
-  }
-  @keyframes bodycamWarp {
-    0% { transform: translate3d(-0.25%, 0, 0) scale(1.012); }
-    50% { transform: translate3d(0.18%, -0.12%, 0) scale(1.018); }
-    100% { transform: translate3d(0.25%, 0.16%, 0) scale(1.012); }
-  }
-  @keyframes bodycamScan {
-    from { transform: translateY(0); }
-    to { transform: translateY(3px); }
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 4px);
+    opacity: 0.26;
   }
   body.bodycam-active #bodycam-overlay { opacity: 1; }
 
-  /* Inclinación bodycam: solo rota la vista, no desplaza el jugador. */
-  #lean-left-btn, #lean-right-btn {
-    display: none;
-    position: fixed; z-index: 11; touch-action: none; cursor: pointer;
-    width: 64px; height: 64px; border-radius: 50%;
-    align-items: center; justify-content: center;
-    color: #fff; font: 700 24px/1 system-ui, sans-serif;
-    border: 2px solid rgba(255,255,255,0.58);
-    background: rgba(0,0,0,0.10);
-    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-    box-shadow: 0 3px 12px rgba(0,0,0,0.24);
-    user-select: none; -webkit-tap-highlight-color: transparent;
+  /* ═══════ LENTE / DISTORSIÓN BODYCAM ═══════ */
+  #bodycam-overlay {
+    --lean-roll: 0deg;
+    will-change: opacity, transform;
+    transform: scale(1.012);
+    transform-origin: 50% 50%;
+    backdrop-filter: blur(0.45px) saturate(0.92) contrast(1.02);
+    -webkit-backdrop-filter: blur(0.45px) saturate(0.92) contrast(1.02);
   }
-  #lean-left-btn { right: 292px; bottom: 34px; }
-  #lean-right-btn { right: 216px; bottom: 34px; }
-  #lean-left-btn.held, #lean-right-btn.held {
-    background: rgba(255,255,255,0.18); border-color: #fff;
-    box-shadow: 0 0 18px rgba(255,255,255,0.18), inset 0 0 16px rgba(255,255,255,0.10);
+  #bodycam-overlay::before {
+    content: '';
+    position: absolute;
+    inset: -3%;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at center,
+        rgba(0,0,0,0) 46%,
+        rgba(0,0,0,0.055) 61%,
+        rgba(0,0,0,0.18) 74%,
+        rgba(0,0,0,0.42) 88%,
+        rgba(0,0,0,0.72) 101%),
+      linear-gradient(90deg,
+        rgba(0,0,0,0.50) 0%,
+        rgba(0,0,0,0.20) 8%,
+        transparent 19%,
+        transparent 81%,
+        rgba(0,0,0,0.20) 92%,
+        rgba(0,0,0,0.50) 100%);
+    filter: blur(1.2px);
+    opacity: 0.92;
   }
-  .btn.active { display: flex; }
-  body.is-touch #lean-left-btn, body.is-touch #lean-right-btn {
-    width: 68px; height: 68px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px);
+  #bodycam-overlay::after {
+    background:
+      repeating-linear-gradient(0deg,
+        rgba(255,255,255,0.020) 0px,
+        rgba(255,255,255,0.020) 1px,
+        transparent 1px,
+        transparent 4px),
+      linear-gradient(90deg,
+        rgba(80,130,170,0.055),
+        transparent 8%,
+        transparent 92%,
+        rgba(170,100,90,0.055));
+    opacity: 0.34;
+    filter: blur(0.15px);
   }
-  body.is-touch #lean-left-btn { right: calc(env(safe-area-inset-right, 0px) + 268px); }
-  body.is-touch #lean-right-btn { right: calc(env(safe-area-inset-right, 0px) + 192px); }
+  body.bodycam-active #bodycam-overlay {
+    animation: bodycamLensBreath 5.5s ease-in-out infinite;
+  }
+  @keyframes bodycamLensBreath {
+    0%, 100% { transform: scale(1.012); }
+    50%      { transform: scale(1.017); }
+  }
+  #bodycam-overlay .bodycam-edge-glow {
+    position: absolute;
+    top: -8%;
+    bottom: -8%;
+    width: 18%;
+    pointer-events: none;
+    filter: blur(8px);
+    opacity: 0.30;
+  }
+  #bodycam-overlay .bodycam-edge-glow.left {
+    left: -7%;
+    background: radial-gradient(ellipse at 100% 50%, rgba(0,0,0,0.42), transparent 72%);
+  }
+  #bodycam-overlay .bodycam-edge-glow.right {
+    right: -7%;
+    background: radial-gradient(ellipse at 0% 50%, rgba(0,0,0,0.42), transparent 72%);
+  }
 
-  body.touch-edit-mode #lean-left-btn,
-  body.touch-edit-mode #lean-right-btn {
-    display: flex !important; pointer-events: auto !important; z-index: 510 !important;
-    opacity: 1 !important; outline: 2px dashed rgba(255,217,61,0.9); outline-offset: 2px;
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.4), 0 0 22px rgba(255,217,61,0.28);
-    animation: editPulse 1.8s ease-in-out infinite; transition: none !important;
+  /* Distorsión óptica más visible: curvatura/sensación de lente y aberración cromática en los bordes. */
+  #bodycam-overlay::before {
+    mix-blend-mode: multiply;
   }
-
-  /* Filtro óptico leve para a distorsión da lente bodycam. */
-  body.bodycam-active #game-canvas { filter: url(#bodycamDistortion); }
+  #bodycam-overlay::after {
+    background:
+      repeating-linear-gradient(0deg,
+        rgba(255,255,255,0.026) 0px,
+        rgba(255,255,255,0.026) 1px,
+        transparent 1px,
+        transparent 4px),
+      linear-gradient(90deg,
+        rgba(255,45,45,0.10) 0%,
+        rgba(90,150,220,0.04) 7%,
+        transparent 15%,
+        transparent 85%,
+        rgba(90,150,220,0.04) 93%,
+        rgba(45,120,255,0.11) 100%),
+      radial-gradient(ellipse at center,
+        transparent 50%,
+        rgba(0,0,0,0.10) 72%,
+        rgba(0,0,0,0.22) 100%);
+    opacity: 0.52;
+    filter: blur(0.22px);
+  }
+  .game-renderer {
+    transform: scale(1.006);
+    transform-origin: center center;
+  }
+  body.bodycam-active .game-renderer {
+    filter: url(#bodycamLensDistortion) saturate(0.98) contrast(1.035);
+  }
 
   #debug-btn {
     top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
@@ -425,6 +482,8 @@
 
   body.is-touch #grenade-btn { right: 200px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 26px; }
   body.is-touch #crouch-btn { right: 275px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 24px; }
+  body.is-touch #lean-left-btn  { right: calc(env(safe-area-inset-right, 0px) + 280px); bottom: calc(env(safe-area-inset-bottom, 0px) + 120px); width: 62px; height: 62px; font-size: 22px; }
+  body.is-touch #lean-right-btn { right: calc(env(safe-area-inset-right, 0px) + 350px); bottom: calc(env(safe-area-inset-bottom, 0px) + 120px); width: 62px; height: 62px; font-size: 22px; }
   body.is-touch #joystick { left: calc(env(safe-area-inset-left, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); width: 110px; height: 110px; }
   body.is-touch #stick { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   body.is-touch #shoot-btn { right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); width: 88px; height: 88px; font-size: 34px; }
@@ -502,6 +561,8 @@
   body.touch-edit-mode #swap-btn,
   body.touch-edit-mode #grenade-btn,
   body.touch-edit-mode #crouch-btn,
+  body.touch-edit-mode #lean-left-btn,
+  body.touch-edit-mode #lean-right-btn,
   body.touch-edit-mode #debug-btn {
     display: flex !important;
     pointer-events: auto !important;
@@ -523,6 +584,8 @@
   body.touch-edit-mode #swap-btn::after,
   body.touch-edit-mode #grenade-btn::after,
   body.touch-edit-mode #crouch-btn::after,
+  body.touch-edit-mode #lean-left-btn::after,
+  body.touch-edit-mode #lean-right-btn::after,
   body.touch-edit-mode #debug-btn::after {
     content: '';
     position: absolute;
@@ -598,7 +661,7 @@
   </div>
 </div>
 
-<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · Z/X: inclinar · F3: debug</div>
+<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
 <div id="click-overlay">
@@ -608,7 +671,7 @@
       Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
       <span class="key">Click der</span> apuntar · <span class="key">R</span> recargar ·
       <span class="key">Q</span> cambiar arma · <span class="key">G</span> granada ·
-      <span class="key">C</span> agacharse/deslizar · <span class="key">Z/X</span> inclinar · <span class="key">ESC</span> liberar ratón
+      <span class="key">C</span> agacharse/deslizar · <span class="key">ESC</span> liberar ratón
     </div>
   </div>
 </div>
@@ -617,15 +680,16 @@
   <div class="death-sub">— FIN DE LA PARTIDA —</div>
   <button id="respawn-btn">REAPARECER</button>
 </div>
-<svg width="0" height="0" aria-hidden="true" style="position:fixed;pointer-events:none;opacity:0">
-  <filter id="bodycamDistortion" x="-3%" y="-3%" width="106%" height="106%">
-    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.035" numOctaves="1" seed="7" result="noise">
-      <animate attributeName="baseFrequency" dur="4.5s" values="0.012 0.035;0.016 0.032;0.012 0.035" repeatCount="indefinite" />
-    </feTurbulence>
-    <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G" />
+<svg id="bodycam-filter-defs" width="0" height="0" viewBox="0 0 1 1" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none">
+  <filter id="bodycamLensDistortion" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.010 0.016" numOctaves="2" seed="17" result="lensNoise"/>
+    <feDisplacementMap in="SourceGraphic" in2="lensNoise" scale="3.8" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
-<div id="bodycam-overlay" aria-hidden="true"></div>
+<div id="bodycam-overlay" aria-hidden="true">
+  <div class="bodycam-edge-glow left"></div>
+  <div class="bodycam-edge-glow right"></div>
+</div>
 <div id="damage-overlay"></div>
 <div id="minimap-wrap"><canvas id="minimap" width="150" height="150"></canvas></div>
 <div id="health-wrap">
@@ -655,8 +719,8 @@
 <div id="swap-btn" class="btn">🔄</div>
 <div id="grenade-btn" class="btn">💣</div>
 <div id="crouch-btn" class="btn">⬇</div>
-<div id="lean-left-btn" class="btn" aria-label="Inclinar izquierda">↖</div>
-<div id="lean-right-btn" class="btn" aria-label="Inclinar derecha">↗</div>
+<div id="lean-left-btn" class="btn" aria-label="Inclinar izquierda">↶</div>
+<div id="lean-right-btn" class="btn" aria-label="Inclinar derecha">↷</div>
 <div id="debug-btn" class="btn">🐞</div>
 
 <script type="importmap">
@@ -1095,7 +1159,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.sortObjects = true;
-renderer.domElement.id = 'game-canvas';
+renderer.domElement.classList.add('game-renderer');
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -2461,6 +2525,34 @@ function startSlide(ix, iz) {
   if (onlineMode) sendLocalPlayerState(true);
 }
 
+/* ─────────────── INCLINACIÓN BODYCAM ─────────────── */
+let leanLeftHeld = false;
+let leanRightHeld = false;
+let leanCurrent = 0;
+const LEAN_MAX = 0.155;
+const LEAN_SHIFT = 0.055;
+const LEAN_HEIGHT = 0.018;
+function getLeanTarget() {
+  // Corregido: el signo se invierte para que izquierda/derecha
+  // coincidan visualmente con el lado hacia el que se inclina la cabeza.
+  if (leanLeftHeld && !leanRightHeld) return 1;
+  if (leanRightHeld && !leanLeftHeld) return -1;
+  return 0;
+}
+function setLeanHeld(side, held) {
+  if (side < 0) leanLeftHeld = held;
+  else leanRightHeld = held;
+  const leftEl = document.getElementById('lean-left-btn');
+  const rightEl = document.getElementById('lean-right-btn');
+  if (leftEl) leftEl.classList.toggle('held', leanLeftHeld);
+  if (rightEl) rightEl.classList.toggle('held', leanRightHeld);
+}
+function releaseLeanButtons() {
+  setLeanHeld(-1, false);
+  setLeanHeld(1, false);
+  leanCurrent = 0;
+}
+
 /* ─────────────── CONTROLES ─────────────── */
 const keys = {};
 addEventListener('keydown', e => {
@@ -2469,9 +2561,8 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyR' && !e.repeat && !playerDead) startReload();
   if (e.code === 'KeyQ' && !e.repeat && !playerDead) swapWeapon();
   if (e.code === 'KeyG' && !e.repeat && !playerDead) throwGrenade();
-  if ((e.code === 'KeyZ' || e.code === 'KeyX') && !playerDead) {
-    e.preventDefault();
-  }
+  if (e.code === 'KeyZ' && !playerDead) setLeanHeld(-1, true);
+  if (e.code === 'KeyX' && !playerDead) setLeanHeld(1, true);
   if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon(playerLoadout.primary);
   if (e.code === 'Digit2' && !e.repeat && !playerDead) selectWeapon('pistol');
   if ((e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') && !e.repeat && !playerDead) {
@@ -2488,6 +2579,8 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => {
   keys[e.code] = false;
+  if (e.code === 'KeyZ') setLeanHeld(-1, false);
+  if (e.code === 'KeyX') setLeanHeld(1, false);
 });
 
 const joystick = document.getElementById('joystick');
@@ -2501,6 +2594,8 @@ const cameraZone = document.getElementById('camera-zone');
 const debugPanel = document.getElementById('debug');
 const shootBtn = document.getElementById('shoot-btn');
 const aimBtn = document.getElementById('aim-btn');
+const leanLeftBtn = document.getElementById('lean-left-btn');
+const leanRightBtn = document.getElementById('lean-right-btn');
 const crosshair = document.getElementById('crosshair');
 const clickOverlay = document.getElementById('click-overlay');
 
@@ -2573,33 +2668,6 @@ swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDe
 debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
 grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); throwGrenade(); });
 
-const leanLeftBtn = document.getElementById('lean-left-btn');
-const leanRightBtn = document.getElementById('lean-right-btn');
-function setLeanKey(code, held, e) {
-  if (e) { e.preventDefault(); e.stopPropagation(); }
-  keys[code] = held;
-  const el = code === 'KeyZ' ? leanLeftBtn : leanRightBtn;
-  if (el) el.classList.toggle('held', held);
-}
-function releaseLeanButtons() {
-  keys['KeyZ'] = false; keys['KeyX'] = false;
-  leanInput = 0;
-  if (leanLeftBtn) leanLeftBtn.classList.remove('held');
-  if (leanRightBtn) leanRightBtn.classList.remove('held');
-}
-function bindLeanButton(el, code) {
-  if (!el) return;
-  el.addEventListener('pointerdown', e => {
-    if (playerDead || !gameMode) return;
-    setLeanKey(code, true, e);
-  });
-  ['pointerup','pointercancel','pointerleave'].forEach(type => {
-    el.addEventListener(type, e => setLeanKey(code, false, e));
-  });
-}
-bindLeanButton(leanLeftBtn, 'KeyZ');
-bindLeanButton(leanRightBtn, 'KeyX');
-
 crouchBtn.addEventListener('pointerdown', e => {
   e.preventDefault();
   if (playerDead || !gameMode) return;
@@ -2625,6 +2693,29 @@ shootBtn.addEventListener('pointercancel',e => { shootHeld = false; });
 function setAiming(v) { aiming = v; aimBtn.classList.toggle('held', aiming); }
 aimBtn.addEventListener('pointerdown', e => { e.preventDefault(); setAiming(!aiming); });
 aimBtn.addEventListener('click', e => e.preventDefault());
+
+function bindLeanTouchButton(el, side) {
+  if (!el) return;
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (playerDead || !gameMode) return;
+    setLeanHeld(side, true);
+  });
+  const release = e => {
+    e.preventDefault();
+    setLeanHeld(side, false);
+  };
+  el.addEventListener('pointerup', release);
+  el.addEventListener('pointercancel', release);
+  el.addEventListener('pointerleave', release);
+  el.addEventListener('lostpointercapture', release);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
+bindLeanTouchButton(leanLeftBtn, -1);
+bindLeanTouchButton(leanRightBtn, 1);
+window.addEventListener('blur', releaseLeanButtons);
+window.addEventListener('pagehide', releaseLeanButtons);
 
 /* ─────────────── POINTER LOCK ─────────────── */
 let pointerLocked = false;
@@ -2672,35 +2763,56 @@ document.addEventListener('mouseup', e => {
 
 let cameraTouchId = null;
 let lastTouchX = 0, lastTouchY = 0;
-addEventListener('touchstart', e => {
+function startCameraTouch(e) {
   initAudio();
-  if (playerDead) return;
+  if (playerDead || !gameMode || editMode) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (cameraTouchId !== null) return;
   for (const t of e.changedTouches) {
     if (t.identifier === joystickActiveId) continue;
     if (isPointInJoystick(t.clientX, t.clientY, 60)) continue;
-    if (cameraTouchId === null) { cameraTouchId = t.identifier; lastTouchX = t.clientX; lastTouchY = t.clientY; }
+    cameraTouchId = t.identifier;
+    lastTouchX = t.clientX;
+    lastTouchY = t.clientY;
+    break;
   }
-}, { passive: true });
-addEventListener('touchmove', e => {
-  if (cameraTouchId === null || playerDead) return;
+}
+function moveCameraTouch(e) {
+  if (cameraTouchId === null || playerDead || !gameMode || editMode) return;
+  e.preventDefault();
+  e.stopPropagation();
   for (const t of e.changedTouches) {
     if (t.identifier === cameraTouchId) {
-      e.preventDefault();
       const dx = t.clientX - lastTouchX, dy = t.clientY - lastTouchY;
       lastTouchX = t.clientX; lastTouchY = t.clientY;
       const sens = aiming ? 0.003 : 0.005;
       cameraYaw -= dx * sens;
       cameraPitch += dy * sens;
       cameraPitch = Math.max(FP_PITCH_MIN, Math.min(FP_PITCH_MAX, cameraPitch));
+      break;
     }
   }
-}, { passive: false });
+}
 function handleCamEnd(e) {
   if (cameraTouchId === null) return;
-  for (const t of e.changedTouches) { if (t.identifier === cameraTouchId) cameraTouchId = null; }
+  for (const t of e.changedTouches) {
+    if (t.identifier === cameraTouchId) {
+      cameraTouchId = null;
+      break;
+    }
+  }
 }
-addEventListener('touchend', handleCamEnd);
-addEventListener('touchcancel', handleCamEnd);
+cameraZone.addEventListener('touchstart', startCameraTouch, { passive: false });
+cameraZone.addEventListener('touchmove', moveCameraTouch, { passive: false });
+cameraZone.addEventListener('touchend', handleCamEnd, { passive: false });
+cameraZone.addEventListener('touchcancel', handleCamEnd, { passive: false });
+cameraZone.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+cameraZone.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+cameraZone.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
+document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
+document.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
 
 /* ─────────────── DEBUG ─────────────── */
 let debugEnabled = false;
@@ -2732,10 +2844,6 @@ function updateDebug(dt) {
 
 /* ─────────────── CÁMARA ─────────────── */
 let cameraYaw = 0, cameraPitch = 0;
-let leanInput = 0;
-let leanAmount = 0;
-const LEAN_MAX_ROLL = 0.13;
-const LEAN_MAX_SHIFT = 0.055;
 let bobOffset = 0, shakeAmount = 0, hintTimer = 0;
 let weaponWalkPhase = 0;
 let weaponMoveBlend = 0;
@@ -2950,7 +3058,6 @@ function respawnPlayer() {
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
   bodycamRoll = 0; bodycamPitch = 0; bodycamSide = 0; bodycamForward = 0;
-  leanInput = 0; leanAmount = 0;
   releaseLeanButtons();
   bodycamInitialized = false;
   sliding = false; slideTimer = 0; slideSpeed = 0;
@@ -3236,13 +3343,16 @@ function updateCamera(dt) {
   const eyeZ = player.position.z;
 
   camera.position.set(eyeX, eyeY, eyeZ);
-  const cosP = Math.cos(cameraPitch), sinP = Math.sin(cameraPitch);
-  const lookX = -Math.sin(cameraYaw) * cosP, lookY = -sinP, lookZ = -Math.cos(cameraYaw) * cosP;
-  camera.lookAt(eyeX + lookX, eyeY + lookY, eyeZ + lookZ);
+  // Fijamos el orden YXZ para separar correctamente giro, mirada vertical
+  // e inclinación. Así girar la cámara a izquierda/derecha nunca produce
+  // un roll accidental de toda la imagen.
+  camera.rotation.order = 'YXZ';
+  camera.rotation.set(-cameraPitch, cameraYaw, 0, 'YXZ');
 
   /*
-   * BODYCAM: balanceo visual suave. La inclinación manual solo gira la vista
-   * y hace un micro-desplazamiento para dar sensación de peso, sin mover al jugador.
+   * BODYCAM: efecto visual únicamente. No desplaza el punto de vista
+   * lateralmente ni altera el control del ratón. La cámara gana una
+   * pequeña inercia/rotación de muñeca para sentirse como una bodycam.
    */
   bodycamTime += dt;
   if (!bodycamInitialized) {
@@ -3269,10 +3379,12 @@ function updateCamera(dt) {
   const walkWave2 = Math.sin(bodycamTime * (4.1 + speed) + 1.7);
   const idleWave = Math.sin(bodycamTime * 1.55) * 0.0025;
 
+  // Balanceo visual muy ligero. No usamos el desplazamiento lateral
+  // relativo a la cámara para el roll: al girar la vista no se inclina
+  // accidentalmente toda la escena.
   const targetRoll =
-    THREE.MathUtils.clamp(-bodycamSide * 0.0105, -0.045, 0.045) +
-    walkWave * 0.0042 * speed +
-    walkWave2 * 0.0018 * speed +
+    walkWave * 0.0028 * speed +
+    walkWave2 * 0.0012 * speed +
     idleWave * (1 - speed);
 
   const targetMicroPitch =
@@ -3282,13 +3394,30 @@ function updateCamera(dt) {
   bodycamRoll += (targetRoll - bodycamRoll) * Math.min(1, dt * 7.5);
   bodycamPitch += (targetMicroPitch - bodycamPitch) * Math.min(1, dt * 7);
 
-  const manualLeanTarget =
-    (keys['KeyZ'] ? 1 : 0) + (keys['KeyX'] ? -1 : 0);
-  leanInput += (manualLeanTarget - leanInput) * Math.min(1, dt * 12);
-  leanAmount += (leanInput - leanAmount) * Math.min(1, dt * 10);
+  /* INCLINACIÓN: efecto de cámara tipo FPS/bodycam, suave y local.
+     No cambia la orientación del personaje ni el movimiento del jugador. */
+  const leanTarget = playerDead ? 0 : getLeanTarget();
+  leanCurrent += (leanTarget - leanCurrent) * Math.min(1, dt * 12);
+  const leanRoll = leanCurrent * LEAN_MAX;
+  const leanSide = leanCurrent * LEAN_SHIFT;
+  const leanVertical = Math.abs(leanCurrent) * LEAN_HEIGHT;
 
-  camera.rotateZ(bodycamRoll + leanAmount * LEAN_MAX_ROLL);
-  camera.rotateX(bodycamPitch);
+  // Pequeño desplazamiento local acompañado por el roll para que se sienta
+  // como una inclinación física de la cámara y no como un strafe.
+  const localRightX = Math.cos(cameraYaw);
+  const localRightZ = -Math.sin(cameraYaw);
+  camera.position.x += localRightX * leanSide;
+  camera.position.z += localRightZ * leanSide;
+  camera.position.y -= leanVertical;
+
+  // El roll se aplica explícitamente sobre el eje Z de la cámara.
+  // Esto hace que la inclinación sea predecible y no dependa del yaw/pitch.
+  camera.rotation.z = bodycamRoll + leanRoll;
+  camera.rotation.x += -bodycamPitch;
+
+  // El overlay óptico permanece fijo: la viñeta/distorsión no gira con la vista.
+  const bodycamOverlay = document.getElementById('bodycam-overlay');
+  if (bodycamOverlay) bodycamOverlay.style.setProperty('--lean-roll', '0deg');
 
   if (shakeAmount > 0.001) {
     camera.position.x += (Math.random() - 0.5) * shakeAmount * 0.20;
@@ -4123,15 +4252,15 @@ const DEFAULT_TOUCH_CONFIG = {
   'swap-btn':    { cx: 0.72, cy: 0.80, size: 68 },
   'grenade-btn': { cx: 0.42, cy: 0.90, size: 68 },
   'crouch-btn':     { cx: 0.25, cy: 0.90, size: 68 },
-  'lean-left-btn':  { cx: 0.59, cy: 0.91, size: 68 },
-  'lean-right-btn': { cx: 0.67, cy: 0.91, size: 68 },
+  'lean-left-btn':  { cx: 0.56, cy: 0.82, size: 62 },
+  'lean-right-btn': { cx: 0.65, cy: 0.82, size: 62 },
   'debug-btn':      { cx: 0.91, cy: 0.05, size: 50 }
 };
 
 const BASE_FONT_SIZES = {
   'shoot-btn': 34, 'aim-btn': 26, 'jump-btn': 11,
   'swap-btn': 22, 'grenade-btn': 26, 'crouch-btn': 24,
-  'lean-left-btn': 24, 'lean-right-btn': 24,
+  'lean-left-btn': 22, 'lean-right-btn': 22,
 };
 
 const TOUCH_CONFIG_KEY = 'lp_touch_controls_v2';
@@ -4243,6 +4372,12 @@ function closeControlsEditor(save) {
   for (const id of TOUCH_CONTROLS) {
     const el = document.getElementById(id);
     if (el) el.classList.remove('active');
+  }
+  if (isTouch && gameMode && !menuActive && !playerDead) {
+    for (const id of TOUCH_CONTROLS) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
   }
   if (save) saveTouchConfigRaw(touchConfig);
   else initTouchConfig();
