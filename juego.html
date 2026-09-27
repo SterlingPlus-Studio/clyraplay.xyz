@@ -298,6 +298,85 @@
     border-color: #fff;
     box-shadow: 0 0 20px rgba(120,240,170,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 14px rgba(255,255,255,0.4);
   }
+
+  /* ═══════ EFECTO VISUAL BODYCAM ═══════ */
+  #bodycam-overlay {
+    position: fixed; inset: 0; z-index: 14; pointer-events: none; opacity: 0;
+    transition: opacity 0.35s ease;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 43%, rgba(0,0,0,0.10) 66%, rgba(0,0,0,0.34) 100%),
+      linear-gradient(90deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 11%, rgba(0,0,0,0) 23%, rgba(0,0,0,0) 77%, rgba(0,0,0,0.12) 89%, rgba(0,0,0,0.42) 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.018), rgba(0,0,0,0.030));
+    box-shadow: inset 0 0 110px rgba(0,0,0,0.38), inset 0 0 35px rgba(0,0,0,0.28);
+    mix-blend-mode: normal;
+  }
+  #bodycam-overlay::before {
+    content: ''; position: absolute; inset: -3%; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 0% 50%, rgba(0,0,0,0.46) 0%, rgba(0,0,0,0.22) 13%, transparent 31%),
+      radial-gradient(ellipse at 100% 50%, rgba(0,0,0,0.46) 0%, rgba(0,0,0,0.22) 13%, transparent 31%),
+      linear-gradient(90deg, rgba(255,40,40,0.035), transparent 16%, transparent 84%, rgba(70,150,255,0.035));
+    filter: blur(0.7px);
+    animation: bodycamWarp 7s ease-in-out infinite alternate;
+  }
+  #bodycam-overlay::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 1px, transparent 1px, transparent 4px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.009) 0px, rgba(255,255,255,0.009) 1px, transparent 1px, transparent 7px);
+    opacity: 0.30;
+    mix-blend-mode: screen;
+    animation: bodycamScan 0.22s linear infinite;
+  }
+  @keyframes bodycamWarp {
+    0% { transform: translate3d(-0.25%, 0, 0) scale(1.012); }
+    50% { transform: translate3d(0.18%, -0.12%, 0) scale(1.018); }
+    100% { transform: translate3d(0.25%, 0.16%, 0) scale(1.012); }
+  }
+  @keyframes bodycamScan {
+    from { transform: translateY(0); }
+    to { transform: translateY(3px); }
+  }
+  body.bodycam-active #bodycam-overlay { opacity: 1; }
+
+  /* Inclinación bodycam: solo rota la vista, no desplaza el jugador. */
+  #lean-left-btn, #lean-right-btn {
+    display: none;
+    position: fixed; z-index: 11; touch-action: none; cursor: pointer;
+    width: 64px; height: 64px; border-radius: 50%;
+    align-items: center; justify-content: center;
+    color: #fff; font: 700 24px/1 system-ui, sans-serif;
+    border: 2px solid rgba(255,255,255,0.58);
+    background: rgba(0,0,0,0.10);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.24);
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  #lean-left-btn { right: 292px; bottom: 34px; }
+  #lean-right-btn { right: 216px; bottom: 34px; }
+  #lean-left-btn.held, #lean-right-btn.held {
+    background: rgba(255,255,255,0.18); border-color: #fff;
+    box-shadow: 0 0 18px rgba(255,255,255,0.18), inset 0 0 16px rgba(255,255,255,0.10);
+  }
+  .btn.active { display: flex; }
+  body.is-touch #lean-left-btn, body.is-touch #lean-right-btn {
+    width: 68px; height: 68px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px);
+  }
+  body.is-touch #lean-left-btn { right: calc(env(safe-area-inset-right, 0px) + 268px); }
+  body.is-touch #lean-right-btn { right: calc(env(safe-area-inset-right, 0px) + 192px); }
+
+  body.touch-edit-mode #lean-left-btn,
+  body.touch-edit-mode #lean-right-btn {
+    display: flex !important; pointer-events: auto !important; z-index: 510 !important;
+    opacity: 1 !important; outline: 2px dashed rgba(255,217,61,0.9); outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.4), 0 0 22px rgba(255,217,61,0.28);
+    animation: editPulse 1.8s ease-in-out infinite; transition: none !important;
+  }
+
+  /* Filtro óptico leve para a distorsión da lente bodycam. */
+  body.bodycam-active #game-canvas { filter: url(#bodycamDistortion); }
+
   #debug-btn {
     top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
     background: transparent;
@@ -360,8 +439,7 @@
   body.in-menu #info,
   body.in-menu #crosshair,
   body.in-menu #online-panel,
-  body.in-menu #debug { display: none !important; }
-
+  body.in-menu #debug,
   /* ═══════ CONFIGURACIÓN DE CONTROLES TÁCTILES ═══════ */
   .config-btn {
     display: none;
@@ -520,7 +598,7 @@
   </div>
 </div>
 
-<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
+<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · Z/X: inclinar · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
 <div id="click-overlay">
@@ -530,7 +608,7 @@
       Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
       <span class="key">Click der</span> apuntar · <span class="key">R</span> recargar ·
       <span class="key">Q</span> cambiar arma · <span class="key">G</span> granada ·
-      <span class="key">C</span> agacharse/deslizar · <span class="key">ESC</span> liberar ratón
+      <span class="key">C</span> agacharse/deslizar · <span class="key">Z/X</span> inclinar · <span class="key">ESC</span> liberar ratón
     </div>
   </div>
 </div>
@@ -539,6 +617,15 @@
   <div class="death-sub">— FIN DE LA PARTIDA —</div>
   <button id="respawn-btn">REAPARECER</button>
 </div>
+<svg width="0" height="0" aria-hidden="true" style="position:fixed;pointer-events:none;opacity:0">
+  <filter id="bodycamDistortion" x="-3%" y="-3%" width="106%" height="106%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.035" numOctaves="1" seed="7" result="noise">
+      <animate attributeName="baseFrequency" dur="4.5s" values="0.012 0.035;0.016 0.032;0.012 0.035" repeatCount="indefinite" />
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+</svg>
+<div id="bodycam-overlay" aria-hidden="true"></div>
 <div id="damage-overlay"></div>
 <div id="minimap-wrap"><canvas id="minimap" width="150" height="150"></canvas></div>
 <div id="health-wrap">
@@ -568,6 +655,8 @@
 <div id="swap-btn" class="btn">🔄</div>
 <div id="grenade-btn" class="btn">💣</div>
 <div id="crouch-btn" class="btn">⬇</div>
+<div id="lean-left-btn" class="btn" aria-label="Inclinar izquierda">↖</div>
+<div id="lean-right-btn" class="btn" aria-label="Inclinar derecha">↗</div>
 <div id="debug-btn" class="btn">🐞</div>
 
 <script type="importmap">
@@ -1006,6 +1095,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.sortObjects = true;
+renderer.domElement.id = 'game-canvas';
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -2379,6 +2469,9 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyR' && !e.repeat && !playerDead) startReload();
   if (e.code === 'KeyQ' && !e.repeat && !playerDead) swapWeapon();
   if (e.code === 'KeyG' && !e.repeat && !playerDead) throwGrenade();
+  if ((e.code === 'KeyZ' || e.code === 'KeyX') && !playerDead) {
+    e.preventDefault();
+  }
   if (e.code === 'Digit1' && !e.repeat && !playerDead) selectWeapon(playerLoadout.primary);
   if (e.code === 'Digit2' && !e.repeat && !playerDead) selectWeapon('pistol');
   if ((e.code === 'ControlLeft' || e.code === 'ControlRight' || e.code === 'KeyC') && !e.repeat && !playerDead) {
@@ -2393,7 +2486,9 @@ addEventListener('keydown', e => {
   }
   if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
 });
-addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('keyup', e => {
+  keys[e.code] = false;
+});
 
 const joystick = document.getElementById('joystick');
 const joystickZone = document.getElementById('joystick-zone');
@@ -2478,6 +2573,33 @@ swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDe
 debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
 grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); throwGrenade(); });
 
+const leanLeftBtn = document.getElementById('lean-left-btn');
+const leanRightBtn = document.getElementById('lean-right-btn');
+function setLeanKey(code, held, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  keys[code] = held;
+  const el = code === 'KeyZ' ? leanLeftBtn : leanRightBtn;
+  if (el) el.classList.toggle('held', held);
+}
+function releaseLeanButtons() {
+  keys['KeyZ'] = false; keys['KeyX'] = false;
+  leanInput = 0;
+  if (leanLeftBtn) leanLeftBtn.classList.remove('held');
+  if (leanRightBtn) leanRightBtn.classList.remove('held');
+}
+function bindLeanButton(el, code) {
+  if (!el) return;
+  el.addEventListener('pointerdown', e => {
+    if (playerDead || !gameMode) return;
+    setLeanKey(code, true, e);
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(type => {
+    el.addEventListener(type, e => setLeanKey(code, false, e));
+  });
+}
+bindLeanButton(leanLeftBtn, 'KeyZ');
+bindLeanButton(leanRightBtn, 'KeyX');
+
 crouchBtn.addEventListener('pointerdown', e => {
   e.preventDefault();
   if (playerDead || !gameMode) return;
@@ -2523,6 +2645,7 @@ renderer.domElement.addEventListener('click', () => {
 });
 document.addEventListener('pointerlockchange', () => {
   pointerLocked = document.pointerLockElement === renderer.domElement;
+  if (!pointerLocked) releaseLeanButtons();
   if (!pointerLocked && !isTouch && !playerDead && gameMode && !menuActive) {
     clickOverlay.classList.add('active');
     document.body.style.cursor = 'default';
@@ -2609,6 +2732,10 @@ function updateDebug(dt) {
 
 /* ─────────────── CÁMARA ─────────────── */
 let cameraYaw = 0, cameraPitch = 0;
+let leanInput = 0;
+let leanAmount = 0;
+const LEAN_MAX_ROLL = 0.13;
+const LEAN_MAX_SHIFT = 0.055;
 let bobOffset = 0, shakeAmount = 0, hintTimer = 0;
 let weaponWalkPhase = 0;
 let weaponMoveBlend = 0;
@@ -2822,6 +2949,10 @@ function respawnPlayer() {
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
+  bodycamRoll = 0; bodycamPitch = 0; bodycamSide = 0; bodycamForward = 0;
+  leanInput = 0; leanAmount = 0;
+  releaseLeanButtons();
+  bodycamInitialized = false;
   sliding = false; slideTimer = 0; slideSpeed = 0;
   crouching = false; crouchKeyHeld = false;
   currentEyeHeight = STAND_EYE_HEIGHT;
@@ -3080,26 +3211,89 @@ function updatePlayer(dt) {
   if (ws.cooldown > 0) ws.cooldown -= dt;
 }
 
+let bodycamTime = 0;
+let bodycamPrevX = 0;
+let bodycamPrevZ = 0;
+let bodycamSide = 0;
+let bodycamForward = 0;
+let bodycamRoll = 0;
+let bodycamPitch = 0;
+let bodycamInitialized = false;
+
 function updateCamera(dt) {
   const def = curWepDef();
   const desiredFov = aiming ? def.aimFov : BASE_FOV;
   camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 10);
   camera.updateProjectionMatrix();
+
   let targetEye = STAND_EYE_HEIGHT;
   if (sliding) targetEye = CROUCH_EYE_HEIGHT - 0.20;
   else if (crouching) targetEye = CROUCH_EYE_HEIGHT;
   currentEyeHeight += (targetEye - currentEyeHeight) * Math.min(1, dt * 14);
+
   const eyeX = player.position.x;
   const eyeY = player.position.y + currentEyeHeight + bobOffset;
   const eyeZ = player.position.z;
+
   camera.position.set(eyeX, eyeY, eyeZ);
   const cosP = Math.cos(cameraPitch), sinP = Math.sin(cameraPitch);
   const lookX = -Math.sin(cameraYaw) * cosP, lookY = -sinP, lookZ = -Math.cos(cameraYaw) * cosP;
   camera.lookAt(eyeX + lookX, eyeY + lookY, eyeZ + lookZ);
+
+  /*
+   * BODYCAM: balanceo visual suave. La inclinación manual solo gira la vista
+   * y hace un micro-desplazamiento para dar sensación de peso, sin mover al jugador.
+   */
+  bodycamTime += dt;
+  if (!bodycamInitialized) {
+    bodycamPrevX = player.position.x;
+    bodycamPrevZ = player.position.z;
+    bodycamInitialized = true;
+  }
+  const invDt = 1 / Math.max(dt, 0.001);
+  const vx = (player.position.x - bodycamPrevX) * invDt;
+  const vz = (player.position.z - bodycamPrevZ) * invDt;
+  bodycamPrevX = player.position.x;
+  bodycamPrevZ = player.position.z;
+
+  const rightX = Math.cos(cameraYaw), rightZ = -Math.sin(cameraYaw);
+  const fwdX = -Math.sin(cameraYaw), fwdZ = -Math.cos(cameraYaw);
+  const sideVelocity = vx * rightX + vz * rightZ;
+  const forwardVelocity = vx * fwdX + vz * fwdZ;
+  const speed = Math.min(1, Math.hypot(vx, vz) / 6.5);
+
+  bodycamSide += (sideVelocity - bodycamSide) * Math.min(1, dt * 8);
+  bodycamForward += (forwardVelocity - bodycamForward) * Math.min(1, dt * 8);
+
+  const walkWave = Math.sin(bodycamTime * (8.2 + speed * 2.2));
+  const walkWave2 = Math.sin(bodycamTime * (4.1 + speed) + 1.7);
+  const idleWave = Math.sin(bodycamTime * 1.55) * 0.0025;
+
+  const targetRoll =
+    THREE.MathUtils.clamp(-bodycamSide * 0.0105, -0.045, 0.045) +
+    walkWave * 0.0042 * speed +
+    walkWave2 * 0.0018 * speed +
+    idleWave * (1 - speed);
+
+  const targetMicroPitch =
+    THREE.MathUtils.clamp(-bodycamForward * 0.0018, -0.012, 0.012) +
+    walkWave2 * 0.0016 * speed;
+
+  bodycamRoll += (targetRoll - bodycamRoll) * Math.min(1, dt * 7.5);
+  bodycamPitch += (targetMicroPitch - bodycamPitch) * Math.min(1, dt * 7);
+
+  const manualLeanTarget =
+    (keys['KeyZ'] ? 1 : 0) + (keys['KeyX'] ? -1 : 0);
+  leanInput += (manualLeanTarget - leanInput) * Math.min(1, dt * 12);
+  leanAmount += (leanInput - leanAmount) * Math.min(1, dt * 10);
+
+  camera.rotateZ(bodycamRoll + leanAmount * LEAN_MAX_ROLL);
+  camera.rotateX(bodycamPitch);
+
   if (shakeAmount > 0.001) {
-    camera.position.x += (Math.random() - 0.5) * shakeAmount * 0.35;
-    camera.position.y += (Math.random() - 0.5) * shakeAmount * 0.35;
-    camera.position.z += (Math.random() - 0.5) * shakeAmount * 0.35;
+    camera.position.x += (Math.random() - 0.5) * shakeAmount * 0.20;
+    camera.position.y += (Math.random() - 0.5) * shakeAmount * 0.20;
+    camera.position.z += (Math.random() - 0.5) * shakeAmount * 0.20;
     shakeAmount = Math.max(0, shakeAmount - dt * 2.2);
   } else shakeAmount = 0;
 }
@@ -3851,6 +4045,7 @@ function selectGameMode(mode) {
   modeMenu.classList.add('hidden');
   loadoutMenu.classList.remove('active');
   document.body.classList.remove('in-menu');
+  document.body.classList.add('bodycam-active');
   document.body.style.cursor = 'none';
 
   aliveSince = Date.now();
@@ -3880,6 +4075,8 @@ function selectGameMode(mode) {
     aimBtn.classList.add('active'); swapBtn.classList.add('active');
     grenadeBtn.classList.add('active');
     crouchBtn.classList.add('active');
+    leanLeftBtn.classList.add('active');
+    leanRightBtn.classList.add('active');
   }
   try {
     const app = initializeApp(firebaseConfig);
@@ -3916,7 +4113,7 @@ function updateMenuCamera(dt) {
 /* ═══════════════════════════════════════════
    CONFIGURACIÓN DE CONTROLES TÁCTILES
    ═══════════════════════════════════════════ */
-const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'debug-btn'];
+const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'lean-left-btn', 'lean-right-btn', 'debug-btn'];
 
 const DEFAULT_TOUCH_CONFIG = {
   'joystick':    { cx: 0.19, cy: 0.90, size: 110 },
@@ -3925,16 +4122,19 @@ const DEFAULT_TOUCH_CONFIG = {
   'jump-btn':    { cx: 0.85, cy: 0.78, size: 68 },
   'swap-btn':    { cx: 0.72, cy: 0.80, size: 68 },
   'grenade-btn': { cx: 0.42, cy: 0.90, size: 68 },
-  'crouch-btn':  { cx: 0.25, cy: 0.90, size: 68 },
-  'debug-btn':   { cx: 0.91, cy: 0.05, size: 50 }
+  'crouch-btn':     { cx: 0.25, cy: 0.90, size: 68 },
+  'lean-left-btn':  { cx: 0.59, cy: 0.91, size: 68 },
+  'lean-right-btn': { cx: 0.67, cy: 0.91, size: 68 },
+  'debug-btn':      { cx: 0.91, cy: 0.05, size: 50 }
 };
 
 const BASE_FONT_SIZES = {
   'shoot-btn': 34, 'aim-btn': 26, 'jump-btn': 11,
-  'swap-btn': 22, 'grenade-btn': 26, 'crouch-btn': 24
+  'swap-btn': 22, 'grenade-btn': 26, 'crouch-btn': 24,
+  'lean-left-btn': 24, 'lean-right-btn': 24,
 };
 
-const TOUCH_CONFIG_KEY = 'lp_touch_controls_v1';
+const TOUCH_CONFIG_KEY = 'lp_touch_controls_v2';
 
 let touchConfig = {};
 let editMode = false;
