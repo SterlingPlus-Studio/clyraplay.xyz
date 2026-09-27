@@ -1853,6 +1853,18 @@ const MAP_DROP_Y = 200;
 const mapGroundRaycaster = new THREE.Raycaster();
 const mapGroundOrigin = new THREE.Vector3();
 const mapGroundDirection = new THREE.Vector3(0, -1, 0);
+
+// Colisiones precisas: usamos los triángulos reales del FBX para el jugador
+// en lugar de cajas de bounding box que podían dejar huecos o bloquear de más.
+const mapCollisionMeshes = [];
+const mapCollisionRaycaster = new THREE.Raycaster();
+const mapCollisionOrigin = new THREE.Vector3();
+const mapCollisionDirection = new THREE.Vector3();
+const mapCollisionNormal = new THREE.Vector3();
+const mapCollisionNormalMatrix = new THREE.Matrix3();
+const MAP_COLLISION_DIRECTIONS = 16;
+const MAP_COLLISION_SKIN = 0.035;
+const MAP_COLLISION_MAX_DISTANCE = 1.15;
 const MAP_TARGET_SPAN = 220;
 const MAP_EDGE_PADDING = 3.0;
 const MAP_COLLIDER_LIMIT = 1400;
@@ -1978,23 +1990,35 @@ function shouldCreateMapCollider(mesh, box, size, worldSpan) {
   return true;
 }
 
+function isMapFoliageMesh(node) {
+  const mats = Array.isArray(node.material) ? node.material : [node.material];
+  const matKeys = mats.map(materialNameKey).join(' ');
+  const nodeKey = String(node.name || '').toLowerCase();
+  return matKeys.includes('branches') || matKeys.includes('branch') ||
+         nodeKey.includes('leaf') || nodeKey.includes('leaves') || nodeKey.includes('branch') ||
+         matKeys.includes('grass') || matKeys.includes('foliage');
+}
+
 function rebuildMapColliders(root, bounds) {
   boxColliders.length = 0;
+  mapCollisionMeshes.length = 0;
   const span = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
   const candidates = [];
 
   root.traverse((node) => {
-    if (!(node.isMesh || node.isSkinnedMesh)) return;
+    if (!(node.isMesh || node.isSkinnedMesh) || !node.geometry) return;
     try {
       const worldBox = new THREE.Box3().setFromObject(node);
       const worldSize = worldBox.getSize(new THREE.Vector3());
+      if (isMapFoliageMesh(node)) return;
+
+      // El suelo y las piezas sólidas siguen estando en la lista exacta;
+      // la prueba final se hace contra los triángulos reales del FBX.
+      node.userData.preciseMapCollider = true;
+      mapCollisionMeshes.push(node);
+
+      // Conservamos cajas secundarias solo para minimapa/granadas/debug.
       if (!shouldCreateMapCollider(node, worldBox, worldSize, span)) return;
-
-      const mats = Array.isArray(node.material) ? node.material : [node.material];
-      const matKeys = mats.map(materialNameKey).join(' ');
-      const nodeKey = String(node.name || '').toLowerCase();
-      if (matKeys.includes('branches') || nodeKey.includes('leaf') || nodeKey.includes('leaves') || nodeKey.includes('branch')) return;
-
       if (!node.geometry.boundingBox) node.geometry.computeBoundingBox();
       const localBox = node.geometry.boundingBox;
       const localSize = localBox.getSize(new THREE.Vector3());
@@ -2007,18 +2031,10 @@ function rebuildMapColliders(root, bounds) {
       const q = new THREE.Quaternion();
       node.getWorldQuaternion(q);
       const e = new THREE.Euler().setFromQuaternion(q, 'YXZ');
-
       const score = Math.min(worldSize.x * worldSize.z, 420) + Math.max(0, 2.5 - worldSize.y) * 6;
       candidates.push({
-        score,
-        x: worldCenter.x,
-        z: worldCenter.z,
-        hw,
-        hd,
-        rot: e.y,
-        minY: worldBox.min.y - 0.08,
-        maxY: worldBox.max.y + 0.12,
-        kind: 'map'
+        score, x: worldCenter.x, z: worldCenter.z, hw, hd, rot: e.y,
+        minY: worldBox.min.y - 0.08, maxY: worldBox.max.y + 0.12, kind: 'map'
       });
     } catch (e) {}
   });
@@ -2028,7 +2044,66 @@ function rebuildMapColliders(root, bounds) {
   for (let i = 0; i < keep; i++) boxColliders.push(candidates[i]);
 }
 
+function preciseMapCollision(entity, radius, options = {}) {
+  if (!mapReady || !mapCollisionMeshes.length) return false;
+  const minHeight = options.minHeight ?? 0.35;
+  const maxHeight = options.maxHeight ?? 1.45;
+  const iterations = options.iterations ?? 3;
+  let moved = false;
+
+  for (let iter = 0; iter < iterations; iter++) {
+    let any = false;
+    const baseY = entity.position.y;
+
+    // Barrido radial contra los triángulos reales. Dos alturas reducen
+    // los falsos positivos y detectan bordillos, paredes y esquinas.
+    for (const h of [minHeight, maxHeight]) {
+      mapCollisionOrigin.set(entity.position.x, baseY + h, entity.position.z);
+      for (let i = 0; i < MAP_COLLISION_DIRECTIONS; i++) {
+        const a = (i / MAP_COLLISION_DIRECTIONS) * Math.PI * 2;
+        mapCollisionDirection.set(Math.cos(a), 0, Math.sin(a));
+        mapCollisionRaycaster.set(mapCollisionOrigin, mapCollisionDirection);
+        mapCollisionRaycaster.near = 0.001;
+        mapCollisionRaycaster.far = Math.min(MAP_COLLISION_MAX_DISTANCE, radius + 0.42);
+
+        const hits = mapCollisionRaycaster.intersectObjects(mapCollisionMeshes, false);
+        if (!hits.length) continue;
+
+        for (const hit of hits) {
+          if (!hit.object || hit.object.userData.isBulletHole || hit.object.userData.isExplosionMark) continue;
+          if (hit.distance > radius + MAP_COLLISION_SKIN) continue;
+
+          // No usamos suelo/techos como pared.
+          let ny = 0;
+          if (hit.face) {
+            mapCollisionNormalMatrix.getNormalMatrix(hit.object.matrixWorld);
+            mapCollisionNormal.copy(hit.face.normal).applyMatrix3(mapCollisionNormalMatrix).normalize();
+            ny = Math.abs(mapCollisionNormal.y);
+          }
+          if (ny > 0.78) continue;
+
+          const push = Math.max(0.002, radius + MAP_COLLISION_SKIN - hit.distance);
+          entity.position.x -= mapCollisionDirection.x * push;
+          entity.position.z -= mapCollisionDirection.z * push;
+          any = true;
+          moved = true;
+          break;
+        }
+      }
+    }
+    if (!any) break;
+  }
+  return moved;
+}
+
+function preciseMapPointBlocked(x, z, y, radius = 0.7) {
+  if (!mapReady || !mapCollisionMeshes.length) return false;
+  const test = { position: new THREE.Vector3(x, y, z) };
+  return preciseMapCollision(test, radius, { minHeight: 0.35, maxHeight: 1.0, iterations: 1 });
+}
+
 function pointBlockedForSpawn(x, z, radius = 1.0) {
+  if (preciseMapPointBlocked(x, z, getMapGroundY(x, z, mapSpawnY), radius)) return true;
   for (const b of boxColliders) {
     if (computeBoxPenetration(x, z, radius, b)) return true;
   }
@@ -2046,7 +2121,7 @@ function getMapGroundInfo(x, z) {
   mapGroundRaycaster.near = 0;
   mapGroundRaycaster.far = Math.max(20, (mapMaxY - mapMinY) + 16);
 
-  const hits = mapGroundRaycaster.intersectObject(mapRoot, true);
+  const hits = mapGroundRaycaster.intersectObjects(mapCollisionMeshes.length ? mapCollisionMeshes : [mapRoot], false);
   for (const hit of hits) {
     if (!hit.object || !hit.object.isMesh) continue;
     if (hit.object.userData.isBulletHole || hit.object.userData.isExplosionMark) continue;
@@ -2204,7 +2279,8 @@ function loadNewMap() {
 
         console.log('[MAPA] Low Poly Industrial Zone cargado', {
           size: { x: size.x.toFixed(2), y: size.y.toFixed(2), z: size.z.toFixed(2) },
-          colliders: boxColliders.length,
+          preciseCollisionMeshes: mapCollisionMeshes.length,
+          debugBoxColliders: boxColliders.length,
           spawn: { x: mapSpawnX.toFixed(2), y: mapSpawnY.toFixed(2), z: mapSpawnZ.toFixed(2) },
           verticalRange: { minY: mapMinY.toFixed(2), maxY: mapMaxY.toFixed(2) }
         });
@@ -2523,32 +2599,43 @@ let deathTimer = 0, deathCameraAngle = 0;
 const deathPosition = new THREE.Vector3();
 const deathStartCamPos = new THREE.Vector3();
 
+function movePlayerHorizontal(dx, dz) {
+  const dist = Math.hypot(dx, dz);
+  if (dist < 0.000001) return;
+
+  // Pasos cortos para que ni siquiera una pared muy fina pueda atravesarse
+  // cuando el jugador corre/desliza a baja tasa de FPS.
+  const steps = Math.max(1, Math.ceil(dist / 0.18));
+  const sx = dx / steps;
+  const sz = dz / steps;
+  for (let i = 0; i < steps; i++) {
+    player.position.x += sx;
+    player.position.z += sz;
+    resolveCollisions(player, PLAYER_RADIUS);
+  }
+}
+
 function resolveCollisions(entity, radius) {
-  for (let iter = 0; iter < 4; iter++) {
-    let any = false;
-    for (const c of colliders) {
-      const dx = entity.position.x - c.x, dz = entity.position.z - c.z;
-      const minDist = c.r + radius;
-      const d2 = dx * dx + dz * dz;
-      if (d2 < minDist * minDist) {
-        const d = Math.sqrt(d2) || 0.0001;
-        const overlap = minDist - d;
-        entity.position.x += (dx / d) * overlap;
-        entity.position.z += (dz / d) * overlap;
-        any = true;
-      }
+  // El mapa se resuelve contra su geometría real. Las cajas del FBX ya no
+  // se usan para bloquear al jugador, porque podían cortar esquinas o
+  // dejar zonas inaccesibles que no existen en el modelo.
+  preciseMapCollision(entity, radius, {
+    minHeight: 0.35,
+    maxHeight: crouching || sliding ? 1.05 : 1.45,
+    iterations: 4
+  });
+
+  // Reservado para colisionadores dinámicos si se agregan en el futuro.
+  for (const c of colliders) {
+    const dx = entity.position.x - c.x, dz = entity.position.z - c.z;
+    const minDist = c.r + radius;
+    const d2 = dx * dx + dz * dz;
+    if (d2 < minDist * minDist) {
+      const d = Math.sqrt(d2) || 0.0001;
+      const overlap = minDist - d;
+      entity.position.x += (dx / d) * overlap;
+      entity.position.z += (dz / d) * overlap;
     }
-    for (const b of boxColliders) {
-      if (b.blockBelowY !== undefined && entity.position.y > b.blockBelowY) continue;
-      if (b.minY !== undefined && b.maxY !== undefined) {
-        const entityBottom = entity.position.y - 0.05;
-        const entityTop = entity.position.y + EYE_HEIGHT + 0.30;
-        if (entityTop < b.minY || entityBottom > b.maxY) continue;
-      }
-      const pen = computeBoxPenetration(entity.position.x, entity.position.z, radius, b);
-      if (pen) { entity.position.x += pen.dx; entity.position.z += pen.dz; any = true; }
-    }
-    if (!any) break;
   }
 }
 
@@ -2906,8 +2993,7 @@ function updatePlayer(dt) {
   if (sliding) {
     slideTimer -= dt;
     slideSpeed = Math.max(4, slideSpeed - 12 * dt);
-    player.position.x += slideDir.x * slideSpeed * dt;
-    player.position.z += slideDir.z * slideSpeed * dt;
+    movePlayerHorizontal(slideDir.x * slideSpeed * dt, slideDir.z * slideSpeed * dt);
     if (slideTimer <= 0 || !isGrounded) {
       sliding = false;
       slideSpeed = 0;
@@ -2919,8 +3005,7 @@ function updatePlayer(dt) {
     const moveX = camFwdX * iz + camRightX * ix;
     const moveZ = camFwdZ * iz + camRightZ * ix;
     const moveSpeed = aiming ? 5 : (crouching ? 4 : 11);
-    player.position.x += moveX * moveSpeed * dt;
-    player.position.z += moveZ * moveSpeed * dt;
+    movePlayerHorizontal(moveX * moveSpeed * dt, moveZ * moveSpeed * dt);
   }
   resolveCollisions(player, PLAYER_RADIUS);
   const terrainGroundY = mapReady ? getMapGroundY(player.position.x, player.position.z, mapSpawnY) : 0;
