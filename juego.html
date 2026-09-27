@@ -1002,24 +1002,18 @@ const BASE_FOV = 70;
 
 /* ═══════════════════════════════════════════════════════════
    PERFIL DE RENDIMIENTO — NÍTIDO
-   Se mantiene antialias activo y se usa la resolución real
-   de pantalla (hasta 2.5x DPR) para que el juego se vea
-   completamente nítido. El sistema adaptativo sólo reduce
-   si el FPS cae por debajo de 40, y nunca baja de 1.0.
    ═══════════════════════════════════════════════════════════ */
 const _perfTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const _perfCores = navigator.hardwareConcurrency || 4;
 const _perfLow = _perfTouch || _perfCores <= 4;
 
-// DPR objetivo: siempre la resolución real (hasta 2.5 para pantallas Retina/HiDPI).
 const _deviceDpr = window.devicePixelRatio || 1;
 const _perfMaxDpr = Math.min(_deviceDpr, 2.5);
-// DPR mínimo: nunca por debajo de 1 (evita que se vea borroso).
 const _perfMinDpr = 1.0;
 let _perfCurrentDpr = _perfMaxDpr;
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,              // ← Antialiasing activado (bordes suaves)
+  antialias: true,
   powerPreference: 'high-performance',
   stencil: false,
   depth: true,
@@ -1028,7 +1022,6 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(_perfCurrentDpr);
-// Sombras 3D desactivadas para mantener fluidez sin sacrificar nitidez.
 renderer.shadowMap.enabled = false;
 renderer.sortObjects = true;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -1086,6 +1079,9 @@ function optimizeMeshForRender(mesh) {
   mesh.castShadow = false;
   mesh.receiveShadow = false;
   mesh.frustumCulled = true;
+  // Los meshes marcados con skipOpacityForce mantienen su material original
+  // (por ejemplo el panel translúcido del cerco que necesita DoubleSide).
+  if (mesh.userData && mesh.userData.skipOpacityForce) return;
   if (mesh.material) {
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const m of mats) forceMaterialOpaque(m);
@@ -2170,6 +2166,10 @@ function createFence(x1, z1, x2, z2) {
   }
   const panel = new THREE.Mesh(new THREE.PlaneGeometry(len, 3.0), mFence);
   panel.position.set(0, 1.55, 0);
+  // El panel translúcido debe conservar su material DoubleSide original.
+  // Sin esta marca, applyOptimizations() lo convertiría a FrontSide y
+  // desaparecería al mirarlo desde el otro lado (muros "sin fondo").
+  panel.userData.skipOpacityForce = true;
   g.add(panel);
   const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.08), mRail);
   rail.position.set(0, 3.05, 0);
@@ -3886,10 +3886,7 @@ function updateAdaptivePerformance(dt) {
 
   const avgFps = _perfFrameAcc / Math.max(_perfTimeAcc, 0.001);
   let next = _perfCurrentDpr;
-  // Sólo bajamos si el FPS cae por debajo de 40 y nunca por debajo de 1.0
-  // (evita que el juego se vea borroso).
   if (avgFps < 40 && next > _perfMinDpr) next = Math.max(_perfMinDpr, next - 0.10);
-  // Subimos agresivamente si hay margen.
   else if (avgFps > 55 && next < _perfMaxDpr) next = Math.min(_perfMaxDpr, next + 0.10);
 
   if (Math.abs(next - _perfCurrentDpr) >= 0.05) {
@@ -4303,7 +4300,6 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
-  // En resize, no bajamos el DPR por debajo de 1.
   _perfCurrentDpr = Math.min(_perfCurrentDpr, _perfMaxDpr);
   if (_perfCurrentDpr < _perfMinDpr) _perfCurrentDpr = _perfMinDpr;
   renderer.setPixelRatio(_perfCurrentDpr);
