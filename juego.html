@@ -1783,7 +1783,7 @@ function computeBoxPenetration(px, pz, radius, box) {
 }
 
 /* ═══════════════════════════════════════════
-   MAPA — CARGADO DESDE map.fbx
+   MAPA — CARGADO DESDE modelos3d/map.fbx
    ═══════════════════════════════════════════ */
 let FENCE_X = 100;
 let FENCE_Z = 100;
@@ -1852,10 +1852,18 @@ function fixMapMaterial(mesh) {
 
 function loadMapFBX() {
   return new Promise((resolve) => {
+    // Las texturas del map.fbx viven en texturas/ (Branches.png, Color.png, kust.png, Normal*.png, normal_wood.png)
     _fbxLoader.setResourcePath('texturas/');
+    console.log('[MAP] Cargando modelos3d/map.fbx (resourcePath = texturas/)');
 
-    _fbxLoader.load('map.fbx', (obj) => {
+    _fbxLoader.load('modelos3d/map.fbx', (obj) => {
       try {
+        console.log('[MAP] ✅ FBX parseado. Hijos raíz:', obj.children.length);
+
+        let totalMeshes = 0;
+        obj.traverse(n => { if (n.isMesh || n.isSkinnedMesh) totalMeshes++; });
+        console.log('[MAP] Meshes:', totalMeshes);
+
         obj.position.set(0, 0, 0);
         obj.rotation.set(0, 0, 0);
         obj.scale.setScalar(1);
@@ -1864,7 +1872,9 @@ function loadMapFBX() {
         // Auto-orientar si el modelo viene en Z-up
         let box = new THREE.Box3().setFromObject(obj);
         let size = box.getSize(new THREE.Vector3());
+        console.log('[MAP] Tamaño original:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
         if (size.y < size.x * 0.5 && size.y < size.z * 0.5) {
+          console.log('[MAP] Detectado Z-up, rotando -90° en X');
           obj.rotation.x = -Math.PI / 2;
           obj.updateMatrixWorld(true);
         }
@@ -1878,12 +1888,21 @@ function loadMapFBX() {
         obj.position.y -= box.min.y;
         obj.updateMatrixWorld(true);
 
+        const finalBox = new THREE.Box3().setFromObject(obj);
+        const finalSize = finalBox.getSize(new THREE.Vector3());
+        console.log('[MAP] Tamaño final:', finalSize.x.toFixed(2), finalSize.y.toFixed(2), finalSize.z.toFixed(2));
+
         obj.traverse(n => {
           n.visible = true;
           if (n.isMesh || n.isSkinnedMesh) {
             n.castShadow = false;
             n.receiveShadow = false;
             n.frustumCulled = true;
+
+            // Si viene skinned sin esqueleto válido, degradar a mesh estático
+            if (n.isSkinnedMesh && (!n.skeleton || !n.skeleton.bones || n.skeleton.bones.length === 0)) {
+              n.isSkinnedMesh = false;
+            }
 
             const colorName = (n.material && n.material.map && n.material.map.name) || '';
             const meshName  = (n.name || '').toLowerCase();
@@ -1896,14 +1915,26 @@ function loadMapFBX() {
         });
 
         scene.add(obj);
+        console.log('[MAP] ✅ Añadido a la escena');
         resolve(obj);
       } catch (e) {
+        console.error('[MAP] ❌ Error procesando:', e);
         logFbxError('map.fbx: ' + e.message);
         resolve(null);
       }
     },
-    undefined,
-    () => { logFbxError('No se pudo cargar map.fbx'); resolve(null); });
+    (xhr) => {
+      if (xhr.total) {
+        const pct = (xhr.loaded / xhr.total * 100).toFixed(1);
+        console.log(`[MAP] Cargando... ${pct}%`);
+      }
+    },
+    (err) => {
+      console.error('[MAP] ❌ Error de red al cargar modelos3d/map.fbx:', err);
+      console.error('[MAP] Verificá que exista:', new URL('modelos3d/map.fbx', location.href).href);
+      logFbxError('No se pudo cargar modelos3d/map.fbx');
+      resolve(null);
+    });
   });
 }
 
@@ -1949,6 +1980,7 @@ loadMapFBX().then((mapObj) => {
     });
   });
 
+  console.log('[MAP] Colliders generados:', boxColliders.length);
   try { applyOptimizations(); } catch (e) {}
 }).catch(err => logFbxError('Error general map.fbx: ' + err.message));
 
@@ -3454,7 +3486,7 @@ function applyOptimizations() {
     if (obj.isMesh || obj.isSkinnedMesh) {
       obj.castShadow = false;
       obj.receiveShadow = false;
-      // ⚠️ NO tocamos los materiales del mapa: ya fueron procesados por fixMapMaterial()
+      // ⚠️ NO tocamos los materiales del mapa (ya procesados por fixMapMaterial)
       const isMapMesh = obj.userData && obj.userData.isMapMesh;
       if (!isMapMesh && obj.material) {
         const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
