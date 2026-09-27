@@ -185,12 +185,6 @@
     box-shadow: 0 0 8px rgba(255,255,255,0.35);
   }
 
-  #debug { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #7cf47c; font: 11px/1.4 ui-monospace, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; z-index: 100; display: none; min-width: 250px; border: 2px solid rgba(124,244,124,0.5); max-height: 90vh; overflow: hidden; }
-  #debug.active { display: block; }
-  #debug .title { color: #fff; font-weight: bold; }
-  #debug .val   { color: #ffd93d; }
-  #debug .err   { color: #ff6b6b; }
-  #debug .ok    { color: #7cf47c; }
   #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; pointer-events: none; display: none; z-index: 15; }
   #crosshair.active { display: block; }
   #crosshair .line { position: absolute; background: #fff; box-shadow: 0 0 3px #000, 0 0 1px #000; }
@@ -294,17 +288,13 @@
     border-color: #fff;
     box-shadow: 0 0 20px rgba(120,240,170,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 14px rgba(255,255,255,0.4);
   }
-  #debug-btn {
-    top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
-    background: transparent;
-    border-color: rgba(160,255,180,0.8);
-  }
 
   #online-panel {
-    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 160px; left: 12px;
+    width: 304px; box-sizing: border-box;
     background: rgba(8,12,20,0.72); color: #fff;
-    font: bold 12px ui-monospace, monospace; padding: 6px 14px;
-    border: 1px solid rgba(100,220,150,0.45); border-radius: 999px;
+    font: bold 12px ui-monospace, monospace; padding: 7px 10px;
+    border: 1px solid rgba(100,220,150,0.45); border-radius: 10px;
     z-index: 22; pointer-events: none; white-space: nowrap;
     text-shadow: 0 1px 2px #000;
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -315,7 +305,7 @@
   #online-panel .ok { color: #4cdf7b; }
   #online-panel .bad { color: #ff6b6b; }
   #online-panel .name { color: #ffd93d; }
-  body.is-touch #online-panel { font-size: 10px; padding: 4px 8px; }
+  body.is-touch #online-panel { top: calc(env(safe-area-inset-top, 0px) + 112px); left: calc(env(safe-area-inset-left, 0px) + 8px); width: 210px; font-size: 10px; padding: 4px 8px; }
   body.is-touch #info { display: none; }
 
   body.is-touch #minimap-wrap {
@@ -355,8 +345,7 @@
   body.in-menu #grenade-wrap,
   body.in-menu #info,
   body.in-menu #crosshair,
-  body.in-menu #online-panel,
-  body.in-menu #debug { display: none !important; }
+  body.in-menu #online-panel { display: none !important; }
 
   .config-btn {
     display: none;
@@ -418,8 +407,7 @@
   body.touch-edit-mode #jump-btn,
   body.touch-edit-mode #swap-btn,
   body.touch-edit-mode #grenade-btn,
-  body.touch-edit-mode #crouch-btn,
-  body.touch-edit-mode #debug-btn {
+  body.touch-edit-mode #crouch-btn {
     display: flex !important;
     pointer-events: auto !important;
     z-index: 510 !important;
@@ -439,8 +427,7 @@
   body.touch-edit-mode #jump-btn::after,
   body.touch-edit-mode #swap-btn::after,
   body.touch-edit-mode #grenade-btn::after,
-  body.touch-edit-mode #crouch-btn::after,
-  body.touch-edit-mode #debug-btn::after {
+  body.touch-edit-mode #crouch-btn::after {
     content: '';
     position: absolute;
     right: 3px; bottom: 3px;
@@ -450,7 +437,6 @@
     pointer-events: none;
     filter: drop-shadow(0 0 3px rgba(0,0,0,0.7));
   }
-  body.touch-edit-mode #debug-btn::after { display: none; }
 
   canvas { transform: translateZ(0); backface-visibility: hidden; }
 
@@ -517,7 +503,7 @@
   </div>
 </div>
 
-<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
+<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
 <div id="click-overlay">
@@ -550,7 +536,6 @@
   <div id="grenade-label"><span>💣 GRANADA</span><span id="grenade-status">LISTA</span></div>
   <div id="grenade-bar-outer"><div id="grenade-bar-inner"></div></div>
 </div>
-<div id="debug"></div>
 <div id="crosshair">
   <div class="line l-top"></div><div class="line l-bottom"></div>
   <div class="line l-left"></div><div class="line l-right"></div>
@@ -565,7 +550,6 @@
 <div id="swap-btn" class="btn">🔄</div>
 <div id="grenade-btn" class="btn">💣</div>
 <div id="crouch-btn" class="btn">⬇</div>
-<div id="debug-btn" class="btn">🐞</div>
 
 <script type="importmap">
 {
@@ -1099,11 +1083,6 @@ function disableShadows(obj) {
 
 /* ─────────────── SUELO (sin pasto, concreto total) ─────────────── */
 // Se eliminó el plano de pasto para optimizar. Todo el terreno es concreto.
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 1, 1), cachedMat(0x8a8578, { flatShading: false }));
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = false;
-scene.add(ground);
-
 const concretePad = new THREE.Mesh(new THREE.PlaneGeometry(112, 108), cachedMat(0x9a9080, { flatShading: false }));
 concretePad.rotation.x = -Math.PI / 2;
 concretePad.position.y = 0.02;
@@ -1567,10 +1546,6 @@ camera.add(weaponPistol);
 disableShadows(weaponRifle);
 disableShadows(weaponShotgun);
 disableShadows(weaponPistol);
-
-const muzzleLight = new THREE.PointLight(0xffdd66, 0, 8);
-muzzleLight.position.set(0.15, -0.10, -0.62);
-camera.add(muzzleLight);
 
 function curWepDef()   { return WEAPONS[currentWeaponKey]; }
 function curWepState() { return weaponState[currentWeaponKey]; }
@@ -2292,85 +2267,8 @@ function createEntryGate(x, z) {
 }
 scene.add(createEntryGate(0, FENCE_Z));
 
-/* ─────────────── TORRES DE VIGILANCIA ─────────────── */
-function createWatchtower(x, z) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mPost = cachedMat(0x353535);
-  const mTop = cachedMat(0x4a4a4a);
-  const mRoof = cachedMat(0x2a2a2a);
-  const legGeo = new THREE.BoxGeometry(0.28, 7, 0.28);
-  for (const [lx, lz] of [[-1.3, -1.3], [1.3, -1.3], [-1.3, 1.3], [1.3, 1.3]]) {
-    const leg = new THREE.Mesh(legGeo, mPost);
-    leg.position.set(lx, 3.5, lz);
-    leg.castShadow = false;
-    g.add(leg);
-  }
-  const platform = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.3, 3.8), mTop);
-  platform.position.y = 7.15; platform.castShadow = false;
-  g.add(platform);
-  const wallGeo = new THREE.BoxGeometry(3.8, 1.8, 0.15);
-  const wallN = new THREE.Mesh(wallGeo, mTop); wallN.position.set(0, 8.2, -1.85); g.add(wallN);
-  const wallS = new THREE.Mesh(wallGeo, mTop); wallS.position.set(0, 8.2, 1.85); g.add(wallS);
-  const wallGeo2 = new THREE.BoxGeometry(0.15, 1.8, 3.8);
-  const wallE = new THREE.Mesh(wallGeo2, mTop); wallE.position.set(1.85, 8.2, 0); g.add(wallE);
-  const wallW = new THREE.Mesh(wallGeo2, mTop); wallW.position.set(-1.85, 8.2, 0); g.add(wallW);
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(3.2, 1.1, 4), mRoof);
-  roof.position.y = 9.7; roof.rotation.y = Math.PI / 4; roof.castShadow = false;
-  g.add(roof);
-  colliders.push({ x, z, r: 1.9, kind: 'lamp' });
-  return g;
-}
-scene.add(createWatchtower(-FENCE_X + 5, -FENCE_Z + 5));
-scene.add(createWatchtower( FENCE_X - 5, -FENCE_Z + 5));
-scene.add(createWatchtower( FENCE_X - 5,  FENCE_Z - 5));
-scene.add(createWatchtower(-FENCE_X + 5,  FENCE_Z - 5));
-
-/* ─────────────── GRÚAS ─────────────── */
-function createCrane(x, z, rot) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  g.rotation.y = rot;
-  const mYellow = cachedMat(0xf1c40f);
-  const mDark = cachedMat(0x1c1c1c);
-  const mSteel = cachedMat(0x555555);
-  const base = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.0, 3.4), mDark);
-  base.position.y = 0.5; base.castShadow = false; g.add(base);
-  for (const sx of [-1, 1]) {
-    const trk = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.7, 4.0), mSteel);
-    trk.position.set(sx * 1.2, 0.35, 0);
-    trk.castShadow = false;
-    g.add(trk);
-  }
-  const mast = new THREE.Mesh(new THREE.BoxGeometry(1.1, 14, 1.1), mYellow);
-  mast.position.y = 8; mast.castShadow = false;
-  g.add(mast);
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.6, 1.8), mYellow);
-  cabin.position.set(1.4, 7.0, 0);
-  cabin.castShadow = false;
-  g.add(cabin);
-  const cWin = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 1.4), cachedMat(0x2b3a4a));
-  cWin.position.set(2.35, 7.0, 0);
-  g.add(cWin);
-  const boom = new THREE.Mesh(new THREE.BoxGeometry(24, 0.7, 0.7), mYellow);
-  boom.position.set(-9, 15, 0);
-  boom.castShadow = false;
-  g.add(boom);
-  const cw = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 1.6), mDark);
-  cw.position.set(3.2, 14.5, 0);
-  g.add(cw);
-  const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 10, 4), mSteel);
-  cable.position.set(-17, 10, 0);
-  g.add(cable);
-  const hook = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), mYellow);
-  hook.position.set(-17, 5.0, 0);
-  hook.castShadow = false;
-  g.add(hook);
-  colliders.push({ x, z, r: 2.4, kind: 'lamp' });
-  return g;
-}
-scene.add(createCrane(46, -12, 0));
-scene.add(createCrane(46, 12, 0));
+/* ─────────────── DECORACIÓN EXTERIOR ELIMINADA ─────────────── */
+// Se eliminaron por completo las torres de vigilancia y las grúas gigantes.
 
 /* ─────────────── MARCAS DE PISO ─────────────── */
 const roadMat = new THREE.MeshBasicMaterial({ color: 0xf4d03f });
@@ -2493,7 +2391,6 @@ addEventListener('keydown', e => {
       if (onlineMode) sendLocalPlayerState(true);
     }
   }
-  if (e.code === 'F3') { e.preventDefault(); toggleDebug(); }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -2502,10 +2399,8 @@ const joystickZone = document.getElementById('joystick-zone');
 const stick = document.getElementById('stick');
 const jumpBtn = document.getElementById('jump-btn');
 const swapBtn = document.getElementById('swap-btn');
-const debugBtn = document.getElementById('debug-btn');
 const hint = document.getElementById('hint');
 const cameraZone = document.getElementById('camera-zone');
-const debugPanel = document.getElementById('debug');
 const shootBtn = document.getElementById('shoot-btn');
 const aimBtn = document.getElementById('aim-btn');
 const crosshair = document.getElementById('crosshair');
@@ -2577,7 +2472,6 @@ let jumpQueued = false;
 jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); jumpQueued = true; }, { passive: false });
 jumpBtn.addEventListener('pointerdown', e => { e.preventDefault(); jumpQueued = true; });
 swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDead) swapWeapon(); });
-debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
 grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); throwGrenade(); });
 
 crouchBtn.addEventListener('pointerdown', e => {
@@ -2680,37 +2574,6 @@ function handleCamEnd(e) {
 }
 addEventListener('touchend', handleCamEnd);
 addEventListener('touchcancel', handleCamEnd);
-
-/* ─────────────── DEBUG ─────────────── */
-let debugEnabled = false;
-const fpsSamples = [];
-function toggleDebug() { debugEnabled = !debugEnabled; debugPanel.classList.toggle('active', debugEnabled); fpsSamples.length = 0; }
-function updateDebug(dt) {
-  if (!debugEnabled) return;
-  fpsSamples.push(1 / Math.max(dt, 0.0001));
-  if (fpsSamples.length > 30) fpsSamples.shift();
-  const avg = fpsSamples.reduce((a, b) => a + b, 0) / fpsSamples.length;
-  const ws = curWepState();
-  let aliveRemote = 0, deadRemote = 0;
-  for (const [, r] of remotePlayers) { if (r.dead) deadRemote++; else aliveRemote++; }
-  const errLines = fbxErrors.length ? '\n<span class="title">── Errores FBX ──</span>\n' + fbxErrors.map(e => `<span class="err">${e}</span>`).join('\n') : '';
-  debugPanel.innerHTML = `
-<span class="title">═══ DEBUG (F3) ═══</span>
-<span class="val">FPS:</span>       ${avg.toFixed(1)}
-<span class="val">DPR:</span>       ${_perfCurrentDpr.toFixed(2)}
-<span class="val">Draws:</span>     ${renderer.info.render.calls}
-<span class="val">Audio:</span>     ${audioCtx ? audioCtx.state : 'no ctx'}
-<span class="val">Ambiente:</span>  ${ambientStarted ? '✅ activo' : '⏸ inactivo'}
-<span class="val">Loadout:</span>   ${playerLoadout.primary} + ${playerLoadout.secondary}
-<span class="val">Arma:</span>      ${curWepDef().name}
-<span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
-<span class="val">Granadas:</span>  ${grenades.length} activas
-<span class="val">Marcas:</span>    ${bulletHoles.length} balas · ${explosionMarks.length} explosiones
-<span class="val">Vis:</span>       rifle=${weaponRifle.visible?'1':'0'} shot=${weaponShotgun.visible?'1':'0'} pist=${weaponPistol.visible?'1':'0'}
-<span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
-<span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
-  `.trim();
-}
 
 /* ─────────────── CÁMARA ─────────────── */
 let cameraYaw = 0, cameraPitch = 0;
@@ -3053,8 +2916,7 @@ function tryShoot() {
   updateAmmoBar();
   const flash = curWeaponFlash();
   flash.visible = true;
-  muzzleLight.intensity = def.key === 'shotgun' ? 5 : 3;
-  setTimeout(() => { flash.visible = false; muzzleLight.intensity = 0; }, def.key === 'shotgun' ? 80 : 45);
+  setTimeout(() => { flash.visible = false; }, def.key === 'shotgun' ? 80 : 45);
 
   if (def.key === 'pistol') playPistolShot(0);
   else if (def.key === 'shotgun') playShotgunShot(0);
@@ -3946,7 +3808,6 @@ let _perfTimeAcc = 0;
 let _perfFrameAcc = 0;
 let _minimapTimeAcc = 0;
 let _uiTimeAcc = 0;
-let _debugTimeAcc = 0;
 
 function updateAdaptivePerformance(dt) {
   if (!gameMode || document.hidden) return;
@@ -4059,7 +3920,7 @@ function selectGameMode(mode) {
   if (isTouch) {
     joystick.classList.add('active'); joystickZone.classList.add('active');
     jumpBtn.classList.add('active'); cameraZone.classList.add('active');
-    debugBtn.classList.add('active'); shootBtn.classList.add('active');
+    shootBtn.classList.add('active');
     aimBtn.classList.add('active'); swapBtn.classList.add('active');
     grenadeBtn.classList.add('active');
     crouchBtn.classList.add('active');
@@ -4099,7 +3960,7 @@ function updateMenuCamera(dt) {
 /* ═══════════════════════════════════════════
    CONFIGURACIÓN DE CONTROLES TÁCTILES
    ═══════════════════════════════════════════ */
-const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'debug-btn'];
+const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn'];
 
 const DEFAULT_TOUCH_CONFIG = {
   'joystick':    { cx: 0.19, cy: 0.90, size: 110 },
@@ -4109,7 +3970,6 @@ const DEFAULT_TOUCH_CONFIG = {
   'swap-btn':    { cx: 0.72, cy: 0.80, size: 68 },
   'grenade-btn': { cx: 0.42, cy: 0.90, size: 68 },
   'crouch-btn':  { cx: 0.25, cy: 0.90, size: 68 },
-  'debug-btn':   { cx: 0.91, cy: 0.05, size: 50 }
 };
 
 const BASE_FONT_SIZES = {
@@ -4345,16 +4205,11 @@ function animate() {
     updateGrenadeView(dt);
     if (grenadeCooldown > 0) { grenadeCooldown = Math.max(0, grenadeCooldown - dt); updateGrenadeBar(); }
     _uiTimeAcc += dt;
-    _debugTimeAcc += dt;
     _minimapTimeAcc += dt;
 
     if (_uiTimeAcc >= 0.12) {
       updateUI(_uiTimeAcc);
       _uiTimeAcc = 0;
-    }
-    if (_debugTimeAcc >= 0.30) {
-      updateDebug(_debugTimeAcc);
-      _debugTimeAcc = 0;
     }
     if (_minimapTimeAcc >= 0.18) {
       drawMinimap();
