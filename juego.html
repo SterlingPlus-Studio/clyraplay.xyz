@@ -118,7 +118,6 @@
   #respawn-btn:hover { background: #fff; color: #000; text-shadow: none; transform: scale(1.05); }
   #damage-overlay { position: fixed; inset: 0; background: radial-gradient(ellipse at center, rgba(255,0,0,0) 25%, rgba(220,0,0,0.45) 65%, rgba(150,0,0,0.9) 100%); opacity: 0; pointer-events: none; z-index: 250; will-change: opacity; }
 
-  /* ═══════ MINIMAPA CIRCULAR MODERNO ═══════ */
   #minimap-wrap {
     position: fixed; top: 12px; left: 12px;
     width: 140px; height: 140px;
@@ -135,7 +134,6 @@
   }
   #minimap { display: block; width: 100%; height: 100%; border-radius: inherit; }
 
-  /* ═══════ HUD A LA DERECHA DEL MINIMAPA ═══════ */
   #health-wrap, #ammo-wrap, #grenade-wrap {
     position: fixed;
     left: 164px;
@@ -202,15 +200,12 @@
   #crosshair .l-right  { right: 0;  top: 50%; height: 2px; width: 12px; transform: translateX(50%) translateY(-50%); }
   #crosshair .dot { position: absolute; top: 50%; left: 50%; width: 3px; height: 3px; background: #ff3b30; transform: translate(-50%, -50%); box-shadow: 0 0 3px #000; }
 
-  /* ═══════ JOYSTICK ═══════ */
   #joystick {
     position: fixed; left: 30px; bottom: 30px; width: 140px; height: 140px;
     border-radius: 50%;
     background: transparent;
     border: 1.5px solid rgba(255,255,255,0.35);
-    box-shadow:
-      0 6px 20px rgba(0,0,0,0.22),
-      inset 0 1px 0 rgba(255,255,255,0.14);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.14);
     display: none; touch-action: none; z-index: 10;
   }
   #joystick.active { display: block; }
@@ -219,10 +214,7 @@
     margin: -30px 0 0 -30px; border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(195,215,240,0.55));
     border: 1.5px solid rgba(255,255,255,0.75);
-    box-shadow:
-      0 4px 14px rgba(0,0,0,0.35),
-      inset 0 1px 0 rgba(255,255,255,0.85),
-      inset 0 -3px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -3px 8px rgba(0,0,0,0.12);
     pointer-events: none;
   }
   #joystick-zone { position: fixed; left: 0; bottom: 0; width: 50%; height: 55%; display: none; z-index: 9; touch-action: none; }
@@ -230,7 +222,6 @@
   #camera-zone { position: fixed; top: 0; right: 0; width: 55%; height: 100%; display: none; z-index: 8; touch-action: none; }
   #camera-zone.active { display: block; }
 
-  /* ═══════ BOTONES TÁCTILES (fondo totalmente transparente) ═══════ */
   .btn {
     position: fixed; display: none; align-items: center; justify-content: center;
     z-index: 10; touch-action: none; cursor: pointer;
@@ -254,55 +245,20 @@
     border-color: #fff;
     box-shadow: 0 2px 12px rgba(0,0,0,0.35), inset 0 0 18px rgba(255,255,255,0.28);
   }
-  #shoot-btn {
-    right: 25px; bottom: 40px; width: 100px; height: 100px; font-size: 40px;
-    background: transparent;
-    border-color: rgba(255,140,140,0.85);
-    box-shadow: 0 3px 14px rgba(220,40,40,0.22);
-  }
-  #shoot-btn:active {
-    background: rgba(255,80,80,0.42);
-    border-color: #fff;
-    box-shadow: 0 3px 18px rgba(255,60,60,0.55), inset 0 0 22px rgba(255,120,120,0.40);
-  }
-  #aim-btn {
-    right: 140px; bottom: 55px; width: 75px; height: 75px; font-size: 30px;
-    background: transparent;
-    border-color: rgba(255,235,150,0.8);
-  }
-  #aim-btn.held {
-    background: rgba(255,235,120,0.55);
-    border-color: #fff;
-    box-shadow: 0 0 22px rgba(255,220,80,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 16px rgba(255,255,255,0.4);
-    transform: scale(0.96);
-  }
+  #shoot-btn { right: 25px; bottom: 40px; width: 100px; height: 100px; font-size: 40px; background: transparent; border-color: rgba(255,140,140,0.85); box-shadow: 0 3px 14px rgba(220,40,40,0.22); }
+  #shoot-btn:active { background: rgba(255,80,80,0.42); border-color: #fff; box-shadow: 0 3px 18px rgba(255,60,60,0.55), inset 0 0 22px rgba(255,120,120,0.40); }
+  #aim-btn { right: 140px; bottom: 55px; width: 75px; height: 75px; font-size: 30px; background: transparent; border-color: rgba(255,235,150,0.8); }
+  #aim-btn.held { background: rgba(255,235,120,0.55); border-color: #fff; box-shadow: 0 0 22px rgba(255,220,80,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 16px rgba(255,255,255,0.4); transform: scale(0.96); }
   #jump-btn { right: 25px; bottom: 155px; width: 75px; height: 75px; font-size: 12px; letter-spacing: 1.6px; }
-  #swap-btn {
-    right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px;
-    background: transparent;
-    border-color: rgba(180,225,255,0.8);
-  }
-  #grenade-btn {
-    right: 235px; bottom: 55px; width: 75px; height: 75px; font-size: 30px;
-    background: transparent;
-    border-color: rgba(210,190,255,0.8);
-  }
+  #swap-btn { right: 140px; bottom: 145px; width: 75px; height: 75px; font-size: 26px; background: transparent; border-color: rgba(180,225,255,0.8); }
+  #grenade-btn { right: 235px; bottom: 55px; width: 75px; height: 75px; font-size: 30px; background: transparent; border-color: rgba(210,190,255,0.8); }
   #grenade-btn.cooling { opacity: 0.35; }
-  #crouch-btn {
-    right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px;
-    background: transparent;
-    border-color: rgba(180,255,205,0.8);
-  }
-  #crouch-btn.held {
-    background: rgba(160,245,190,0.55);
-    border-color: #fff;
-    box-shadow: 0 0 20px rgba(120,240,170,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 14px rgba(255,255,255,0.4);
-  }
-  #debug-btn {
-    top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px;
-    background: transparent;
-    border-color: rgba(160,255,180,0.8);
-  }
+  #crouch-btn { right: 200px; bottom: 122px; width: 75px; height: 75px; font-size: 28px; background: transparent; border-color: rgba(180,255,205,0.8); }
+  #crouch-btn.held { background: rgba(160,245,190,0.55); border-color: #fff; box-shadow: 0 0 20px rgba(120,240,170,0.55), 0 3px 12px rgba(0,0,0,0.28), inset 0 0 14px rgba(255,255,255,0.4); }
+  #debug-btn { top: 10px; right: 10px; width: 50px; height: 50px; font-size: 22px; background: transparent; border-color: rgba(160,255,180,0.8); }
+  #use-btn { right: 235px; bottom: 155px; width: 75px; height: 75px; font-size: 30px; background: transparent; border-color: rgba(255,220,120,0.9); display: none; }
+  #use-btn.active { display: flex; }
+  #use-btn:active { background: rgba(255,220,120,0.4); border-color: #fff; }
 
   #online-panel {
     position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
@@ -346,6 +302,7 @@
 
   body.is-touch #grenade-btn { right: 200px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 26px; }
   body.is-touch #crouch-btn { right: 275px; bottom: calc(env(safe-area-inset-bottom, 0px) + 42px); width: 68px; height: 68px; font-size: 24px; }
+  body.is-touch #use-btn { right: 275px; bottom: calc(env(safe-area-inset-bottom, 0px) + 122px); width: 68px; height: 68px; font-size: 26px; }
   body.is-touch #joystick { left: calc(env(safe-area-inset-left, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); width: 110px; height: 110px; }
   body.is-touch #stick { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
   body.is-touch #shoot-btn { right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 30px); width: 88px; height: 88px; font-size: 34px; }
@@ -362,7 +319,6 @@
   body.in-menu #online-panel,
   body.in-menu #debug { display: none !important; }
 
-  /* ═══════ CONFIGURACIÓN DE CONTROLES TÁCTILES ═══════ */
   .config-btn {
     display: none;
     align-items: center;
@@ -393,14 +349,11 @@
   #controls-menu { position: fixed; inset: 0; z-index: 507; display: none; pointer-events: none; color: #fff; }
   #controls-menu.active { display: block; }
   #controls-menu .ctrl-header {
-    position: absolute;
-    top: calc(env(safe-area-inset-top, 0px) + 12px);
+    position: absolute; top: calc(env(safe-area-inset-top, 0px) + 12px);
     left: 50%; transform: translateX(-50%);
     text-align: center; pointer-events: none;
-    padding: 10px 18px;
-    background: rgba(0,0,0,0.7);
-    border: 2px solid rgba(255,217,61,0.65);
-    border-radius: 10px;
+    padding: 10px 18px; background: rgba(0,0,0,0.7);
+    border: 2px solid rgba(255,217,61,0.65); border-radius: 10px;
     backdrop-filter: blur(6px);
     max-width: calc(100% - 24px); box-sizing: border-box;
     animation: menuFadeIn 0.4s ease both;
@@ -424,7 +377,8 @@
   body.touch-edit-mode #swap-btn,
   body.touch-edit-mode #grenade-btn,
   body.touch-edit-mode #crouch-btn,
-  body.touch-edit-mode #debug-btn {
+  body.touch-edit-mode #debug-btn,
+  body.touch-edit-mode #use-btn {
     display: flex !important;
     pointer-events: auto !important;
     z-index: 510 !important;
@@ -445,7 +399,8 @@
   body.touch-edit-mode #swap-btn::after,
   body.touch-edit-mode #grenade-btn::after,
   body.touch-edit-mode #crouch-btn::after,
-  body.touch-edit-mode #debug-btn::after {
+  body.touch-edit-mode #debug-btn::after,
+  body.touch-edit-mode #use-btn::after {
     content: '';
     position: absolute;
     right: 3px; bottom: 3px;
@@ -520,7 +475,7 @@
   </div>
 </div>
 
-<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · F3: debug</div>
+<div id="info">Click para jugar · Click izq: disparar · Click der: apuntar · R: recargar · Q: cambiar arma · G: granada · C/Ctrl: agacharse/deslizar · E: conducir · F3: debug</div>
 <div id="hint"></div>
 <div id="online-panel" class="hidden"><span id="online-status">🔌 Conectando...</span></div>
 <div id="click-overlay">
@@ -530,7 +485,7 @@
       Mueve el ratón para mirar · <span class="key">Click izq</span> disparar ·
       <span class="key">Click der</span> apuntar · <span class="key">R</span> recargar ·
       <span class="key">Q</span> cambiar arma · <span class="key">G</span> granada ·
-      <span class="key">C</span> agacharse/deslizar · <span class="key">ESC</span> liberar ratón
+      <span class="key">C</span> agacharse/deslizar · <span class="key">E</span> conducir · <span class="key">ESC</span> liberar ratón
     </div>
   </div>
 </div>
@@ -568,6 +523,7 @@
 <div id="swap-btn" class="btn">🔄</div>
 <div id="grenade-btn" class="btn">💣</div>
 <div id="crouch-btn" class="btn">⬇</div>
+<div id="use-btn" class="btn">🚙</div>
 <div id="debug-btn" class="btn">🐞</div>
 
 <script type="importmap">
@@ -761,6 +717,24 @@ function playExplosionSound(distance = 0) {
   osc.frequency.setValueAtTime(95, t); osc.frequency.exponentialRampToValueAtTime(26, t + 0.55);
   const g2 = audioCtx.createGain(); g2.gain.setValueAtTime(0.75 * vol, t); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
   osc.connect(g2).connect(masterGain); osc.start(t); osc.stop(t + 0.7);
+}
+function playEngineStart() {
+  if (!audioCtx || !audioEnabled) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(60, t); osc.frequency.exponentialRampToValueAtTime(180, t + 0.5);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.001, t); g.gain.exponentialRampToValueAtTime(0.15, t + 0.1); g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+  const filt = audioCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 600;
+  osc.connect(filt).connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.6);
+}
+function playEngineStop() {
+  if (!audioCtx || !audioEnabled) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator(); osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(160, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.4);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+  const filt = audioCtx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 500;
+  osc.connect(filt).connect(g).connect(masterGain); osc.start(t); osc.stop(t + 0.5);
 }
 
 /* ═══════════════════════════════════════════
@@ -1369,7 +1343,7 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
 })();
 
 function forceWeaponVisibility() {
-  if (playerDead || !gameMode) {
+  if (playerDead || !gameMode || drivingVehicle) {
     weaponRifle.visible   = false;
     weaponShotgun.visible = false;
     weaponPistol.visible  = false;
@@ -1549,9 +1523,9 @@ function curWeaponFlash() {
   return pistolModel.flash;
 }
 function setLocalWeaponsVisible(v) {
-  weaponRifle.visible   = v && currentWeaponKey === 'rifle';
-  weaponShotgun.visible = v && currentWeaponKey === 'shotgun';
-  weaponPistol.visible  = v && currentWeaponKey === 'pistol';
+  weaponRifle.visible   = v && currentWeaponKey === 'rifle' && !drivingVehicle;
+  weaponShotgun.visible = v && currentWeaponKey === 'shotgun' && !drivingVehicle;
+  weaponPistol.visible  = v && currentWeaponKey === 'pistol' && !drivingVehicle;
   if (rifleModel.fbxModel)   rifleModel.fbxModel.visible   = weaponRifle.visible;
   if (shotgunModel.fbxModel) shotgunModel.fbxModel.visible = weaponShotgun.visible;
   if (pistolModel.fbxModel)  pistolModel.fbxModel.visible  = weaponPistol.visible;
@@ -1599,7 +1573,7 @@ function updateGrenadeBar() {
 updateGrenadeBar();
 
 function updateGrenadeView(dt) {
-  if (playerDead) { grenadeViewModel.visible = false; return; }
+  if (playerDead || drivingVehicle) { grenadeViewModel.visible = false; return; }
   if (grenadeViewTimer <= 0) { grenadeViewModel.visible = false; return; }
   grenadeViewTimer -= dt;
   const t = 1 - Math.max(0, grenadeViewTimer) / GRENADE_VIEW_DUR;
@@ -1618,7 +1592,7 @@ function updateGrenadeView(dt) {
 
 const grenades = [];
 function throwGrenade() {
-  if (playerDead || !gameMode) return;
+  if (playerDead || !gameMode || drivingVehicle) return;
   initAudio();
   if (grenadeCooldown > 0) { showTempHint(`💣 Granada en enfriamiento (${Math.ceil(grenadeCooldown)}s)`); return; }
   grenadeCooldown = GRENADE_COOLDOWN;
@@ -1968,6 +1942,21 @@ function rescaleToLength(template, targetLen) {
   return t;
 }
 
+/* ═══════════════════════════════════════════
+   VEHÍCULOS CONDUCIBLES
+   ═══════════════════════════════════════════ */
+const drivableVehicles = [];
+let drivingVehicle = null;
+let vehicleSendAcc = 0;
+let exitCooldown = 0;
+const DRIVE_SPEED_MAX = 22;
+const DRIVE_SPEED_REVERSE = -9;
+const DRIVE_ACCEL = 24;
+const DRIVE_BRAKE = 34;
+const DRIVE_FRICTION = 14;
+const DRIVE_TURN_RATE = 1.9;
+const DRIVE_ENTER_DIST = 4.0;
+
 Promise.all([
   loadVehicleFBX('modelos3d/auto militar.fbx',  6.5),
   loadVehicleFBX('modelos3d/camioneta.fbx',     5.5),
@@ -2008,12 +1997,245 @@ Promise.all([
       }
     });
     scene.add(wrapper);
-    colliders.push({ x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' });
+
+    // Collider reference (shared so we can update x/z when the vehicle moves)
+    const collRef = { x: spawn.x, z: spawn.z, r: spawn.collR, kind: 'lamp' };
+    colliders.push(collRef);
+
+    // Registramos los militares como conducibles
+    if (spawn.type === 'military') {
+      drivableVehicles.push({
+        index: drivableVehicles.length,
+        wrapper,
+        x: spawn.x,
+        z: spawn.z,
+        rotY: spawn.rot,
+        velocity: 0,
+        collR: spawn.collR,
+        collRef,
+        occupiedBy: null,
+        remoteDriver: null,
+        targetX: spawn.x,
+        targetZ: spawn.z,
+        targetRotY: spawn.rot
+      });
+    }
   }
   try { applyOptimizations(); } catch (e) {}
 }).catch(err => {
   logFbxError('Error general vehículos: ' + err.message);
 });
+
+/* ─────────────── HELPERS VEHÍCULOS ─────────────── */
+function findNearestVehicle() {
+  if (drivingVehicle) return null;
+  let closest = null, best = DRIVE_ENTER_DIST * DRIVE_ENTER_DIST;
+  for (const v of drivableVehicles) {
+    if (v.occupiedBy && v.occupiedBy !== playerId) continue;
+    const dx = player.position.x - v.x;
+    const dz = player.position.z - v.z;
+    const d2 = dx * dx + dz * dz;
+    if (d2 < best) { best = d2; closest = v; }
+  }
+  return closest;
+}
+
+function enterVehicle(v) {
+  if (!v || drivingVehicle) return;
+  drivingVehicle = v;
+  v.occupiedBy = playerId;
+  v.remoteDriver = null;
+  v.velocity = 0;
+  player.visible = false;
+  setLocalWeaponsVisible(false);
+  setAiming(false);
+  shootHeld = false;
+  curWepState().reloading = false;
+  ammoWrap.classList.remove('reloading');
+  crouching = false; crouchKeyHeld = false;
+  crouchBtn.classList.remove('held');
+  sliding = false; slideTimer = 0; slideSpeed = 0;
+  playEngineStart();
+  showTempHint('🚙 Conducí con WASD · E para salir');
+  if (onlineMode) {
+    set(ref(db, `rooms/${ROOM}/vehicles/${v.index}`), {
+      driver: playerId,
+      x: +v.x.toFixed(2),
+      z: +v.z.toFixed(2),
+      rotY: +v.rotY.toFixed(3),
+      ts: Date.now()
+    }).catch(() => {});
+    onDisconnect(ref(db, `rooms/${ROOM}/vehicles/${v.index}`)).remove();
+    sendLocalPlayerState(true);
+  }
+}
+
+function exitVehicle() {
+  const v = drivingVehicle;
+  if (!v) return;
+  // Colocar al jugador al costado del vehículo
+  const sideX = Math.cos(v.rotY);
+  const sideZ = -Math.sin(v.rotY);
+  player.position.set(
+    v.x + sideX * (v.collR + 0.9),
+    0,
+    v.z + sideZ * (v.collR + 0.9)
+  );
+  resolveCollisions(player, PLAYER_RADIUS);
+  player.visible = true;
+  drivingVehicle = null;
+  v.occupiedBy = null;
+  v.velocity = 0;
+  exitCooldown = 0.5;
+  cameraYaw = v.rotY;
+  cameraPitch = 0;
+  playEngineStop();
+  setLocalWeaponsVisible(true);
+  forceWeaponVisibility();
+  showTempHint('🚶 A pie');
+  if (onlineMode) {
+    remove(ref(db, `rooms/${ROOM}/vehicles/${v.index}`)).catch(() => {});
+    sendLocalPlayerState(true);
+  }
+}
+
+function vehicleCollisionCheck(v, nx, nz) {
+  const fx = -Math.sin(v.rotY);
+  const fz = -Math.cos(v.rotY);
+  const halfLen = v.collR * 0.85;
+  const r = v.collR * 0.55;
+  const samples = [
+    [nx + fx * halfLen, nz + fz * halfLen],
+    [nx, nz],
+    [nx - fx * halfLen, nz - fz * halfLen]
+  ];
+  for (const [px, pz] of samples) {
+    if (px < -FENCE_X + 1 || px > FENCE_X - 1) return true;
+    if (pz < -FENCE_Z + 1 || pz > FENCE_Z - 1) return true;
+    for (const b of boxColliders) {
+      if (computeBoxPenetration(px, pz, r, b)) return true;
+    }
+    for (const c of colliders) {
+      if (c === v.collRef) continue;
+      const dx = px - c.x, dz = pz - c.z;
+      const minD = c.r + r;
+      if (dx * dx + dz * dz < minD * minD) return true;
+    }
+  }
+  return false;
+}
+
+function updateVehicleDriving(dt) {
+  const v = drivingVehicle;
+  if (!v) return;
+  let throttle = 0, steer = 0;
+  if (keys['KeyW'] || keys['ArrowUp']) throttle += 1;
+  if (keys['KeyS'] || keys['ArrowDown']) throttle -= 1;
+  if (keys['KeyA'] || keys['ArrowLeft']) steer += 1;
+  if (keys['KeyD'] || keys['ArrowRight']) steer -= 1;
+  // Táctil
+  throttle -= touchInput.y;
+  steer -= touchInput.x;
+  throttle = Math.max(-1, Math.min(1, throttle));
+  steer = Math.max(-1, Math.min(1, steer));
+
+  // Física de aceleración
+  if (throttle > 0.05) {
+    v.velocity += DRIVE_ACCEL * dt;
+  } else if (throttle < -0.05) {
+    if (v.velocity > 0.05) v.velocity -= DRIVE_BRAKE * dt;
+    else v.velocity -= DRIVE_ACCEL * 0.6 * dt;
+  } else {
+    if (v.velocity > 0.05) v.velocity = Math.max(0, v.velocity - DRIVE_FRICTION * dt);
+    else if (v.velocity < -0.05) v.velocity = Math.min(0, v.velocity + DRIVE_FRICTION * dt);
+    else v.velocity = 0;
+  }
+  v.velocity = Math.max(DRIVE_SPEED_REVERSE, Math.min(DRIVE_SPEED_MAX, v.velocity));
+
+  // Rotación (solo si hay movimiento)
+  if (Math.abs(v.velocity) > 0.4) {
+    const turnDir = v.velocity > 0 ? 1 : -1;
+    const speedFactor = Math.min(1, Math.abs(v.velocity) / 6);
+    v.rotY += steer * DRIVE_TURN_RATE * dt * turnDir * speedFactor;
+  }
+
+  // Movimiento
+  const fx = -Math.sin(v.rotY);
+  const fz = -Math.cos(v.rotY);
+  const nx = v.x + fx * v.velocity * dt;
+  const nz = v.z + fz * v.velocity * dt;
+
+  if (!vehicleCollisionCheck(v, nx, nz)) {
+    v.x = nx;
+    v.z = nz;
+  } else {
+    v.velocity *= -0.25; // rebote suave
+  }
+
+  // Aplicar al wrapper y al collider
+  v.wrapper.position.x = v.x;
+  v.wrapper.position.z = v.z;
+  v.wrapper.rotation.y = v.rotY;
+  v.collRef.x = v.x;
+  v.collRef.z = v.z;
+
+  // El jugador viaja con el vehículo (para sincronización y minimapa)
+  player.position.x = v.x;
+  player.position.z = v.z;
+  player.position.y = 0;
+
+  // Sincronización online
+  if (onlineMode) {
+    vehicleSendAcc += dt;
+    if (vehicleSendAcc >= 1 / NET_SEND_HZ) {
+      vehicleSendAcc = 0;
+      update(ref(db, `rooms/${ROOM}/vehicles/${v.index}`), {
+        driver: playerId,
+        x: +v.x.toFixed(2),
+        z: +v.z.toFixed(2),
+        rotY: +v.rotY.toFixed(3),
+        ts: Date.now()
+      }).catch(() => {});
+    }
+  }
+}
+
+function updateVehicleCamera(dt) {
+  const v = drivingVehicle;
+  if (!v) return;
+  const fx = -Math.sin(v.rotY);
+  const fz = -Math.cos(v.rotY);
+  const camDist = 8.5;
+  const targetX = v.x - fx * camDist;
+  const targetY = 3.8;
+  const targetZ = v.z - fz * camDist;
+  const k = Math.min(1, dt * 5);
+  camera.position.x += (targetX - camera.position.x) * k;
+  camera.position.y += (targetY - camera.position.y) * k;
+  camera.position.z += (targetZ - camera.position.z) * k;
+  camera.lookAt(v.x + fx * 4, 1.3, v.z + fz * 4);
+  camera.fov += (BASE_FOV - camera.fov) * Math.min(1, dt * 6);
+  camera.updateProjectionMatrix();
+}
+
+function updateRemoteVehicles(dt) {
+  for (const v of drivableVehicles) {
+    if (v === drivingVehicle) continue;
+    if (!v.remoteDriver) continue;
+    const k = Math.min(1, dt * 8);
+    v.x += (v.targetX - v.x) * k;
+    v.z += (v.targetZ - v.z) * k;
+    let dry = v.targetRotY - v.rotY;
+    while (dry > Math.PI) dry -= Math.PI * 2;
+    while (dry < -Math.PI) dry += Math.PI * 2;
+    v.rotY += dry * k;
+    v.wrapper.position.x = v.x;
+    v.wrapper.position.z = v.z;
+    v.wrapper.rotation.y = v.rotY;
+    v.collRef.x = v.x;
+    v.collRef.z = v.z;
+  }
+}
 
 /* ─────────────── ALMACÉN NORTE ─────────────── */
 function createWarehouse(x, z, w, d, h) {
@@ -2376,6 +2598,15 @@ const keys = {};
 addEventListener('keydown', e => {
   keys[e.code] = true;
   if (!gameMode) return;
+  if (e.code === 'KeyE' && !e.repeat && !playerDead && exitCooldown <= 0) {
+    if (drivingVehicle) exitVehicle();
+    else {
+      const v = findNearestVehicle();
+      if (v) enterVehicle(v);
+    }
+    return;
+  }
+  if (drivingVehicle) return; // El resto de las teclas no aplican al conducir
   if (e.code === 'KeyR' && !e.repeat && !playerDead) startReload();
   if (e.code === 'KeyQ' && !e.repeat && !playerDead) swapWeapon();
   if (e.code === 'KeyG' && !e.repeat && !playerDead) throwGrenade();
@@ -2401,6 +2632,7 @@ const stick = document.getElementById('stick');
 const jumpBtn = document.getElementById('jump-btn');
 const swapBtn = document.getElementById('swap-btn');
 const debugBtn = document.getElementById('debug-btn');
+const useBtn = document.getElementById('use-btn');
 const hint = document.getElementById('hint');
 const cameraZone = document.getElementById('camera-zone');
 const debugPanel = document.getElementById('debug');
@@ -2472,15 +2704,24 @@ addEventListener('touchend', handleTouchEnd);
 addEventListener('touchcancel', handleTouchEnd);
 
 let jumpQueued = false;
-jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); jumpQueued = true; }, { passive: false });
-jumpBtn.addEventListener('pointerdown', e => { e.preventDefault(); jumpQueued = true; });
-swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDead) swapWeapon(); });
+jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); if (!drivingVehicle) jumpQueued = true; }, { passive: false });
+jumpBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!drivingVehicle) jumpQueued = true; });
+swapBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!playerDead && !drivingVehicle) swapWeapon(); });
 debugBtn.addEventListener('pointerdown', e => { e.preventDefault(); toggleDebug(); });
-grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); throwGrenade(); });
+grenadeBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (!drivingVehicle) throwGrenade(); });
+useBtn.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (playerDead || !gameMode || exitCooldown > 0) return;
+  if (drivingVehicle) exitVehicle();
+  else {
+    const v = findNearestVehicle();
+    if (v) enterVehicle(v);
+  }
+});
 
 crouchBtn.addEventListener('pointerdown', e => {
   e.preventDefault();
-  if (playerDead || !gameMode) return;
+  if (playerDead || !gameMode || drivingVehicle) return;
   const { ix, iz, moving } = getInputAxes();
   if (moving && isGrounded && !aiming && !crouching && !sliding) {
     startSlide(ix, iz);
@@ -2495,13 +2736,13 @@ crouchBtn.addEventListener('pointerdown', e => {
 });
 
 let shootHeld = false;
-shootBtn.addEventListener('pointerdown', e => { e.preventDefault(); shootHeld = true; tryShoot(); });
+shootBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (drivingVehicle) return; shootHeld = true; tryShoot(); });
 shootBtn.addEventListener('pointerup',   e => { e.preventDefault(); shootHeld = false; });
 shootBtn.addEventListener('pointerleave',e => { shootHeld = false; });
 shootBtn.addEventListener('pointercancel',e => { shootHeld = false; });
 
 function setAiming(v) { aiming = v; aimBtn.classList.toggle('held', aiming); }
-aimBtn.addEventListener('pointerdown', e => { e.preventDefault(); setAiming(!aiming); });
+aimBtn.addEventListener('pointerdown', e => { e.preventDefault(); if (drivingVehicle) return; setAiming(!aiming); });
 aimBtn.addEventListener('click', e => e.preventDefault());
 
 /* ─────────────── POINTER LOCK ─────────────── */
@@ -2530,6 +2771,7 @@ document.addEventListener('pointerlockchange', () => {
 });
 document.addEventListener('mousemove', e => {
   if (!pointerLocked || playerDead) return;
+  if (drivingVehicle) return;
   const sens = aiming ? 0.0012 : 0.0022;
   cameraYaw -= e.movementX * sens;
   cameraPitch += e.movementY * sens;
@@ -2537,7 +2779,7 @@ document.addEventListener('mousemove', e => {
 });
 document.addEventListener('mousedown', e => {
   initAudio();
-  if (isTouch || !pointerLocked || playerDead) return;
+  if (isTouch || !pointerLocked || playerDead || drivingVehicle) return;
   if (e.button === 0) { shootHeld = true; tryShoot(); }
   else if (e.button === 2) setAiming(true);
 });
@@ -2559,7 +2801,7 @@ addEventListener('touchstart', e => {
   }
 }, { passive: true });
 addEventListener('touchmove', e => {
-  if (cameraTouchId === null || playerDead) return;
+  if (cameraTouchId === null || playerDead || drivingVehicle) return;
   for (const t of e.changedTouches) {
     if (t.identifier === cameraTouchId) {
       e.preventDefault();
@@ -2602,6 +2844,8 @@ function updateDebug(dt) {
 <span class="val">Arma:</span>      ${curWepDef().name}
 <span class="val">Balas:</span>     ${ws.ammo} / ${curWepDef().magSize}${ws.reloading ? ' (recargando)' : ''}
 <span class="val">Vis:</span>       rifle=${weaponRifle.visible?'1':'0'} shot=${weaponShotgun.visible?'1':'0'} pist=${weaponPistol.visible?'1':'0'}
+<span class="val">Vehículo:</span>  ${drivingVehicle ? '🚙 conduciendo #' + drivingVehicle.index + ' v=' + drivingVehicle.velocity.toFixed(1) : '—'}
+<span class="val">Vehículos:</span> ${drivableVehicles.length} conducibles
 <span class="val">Remotos:</span>   ${aliveRemote} vivos / ${deadRemote} muertos
 <span class="val">Armas:</span>     rifle=${rifleModel.fbxModel ? '✅' : '❌'} shotgun=${shotgunModel.fbxModel ? '✅' : '❌'} pistol=${pistolModel.fbxModel ? '✅' : '❌'}${errLines}
   `.trim();
@@ -2767,6 +3011,7 @@ function spawnRemoteBulletHole(pos, normal) {
    ═══════════════════════════════════════════ */
 function killPlayer() {
   if (playerDead) return;
+  if (drivingVehicle) exitVehicle();
   playerDead = true;
   deathTimer = 0;
   deathPosition.copy(player.position);
@@ -2805,6 +3050,7 @@ function killPlayer() {
   }
 }
 function respawnPlayer() {
+  if (drivingVehicle) exitVehicle();
   playerDead = false; deathTimer = 0;
   aliveSince = Date.now();
   for (const p of playerPieces) scene.remove(p.mesh);
@@ -2829,6 +3075,7 @@ function respawnPlayer() {
   selectWeapon(playerLoadout.primary, true, true);
   setLocalWeaponsVisible(true);
   forceWeaponVisibility();
+  player.visible = true;
   deathUI.classList.remove('active');
   playRespawnSound();
   if (!isTouch) setTimeout(() => requestLock(), 100);
@@ -2850,7 +3097,7 @@ function selectWeapon(key, silent = false, force = false) {
   old.reloading = false; old.reloadTimer = 0; old.cooldown = 0; old.recoil = 0;
   ammoWrap.classList.remove('reloading');
   currentWeaponKey = key;
-  if (!playerDead) {
+  if (!playerDead && !drivingVehicle) {
     forceWeaponVisibility();
     curWeaponGroup().position.copy(WEAPON_POS[key]);
     curWeaponGroup().rotation.set(0, 0, 0);
@@ -2860,12 +3107,12 @@ function selectWeapon(key, silent = false, force = false) {
   if (!silent) playSwapSound();
 }
 function swapWeapon() {
-  if (playerDead) return;
+  if (playerDead || drivingVehicle) return;
   if (currentWeaponKey === 'pistol') selectWeapon(playerLoadout.primary);
   else selectWeapon('pistol');
 }
 function startReload() {
-  if (playerDead) return;
+  if (playerDead || drivingVehicle) return;
   const ws = curWepState(), def = curWepDef();
   if (ws.reloading || ws.ammo >= def.magSize) return;
   ws.reloading = true; ws.reloadTimer = def.reloadTime;
@@ -2927,7 +3174,7 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
 }
 
 function tryShoot() {
-  if (playerDead || !gameMode) return;
+  if (playerDead || !gameMode || drivingVehicle) return;
   const ws = curWepState(), def = curWepDef();
   if (ws.reloading || ws.cooldown > 0) return;
   if (ws.ammo <= 0) { startReload(); return; }
@@ -3172,7 +3419,8 @@ function addRemotePlayer(id, data) {
     walkPhase: Math.random() * 6.28, moveSpeed: 0, recoil: 0, flashTimer: 0, hitFlash: 0, lastShotTs: 0,
     crouchBlend: 0, slideBlend: 0,
     targetCrouch: data.crouch ? 1 : 0,
-    targetSlide: data.slide ? 1 : 0
+    targetSlide: data.slide ? 1 : 0,
+    inVehicle: (typeof data.inVehicle === 'number') ? data.inVehicle : null
   });
 }
 
@@ -3202,6 +3450,10 @@ function updateRemotePlayer(id, data) {
 
   r.targetCrouch = data.crouch ? 1 : 0;
   r.targetSlide  = data.slide  ? 1 : 0;
+
+  // Estado de vehículo remoto
+  const newInVeh = (typeof data.inVehicle === 'number') ? data.inVehicle : null;
+  r.inVehicle = newInVeh;
 
   const newHp = (typeof data.hp === 'number') ? data.hp : r.hp;
   if (newHp < r.hp) r.hitFlash = 1;
@@ -3308,6 +3560,12 @@ const _gripWorldTmp = new THREE.Vector3();
 const _handguardWorldTmp = new THREE.Vector3();
 
 function animateRemotePlayer(r, dt) {
+  if (r.inVehicle !== null && r.inVehicle !== undefined) {
+    // El jugador remoto está dentro de un vehículo → ocultar el modelo
+    r.root.visible = false;
+    return;
+  }
+  r.root.visible = true;
   const t = Math.min(1, dt * 12);
   const oldX = r.root.position.x, oldZ = r.root.position.z;
   r.root.position.x += (r.targetX - r.root.position.x) * t;
@@ -3442,7 +3700,8 @@ function sendLocalPlayerState(force = false) {
     hp: Math.round(health),
     dead: playerDead,
     crouch: crouching,
-    slide: sliding
+    slide: sliding,
+    inVehicle: drivingVehicle ? drivingVehicle.index : null
   };
   let changed = false;
   if (!lastSentState) {
@@ -3458,6 +3717,7 @@ function sendLocalPlayerState(force = false) {
     else if (state.dead !== lastSentState.dead) changed = true;
     else if (state.crouch !== lastSentState.crouch) changed = true;
     else if (state.slide !== lastSentState.slide) changed = true;
+    else if (state.inVehicle !== lastSentState.inVehicle) changed = true;
   }
   const heartbeatDue = (now - lastSentTime) >= HEARTBEAT_MS;
   if (!changed && !heartbeatDue && !force) return;
@@ -3506,7 +3766,7 @@ async function initOnline() {
   await set(playerNetRef, {
     name: playerName, x: player.position.x, y: player.position.y, z: player.position.z,
     yaw: cameraYaw, pitch: cameraPitch, weapon: currentWeaponKey, hp: 100, dead: false, ts: Date.now(),
-    crouch: false, slide: false
+    crouch: false, slide: false, inVehicle: null
   });
   onDisconnect(playerNetRef).remove();
   onDisconnect(ref(db, `rooms/${ROOM}/shots/${playerId}`)).remove();
@@ -3529,6 +3789,39 @@ async function initOnline() {
     }
   });
   onValue(ref(db, `rooms/${ROOM}/shots`), snap => handleRemoteShots(snap.val()));
+
+  // Estado de vehículos remotos
+  onValue(ref(db, `rooms/${ROOM}/vehicles`), snap => {
+    const all = snap.val() || {};
+    const seen = new Set();
+    for (const [idx, data] of Object.entries(all)) {
+      const i = parseInt(idx);
+      const v = drivableVehicles[i];
+      if (!v) continue;
+      seen.add(i);
+      if (data.driver === playerId) continue;
+      if (drivingVehicle === v) continue;
+      v.remoteDriver = data.driver || null;
+      if (data.driver) {
+        v.occupiedBy = data.driver;
+        v.targetX = data.x;
+        v.targetZ = data.z;
+        v.targetRotY = data.rotY;
+        // Snap si está muy lejos (evita teletransporte lento)
+        const dx = v.targetX - v.x, dz = v.targetZ - v.z;
+        if (dx*dx + dz*dz > 100) {
+          v.x = v.targetX; v.z = v.targetZ; v.rotY = v.targetRotY;
+        }
+      }
+    }
+    for (const v of drivableVehicles) {
+      if (!seen.has(v.index) && v.remoteDriver) {
+        v.remoteDriver = null;
+        if (v.occupiedBy !== playerId) v.occupiedBy = null;
+      }
+    }
+  });
+
   const bulletHolesRef = ref(db, `rooms/${ROOM}/bulletHoles`);
   onChildAdded(bulletHolesRef, snap => {
     const h = snap.val();
@@ -3687,7 +3980,22 @@ function drawMinimap() {
     ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
   }
 
+  // Vehículos conducibles
+  for (const v of drivableVehicles) {
+    const px = wx2mm(v.x), py = wz2mm(v.z);
+    if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
+    ctx.fillStyle = v.occupiedBy ? '#2ecc71' : '#7cb342';
+    ctx.beginPath();
+    ctx.moveTo(px + Math.cos(v.rotY) * 4, py + Math.sin(v.rotY) * 4);
+    ctx.lineTo(px + Math.cos(v.rotY + 2.4) * 3, py + Math.sin(v.rotY + 2.4) * 3);
+    ctx.lineTo(px + Math.cos(v.rotY - 2.4) * 3, py + Math.sin(v.rotY - 2.4) * 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+
   for (const [, r] of remotePlayers) {
+    if (r.inVehicle !== null && r.inVehicle !== undefined) continue; // dentro de un vehículo
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
     ctx.fillStyle = r.dead ? '#666' : '#f39c12';
@@ -3697,8 +4005,9 @@ function drawMinimap() {
 
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(-cameraYaw);
-  const pCol = playerDead ? '#666' : '#ff4d4d';
+  const yawForTriangle = drivingVehicle ? drivingVehicle.rotY : cameraYaw;
+  ctx.rotate(-yawForTriangle);
+  const pCol = playerDead ? '#666' : (drivingVehicle ? '#4cdf7b' : '#ff4d4d');
   ctx.shadowColor = playerDead ? 'transparent' : pCol;
   ctx.shadowBlur = playerDead ? 0 : 10;
   ctx.fillStyle = pCol;
@@ -3755,23 +4064,38 @@ updateHealthBar(); updateAmmoBar();
 function updateUI(dt = 0) {
   if (isTouch) {
     const show = !playerDead && !!gameMode;
-    jumpBtn.classList.toggle('active', show);
-    shootBtn.classList.toggle('active', show);
-    aimBtn.classList.toggle('active', show);
-    swapBtn.classList.toggle('active', show);
-    grenadeBtn.classList.toggle('active', show);
+    jumpBtn.classList.toggle('active', show && !drivingVehicle);
+    shootBtn.classList.toggle('active', show && !drivingVehicle);
+    aimBtn.classList.toggle('active', show && !drivingVehicle);
+    swapBtn.classList.toggle('active', show && !drivingVehicle);
+    grenadeBtn.classList.toggle('active', show && !drivingVehicle);
     grenadeBtn.classList.toggle('cooling', grenadeCooldown > 0);
-    crouchBtn.classList.toggle('active', show);
+    crouchBtn.classList.toggle('active', show && !drivingVehicle);
+    // Botón de usar vehículo (visible cuando hay un vehículo cercano o cuando conduce)
+    const nearV = !drivingVehicle && show ? findNearestVehicle() : null;
+    useBtn.classList.toggle('active', show && (!!drivingVehicle || !!nearV));
+    useBtn.textContent = drivingVehicle ? '🚪' : '🚙';
   }
-  crosshair.classList.toggle('active', !playerDead && !!gameMode);
+  crosshair.classList.toggle('active', !playerDead && !!gameMode && !drivingVehicle);
   if (hintTimer > 0) {
     hintTimer -= dt;
     if (hintTimer <= 0) hint.classList.remove('active');
     return;
   }
   const ws = curWepState();
-  if (playerDead || !gameMode) hint.classList.remove('active');
-  else if (ws.reloading) { hint.textContent = '🔄 Recargando...'; hint.classList.add('active'); }
+  if (playerDead || !gameMode) { hint.classList.remove('active'); return; }
+  if (drivingVehicle) {
+    hint.textContent = '🚙 WASD para conducir · E para salir';
+    hint.classList.add('active');
+    return;
+  }
+  const nearV = findNearestVehicle();
+  if (nearV) {
+    hint.textContent = '🚙 Presiona E para conducir';
+    hint.classList.add('active');
+    return;
+  }
+  if (ws.reloading) { hint.textContent = '🔄 Recargando...'; hint.classList.add('active'); }
   else if (ws.ammo === 0) { hint.textContent = '🔫 Sin balas · Pulsa R para recargar'; hint.classList.add('active'); }
   else hint.classList.remove('active');
 }
@@ -3782,6 +4106,7 @@ function updateUI(dt = 0) {
 function applyOptimizations() {
   const dynamicRoots = new Set([player, camera, weaponRifle, weaponShotgun, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
+  for (const v of drivableVehicles) dynamicRoots.add(v.wrapper);
   scene.traverse(obj => {
     let p = obj, isDynamic = false;
     while (p) {
@@ -3916,7 +4241,7 @@ function updateMenuCamera(dt) {
 /* ═══════════════════════════════════════════
    CONFIGURACIÓN DE CONTROLES TÁCTILES
    ═══════════════════════════════════════════ */
-const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'debug-btn'];
+const TOUCH_CONTROLS = ['joystick', 'shoot-btn', 'aim-btn', 'jump-btn', 'swap-btn', 'grenade-btn', 'crouch-btn', 'use-btn', 'debug-btn'];
 
 const DEFAULT_TOUCH_CONFIG = {
   'joystick':    { cx: 0.19, cy: 0.90, size: 110 },
@@ -3926,12 +4251,13 @@ const DEFAULT_TOUCH_CONFIG = {
   'swap-btn':    { cx: 0.72, cy: 0.80, size: 68 },
   'grenade-btn': { cx: 0.42, cy: 0.90, size: 68 },
   'crouch-btn':  { cx: 0.25, cy: 0.90, size: 68 },
+  'use-btn':     { cx: 0.42, cy: 0.80, size: 68 },
   'debug-btn':   { cx: 0.91, cy: 0.05, size: 50 }
 };
 
 const BASE_FONT_SIZES = {
   'shoot-btn': 34, 'aim-btn': 26, 'jump-btn': 11,
-  'swap-btn': 22, 'grenade-btn': 26, 'crouch-btn': 24
+  'swap-btn': 22, 'grenade-btn': 26, 'crouch-btn': 24, 'use-btn': 26
 };
 
 const TOUCH_CONFIG_KEY = 'lp_touch_controls_v1';
@@ -4139,15 +4465,23 @@ function animate() {
     renderer.render(scene, camera);
     return;
   }
+  if (exitCooldown > 0) exitCooldown = Math.max(0, exitCooldown - dt);
+
   if (gameMode) {
     if (playerDead) {
       setLocalWeaponsVisible(false);
       updateDeathCamera(dt);
+    } else if (drivingVehicle) {
+      updateVehicleDriving(dt);
+      updateVehicleCamera(dt);
     } else {
       updatePlayer(dt);
       updateCamera(dt);
       forceWeaponVisibility();
     }
+    // Vehículos remotos siempre se interpolan
+    updateRemoteVehicles(dt);
+
     if (damageFlash > 0) {
       damageFlash = Math.max(0, damageFlash - dt * 1.6);
       damageOverlay.style.opacity = damageFlash;
@@ -4180,6 +4514,9 @@ document.addEventListener('touchmove', e => { if (e.target === document.body) e.
 addEventListener('beforeunload', () => {
   if (onlineMode && playerNetRef) {
     try { remove(playerNetRef); } catch (e) {}
+    if (drivingVehicle) {
+      try { remove(ref(db, `rooms/${ROOM}/vehicles/${drivingVehicle.index}`)); } catch (e) {}
+    }
   }
   if (windModTimer) clearTimeout(windModTimer);
   if (birdTimer) clearTimeout(birdTimer);
