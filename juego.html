@@ -1743,7 +1743,7 @@ function computeBoxPenetration(px, pz, radius, box) {
 }
 
 /* ═══════════════════════════════════════════
-   BODEGA DE CONTENEDORES — SOLO FBX
+   BODEGA — SOLO FBX (contenedores + paredes)
    ═══════════════════════════════════════════ */
 const FENCE_X = 54;
 const FENCE_Z = 52;
@@ -1838,7 +1838,7 @@ Promise.all([
 ]).then(([c1, c2]) => {
   const anyLoaded = c1 || c2;
   if (!anyLoaded) {
-    logFbxError('Contenedores FBX no disponibles. No se agregan contenedores.');
+    logFbxError('Contenedores FBX no disponibles.');
     try { applyOptimizations(); } catch (e) {}
     return;
   }
@@ -1862,6 +1862,95 @@ Promise.all([
 }).catch(err => {
   logFbxError('Error general contenedores: ' + err.message);
 });
+
+/* ═══════════════════════════════════════════
+   PAREDES — SOLO FBX (reemplaza warehouse, office y fence)
+   ═══════════════════════════════════════════ */
+function loadWallsFBX(url) {
+  return new Promise((resolve) => {
+    _fbxLoader.load(url, (obj) => {
+      try {
+        obj.position.set(0, 0, 0);
+        obj.rotation.set(0, 0, 0);
+        obj.scale.setScalar(1);
+        obj.updateMatrixWorld(true);
+
+        obj.traverse(n => {
+          if (n.isMesh || n.isSkinnedMesh) {
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) forceMaterialOpaque(m);
+            }
+          }
+        });
+
+        let box = new THREE.Box3().setFromObject(obj);
+        let size = box.getSize(new THREE.Vector3());
+
+        // Si viene acostado (eje Y muy chico respecto a X y Z), rotar para pararlo
+        if (size.y < size.x * 0.5 && size.y < size.z * 0.5) {
+          obj.rotation.x = -Math.PI / 2;
+          obj.updateMatrixWorld(true);
+          box = new THREE.Box3().setFromObject(obj);
+          size = box.getSize(new THREE.Vector3());
+        }
+
+        // Escalar para que el footprint coincida con FENCE_X*2 × FENCE_Z*2
+        const targetX = FENCE_X * 2;
+        const targetZ = FENCE_Z * 2;
+        const scaleX = targetX / Math.max(size.x, 0.001);
+        const scaleZ = targetZ / Math.max(size.z, 0.001);
+        const s = Math.min(scaleX, scaleZ);
+        obj.scale.setScalar(s);
+        obj.updateMatrixWorld(true);
+
+        // Centrar en el origen y apoyar en el suelo
+        const box2 = new THREE.Box3().setFromObject(obj);
+        const c2 = box2.getCenter(new THREE.Vector3());
+        obj.position.x -= c2.x;
+        obj.position.z -= c2.z;
+        obj.position.y -= box2.min.y;
+        obj.updateMatrixWorld(true);
+
+        let meshCount = 0;
+        obj.traverse(n => {
+          n.visible = true;
+          if (n.isMesh || n.isSkinnedMesh) {
+            meshCount++;
+            n.visible = true;
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.frustumCulled = false;
+            if (n.material) {
+              const mats = Array.isArray(n.material) ? n.material : [n.material];
+              for (const m of mats) forceMaterialOpaque(m);
+            }
+          }
+        });
+        console.log(`[FBX] ${url}: ${meshCount} mallas (paredes)`);
+        resolve(obj);
+      } catch (e) { logFbxError('walls ' + url + ': ' + e.message); resolve(null); }
+    }, undefined, () => { logFbxError('No se pudo cargar ' + url); resolve(null); });
+  });
+}
+
+loadWallsFBX('modelos3d/paredes.fbx').then((walls) => {
+  if (walls) {
+    scene.add(walls);
+  } else {
+    logFbxError('paredes.fbx no disponible. No se agregan paredes.');
+  }
+  try { applyOptimizations(); } catch (e) {}
+}).catch(err => {
+  logFbxError('Error general paredes: ' + err.message);
+});
+
+// Colliders perimetrales invisibles (límite del mapa, el jugador no puede salir)
+const perimeterThickness = 0.5;
+boxColliders.push({ x: 0, z: -FENCE_Z, hw: FENCE_X, hd: perimeterThickness, rot: 0, kind: 'wall' });
+boxColliders.push({ x: 0, z:  FENCE_Z, hw: FENCE_X, hd: perimeterThickness, rot: 0, kind: 'wall' });
+boxColliders.push({ x: -FENCE_X, z: 0, hw: perimeterThickness, hd: FENCE_Z, rot: 0, kind: 'wall' });
+boxColliders.push({ x:  FENCE_X, z: 0, hw: perimeterThickness, hd: FENCE_Z, rot: 0, kind: 'wall' });
 
 /* ═══════════════════════════════════════════
    VEHÍCULOS — SOLO FBX
@@ -2014,181 +2103,6 @@ Promise.all([
 }).catch(err => {
   logFbxError('Error general vehículos: ' + err.message);
 });
-
-/* ─────────────── ALMACÉN NORTE ─────────────── */
-function createWarehouse(x, z, w, d, h) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mWall = cachedMat(0x9a9382);
-  const mRoof = cachedMat(0x3f4244);
-  const mDoor = cachedMat(0x2c2e30);
-  const mTrim = cachedMat(0x1e1e1e);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
-  body.position.y = h / 2;
-  body.castShadow = true; body.receiveShadow = true;
-  g.add(body);
-  const stripeGeo = new THREE.BoxGeometry(w + 0.05, 0.12, d + 0.05);
-  for (let i = 0; i < 5; i++) {
-    const stripe = new THREE.Mesh(stripeGeo, mTrim);
-    stripe.position.y = 1.2 + i * (h - 2.4) / 4;
-    g.add(stripe);
-  }
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.5, d + 1), mRoof);
-  roof.position.y = h + 0.25;
-  roof.castShadow = true;
-  g.add(roof);
-  const doorCount = 3;
-  const innerW = w - 2.5;
-  const doorW = innerW / doorCount - 0.6;
-  const doorH = h * 0.72;
-  for (let i = 0; i < doorCount; i++) {
-    const dx = -innerW/2 + 0.5 + (doorW + 0.6) * (i + 0.5);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, 0.2), mDoor);
-    door.position.set(dx, doorH / 2, d / 2 + 0.06);
-    g.add(door);
-    const slatGeo = new THREE.BoxGeometry(doorW - 0.1, 0.06, 0.05);
-    for (let j = 1; j < 8; j++) {
-      const slat = new THREE.Mesh(slatGeo, mTrim);
-      slat.position.set(dx, doorH * j / 8, d / 2 + 0.18);
-      g.add(slat);
-    }
-  }
-  boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
-  return g;
-}
-scene.add(createWarehouse(0, -40, 46, 14, 8));
-
-/* ─────────────── OFICINA ─────────────── */
-function createOffice(x, z, w, d, h) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mWall = cachedMat(0xe8dcc0);
-  const mRoof = cachedMat(0x5d4037);
-  const mTrim = cachedMat(0x2a2520);
-  const mWindow = cachedMat(0x2b3a4a);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mWall);
-  body.position.y = h / 2;
-  body.castShadow = true; body.receiveShadow = true;
-  g.add(body);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, 0.4, d + 0.6), mRoof);
-  roof.position.y = h + 0.2;
-  roof.castShadow = true;
-  g.add(roof);
-  for (let i = 0; i < 3; i++) {
-    const wx = -w/2 + 1.6 + i * (w - 3.2) / 2;
-    const win = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 0.1), mWindow);
-    win.position.set(wx, h * 0.65, d/2 + 0.05);
-    g.add(win);
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 0.08), mTrim);
-    frame.position.set(wx, h * 0.65, d/2 + 0.02);
-    g.add(frame);
-  }
-  const door = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.0, 0.12), mTrim);
-  door.position.set(0, 1.0, d/2 + 0.06);
-  g.add(door);
-  const ac = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 1.0), cachedMat(0xaaaaaa));
-  ac.position.set(w/2 - 1.2, h + 0.55, 0);
-  ac.castShadow = true;
-  g.add(ac);
-  boxColliders.push({ x, z, hw: w / 2, hd: d / 2, rot: 0, kind: 'wall' });
-  return g;
-}
-scene.add(createOffice(-38, 38, 14, 9, 4.5));
-
-/* ─────────────── CERCO PERIMETRAL ─────────────── */
-function createFence(x1, z1, x2, z2) {
-  const dx = x2 - x1, dz = z2 - z1;
-  const len = Math.hypot(dx, dz);
-  if (len < 0.1) return null;
-  const g = new THREE.Group();
-  const mPost = cachedMat(0x3a3a3a);
-  const mRail = cachedMat(0x222222);
-  const mFence = new THREE.MeshLambertMaterial({
-    color: 0x8a9aa8, transparent: true, opacity: 0.32,
-    side: THREE.DoubleSide, depthWrite: false, flatShading: false
-  });
-  const postGeo = new THREE.BoxGeometry(0.14, 3.2, 0.14);
-  const postCount = Math.max(1, Math.ceil(len / 3));
-  for (let i = 0; i <= postCount; i++) {
-    const t = i / postCount;
-    const post = new THREE.Mesh(postGeo, mPost);
-    post.position.set(t * len - len / 2, 1.6, 0);
-    post.castShadow = true;
-    g.add(post);
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.25, 4), mPost);
-    cap.position.set(t * len - len / 2, 3.32, 0);
-    g.add(cap);
-  }
-  const panel = new THREE.Mesh(new THREE.PlaneGeometry(len, 3.0), mFence);
-  panel.position.set(0, 1.55, 0);
-  g.add(panel);
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.08), mRail);
-  rail.position.set(0, 3.05, 0);
-  g.add(rail);
-  const bRail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.06, 0.06), mRail);
-  bRail.position.set(0, 0.15, 0);
-  g.add(bRail);
-  g.position.set((x1 + x2) / 2, 0, (z1 + z2) / 2);
-  g.rotation.y = Math.atan2(-dz, dx);
-  const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
-  const rot = Math.atan2(-dz, dx);
-  boxColliders.push({ x: cx, z: cz, hw: len / 2, hd: 0.15, rot, kind: 'wall' });
-  return g;
-}
-const ENTRY_GAP = 9;
-scene.add(createFence(-FENCE_X, -FENCE_Z, FENCE_X, -FENCE_Z));
-scene.add(createFence( FENCE_X, -FENCE_Z, FENCE_X, FENCE_Z));
-scene.add(createFence(-FENCE_X, -FENCE_Z, -FENCE_X, FENCE_Z));
-scene.add(createFence(-FENCE_X, FENCE_Z, -ENTRY_GAP / 2, FENCE_Z));
-scene.add(createFence( ENTRY_GAP / 2, FENCE_Z, FENCE_X, FENCE_Z));
-
-/* ─────────────── PUERTA DE ENTRADA ─────────────── */
-function createEntryGate(x, z) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  const mPost = cachedMat(0x2a2a2a);
-  const mYellow = cachedMat(0xf1c40f);
-  const mRed = cachedMat(0xc0392b);
-  const mWhite = cachedMat(0xeeeeee);
-  for (const sx of [-1, 1]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 4.5, 0.5), mPost);
-    post.position.set(sx * (ENTRY_GAP / 2 + 0.3), 2.25, 0);
-    post.castShadow = true;
-    g.add(post);
-  }
-  const booth = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.8, 3.0), cachedMat(0xd6d6d6));
-  booth.position.set(-ENTRY_GAP / 2 - 2.5, 1.4, 1.5);
-  booth.castShadow = true;
-  g.add(booth);
-  const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 3.4), cachedMat(0x2a2a2a));
-  boothRoof.position.set(-ENTRY_GAP / 2 - 2.5, 2.9, 1.5);
-  g.add(boothRoof);
-  const win = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 1.6), cachedMat(0x2b3a4a));
-  win.position.set(-ENTRY_GAP / 2 - 2.5 + 1.55, 1.7, 1.5);
-  g.add(win);
-  const barrierBase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.5), mPost);
-  barrierBase.position.set(ENTRY_GAP / 2 - 0.6, 0.5, 0);
-  g.add(barrierBase);
-  const armPivot = new THREE.Group();
-  armPivot.position.set(ENTRY_GAP / 2 - 0.6, 1.0, 0);
-  armPivot.rotation.z = -Math.PI / 12;
-  g.add(armPivot);
-  const armLen = ENTRY_GAP - 1.4;
-  const armSegments = 8;
-  for (let i = 0; i < armSegments; i++) {
-    const segLen = armLen / armSegments;
-    const seg = new THREE.Mesh(new THREE.BoxGeometry(segLen, 0.18, 0.14), i % 2 ? mRed : mWhite);
-    seg.position.set(-segLen / 2 - i * segLen, 0, 0);
-    armPivot.add(seg);
-  }
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(ENTRY_GAP, 0.02, 1.4), mYellow);
-  stripe.position.set(0, 0.03, 0);
-  g.add(stripe);
-  boxColliders.push({ x: -ENTRY_GAP / 2 - 2.5, z: 1.5, hw: 1.5, hd: 1.5, rot: 0, kind: 'wall' });
-  boxColliders.push({ x: ENTRY_GAP / 2 - 0.6, z: 0, hw: 0.35, hd: 0.35, rot: 0, kind: 'wall' });
-  return g;
-}
-scene.add(createEntryGate(0, FENCE_Z));
 
 /* ─────────────── TORRES DE VIGILANCIA ─────────────── */
 function createWatchtower(x, z) {
@@ -3641,14 +3555,6 @@ function drawMinimap() {
 
   ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
   ctx.strokeRect(wx2mm(-FENCE_X), wz2mm(-FENCE_Z), (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE);
-
-  const wh = wx2mm(0), wz = wz2mm(-40);
-  ctx.fillStyle = '#7d7a6e';
-  ctx.fillRect(wh - 23 * MM_SCALE, wz - 7 * MM_SCALE, 46 * MM_SCALE, 14 * MM_SCALE);
-
-  const ox = wx2mm(-38), oz = wz2mm(38);
-  ctx.fillStyle = '#e8dcc0';
-  ctx.fillRect(ox - 7 * MM_SCALE, oz - 4.5 * MM_SCALE, 14 * MM_SCALE, 9 * MM_SCALE);
 
   for (const c of containerLayout) {
     const px = wx2mm(c.x), py = wz2mm(c.z);
