@@ -995,10 +995,20 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(0x87ceeb, 90, 200);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 220);
 scene.add(camera);
 
 const BASE_FOV = 70;
+
+/* Perfil de rendimiento conservador: mantiene la misma escena y funciones,
+   pero evita renderizar demasiados píxeles y sombras innecesarias en equipos
+   móviles/medios. */
+const _perfTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const _perfCores = navigator.hardwareConcurrency || 4;
+const _perfLow = _perfTouch || _perfCores <= 4;
+const _perfMaxDpr = _perfTouch ? 1.35 : (_perfCores <= 4 ? 1.5 : 1.75);
+const _perfMinDpr = 1.0;
+let _perfCurrentDpr = Math.min(devicePixelRatio || 1, _perfMaxDpr);
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -1006,9 +1016,9 @@ const renderer = new THREE.WebGLRenderer({
   stencil: false
 });
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(_perfCurrentDpr);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = _perfLow ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
 renderer.sortObjects = true;
 document.body.appendChild(renderer.domElement);
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
@@ -1018,8 +1028,8 @@ scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff2cc, 2.3);
 sun.position.set(40, 55, 25);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 200 });
+sun.shadow.mapSize.set(_perfLow ? 1024 : 1536, _perfLow ? 1024 : 1536);
+Object.assign(sun.shadow.camera, { left: -85, right: 85, top: 85, bottom: -85, near: 1, far: 170 });
 scene.add(sun);
 
 /* ═══════════════════════════════════════════
@@ -3126,8 +3136,11 @@ function updateCamera(dt) {
   const cameraInput = getInputAxes();
   const strafeInput = cameraInput.ix;
   const desiredFov = aiming ? def.aimFov : BASE_FOV;
-  camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 10);
-  camera.updateProjectionMatrix();
+  const nextFov = camera.fov + (desiredFov - camera.fov) * Math.min(1, dt * 10);
+  if (Math.abs(nextFov - camera.fov) > 0.0001) {
+    camera.fov = nextFov;
+    camera.updateProjectionMatrix();
+  }
   let targetEye = STAND_EYE_HEIGHT;
   if (sliding) targetEye = CROUCH_EYE_HEIGHT - 0.20;
   else if (crouching) targetEye = CROUCH_EYE_HEIGHT;
@@ -3831,6 +3844,31 @@ function updateUI(dt = 0) {
 /* ═══════════════════════════════════════════
    OPTIMIZACIÓN
    ═══════════════════════════════════════════ */
+let _perfTimeAcc = 0;
+let _perfFrameAcc = 0;
+let _minimapTimeAcc = 0;
+let _uiTimeAcc = 0;
+let _debugTimeAcc = 0;
+
+function updateAdaptivePerformance(dt) {
+  if (!gameMode || document.hidden) return;
+  _perfTimeAcc += dt;
+  _perfFrameAcc++;
+  if (_perfTimeAcc < 1.5) return;
+
+  const avgFps = _perfFrameAcc / Math.max(_perfTimeAcc, 0.001);
+  let next = _perfCurrentDpr;
+  if (avgFps < 44 && next > _perfMinDpr) next = Math.max(_perfMinDpr, next - 0.15);
+  else if (avgFps > 58 && next < _perfMaxDpr) next = Math.min(_perfMaxDpr, next + 0.10);
+
+  if (Math.abs(next - _perfCurrentDpr) >= 0.05) {
+    _perfCurrentDpr = next;
+    renderer.setPixelRatio(_perfCurrentDpr);
+  }
+  _perfTimeAcc = 0;
+  _perfFrameAcc = 0;
+}
+
 function applyOptimizations() {
   const dynamicRoots = new Set([player, camera, weaponRifle, weaponShotgun, weaponPistol, grenadeViewModel, sun]);
   for (const [, r] of remotePlayers) dynamicRoots.add(r.root);
@@ -4213,9 +4251,23 @@ function animate() {
     updateGrenades(dt);
     updateGrenadeView(dt);
     if (grenadeCooldown > 0) { grenadeCooldown = Math.max(0, grenadeCooldown - dt); updateGrenadeBar(); }
-    updateUI(dt);
-    updateDebug(dt);
-    drawMinimap();
+    _uiTimeAcc += dt;
+    _debugTimeAcc += dt;
+    _minimapTimeAcc += dt;
+
+    if (_uiTimeAcc >= 0.08) {
+      updateUI(_uiTimeAcc);
+      _uiTimeAcc = 0;
+    }
+    if (_debugTimeAcc >= 0.20) {
+      updateDebug(_debugTimeAcc);
+      _debugTimeAcc = 0;
+    }
+    if (_minimapTimeAcc >= 0.08) {
+      drawMinimap();
+      _minimapTimeAcc = 0;
+    }
+    updateAdaptivePerformance(dt);
   }
   renderer.render(scene, camera);
 }
@@ -4225,6 +4277,8 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  _perfTimeAcc = 0;
+  _perfFrameAcc = 0;
   applyTouchConfig();
 });
 document.addEventListener('touchmove', e => { if (e.target === document.body) e.preventDefault(); }, { passive: false });
