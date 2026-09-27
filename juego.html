@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Low Poly FPS - Bodega de Contenedores</title>
+<title>Low Poly FPS - Mapa FBX</title>
 <style>
   * { -webkit-tap-highlight-color: transparent; }
   body { margin: 0; overflow: hidden; background: #87ceeb; touch-action: none; user-select: none; font-family: system-ui, sans-serif; cursor: none; }
@@ -22,8 +22,6 @@
   #mode-menu .divider { width: 72px; height: 3px; margin: clamp(16px, 3.5vw, 24px) auto 0; background: linear-gradient(90deg, transparent, #ffb76b, transparent); border-radius: 2px; box-shadow: 0 0 14px rgba(255,183,107,0.55); }
   .play-btn { display: inline-flex; align-items: center; justify-content: center; gap: 16px; width: 100%; min-height: 78px; padding: 22px 28px; background: linear-gradient(180deg, #ff9a4a 0%, #e05a10 100%); border: 3px solid #ffc080; border-radius: 18px; color: #fff; font: 900 clamp(20px, 5.8vw, 28px)/1 system-ui, sans-serif; letter-spacing: clamp(3px, 1.2vw, 5px); cursor: pointer; pointer-events: auto; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); box-shadow: 0 8px 0 #8a3200, 0 16px 34px rgba(255,130,60,0.5); transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease; animation: menuFadeIn 0.7s 0.15s ease both; }
   .play-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #8a3200, 0 6px 18px rgba(255,130,60,0.4); filter: brightness(1.12); }
-  .play-btn.loading { opacity: 0.72; filter: saturate(0.65); cursor: wait; }
-  .play-btn[disabled] { pointer-events: auto; }
   @media (hover: hover) and (pointer: fine) { .play-btn:hover { filter: brightness(1.08); box-shadow: 0 8px 0 #8a3200, 0 20px 44px rgba(255,130,60,0.65); } }
   .player-chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(14,18,30,0.7); border: 2px solid rgba(120,140,180,0.5); border-radius: 999px; font: bold clamp(11px, 3vw, 13px) ui-monospace, monospace; letter-spacing: 1.5px; color: #d0dbe8; backdrop-filter: blur(6px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: menuFadeIn 0.7s 0.3s ease both; }
   .player-chip .chip-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: #4cdf7b; box-shadow: 0 0 10px #4cdf7b; animation: pulseDot 1.6s ease-in-out infinite; }
@@ -454,7 +452,7 @@
   <div class="menu-content">
     <div class="brand-block">
       <h1>LOW<br>POLY<br>FPS</h1>
-      <div class="subtitle">BODEGA DE CONTENEDORES</div>
+      <div class="subtitle">MAPA FBX</div>
       <div class="divider"></div>
     </div>
     <button class="play-btn" id="play-btn" type="button">
@@ -565,8 +563,6 @@
 <script type="module">
 import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
-import { Octree } from 'three/addons/math/Octree.js';
-import { Capsule } from 'three/addons/math/Capsule.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getDatabase, ref, set, update, onValue, onChildAdded, onChildRemoved,
@@ -955,34 +951,18 @@ try {
   if (menuNameEl) menuNameEl.textContent = playerName;
 } catch (e) {}
 
-/* ═══════════════════════════════════════════
-   RNG
-   ═══════════════════════════════════════════ */
-function mulberry32(seed) {
-  let a = seed >>> 0;
-  return function () {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), 1 | t);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const MAP_SEED = 20240617;
-const mapRandom = mulberry32(MAP_SEED);
-
 /* ─────────────── ESCENA ─────────────── */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 130, 360);
+scene.fog = new THREE.Fog(0x87ceeb, 90, 240);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 420);
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 400);
 scene.add(camera);
 
 const BASE_FOV = 70;
 
 const _deviceDpr = window.devicePixelRatio || 1;
-const _perfMaxDpr = Math.min(_deviceDpr, 2.0);
+const _perfMaxDpr = Math.min(_deviceDpr, 2.5);
 const _perfMinDpr = 1.0;
 let _perfCurrentDpr = _perfMaxDpr;
 
@@ -1060,21 +1040,6 @@ function optimizeMeshForRender(mesh) {
   }
 }
 
-function optimizeModelForRender(root, freezeStatic) {
-  if (!root) return;
-  root.traverse(n => {
-    if (n.isMesh || n.isSkinnedMesh) optimizeMeshForRender(n);
-    if (freezeStatic && n.matrixAutoUpdate !== undefined && !n.isBone) {
-      n.updateMatrix();
-      n.matrixAutoUpdate = false;
-    }
-  });
-}
-
-function cullModelInterior(root, freezeStatic) {
-  optimizeModelForRender(root, freezeStatic);
-}
-
 function disableShadows(obj) {
   if (!obj) return;
   obj.traverse(n => {
@@ -1084,10 +1049,6 @@ function disableShadows(obj) {
     }
   });
 }
-
-/* ─────────────── MAPA 3D NUEVO ─────────────── */
-// El terreno y la geometría del mapa antiguo fueron eliminados.
-// El nuevo escenario se carga desde mapa/lowpoly asset.fbx más sus texturas.
 
 /* ═══════════════════════════════════════════
    PERSONAJE
@@ -1374,12 +1335,14 @@ function loadWeaponFBX(url, targetLen, rotY = 0, rotX = 0, rotZ = 0) {
 }
 
 (async () => {
+  _fbxLoader.setResourcePath('modelos3d/');
   const r = await loadWeaponFBX('modelos3d/m4a1.fbx', 0.65, 0);
   if (r) { rifleModel.fbxModel = r; rifleModel.group.add(r); }
   const p = await loadWeaponFBX('modelos3d/pistol.fbx', 0.28, Math.PI / 2);
   if (p) { pistolModel.fbxModel = p; pistolModel.group.add(p); }
   const s = await loadWeaponFBX('modelos3d/escopeta.fbx', 0.72, Math.PI / 2);
   if (s) { shotgunModel.fbxModel = s; shotgunModel.group.add(s); }
+  _fbxLoader.setResourcePath('texturas/');
   forceWeaponVisibility();
 })();
 
@@ -1652,7 +1615,6 @@ function throwGrenade() {
   grenadeViewTimer = GRENADE_VIEW_DUR;
   playThrowSound();
 
-  // Sincronizar granada con los demás jugadores
   if (onlineMode) {
     set(ref(db, `rooms/${ROOM}/grenades/${gid}`), {
       x: +mesh.position.x.toFixed(2),
@@ -1667,10 +1629,8 @@ function throwGrenade() {
   }
 }
 
-// Recibir granadas lanzadas por otros jugadores
 function spawnRemoteGrenade(g) {
   if (!g || typeof g.x !== 'number') return;
-  // Ignorar granadas muy viejas
   if (g.ts && (Date.now() - g.ts) > 6000) return;
   const mesh = buildGrenadeModel({ withHand: false, scale: 1 });
   mesh.position.set(g.x, g.y, g.z);
@@ -1714,8 +1674,6 @@ function updateGrenades(dt) {
       scene.remove(g.mesh);
       grenades.splice(i, 1);
       if (g.remote) {
-        // Granada remota: el burst real vendrá del broadcast "explosions"
-        // del jugador que la lanzó. Solo aplicamos shake local aquí.
         const d = camera.position.distanceTo(pos);
         shakeAmount = Math.min(1.0, shakeAmount + Math.max(0, 1 - d / 26) * 0.6);
       } else {
@@ -1812,13 +1770,8 @@ function computeBoxPenetration(px, pz, radius, box) {
   if (d < 0.0001) {
     const ox = box.hw - Math.abs(lx);
     const oz = box.hd - Math.abs(lz);
-    if (ox < oz) {
-      pushLx = (lx >= 0 ? box.hw + radius : -box.hw - radius);
-      pushLz = lz;
-    } else {
-      pushLx = lx;
-      pushLz = (lz >= 0 ? box.hd + radius : -box.hd - radius);
-    }
+    if (ox < oz) { pushLx = (lx >= 0 ? box.hw + radius : -box.hw - radius); pushLz = lz; }
+    else { pushLx = lx; pushLz = (lz >= 0 ? box.hd + radius : -box.hd - radius); }
   } else {
     const push = radius - d;
     pushLx = lx + (diffX / d) * push;
@@ -1830,529 +1783,174 @@ function computeBoxPenetration(px, pz, radius, box) {
 }
 
 /* ═══════════════════════════════════════════
-   MAPA NUEVO — LOW POLY INDUSTRIAL ZONE
+   MAPA — CARGADO DESDE map.fbx
    ═══════════════════════════════════════════ */
-const MAP_FILE = 'mapa/lowpoly asset.fbx';
-const MAP_TEXTURES = new Set([
-  'Color.png',
-  'Branches.png',
-  'kust.png',
-  'Normal.png',
-  'Normal_block.png',
-  'normal_wood.png'
-]);
+let FENCE_X = 100;
+let FENCE_Z = 100;
 
-let mapReady = false;
-let mapRoot = null;
-let mapSpawnX = 0;
-let mapSpawnY = 0.05;
-let mapSpawnZ = 0;
-let mapBounds = { minX: -56, maxX: 56, minZ: -54, maxZ: 54 };
-let mapMinY = -10;
-let mapMaxY = 20;
-const mapGroundRaycaster = new THREE.Raycaster();
-const mapGroundOrigin = new THREE.Vector3();
-const mapGroundDirection = new THREE.Vector3(0, -1, 0);
-const MAP_TARGET_SPAN = 180;
-const MAP_EDGE_PADDING = 3.0;
-const MAP_COLLIDER_LIMIT = 900;
-const MAP_PLAYER_HEIGHT = 1.8;
-const MAP_CAPSULE_RADIUS = 0.42;
-const mapWorldOctree = new Octree();
-let mapCollisionRoot = null;
-const mapRuntimeGroundRaycaster = new THREE.Raycaster();
-const mapRuntimeGroundOrigin = new THREE.Vector3();
-const mapRuntimeGroundDirection = new THREE.Vector3(0, -1, 0);
-const playerCapsule = new Capsule(
-  new THREE.Vector3(0, 0.35, 0),
-  new THREE.Vector3(0, 1.45, 0),
-  MAP_CAPSULE_RADIUS
-);
-let mapOctreeReady = false;
-const lastSafePosition = new THREE.Vector3();
-let lastSafeGroundY = 0;
-let hasSafePosition = false;
-
-const mapManager = new THREE.LoadingManager();
-mapManager.setURLModifier((url) => {
-  try {
-    const normalized = decodeURIComponent(String(url).replace(/\\/g, '/'));
-    const base = normalized.substring(normalized.lastIndexOf('/') + 1);
-    if (MAP_TEXTURES.has(base)) return 'mapa/texturas/' + base;
-  } catch (e) {}
-  return url;
-});
-
-const mapLoader = new FBXLoader(mapManager);
-
-function getTextureFileName(tex) {
-  try {
-    const img = tex && tex.image;
-    const src = img && (img.currentSrc || img.src || (img.data && img.data.src));
-    if (!src) return '';
-    const clean = String(src).split('?')[0].replace(/\\/g, '/');
-    return clean.substring(clean.lastIndexOf('/') + 1).toLowerCase();
-  } catch (e) { return ''; }
+function isNormalMapTex(name) {
+  if (!name) return false;
+  const n = name.toLowerCase();
+  return n.includes('normal') || n.endsWith('_n') || n.includes('_nrm');
+}
+function isVegetationTex(name) {
+  if (!name) return false;
+  const n = name.toLowerCase();
+  return n.includes('branch') || n.includes('kust') ||
+         n.includes('tree')   || n.includes('leaf') ||
+         n.includes('grass')  || n.includes('plant') ||
+         n.includes('hoja')   || n.includes('arbol');
 }
 
-function isMapFoliageMaterial(mat) {
-  if (!mat) return false;
-  const matName = String(mat.name || '').toLowerCase();
-  const texName = getTextureFileName(mat.map);
-  return texName === 'branches.png' || texName === 'kust.png' ||
-         matName.indexOf('branches') >= 0 || matName === 'kust' || matName.indexOf('foliage') >= 0 ||
-         matName.indexOf('leaf') >= 0 || matName.indexOf('leaves') >= 0;
-}
+function fixMapMaterial(mesh) {
+  if (!mesh || !mesh.material) return;
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  for (const m of mats) {
+    if (!m) continue;
 
-function prepareMapMaterial(mat) {
-  if (!mat) return;
-  const foliage = isMapFoliageMaterial(mat);
-  if (mat.map) {
-    mat.map.colorSpace = THREE.SRGBColorSpace;
-    mat.map.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-    mat.map.needsUpdate = true;
-    if (mat.color && mat.color.r === 0 && mat.color.g === 0 && mat.color.b === 0) {
-      mat.color.setHex(0xffffff);
+    if (m.map) {
+      m.map.colorSpace = THREE.SRGBColorSpace;
+      m.map.anisotropy = 4;
+      m.map.needsUpdate = true;
     }
-  }
-  if (mat.normalMap) {
-    mat.normalMap.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 4);
-    mat.normalMap.needsUpdate = true;
-  }
-  if (foliage) {
-    // Las texturas del árbol/vegetación son PNG con transparencia indexada.
-    // AlphaTest elimina el fondo negro sin convertir el bosque en una masa opaca.
-    mat.transparent = false;
-    mat.opacity = 1;
-    mat.alphaTest = 0.32;
-    mat.depthWrite = true;
-    mat.depthTest = true;
-    mat.side = THREE.DoubleSide;
-    mat.shadowSide = THREE.DoubleSide;
-  } else {
-    mat.transparent = false;
-    mat.opacity = 1;
-    mat.alphaTest = 0;
-    mat.depthWrite = true;
-    mat.depthTest = true;
-    mat.side = THREE.FrontSide;
-    mat.shadowSide = THREE.FrontSide;
-  }
-  mat.needsUpdate = true;
-}
 
-function shouldCreateMapCollider(mesh, box, size, worldSpan) {
-  if (!mesh || !mesh.geometry) return false;
-  if (isMapFoliageObject(mesh)) return false;
-  if (!Number.isFinite(size.x) || !Number.isFinite(size.y) || !Number.isFinite(size.z)) return false;
-  if (size.y < 0.34) return false;              // suelo/planos finos se resuelven con el raycast + octree
-  if (size.x < 0.12 && size.z < 0.12) return false;
-  if (size.y > 28 && Math.max(size.x, size.z) > 18) return false;
-  const horizontalArea = size.x * size.z;
-  if (horizontalArea > worldSpan * worldSpan * 0.12 && size.y < 4.0) return false;
-  if (horizontalArea > 520 && size.y < 2.5) return false;
-  if (box.max.y < 0.20) return false;
-  return true;
-}
-
-function rebuildMapColliders(root, bounds) {
-  boxColliders.length = 0;
-  const span = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ);
-  const candidates = [];
-
-  root.traverse((node) => {
-    if (!(node.isMesh || node.isSkinnedMesh)) return;
-    try {
-      const box = new THREE.Box3().setFromObject(node);
-      const size = box.getSize(new THREE.Vector3());
-      if (!shouldCreateMapCollider(node, box, size, span)) return;
-
-      const center = box.getCenter(new THREE.Vector3());
-      let worldRotY = 0;
-      try { worldRotY = new THREE.Euler().setFromQuaternion(node.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y; } catch (e) {}
-      const score = Math.min(size.x * size.z, 240) + Math.max(0, 2 - size.y) * 8;
-      candidates.push({
-        score,
-        x: center.x,
-        z: center.z,
-        hw: Math.max(size.x * 0.5, 0.10),
-        hd: Math.max(size.z * 0.5, 0.10),
-        rot: worldRotY,
-        minY: box.min.y,
-        maxY: box.max.y,
-        kind: 'map'
-      });
-    } catch (e) {}
-  });
-
-  candidates.sort((a, b) => a.score - b.score);
-  const keep = Math.min(MAP_COLLIDER_LIMIT, candidates.length);
-  for (let i = 0; i < keep; i++) boxColliders.push(candidates[i]);
-}
-
-function pointBlockedForSpawn(x, z, radius = 1.0) {
-  for (const b of boxColliders) {
-    if (computeBoxPenetration(x, z, radius, b)) return true;
-  }
-  return false;
-}
-
-function isMapFoliageObject(obj) {
-  if (!obj) return false;
-  const objName = String(obj.name || '').toLowerCase();
-  if (objName.indexOf('branch') >= 0 || objName.indexOf('leaf') >= 0 || objName.indexOf('leaves') >= 0 || objName.indexOf('foliage') >= 0 || objName.indexOf('tree') >= 0) return true;
-  const mats = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
-  for (const mat of mats) if (isMapFoliageMaterial(mat)) return true;
-  return false;
-}
-
-function getMapGroundInfo(x, z) {
-  if (!mapRoot) return null;
-
-  // Siempre lanzamos el rayo desde arriba de TODO el FBX.
-  // Esto evita que el jugador se quede por debajo de una montaña/techo
-  // cuando el modelo tiene alturas distintas a 0.
-  mapGroundOrigin.set(x, mapMaxY + 8, z);
-  mapGroundRaycaster.set(mapGroundOrigin, mapGroundDirection);
-  mapGroundRaycaster.near = 0;
-  mapGroundRaycaster.far = Math.max(20, (mapMaxY - mapMinY) + 16);
-
-  const hits = mapGroundRaycaster.intersectObject(mapRoot, true);
-  for (const hit of hits) {
-    if (!hit.object || !hit.object.isMesh) continue;
-    if (hit.object.userData.isBulletHole || hit.object.userData.isExplosionMark) continue;
-    if (isMapFoliageObject(hit.object)) continue;
-
-    let ny = 1;
-    if (hit.face) {
-      const nm = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
-      ny = hit.face.normal.clone().applyMatrix3(nm).normalize().y;
+    if (m.normalMap) {
+      m.normalMap.colorSpace = THREE.LinearSRGBColorSpace;
+      m.normalMap.needsUpdate = true;
     }
-    // Solo aceptamos superficies que realmente miran hacia arriba;
-    // así no usamos la pared lateral de una roca como "suelo".
-    if (ny < 0.48) continue;
-    return { y: hit.point.y, normalY: ny, object: hit.object };
-  }
-  return null;
-}
-
-function getMapRuntimeGroundInfo(x, z, referenceY, fallback = 0) {
-  if (!mapRoot) return null;
-
-  // Buscar primero la superficie cercana al jugador. Esto evita que un rayo
-  // lanzado desde la parte superior de TODO el mapa detecte el techo de un
-  // edificio distante o una superficie equivocada.
-  const ref = Number.isFinite(referenceY) ? referenceY : fallback;
-  mapRuntimeGroundOrigin.set(x, ref + 6.0, z);
-  mapRuntimeGroundRaycaster.set(mapRuntimeGroundOrigin, mapRuntimeGroundDirection);
-  mapRuntimeGroundRaycaster.near = 0;
-  mapRuntimeGroundRaycaster.far = 14.0;
-
-  const hits = mapRuntimeGroundRaycaster.intersectObject(mapRoot, true);
-  for (const hit of hits) {
-    if (!hit.object || !hit.object.isMesh) continue;
-    if (hit.object.userData.isBulletHole || hit.object.userData.isExplosionMark) continue;
-    if (isMapFoliageObject(hit.object)) continue;
-    let ny = 1;
-    if (hit.face) {
-      const nm = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
-      ny = hit.face.normal.clone().applyMatrix3(nm).normalize().y;
+    if (m.roughnessMap) {
+      m.roughnessMap.colorSpace = THREE.LinearSRGBColorSpace;
+      m.roughnessMap.needsUpdate = true;
     }
-    if (ny < 0.48) continue;
-    return { y: hit.point.y, normalY: ny, object: hit.object };
-  }
-
-  // Rescate: si el jugador terminó debajo del escenario, una pasada global
-  // vuelve a encontrar la superficie real y lo devuelve al mapa.
-  const rescue = getMapGroundInfo(x, z);
-  return rescue || null;
-}
-
-function getMapGroundYAtPlayer(x, z, fallback = 0) {
-  const info = getMapRuntimeGroundInfo(x, z, player.position.y, fallback);
-  return info ? info.y : fallback;
-}
-
-function getMapGroundY(x, z, fallback = 0) {
-  const info = getMapGroundInfo(x, z);
-  return info ? info.y : fallback;
-}
-
-function sampleWalkableGround(x, z) {
-  const g = getMapGroundInfo(x, z);
-  if (!g || !Number.isFinite(g.y) || g.normalY < 0.82) return null;
-  if (pointBlockedForSpawn(x, z, PLAYER_RADIUS + 0.10)) return null;
-  return g;
-}
-
-function chooseMapSpawn() {
-  // El centro geométrico del FBX no necesariamente coincide con una calle o
-  // una zona transitable. Buscamos una superficie horizontal REAL y estable.
-  const spanX = mapBounds.maxX - mapBounds.minX;
-  const spanZ = mapBounds.maxZ - mapBounds.minZ;
-  const insetX = Math.min(8, spanX * 0.10);
-  const insetZ = Math.min(8, spanZ * 0.10);
-  const nx = 17, nz = 17;
-  const sx = (spanX - insetX * 2) / (nx - 1);
-  const sz = (spanZ - insetZ * 2) / (nz - 1);
-  const neighborStep = Math.max(1.8, Math.min(spanX, spanZ) * 0.018);
-  const candidates = [];
-  const minPreferredY = mapMinY + Math.max(0.8, (mapMaxY - mapMinY) * 0.14);
-
-  for (let iz = 0; iz < nz; iz++) {
-    for (let ix = 0; ix < nx; ix++) {
-      const x = mapBounds.minX + insetX + ix * sx;
-      const z = mapBounds.minZ + insetZ + iz * sz;
-      const center = sampleWalkableGround(x, z);
-      if (!center) continue;
-
-      const around = [];
-      const offs = [
-        [neighborStep, 0], [-neighborStep, 0],
-        [0, neighborStep], [0, -neighborStep],
-        [neighborStep, neighborStep], [-neighborStep, neighborStep],
-        [neighborStep, -neighborStep], [-neighborStep, -neighborStep]
-      ];
-      let validNeighbors = 0;
-      let minY = center.y, maxY = center.y;
-      for (const [dx, dz] of offs) {
-        const n = getMapGroundInfo(x + dx, z + dz);
-        if (!n || !Number.isFinite(n.y) || n.normalY < 0.75 || isMapFoliageObject(n.object)) continue;
-        validNeighbors++;
-        around.push(n.y);
-        minY = Math.min(minY, n.y);
-        maxY = Math.max(maxY, n.y);
-      }
-      if (validNeighbors < 5) continue;
-
-      const heightSpread = maxY - minY;
-      if (heightSpread > 0.75) continue;
-
-      // Preferimos superficies bajas, anchas y planas. Esto evita que un techo,
-      // una montaña o una plataforma elevada sea elegida como spawn.
-      const lowPenalty = Math.max(0, center.y - mapMinY);
-      const elevatedPenalty = Math.max(0, center.y - minPreferredY) * 2.0;
-      const flatPenalty = heightSpread * 12;
-      const edgePenalty = (
-        Math.abs(x - (mapBounds.minX + mapBounds.maxX) * 0.5) / Math.max(1, spanX) +
-        Math.abs(z - (mapBounds.minZ + mapBounds.maxZ) * 0.5) / Math.max(1, spanZ)
-      ) * 0.15;
-
-      candidates.push({
-        x, z, y: center.y,
-        score: lowPenalty * 0.45 + elevatedPenalty + flatPenalty + edgePenalty,
-        heightSpread,
-        validNeighbors
-      });
+    if (m.metalnessMap) {
+      m.metalnessMap.colorSpace = THREE.LinearSRGBColorSpace;
+      m.metalnessMap.needsUpdate = true;
     }
-  }
 
-  candidates.sort((a, b) => a.score - b.score);
-  const best = candidates[0];
-  if (best) {
-    console.log('[MAPA] Spawn seguro seleccionado', best, 'total candidatos:', candidates.length);
-    return { x: best.x, y: best.y + 0.10, z: best.z };
-  }
+    const colorName = (m.map && m.map.name) || '';
+    const meshName  = (mesh.name || '').toLowerCase();
+    const isVeg = isVegetationTex(colorName) || isVegetationTex(meshName);
 
-  // Último recurso: recorrer una malla más densa hasta encontrar el punto más
-  // bajo que tenga una superficie razonablemente horizontal.
-  let fallbackBest = null;
-  const fxn = 25, fzn = 25;
-  for (let iz = 0; iz < fzn; iz++) {
-    for (let ix = 0; ix < fxn; ix++) {
-      const x = THREE.MathUtils.lerp(mapBounds.minX + 5, mapBounds.maxX - 5, ix / (fxn - 1));
-      const z = THREE.MathUtils.lerp(mapBounds.minZ + 5, mapBounds.maxZ - 5, iz / (fzn - 1));
-      const g = sampleWalkableGround(x, z);
-      if (!g) continue;
-      if (!fallbackBest || g.y < fallbackBest.y) fallbackBest = { x, y: g.y, z };
+    if (isVeg) {
+      m.transparent = true;
+      m.alphaTest = 0.5;
+      m.side = THREE.DoubleSide;
+      m.depthWrite = true;
+      m.opacity = 1;
+    } else {
+      m.transparent = false;
+      m.alphaTest = 0;
+      m.opacity = 1;
+      m.side = THREE.FrontSide;
+      m.depthWrite = true;
     }
+
+    m.depthTest = true;
+    m.needsUpdate = true;
   }
-  if (fallbackBest) return { x: fallbackBest.x, y: fallbackBest.y + 0.10, z: fallbackBest.z };
-
-  // Nunca devolvemos el centro del mapa con Y=0 a ciegas.
-  return { x: 0, y: Math.max(1.0, mapMinY + 1.0), z: 0 };
 }
 
-function rememberSafePosition() {
-  if (!mapReady) return;
-  if (!Number.isFinite(player.position.x) || !Number.isFinite(player.position.y) || !Number.isFinite(player.position.z)) return;
-  lastSafePosition.copy(player.position);
-  lastSafeGroundY = player.position.y;
-  hasSafePosition = true;
-}
+function loadMapFBX() {
+  return new Promise((resolve) => {
+    _fbxLoader.setResourcePath('texturas/');
 
-function recoverPlayerToMap(reason) {
-  if (!mapReady) return;
-  const fallback = chooseMapSpawn();
-  const target = hasSafePosition ? lastSafePosition.clone() : new THREE.Vector3(fallback.x, fallback.y, fallback.z);
-  const ground = getMapRuntimeGroundInfo(target.x, target.z, target.y, fallback.y);
-  if (ground && ground.normalY >= 0.65) {
-    target.y = ground.y + 0.10;
-  } else {
-    target.set(fallback.x, fallback.y, fallback.z);
-  }
-  player.position.copy(target);
-  velocityY = 0;
-  isGrounded = true;
-  clampPlayerToMap();
-  if (reason) console.warn('[MAPA] Recuperación de jugador:', reason, target);
-}
-
-function clampPlayerToMap() {
-  const minX = mapBounds.minX + MAP_EDGE_PADDING;
-  const maxX = mapBounds.maxX - MAP_EDGE_PADDING;
-  const minZ = mapBounds.minZ + MAP_EDGE_PADDING;
-  const maxZ = mapBounds.maxZ - MAP_EDGE_PADDING;
-  player.position.x = THREE.MathUtils.clamp(player.position.x, minX, maxX);
-  player.position.z = THREE.MathUtils.clamp(player.position.z, minZ, maxZ);
-}
-
-function loadNewMap() {
-  mapLoader.load(
-    MAP_FILE,
-    (obj) => {
+    _fbxLoader.load('map.fbx', (obj) => {
       try {
-        obj.visible = true;
         obj.position.set(0, 0, 0);
         obj.rotation.set(0, 0, 0);
         obj.scale.setScalar(1);
         obj.updateMatrixWorld(true);
 
-        let rawBox = new THREE.Box3().setFromObject(obj);
-        let rawSize = rawBox.getSize(new THREE.Vector3());
-        const rawSpan = Math.max(rawSize.x, rawSize.z);
-
-        if (!Number.isFinite(rawSpan) || rawSpan < 0.001) {
-          throw new Error('El FBX no tiene dimensiones válidas');
+        // Auto-orientar si el modelo viene en Z-up
+        let box = new THREE.Box3().setFromObject(obj);
+        let size = box.getSize(new THREE.Vector3());
+        if (size.y < size.x * 0.5 && size.y < size.z * 0.5) {
+          obj.rotation.x = -Math.PI / 2;
+          obj.updateMatrixWorld(true);
         }
 
-        // Normaliza el escenario para que ocupe un área jugable estable.
-        const scale = MAP_TARGET_SPAN / rawSpan;
-        obj.scale.setScalar(scale);
+        // Centrar en el origen y apoyar la base en y = 0
         obj.updateMatrixWorld(true);
-
-        let box = new THREE.Box3().setFromObject(obj);
+        box = new THREE.Box3().setFromObject(obj);
         const center = box.getCenter(new THREE.Vector3());
-
         obj.position.x -= center.x;
         obj.position.z -= center.z;
         obj.position.y -= box.min.y;
         obj.updateMatrixWorld(true);
 
-        box = new THREE.Box3().setFromObject(obj);
-        const size = box.getSize(new THREE.Vector3());
-        mapMinY = box.min.y;
-        mapMaxY = box.max.y;
+        obj.traverse(n => {
+          n.visible = true;
+          if (n.isMesh || n.isSkinnedMesh) {
+            n.castShadow = false;
+            n.receiveShadow = false;
+            n.frustumCulled = true;
 
-        mapBounds = {
-          minX: box.min.x,
-          maxX: box.max.x,
-          minZ: box.min.z,
-          maxZ: box.max.z
-        };
+            const colorName = (n.material && n.material.map && n.material.map.name) || '';
+            const meshName  = (n.name || '').toLowerCase();
+            const isVeg = isVegetationTex(colorName) || isVegetationTex(meshName);
+            if (isVeg) n.userData.skipOpacityForce = true;
 
-        obj.traverse((node) => {
-          if (!(node.isMesh || node.isSkinnedMesh)) return;
-          node.visible = true;
-          node.castShadow = false;
-          node.receiveShadow = false;
-          node.frustumCulled = true;
-          // El optimizador global no debe borrar la transparencia/indexación de las texturas del mapa.
-          node.userData.skipOpacityForce = true;
-
-          if (node.material) {
-            const mats = Array.isArray(node.material) ? node.material : [node.material];
-            for (const mat of mats) prepareMapMaterial(mat);
+            n.userData.isMapMesh = true;
+            fixMapMaterial(n);
           }
         });
 
-        mapRoot = obj;
-        scene.add(mapRoot);
-        mapRoot.updateMatrixWorld(true);
-
-        // Colisión de triángulos real del escenario. Construimos un grupo
-        // separado para NO meter hojas/ramas en el Octree y evitamos que el
-        // suelo/techos puedan empujar la cápsula verticalmente hacia abajo.
-        mapCollisionRoot = new THREE.Group();
-        mapCollisionRoot.matrixAutoUpdate = false;
-        mapCollisionRoot.matrixWorld.identity();
-
-        let collisionMeshCount = 0;
-        mapRoot.traverse((node) => {
-          if (!(node.isMesh || node.isSkinnedMesh)) return;
-          if (isMapFoliageObject(node)) return;
-          if (!node.geometry || !node.geometry.attributes || !node.geometry.attributes.position) return;
-          const cm = new THREE.Mesh(node.geometry);
-          cm.matrixAutoUpdate = false;
-          cm.matrix.copy(node.matrixWorld);
-          cm.matrixWorld.copy(node.matrixWorld);
-          cm.visible = true;
-          mapCollisionRoot.add(cm);
-          collisionMeshCount++;
-        });
-
-        mapWorldOctree.clear();
-        if (collisionMeshCount > 0) {
-          mapWorldOctree.fromGraphNode(mapCollisionRoot);
-          mapOctreeReady = true;
-        } else {
-          mapOctreeReady = false;
-        }
-
-        rebuildMapColliders(mapRoot, mapBounds);
-        const spawn = chooseMapSpawn();
-        mapSpawnX = spawn.x;
-        mapSpawnY = spawn.y;
-        mapSpawnZ = spawn.z;
-
-        mapReady = true;
-        // Coloca inmediatamente al jugador sobre la superficie encontrada.
-        player.position.set(mapSpawnX, mapSpawnY, mapSpawnZ);
-        const spawnSurface = getMapGroundInfo(mapSpawnX, mapSpawnZ);
-        if (spawnSurface && spawnSurface.normalY >= 0.70) player.position.y = spawnSurface.y + 0.10;
-        velocityY = 0;
-        isGrounded = true;
-        rememberSafePosition();
-
-        const playText = document.querySelector('#play-btn .play-text');
-        if (playText) playText.textContent = 'JUGAR';
-        playBtn.classList.remove('loading');
-        playBtn.removeAttribute('disabled');
-
-        try { applyOptimizations(); } catch (e) {}
-        clampPlayerToMap();
-
-        console.log('[MAPA] Low Poly Industrial Zone cargado', {
-          size: { x: size.x.toFixed(2), y: size.y.toFixed(2), z: size.z.toFixed(2) },
-          colliders: boxColliders.length,
-          octree: mapOctreeReady,
-          spawn: { x: mapSpawnX.toFixed(2), y: mapSpawnY.toFixed(2), z: mapSpawnZ.toFixed(2) },
-          verticalRange: { minY: mapMinY.toFixed(2), maxY: mapMaxY.toFixed(2) }
-        });
+        scene.add(obj);
+        resolve(obj);
       } catch (e) {
-        logFbxError('Error preparando el mapa nuevo: ' + e.message);
+        logFbxError('map.fbx: ' + e.message);
+        resolve(null);
       }
     },
     undefined,
-    (err) => {
-      logFbxError('No se pudo cargar el mapa nuevo: ' + MAP_FILE);
-      console.error(err);
-      const playText = document.querySelector('#play-btn .play-text');
-      if (playText) playText.textContent = 'MAPA NO DISPONIBLE';
-      playBtn.classList.add('loading');
-    }
-  );
+    () => { logFbxError('No se pudo cargar map.fbx'); resolve(null); });
+  });
 }
 
-const playBtnMapWatcher = document.getElementById('play-btn');
-if (playBtnMapWatcher) {
-  playBtnMapWatcher.classList.add('loading');
-  playBtnMapWatcher.setAttribute('disabled', 'disabled');
-  const mapPlayText = playBtnMapWatcher.querySelector('.play-text');
-  if (mapPlayText) mapPlayText.textContent = 'CARGANDO MAPA...';
-}
+loadMapFBX().then((mapObj) => {
+  if (!mapObj) {
+    const fallback = new THREE.Mesh(
+      new THREE.PlaneGeometry(140, 140),
+      cachedMat(0x9a9080, { flatShading: false })
+    );
+    fallback.rotation.x = -Math.PI / 2;
+    fallback.position.y = 0.02;
+    scene.add(fallback);
+    try { applyOptimizations(); } catch (e) {}
+    return;
+  }
 
-loadNewMap();
+  mapObj.updateMatrixWorld(true);
+
+  const worldBox = new THREE.Box3().setFromObject(mapObj);
+  const worldSize = worldBox.getSize(new THREE.Vector3());
+  FENCE_X = Math.max(20, worldSize.x / 2 - 1);
+  FENCE_Z = Math.max(20, worldSize.z / 2 - 1);
+
+  // Auto-generar colliders desde las mallas del mapa
+  mapObj.traverse(n => {
+    if (!n.isMesh || !n.geometry) return;
+    if (!n.geometry.boundingBox) n.geometry.computeBoundingBox();
+    const bb = n.geometry.boundingBox.clone();
+    bb.applyMatrix4(n.matrixWorld);
+    const s = bb.getSize(new THREE.Vector3());
+    const c = bb.getCenter(new THREE.Vector3());
+
+    if (s.y < 0.4) return;                                          // piso
+    if (s.x < 0.3 && s.z < 0.3) return;                             // basura
+    if (s.x > worldSize.x * 0.9 && s.z > worldSize.z * 0.9) return; // terreno
+
+    boxColliders.push({
+      x: c.x, z: c.z,
+      hw: Math.max(0.25, s.x / 2),
+      hd: Math.max(0.25, s.z / 2),
+      rot: 0,
+      kind: 'wall'
+    });
+  });
+
+  try { applyOptimizations(); } catch (e) {}
+}).catch(err => logFbxError('Error general map.fbx: ' + err.message));
 
 /* ═══════════════════════════════════════════
    ESTADO
@@ -2645,34 +2243,6 @@ const deathPosition = new THREE.Vector3();
 const deathStartCamPos = new THREE.Vector3();
 
 function resolveCollisions(entity, radius) {
-  if (entity === player && mapOctreeReady && mapRoot) {
-    // Cápsula 3D para paredes, esquinas y obstáculos. IMPORTANTE: la respuesta
-    // de la colisión se proyecta al plano XZ; el eje Y queda exclusivamente bajo
-    // control del sistema de suelo/gravedad, evitando que el Octree hunda al jugador.
-    playerCapsule.radius = radius || MAP_CAPSULE_RADIUS;
-    playerCapsule.start.set(entity.position.x, entity.position.y + 0.35, entity.position.z);
-    playerCapsule.end.set(entity.position.x, entity.position.y + Math.max(0.85, MAP_PLAYER_HEIGHT - 0.35), entity.position.z);
-
-    for (let iter = 0; iter < 5; iter++) {
-      const result = mapWorldOctree.capsuleIntersect(playerCapsule);
-      if (!result || !Number.isFinite(result.depth)) break;
-
-      const nx = Number.isFinite(result.normal.x) ? result.normal.x : 0;
-      const nz = Number.isFinite(result.normal.z) ? result.normal.z : 0;
-      const hLen = Math.hypot(nx, nz);
-
-      // No trasladar nunca la cápsula verticalmente por una colisión del Octree.
-      if (hLen < 0.0001) break;
-
-      const pushDepth = Math.min(result.depth + 0.003, 0.55);
-      playerCapsule.translate(new THREE.Vector3((nx / hLen) * pushDepth, 0, (nz / hLen) * pushDepth));
-    }
-
-    entity.position.set(playerCapsule.start.x, entity.position.y, playerCapsule.start.z);
-    return;
-  }
-
-  // Respaldo para cualquier entidad cuando todavía no hay Octree.
   for (let iter = 0; iter < 4; iter++) {
     let any = false;
     for (const c of colliders) {
@@ -2688,9 +2258,7 @@ function resolveCollisions(entity, radius) {
       }
     }
     for (const b of boxColliders) {
-      const bottom = entity.position.y;
-      const top = bottom + MAP_PLAYER_HEIGHT;
-      if (b.minY !== undefined && b.maxY !== undefined && (top < b.minY || bottom > b.maxY)) continue;
+      if (b.blockBelowY !== undefined && entity.position.y > b.blockBelowY) continue;
       const pen = computeBoxPenetration(entity.position.x, entity.position.z, radius, b);
       if (pen) { entity.position.x += pen.dx; entity.position.z += pen.dz; any = true; }
     }
@@ -2751,9 +2319,8 @@ function updateExplosionParticles(dt) {
   }
 }
 
-/* ─────────────── AGUJEROS DE BALA (cantidad reducida) ─────────────── */
+/* ─────────────── AGUJEROS DE BALA ─────────────── */
 const bulletHoles = [];
-// Reducido de 80 a 25 para optimizar el rendimiento.
 const MAX_BULLET_HOLES = 25;
 const bulletHoleGeo = new THREE.CircleGeometry(0.07, 8);
 const bulletHoleMat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4, side: THREE.DoubleSide });
@@ -2870,16 +2437,8 @@ function respawnPlayer() {
   ammoWrap.classList.remove('reloading'); updateAmmoBar();
   damageFlash = 0; damageOverlay.style.opacity = '0';
   const angle = Math.random() * Math.PI * 2;
-  const dist = 2 + Math.random() * 4;
-  const spawnX = mapReady ? THREE.MathUtils.clamp(mapSpawnX + Math.cos(angle) * dist, mapBounds.minX + MAP_EDGE_PADDING, mapBounds.maxX - MAP_EDGE_PADDING) : 0;
-  const spawnZ = mapReady ? THREE.MathUtils.clamp(mapSpawnZ + Math.sin(angle) * dist, mapBounds.minZ + MAP_EDGE_PADDING, mapBounds.maxZ - MAP_EDGE_PADDING) : 30;
-  const spawnInfo = mapReady ? getMapRuntimeGroundInfo(spawnX, spawnZ, mapSpawnY, mapSpawnY) : null;
-  const respawnY = mapReady ? ((spawnInfo ? spawnInfo.y : mapSpawnY) + 0.10) : 0;
-  player.position.set(spawnX, respawnY, spawnZ);
-  velocityY = 0;
-  isGrounded = true;
-  rememberSafePosition();
-  if (mapReady) clampPlayerToMap();
+  const dist = 5 + Math.random() * 8;
+  player.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
   player.rotation.set(0, 0, 0);
   velocityY = 0; isGrounded = true; bobOffset = 0;
   cameraYaw = 0; cameraPitch = 0;
@@ -2960,7 +2519,7 @@ function fireProjectile(origin, dir, def, damage, spreadRad = 0) {
     finalDir.add(perp).normalize();
   }
   raycaster.set(origin, finalDir);
-  raycaster.far = 120;
+  raycaster.far = 200;
   const hits = raycaster.intersectObjects(scene.children, true);
   for (const hit of hits) {
     if (hit.object.userData.isBulletHole) continue;
@@ -3072,22 +2631,7 @@ function updatePlayer(dt) {
     player.position.z += moveZ * moveSpeed * dt;
   }
   resolveCollisions(player, PLAYER_RADIUS);
-  const terrainInfo = mapReady ? getMapRuntimeGroundInfo(player.position.x, player.position.z, player.position.y, mapSpawnY) : null;
-  const terrainGroundY = terrainInfo ? terrainInfo.y : (hasSafePosition ? lastSafeGroundY : mapSpawnY);
-  const groundY = terrainGroundY + 0.06;
-  const groundTolerance = 0.14;
-
-  if (!terrainInfo && mapReady && player.position.y < mapMinY + 2.0) {
-    recoverPlayerToMap('superficie no encontrada');
-    return;
-  }
-
-  if (!isGrounded && velocityY <= 0 && player.position.y <= groundY + groundTolerance) {
-    player.position.y = groundY;
-    velocityY = 0;
-    isGrounded = true;
-  }
-
+  const groundY = 0;
   if ((keys['Space'] || jumpQueued) && isGrounded) {
     velocityY = JUMP_FORCE; isGrounded = false;
     if (sliding) { sliding = false; slideSpeed = 0; crouching = false; crouchBtn.classList.remove('held'); if (onlineMode) sendLocalPlayerState(true); }
@@ -3097,23 +2641,10 @@ function updatePlayer(dt) {
   if (isGrounded) {
     player.position.y = groundY;
     velocityY = 0;
-    if (terrainInfo && terrainInfo.normalY >= 0.70) rememberSafePosition();
   } else {
     velocityY -= GRAVITY * dt;
     player.position.y += velocityY * dt;
-    if (player.position.y <= groundY && velocityY <= 0) {
-      player.position.y = groundY;
-      velocityY = 0;
-      isGrounded = true;
-      if (terrainInfo && terrainInfo.normalY >= 0.70) rememberSafePosition();
-    }
-  }
-
-  // Seguro contra cualquier fallo de colisión/raycast: nunca permitimos que
-  // el jugador permanezca debajo del volumen jugable del mapa.
-  if (mapReady && player.position.y < mapMinY - 3.0) {
-    recoverPlayerToMap('jugador cayó por debajo del mapa');
-    return;
+    if (player.position.y <= groundY && velocityY <= 0) { player.position.y = groundY; velocityY = 0; isGrounded = true; }
   }
   if (moving && isGrounded && !sliding) {
     walkPhase += dt * (crouching ? 7 : 11);
@@ -3125,7 +2656,8 @@ function updatePlayer(dt) {
     bobOffset *= Math.max(0, 1 - dt * 8);
     weaponMoveBlend += (0 - weaponMoveBlend) * Math.min(1, dt * 5);
   }
-  if (mapReady) clampPlayerToMap();
+  player.position.x = THREE.MathUtils.clamp(player.position.x, -FENCE_X, FENCE_X);
+  player.position.z = THREE.MathUtils.clamp(player.position.z, -FENCE_Z, FENCE_Z);
 
   const g = curWeaponGroup();
   const basePos = WEAPON_POS[currentWeaponKey];
@@ -3655,13 +3187,11 @@ async function initOnline() {
   });
   onValue(ref(db, `rooms/${ROOM}/shots`), snap => handleRemoteShots(snap.val()));
 
-  // ── Granadas remotas ──
   onChildAdded(ref(db, `rooms/${ROOM}/grenades`), snap => {
     const g = snap.val();
     if (!g || typeof g.x !== 'number') return;
     if (g.from === playerId) return;
     try { spawnRemoteGrenade(g); } catch (e) {}
-    // Eliminar la entrada tras 8s
     setTimeout(() => remove(snap.ref).catch(() => {}), 8000);
   });
 
@@ -3732,13 +3262,12 @@ async function initOnline() {
 }
 
 /* ═══════════════════════════════════════════
-/* ═══════════════════════════════════════════
-   MINIMAPA CIRCULAR DEL MAPA NUEVO
+   MINIMAPA CIRCULAR MODERNO
    ═══════════════════════════════════════════ */
 const minimapCanvas = document.getElementById('minimap');
 const mmCtx = minimapCanvas.getContext('2d');
 const MM_W = minimapCanvas.width, MM_H = minimapCanvas.height;
-const MM_RANGE = 65;
+const MM_RANGE = 75;
 const MM_SCALE = MM_W / (MM_RANGE * 2);
 
 function drawMinimap() {
@@ -3768,50 +3297,39 @@ function drawMinimap() {
     ctx.arc(cx, cy, (radius * i) / 4, 0, Math.PI * 2);
     ctx.stroke();
   }
+  ctx.strokeStyle = 'rgba(120,180,255,0.14)';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius);
+  ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy);
+  ctx.stroke();
 
   const wx2mm = (x) => (x - cxWorld) * MM_SCALE + cx;
   const wz2mm = (z) => (z - czWorld) * MM_SCALE + cy;
 
-  // Límite del escenario nuevo.
-  const mapLeft = wx2mm(mapBounds.minX);
-  const mapTop = wz2mm(mapBounds.minZ);
-  const mapW = (mapBounds.maxX - mapBounds.minX) * MM_SCALE;
-  const mapH = (mapBounds.maxZ - mapBounds.minZ) * MM_SCALE;
-  ctx.strokeStyle = 'rgba(200,220,240,0.52)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(mapLeft, mapTop, mapW, mapH);
+  ctx.strokeStyle = 'rgba(200,180,80,0.7)'; ctx.lineWidth = 2;
+  ctx.strokeRect(
+    wx2mm(-FENCE_X), wz2mm(-FENCE_Z),
+    (FENCE_X * 2) * MM_SCALE, (FENCE_Z * 2) * MM_SCALE
+  );
 
-  // Obstáculos extraídos del FBX.
-  ctx.fillStyle = 'rgba(160,175,190,0.46)';
-  ctx.strokeStyle = 'rgba(220,230,240,0.34)';
-  ctx.lineWidth = 0.6;
   for (const b of boxColliders) {
     const px = wx2mm(b.x), py = wz2mm(b.z);
-    const w = Math.max(2, b.hw * 2 * MM_SCALE);
-    const h = Math.max(2, b.hd * 2 * MM_SCALE);
-    if (px + w < -30 || px - w > MM_W + 30 || py + h < -30 || py - h > MM_H + 30) continue;
-    ctx.fillRect(px - w / 2, py - h / 2, w, h);
-    ctx.strokeRect(px - w / 2, py - h / 2, w, h);
-  }
-
-  if (mapReady) {
-    const sx = wx2mm(mapSpawnX), sz = wz2mm(mapSpawnZ);
-    if (sx > -10 && sx < MM_W + 10 && sz > -10 && sz < MM_H + 10) {
-      ctx.fillStyle = '#4cdf7b';
-      ctx.fillRect(sx - 2, sz - 2, 4, 4);
-    }
+    const w = b.hw * 2 * MM_SCALE;
+    const h = b.hd * 2 * MM_SCALE;
+    if (px + w/2 < -20 || px - w/2 > MM_W + 20 ||
+        py + h/2 < -20 || py - h/2 > MM_H + 20) continue;
+    ctx.fillStyle = 'rgba(110,140,170,0.7)';
+    ctx.fillRect(px - w/2, py - h/2, w, h);
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 0.6;
+    ctx.strokeRect(px - w/2, py - h/2, w, h);
   }
 
   for (const [, r] of remotePlayers) {
     const px = wx2mm(r.root.position.x), py = wz2mm(r.root.position.z);
     if (px < -10 || px > MM_W + 10 || py < -10 || py > MM_H + 10) continue;
     ctx.fillStyle = r.dead ? '#666' : '#f39c12';
-    ctx.beginPath();
-    ctx.arc(px, py, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
   }
 
   ctx.save();
@@ -3934,7 +3452,18 @@ function applyOptimizations() {
     if (isDynamic) return;
     obj.frustumCulled = true;
     if (obj.isMesh || obj.isSkinnedMesh) {
-      cullModelInterior(obj, false);
+      obj.castShadow = false;
+      obj.receiveShadow = false;
+      // ⚠️ NO tocamos los materiales del mapa: ya fueron procesados por fixMapMaterial()
+      const isMapMesh = obj.userData && obj.userData.isMapMesh;
+      if (!isMapMesh && obj.material) {
+        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const m of mats) {
+          if (!m) continue;
+          if (obj.userData && obj.userData.skipOpacityForce) continue;
+          forceMaterialOpaque(m);
+        }
+      }
     }
     if (obj.matrixAutoUpdate !== undefined) {
       obj.updateMatrix();
@@ -3952,11 +3481,6 @@ const loadoutMenu = document.getElementById('loadout-menu');
 
 function handlePlay() {
   if (gameMode) return;
-  if (!mapReady) {
-    initAudio();
-    showTempHint('CARGANDO MAPA...', 1.8);
-    return;
-  }
   initAudio();
   modeMenu.classList.add('hidden');
   loadoutMenu.classList.add('active');
@@ -4046,12 +3570,12 @@ function selectGameMode(mode) {
 /* ─────────────── CÁMARA DEL MENÚ ─────────────── */
 function updateMenuCamera(dt) {
   menuCamAngle += dt * 0.12;
-  const r = 120;
+  const r = 90;
   const cx = Math.cos(menuCamAngle) * r;
   const cz = Math.sin(menuCamAngle) * r;
-  const cy = 38 + Math.sin(menuCamAngle * 0.7) * 8;
+  const cy = 42 + Math.sin(menuCamAngle * 0.7) * 10;
   camera.position.set(cx, cy, cz);
-  camera.lookAt(0, 3, -15);
+  camera.lookAt(0, 4, 0);
   camera.fov = 62;
   camera.updateProjectionMatrix();
 }
@@ -4117,12 +3641,12 @@ function applySingleTouchControl(id) {
   const ratio = size / baseSize;
 
   if (id === 'joystick') {
-    const stick = document.getElementById('stick');
-    if (stick) {
+    const stickEl = document.getElementById('stick');
+    if (stickEl) {
       const ss = 46 * ratio;
-      stick.style.width = ss + 'px';
-      stick.style.height = ss + 'px';
-      stick.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
+      stickEl.style.width = ss + 'px';
+      stickEl.style.height = ss + 'px';
+      stickEl.style.margin = `-${ss / 2}px 0 0 -${ss / 2}px`;
     }
     JOYSTICK_RADIUS = 45 * ratio;
     const zone = document.getElementById('joystick-zone');
@@ -4271,7 +3795,7 @@ initTouchConfig();
 
 /* ─────────────── LOOP ─────────────── */
 const clock = new THREE.Clock();
-player.position.set(0, 0, 30);
+player.position.set(0, 0, 5);
 
 function animate() {
   requestAnimationFrame(animate);
