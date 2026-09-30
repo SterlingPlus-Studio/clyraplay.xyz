@@ -474,9 +474,12 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   width:min(260px,68vw);
   aspect-ratio:3/4.4;
   perspective:1400px;
+  /* ★ CLAVE PARA ANDROID: bloquea scroll/zoom nativo */
   touch-action:none;
+  -ms-touch-action:none;
   user-select:none;
   -webkit-user-select:none;
+  -webkit-touch-callout:none;
   -webkit-tap-highlight-color:transparent;
   cursor:grab;
   transform:scale(var(--zoom,1));
@@ -490,6 +493,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   transform:rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));
   transition:transform .12s ease-out;
   will-change:transform;
+  pointer-events:none;   /* ★ deja que el stage capture todos los toques */
 }
 .viewer-stage.grabbing .viewer-card{transition:none}
 
@@ -500,6 +504,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
   background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
+  pointer-events:none;
 }
 
 .viewer-front{
@@ -510,6 +515,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   position:absolute;inset:0;width:100%;height:100%;
   object-fit:cover;display:block;
   pointer-events:none;
+  -webkit-user-drag:none;
 }
 .viewer-front .v-ph{
   position:absolute;inset:0;display:grid;place-items:center;
@@ -681,6 +687,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   transition:background .18s,transform .18s;
   -webkit-tap-highlight-color:transparent;
   white-space:nowrap;
+  touch-action:manipulation;
 }
 .viewer-btn:hover{background:rgba(255,255,255,.2)}
 .viewer-btn:active{transform:scale(.94)}
@@ -1893,7 +1900,7 @@ function renderCollection(){
 }
 
 /* ============================================================
-   9. VISOR 3D
+   9. VISOR 3D  —  Pointer Events (compatible Android)
    ============================================================ */
 const viewer        = $('viewer');
 const viewerStage   = $('viewerStage');
@@ -1918,6 +1925,12 @@ let vState = {
 let vDownClientX = 0;
 let vDownClientY = 0;
 let vMoveDistance = 0;
+
+/* Para zoom con pinza (2 dedos) */
+let pinchActive = false;
+let pinchStartDist = 0;
+let pinchStartZoom = 1;
+const activePointers = new Map();
 
 function vApply(){
   viewerCard.style.setProperty('--rx', vState.rx + 'deg');
@@ -1965,7 +1978,7 @@ function openViewer(name){
 
   const isTouch = matchMedia('(hover: none)').matches;
   viewerHint.textContent = isTouch
-    ? '👆 Arrastra para rotar · Pellizca para zoom'
+    ? '👆 Arrastra con un dedo · Pellizca para zoom'
     : '🖱️ Arrastra para rotar · Scroll para zoom';
 
   viewer.classList.add('open');
@@ -1978,37 +1991,77 @@ function closeViewer(){
   viewer.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
   if (vState.rafId){ cancelAnimationFrame(vState.rafId); vState.rafId = null; }
+  activePointers.clear();
+  pinchActive = false;
 }
 
-/* ★ SIMPLIFICADO: sin signo, rotación siempre en la misma dirección ★ */
+/* ★ POINTER DOWN ★ */
 function vPointerDown(e){
   if (e.target.closest('.viewer-controls')) return;
+
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  /* Si hay 2 punteros → modo pinza */
+  if (activePointers.size === 2){
+    const pts = Array.from(activePointers.values());
+    pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    pinchStartZoom = vState.zoom;
+    pinchActive = true;
+    vState.dragging = false;
+    viewerStage.classList.remove('grabbing');
+    return;
+  }
+
+  if (activePointers.size !== 1) return;
+
   vState.dragging = true;
   viewerStage.classList.add('grabbing');
-  const p = e.touches ? e.touches[0] : e;
-  vState.startX = p.clientX;
-  vState.startY = p.clientY;
-  vState.lastX = p.clientX;
-  vState.lastY = p.clientY;
+  vState.startX = e.clientX;
+  vState.startY = e.clientY;
+  vState.lastX = e.clientX;
+  vState.lastY = e.clientY;
   vState.velX = 0;
   vState.velY = 0;
-  vDownClientX = p.clientX;
-  vDownClientY = p.clientY;
+  vDownClientX = e.clientX;
+  vDownClientY = e.clientY;
   vMoveDistance = 0;
   if (vState.rafId){ cancelAnimationFrame(vState.rafId); vState.rafId = null; }
+
+  try { viewerStage.setPointerCapture(e.pointerId); } catch(err){}
+  if (e.cancelable) e.preventDefault();
 }
 
-/* ★ SIMPLIFICADO: siempre ry += dx, rx -= dy. Sin inversión. ★ */
+/* ★ POINTER MOVE ★ */
 function vPointerMove(e){
+  if (activePointers.has(e.pointerId)){
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  }
+
+  /* Modo pinza (2 dedos) */
+  if (pinchActive && activePointers.size === 2){
+    const pts = Array.from(activePointers.values());
+    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    if (pinchStartDist > 0){
+      let z = pinchStartZoom * (dist / pinchStartDist);
+      z = Math.max(VIEWER_MIN_ZOOM, Math.min(VIEWER_MAX_ZOOM, z));
+      vState.zoom = z;
+      vApply();
+    }
+    if (e.cancelable) e.preventDefault();
+    return;
+  }
+
   if (!vState.dragging) return;
-  const p = e.touches ? e.touches[0] : e;
-  const dx = p.clientX - vState.lastX;
-  const dy = p.clientY - vState.lastY;
-  vState.lastX = p.clientX;
-  vState.lastY = p.clientY;
+  if (activePointers.size > 1) return;
+
+  const dx = e.clientX - vState.lastX;
+  const dy = e.clientY - vState.lastY;
+  vState.lastX = e.clientX;
+  vState.lastY = e.clientY;
 
   vMoveDistance += Math.abs(dx) + Math.abs(dy);
 
+  /* ★ Rotación consistente — sin inversión ★ */
   vState.ry += dx * 0.55;
   vState.rx -= dy * 0.55;
   vState.rx = Math.max(-85, Math.min(85, vState.rx));
@@ -2020,8 +2073,21 @@ function vPointerMove(e){
   if (e.cancelable) e.preventDefault();
 }
 
-function vPointerUp(){
+/* ★ POINTER UP / CANCEL ★ */
+function vPointerUp(e){
+  if (e && e.pointerId !== undefined){
+    activePointers.delete(e.pointerId);
+    try { viewerStage.releasePointerCapture(e.pointerId); } catch(err){}
+  }
+
+  if (activePointers.size < 2){
+    pinchActive = false;
+    pinchStartDist = 0;
+  }
+
   if (!vState.dragging) return;
+  if (activePointers.size > 0) return;
+
   vState.dragging = false;
   viewerStage.classList.remove('grabbing');
 
@@ -2043,45 +2109,23 @@ function vPointerUp(){
   inertia();
 }
 
-viewerStage.addEventListener('mousedown', vPointerDown);
-window.addEventListener('mousemove', vPointerMove);
-window.addEventListener('mouseup', vPointerUp);
+/* Usamos pointer events (unificados, funcionan en Android e iOS) */
+viewerStage.addEventListener('pointerdown', vPointerDown);
+viewerStage.addEventListener('pointermove', vPointerMove);
+viewerStage.addEventListener('pointerup', vPointerUp);
+viewerStage.addEventListener('pointercancel', vPointerUp);
 
-viewerStage.addEventListener('touchstart', vPointerDown, {passive:true});
-window.addEventListener('touchmove', vPointerMove, {passive:false});
-window.addEventListener('touchend', vPointerUp);
-window.addEventListener('touchcancel', vPointerUp);
+/* Bloquear el context menu al mantener pulsado en Android/iOS */
+viewerStage.addEventListener('contextmenu', (e)=> e.preventDefault());
 
+/* Zoom con rueda (solo escritorio) */
 viewerStage.addEventListener('wheel', (e)=>{
   e.preventDefault();
   const factor = e.deltaY < 0 ? 1.1 : 1/1.1;
   vZoom(factor);
 }, {passive:false});
 
-let pinchStartDist = 0;
-let pinchStartZoom = 1;
-
-viewerStage.addEventListener('touchstart', (e)=>{
-  if (e.touches.length === 2){
-    const [a,b] = e.touches;
-    pinchStartDist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-    pinchStartZoom = vState.zoom;
-  }
-}, {passive:true});
-
-viewerStage.addEventListener('touchmove', (e)=>{
-  if (e.touches.length === 2 && pinchStartDist > 0){
-    const [a,b] = e.touches;
-    const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-    const ratio = dist / pinchStartDist;
-    let z = pinchStartZoom * ratio;
-    z = Math.max(VIEWER_MIN_ZOOM, Math.min(VIEWER_MAX_ZOOM, z));
-    vState.zoom = z;
-    vApply();
-    if (e.cancelable) e.preventDefault();
-  }
-}, {passive:false});
-
+/* Controles */
 $('viewerReset').addEventListener('click', vReset);
 $('viewerZoomIn').addEventListener('click', ()=> vZoom(1.2));
 $('viewerZoomOut').addEventListener('click', ()=> vZoom(1/1.2));
@@ -2092,6 +2136,7 @@ $('viewerFlip').addEventListener('click', ()=>{
 
 $('viewerClose').addEventListener('click', closeViewer);
 
+/* Cierre al tocar el fondo (solo si fue un toque limpio, no un drag) */
 viewer.addEventListener('click', (e)=>{
   if (e.target !== viewer) return;
   const cx = (typeof e.clientX === 'number') ? e.clientX : vState.lastX;
@@ -2103,20 +2148,14 @@ viewer.addEventListener('click', (e)=>{
   closeViewer();
 });
 
-viewer.addEventListener('mousedown', (e)=>{
+viewer.addEventListener('pointerdown', (e)=>{
   if (e.target !== viewer) return;
   vDownClientX = e.clientX;
   vDownClientY = e.clientY;
   vMoveDistance = 0;
 });
-viewer.addEventListener('touchstart', (e)=>{
-  if (e.target !== viewer) return;
-  if (e.touches.length !== 1) return;
-  vDownClientX = e.touches[0].clientX;
-  vDownClientY = e.touches[0].clientY;
-  vMoveDistance = 0;
-}, {passive:true});
 
+/* Atajos de teclado */
 window.addEventListener('keydown', (e)=>{
   if (!viewer.classList.contains('open')) return;
   if (e.key === 'Escape') closeViewer();
