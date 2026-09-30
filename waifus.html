@@ -26,8 +26,9 @@
   --c-legendaria:#fbbf24;
 
   --radius:16px;
-  --radius-lg:22px;
+  --radius-lg:20px;
   --pad-x:16px;
+  --card-depth:6px;
 }
 html{height:100%;-webkit-text-size-adjust:100%}
 body{
@@ -115,7 +116,7 @@ body::before{
 main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 
 /* ============================================================
-   TABS (barra separada de los bordes)
+   TABS
    ============================================================ */
 .tabs{
   display:grid;
@@ -127,7 +128,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   border:1px solid var(--panel-brd);
   border-radius:var(--radius);
   max-width:620px;
-  width:calc(100% - 40px);   /* ← separa 20px de cada lado */
+  width:calc(100% - 40px);
 }
 .tab{
   font-family:inherit;font-size:clamp(.7rem,2.4vw,.86rem);
@@ -199,7 +200,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 
 .card-front{
   transform:rotateY(180deg);
-  background:#0f0a1c;
+  background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
   border:1px solid rgba(255,255,255,.12);
 }
 .card-front img{
@@ -313,22 +314,30 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   animation:pop .42s cubic-bezier(.2,1.5,.5,1) backwards;
 }
 @keyframes pop{from{opacity:0;transform:scale(.55) translateY(14px)}to{opacity:1;transform:none}}
-.mini img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.mini img{
+  position:absolute;top:0;left:0;
+  width:100%;
+  aspect-ratio:3/4;
+  object-fit:cover;
+  display:block;
+}
 .mini .mini-ph{
   width:100%;aspect-ratio:3/4;display:grid;place-items:center;
   font-size:1.7rem;font-weight:800;color:rgba(255,255,255,.16);
   background:linear-gradient(150deg,#2a1745,#4c1d95);
 }
-.mini .mini-bar{height:3px}
+.mini .mini-bar{height:3px;position:relative}
 .mini .mini-name{
   font-size:.55rem;font-weight:700;text-align:center;padding:4px 3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ddd3f0;
+  position:relative;
 }
 .mini .mini-coin{
   position:absolute;top:3px;right:3px;
   font-size:.52rem;font-weight:900;
   background:rgba(251,191,36,.95);color:#1a0b2e;
   padding:2px 5px;border-radius:999px;
+  z-index:2;
 }
 .mini.rare-comun    {box-shadow:0 0 12px rgba(110,231,168,.45)}
 .mini.rare-rara     {box-shadow:0 0 14px rgba(96,165,250,.55)}
@@ -378,15 +387,22 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   gap:10px;
 }
 .gcard{
-  position:relative;border-radius:14px;overflow:hidden;cursor:default;
+  position:relative;border-radius:14px;overflow:hidden;
   border:1px solid rgba(255,255,255,.10);
-  background:#150e26;
+  background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
   transition:transform .18s,box-shadow .18s;
   animation:fadeIn .3s ease backwards;
+  cursor:pointer;
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media(hover:hover){.gcard:hover{transform:translateY(-4px)}}
-.gcard img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.gcard img{
+  position:absolute;top:0;left:0;
+  width:100%;
+  aspect-ratio:3/4;
+  object-fit:cover;
+  display:block;
+}
 .gcard .g-ph{
   width:100%;aspect-ratio:3/4;display:grid;place-items:center;
   font-size:2rem;font-weight:800;color:rgba(255,255,255,.15);
@@ -417,12 +433,272 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 .gcard.rare-rara     {box-shadow:inset 0 0 0 1px rgba(96,165,250,.55)}
 .gcard.rare-epica    {box-shadow:inset 0 0 0 1px rgba(192,132,252,.7)}
 .gcard.rare-legendaria{box-shadow:inset 0 0 0 1px rgba(251,191,36,.9),0 0 16px rgba(251,191,36,.35)}
-.gcard.locked{filter:grayscale(1) brightness(.34);opacity:.72}
+.gcard.locked{filter:grayscale(1) brightness(.34);opacity:.72;cursor:not-allowed}
 .gcard.locked .g-veil{background:linear-gradient(to top,rgba(5,2,12,.9),transparent)}
 
 .empty{
   grid-column:1/-1;text-align:center;padding:44px 10px;
   color:var(--txt-dim);font-size:.9rem;
+}
+
+/* ============================================================
+   VISOR 3D DE CARTA (MODAL)
+   ============================================================ */
+.viewer{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(5,2,12,.92);
+  backdrop-filter:blur(14px);
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+  overflow:hidden;
+  animation:viewerIn .3s ease;
+}
+.viewer.open{display:flex}
+@keyframes viewerIn{from{opacity:0}to{opacity:1}}
+
+.viewer-close{
+  position:absolute;top:16px;right:16px;z-index:220;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+  color:#fff;font-size:1.3rem;font-weight:800;cursor:pointer;
+  display:grid;place-items:center;
+  transition:background .18s,transform .18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.viewer-close:hover{background:rgba(255,255,255,.18);transform:scale(1.05)}
+.viewer-close:active{transform:scale(.92)}
+
+.viewer-stage{
+  position:relative;
+  width:min(260px,68vw);
+  aspect-ratio:3/4.4;
+  perspective:1400px;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  cursor:grab;
+  transform:scale(var(--zoom,1));
+  transition:transform .18s ease;
+}
+.viewer-stage.grabbing{cursor:grabbing;transition:none}
+
+.viewer-card{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  transform:rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));
+  transition:transform .12s ease-out;
+  will-change:transform;
+}
+.viewer-stage.grabbing .viewer-card{transition:none}
+
+.viewer-face{
+  position:absolute;inset:0;
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
+}
+
+.viewer-front{
+  transform:translateZ(calc(var(--card-depth) / 2));
+  border:2px solid rgba(255,255,255,.15);
+}
+.viewer-front img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;
+  pointer-events:none;
+}
+.viewer-front .v-ph{
+  position:absolute;inset:0;display:grid;place-items:center;
+  font-size:5rem;font-weight:900;color:rgba(255,255,255,.16);
+  background:linear-gradient(150deg,#2a1745,#4c1d95 50%,#1e1030);
+  pointer-events:none;
+}
+.viewer-front .v-shade{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to top,rgba(5,2,12,.96) 0%,rgba(5,2,12,.7) 28%,transparent 58%);
+}
+.viewer-front .v-info{
+  position:absolute;left:0;right:0;bottom:0;
+  padding:14px 14px 16px;text-align:center;
+  pointer-events:none;
+}
+.viewer-front .v-stars{font-size:.9rem;letter-spacing:3px;margin-bottom:5px}
+.viewer-front .v-name{
+  font-size:1.05rem;font-weight:800;line-height:1.2;
+  text-shadow:0 2px 16px rgba(0,0,0,.95);
+}
+.viewer-front .v-series{
+  font-size:.72rem;color:#cbbcdf;margin-top:4px;
+  text-shadow:0 1px 8px rgba(0,0,0,.9);
+}
+.viewer-front .v-badge{
+  display:inline-block;margin-top:8px;
+  font-size:.6rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
+  padding:3px 10px;border-radius:999px;
+  border:1px solid currentColor;
+}
+
+.viewer-front::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.18) 48%,transparent 62%);
+  transform:translateX(-130%);
+  opacity:.9;
+  mix-blend-mode:screen;
+}
+.viewer-stage:not(.grabbing) .viewer-front::after{
+  animation:viewerShine 3.5s ease-in-out infinite;
+}
+@keyframes viewerShine{
+  0%,70%{transform:translateX(-130%)}
+  100%{transform:translateX(130%)}
+}
+
+.viewer-back{
+  transform:rotateY(180deg) translateZ(calc(var(--card-depth) / 2));
+  background:
+    radial-gradient(circle at 50% 35%,rgba(192,132,252,.42),transparent 62%),
+    linear-gradient(150deg,#2a1745,#3b1d5c 45%,#160c26);
+  border:2px solid rgba(192,132,252,.45);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  overflow:hidden;
+}
+.viewer-back::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle at 20% 20%,rgba(244,114,182,.18) 1.5px,transparent 2px),
+    radial-gradient(circle at 80% 70%,rgba(192,132,252,.18) 1.5px,transparent 2px),
+    radial-gradient(circle at 50% 50%,rgba(251,191,36,.12) 1px,transparent 1.5px);
+  background-size:36px 36px,44px 44px,28px 28px;
+  opacity:.7;
+  pointer-events:none;
+}
+.viewer-back::after{
+  content:'';position:absolute;inset:10px;
+  border-radius:calc(var(--radius-lg) - 6px);
+  border:1px dashed rgba(244,114,182,.35);
+  pointer-events:none;
+}
+.viewer-back-ring{
+  width:42%;aspect-ratio:1;max-width:150px;
+  border-radius:50%;
+  border:2px dashed rgba(244,114,182,.6);
+  display:grid;place-items:center;
+  animation:spin 14s linear infinite;
+  position:relative;
+  z-index:1;
+}
+.viewer-back-logo{
+  font-size:clamp(2.4rem,10vw,3.6rem);
+  color:var(--gold);
+  text-shadow:0 0 30px rgba(251,191,36,.9),0 0 60px rgba(251,191,36,.5);
+  line-height:1;
+}
+.viewer-back-text{
+  font-weight:900;letter-spacing:8px;font-size:clamp(.75rem,2.6vw,.9rem);
+  color:rgba(255,255,255,.45);
+  padding-left:8px;
+  position:relative;z-index:1;
+  text-shadow:0 1px 8px rgba(0,0,0,.8);
+}
+
+.viewer-side{
+  position:absolute;
+  pointer-events:none;
+  background:linear-gradient(180deg,#2a1745,#1a0e2e 50%,#241238);
+  transform-style:preserve-3d;
+}
+.viewer-side-left{
+  top:8px;bottom:8px;left:0;
+  width:var(--card-depth);
+  transform-origin:left center;
+  transform:translateZ(calc(var(--card-depth) / -2)) rotateY(-90deg);
+  background:linear-gradient(90deg,#241238,#1a0e2e);
+}
+.viewer-side-right{
+  top:8px;bottom:8px;right:0;
+  width:var(--card-depth);
+  transform-origin:right center;
+  transform:translateZ(calc(var(--card-depth) / -2)) rotateY(90deg);
+  background:linear-gradient(90deg,#1a0e2e,#241238);
+}
+.viewer-side-top{
+  left:8px;right:8px;top:0;
+  height:var(--card-depth);
+  transform-origin:center top;
+  transform:translateZ(calc(var(--card-depth) / -2)) rotateX(90deg);
+  background:linear-gradient(180deg,#3b1d5c,#241238);
+}
+.viewer-side-bottom{
+  left:8px;right:8px;bottom:0;
+  height:var(--card-depth);
+  transform-origin:center bottom;
+  transform:translateZ(calc(var(--card-depth) / -2)) rotateX(-90deg);
+  background:linear-gradient(180deg,#241238,#160c26);
+}
+
+.viewer-card.rare-comun .viewer-front,
+.viewer-card.rare-comun .viewer-back{
+  border-color:var(--c-comun);
+  box-shadow:0 0 44px rgba(110,231,168,.35);
+}
+.viewer-card.rare-rara .viewer-front,
+.viewer-card.rare-rara .viewer-back{
+  border-color:var(--c-rara);
+  box-shadow:0 0 52px rgba(96,165,250,.45);
+}
+.viewer-card.rare-epica .viewer-front,
+.viewer-card.rare-epica .viewer-back{
+  border-color:var(--c-epica);
+  box-shadow:0 0 66px rgba(192,132,252,.6);
+}
+.viewer-card.rare-legendaria .viewer-front,
+.viewer-card.rare-legendaria .viewer-back{
+  border-color:var(--c-legendaria);
+  box-shadow:0 0 90px rgba(251,191,36,.75);
+  animation:legendPulseViewer 2s ease-in-out infinite;
+}
+@keyframes legendPulseViewer{
+  0%,100%{box-shadow:0 0 70px rgba(251,191,36,.55)}
+  50%    {box-shadow:0 0 120px rgba(251,191,36,1)}
+}
+
+.viewer-controls{
+  position:absolute;left:50%;bottom:24px;transform:translateX(-50%);
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  z-index:215;padding:0 12px;width:100%;max-width:520px;
+  pointer-events:auto;
+}
+.viewer-btn{
+  font-family:inherit;font-size:.8rem;font-weight:800;letter-spacing:.3px;
+  padding:9px 16px;border-radius:11px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
+  color:#fff;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:background .18s,transform .18s;
+  -webkit-tap-highlight-color:transparent;
+  white-space:nowrap;
+}
+.viewer-btn:hover{background:rgba(255,255,255,.2)}
+.viewer-btn:active{transform:scale(.94)}
+.viewer-hint{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  font-size:.75rem;color:var(--txt-dim);
+  background:rgba(0,0,0,.5);border:1px solid var(--panel-brd);
+  padding:6px 14px;border-radius:999px;z-index:215;
+  text-align:center;white-space:nowrap;
+  max-width:calc(100vw - 100px);
+  overflow:hidden;text-overflow:ellipsis;
+}
+
+@media(max-width:560px){
+  .viewer-controls{bottom:18px}
+  .viewer-btn{padding:8px 13px;font-size:.75rem}
+  .viewer-hint{font-size:.7rem;padding:5px 11px}
+  .viewer-close{top:12px;right:12px;width:40px;height:40px}
 }
 
 /* ============================================================
@@ -731,11 +1007,11 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 }
 
 @media(max-width:480px){
-  /* Barra de pestañas un poco más separada de los bordes en móvil */
   .tabs{
-    width:calc(100% - 28px);   /* 14px por lado en pantallas pequeñas */
+    width:calc(100% - 28px);
     margin:18px auto 8px;
   }
+  .viewer-stage{width:min(230px,72vw)}
 }
 
 @media(max-width:420px){
@@ -761,6 +1037,7 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 @media(max-width:360px){
   .topbar h1{font-size:1.55rem}
   .mem-grid{gap:6px}
+  .viewer-stage{width:min(200px,74vw)}
 }
 </style>
 </head>
@@ -768,7 +1045,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 
 <div class="bg-orbs"><span></span><span></span><span></span></div>
 
-<!-- ============ WALLET ============ -->
 <div class="wallet" id="wallet">
   <span class="coin">🪙</span>
   <span class="amt" id="coinAmount">0</span>
@@ -779,7 +1055,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
   <p class="subtitle">Sistema de invocación por rareza</p>
 </header>
 
-<!-- ============ TABS ============ -->
 <nav class="tabs" id="tabs">
   <button class="tab active" data-tab="gacha">
     <span class="tab-icon">✦</span><span class="tab-label">Invocar</span>
@@ -797,21 +1072,15 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 
 <main>
 
-  <!-- ============================================================
-       TAB: GACHA
-       ============================================================ -->
   <section class="tab-panel active" data-tab-content="gacha">
     <div class="gacha">
-
       <div class="card-stage">
         <div class="card" id="card">
           <div class="card-inner">
-
             <div class="card-face card-back">
               <div class="back-ring"><span class="back-logo">✦</span></div>
               <span class="back-text">WAIFU</span>
             </div>
-
             <div class="card-face card-front" id="cardFront">
               <div class="ph" id="cardPh">?</div>
               <img id="cardImg" alt="" draggable="false">
@@ -824,7 +1093,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
                 <span class="badge" id="cardBadge" hidden></span>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -839,21 +1107,15 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
       </div>
 
       <p class="hint" id="hint">Pulsa el botón para invocar a tu waifu</p>
-
       <div class="rates" id="rates"></div>
-
       <div class="results" id="results"></div>
     </div>
   </section>
 
-  <!-- ============================================================
-       TAB: COLECCIÓN
-       ============================================================ -->
   <section class="tab-panel" data-tab-content="collection">
     <div class="collection">
       <div class="collection-head">
         <h2>Colección <span class="counter" id="colCount">0 / 0</span></h2>
-
         <div class="filters">
           <input type="search" id="search" placeholder="🔍 Buscar personaje o serie…" autocomplete="off">
           <select id="filterRarity">
@@ -869,14 +1131,11 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
           </label>
         </div>
       </div>
-
+      <p class="hint" style="margin-bottom:12px;text-align:center">💡 Toca una carta para verla en 3D</p>
       <div class="grid" id="grid"></div>
     </div>
   </section>
 
-  <!-- ============================================================
-       TAB: TIENDA
-       ============================================================ -->
   <section class="tab-panel" data-tab-content="shop">
     <div class="shop">
       <div class="shop-title">
@@ -893,7 +1152,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
           <span class="cd" id="dailyCd">Disponible ahora</span>
           <button class="btn btn-gold" id="btnDaily">Reclamar</button>
         </div>
-
         <div class="shop-card">
           <div class="shop-icon">💼</div>
           <h3>Trabajar</h3>
@@ -902,7 +1160,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
           <span class="cd" id="workCd">Listo para trabajar</span>
           <button class="btn btn-secondary" id="btnWork">Trabajar</button>
         </div>
-
         <div class="shop-card">
           <div class="shop-icon">💰</div>
           <h3>Vender Todo</h3>
@@ -912,7 +1169,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
         </div>
       </div>
 
-      <!-- ============ MINIJUEGO MEMORIA ============ -->
       <div class="mem-wrap">
         <div class="mem-head">
           <div>
@@ -926,11 +1182,8 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
             <span id="memScore">0 🪙</span>
           </div>
         </div>
-
         <div class="mem-grid" id="memGrid"></div>
-
         <div class="mem-feedback" id="memFeedback"></div>
-
         <div class="minigame-foot">
           <button class="btn btn-gold mg-ready" id="btnMemory">▶ Jugar</button>
           <span class="cd" id="memCd">Listo para jugar</span>
@@ -949,9 +1202,6 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
     </div>
   </section>
 
-  <!-- ============================================================
-       TAB: PERFIL
-       ============================================================ -->
   <section class="tab-panel" data-tab-content="profile">
     <div class="profile">
       <div class="profile-hero">
@@ -962,14 +1212,12 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
           <span id="heroCoins">0</span> 🪙
         </div>
       </div>
-
       <div class="stat-grid">
         <div class="stat"><div class="k">Tiradas</div><div class="v" id="stPulls">0</div></div>
         <div class="stat"><div class="k">Personajes</div><div class="v" id="stOwned">0</div></div>
         <div class="stat"><div class="k">Copias extra</div><div class="v" id="stDupes">0</div></div>
         <div class="stat"><div class="k">Monedas ganadas</div><div class="v" id="stEarned">0</div></div>
       </div>
-
       <div class="rarity-bars">
         <h3>Obtenidos por rareza</h3>
         <div id="rarityBars"></div>
@@ -982,6 +1230,48 @@ main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
 <footer class="footer">
   <span id="footerStats">Tiradas: 0</span>
 </footer>
+
+<div class="viewer" id="viewer" aria-hidden="true">
+  <button class="viewer-close" id="viewerClose" aria-label="Cerrar">✕</button>
+  <div class="viewer-hint" id="viewerHint">🖱️ Arrastra para rotar · Scroll para zoom</div>
+
+  <div class="viewer-stage" id="viewerStage">
+    <div class="viewer-card" id="viewerCard">
+
+      <div class="viewer-face viewer-front">
+        <div class="v-ph" id="viewerPh">?</div>
+        <img id="viewerImg" alt="" draggable="false">
+        <div class="v-shade"></div>
+        <div class="v-info">
+          <div class="v-stars" id="viewerStars"></div>
+          <div class="v-name" id="viewerName">— — —</div>
+          <div class="v-series" id="viewerSeries">—</div>
+          <span class="v-badge" id="viewerBadge"></span>
+        </div>
+      </div>
+
+      <div class="viewer-face viewer-back">
+        <div class="viewer-back-ring">
+          <span class="viewer-back-logo">✦</span>
+        </div>
+        <span class="viewer-back-text">WAIFU</span>
+      </div>
+
+      <div class="viewer-side viewer-side-left"></div>
+      <div class="viewer-side viewer-side-right"></div>
+      <div class="viewer-side viewer-side-top"></div>
+      <div class="viewer-side viewer-side-bottom"></div>
+
+    </div>
+  </div>
+
+  <div class="viewer-controls">
+    <button class="viewer-btn" id="viewerReset">↺ Reiniciar</button>
+    <button class="viewer-btn" id="viewerZoomIn">🔍+ Zoom</button>
+    <button class="viewer-btn" id="viewerZoomOut">🔍− Zoom</button>
+    <button class="viewer-btn" id="viewerFlip">↻ Voltear</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1167,6 +1457,9 @@ const MEM_EMOJIS = [
   '🐶','🐱','🐼','🦊','🐸','🐵','🦁','🐯','🐨','🐷'
 ];
 
+const VIEWER_MIN_ZOOM = 0.6;
+const VIEWER_MAX_ZOOM = 2.4;
+
 /* ============================================================
    3. CATÁLOGO
    ============================================================ */
@@ -1237,11 +1530,14 @@ const FOLDER = 'personajes';
 function loadCharImage(imgEl, phEl, name){
   let i = 0;
   imgEl.style.display = '';
-  if (phEl) phEl.style.display = 'grid';
+  if (phEl) {
+    phEl.style.display = 'grid';
+    phEl.style.visibility = 'visible';
+  }
 
   imgEl.onload = () => {
     imgEl.style.display = 'block';
-    if (phEl) phEl.style.display = 'none';
+    if (phEl) phEl.style.visibility = 'hidden';
   };
   imgEl.onerror = () => {
     if (i < EXTS.length){
@@ -1250,7 +1546,10 @@ function loadCharImage(imgEl, phEl, name){
       imgEl.onerror = null;
       imgEl.removeAttribute('src');
       imgEl.style.display = 'none';
-      if (phEl) phEl.style.display = 'grid';
+      if (phEl) {
+        phEl.style.display = 'grid';
+        phEl.style.visibility = 'visible';
+      }
     }
   };
   imgEl.src = `${FOLDER}/${encodeURIComponent(name)}.${EXTS[i++]}`;
@@ -1572,7 +1871,10 @@ function renderCollection(){
       cnt.className = 'g-count';
       cnt.textContent = 'x' + collection[char.name].count;
       el.appendChild(cnt);
+
+      el.addEventListener('click', ()=> openViewer(char.name));
     }
+
     frag.appendChild(el);
   }
 
@@ -1591,7 +1893,244 @@ function renderCollection(){
 }
 
 /* ============================================================
-   9. TIENDA
+   9. VISOR 3D
+   ============================================================ */
+const viewer        = $('viewer');
+const viewerStage   = $('viewerStage');
+const viewerCard    = $('viewerCard');
+const viewerImg     = $('viewerImg');
+const viewerPh      = $('viewerPh');
+const viewerName    = $('viewerName');
+const viewerSeries  = $('viewerSeries');
+const viewerStars   = $('viewerStars');
+const viewerBadge   = $('viewerBadge');
+const viewerHint    = $('viewerHint');
+
+let vState = {
+  rx: 0, ry: 0, zoom: 1,
+  dragging: false,
+  startX: 0, startY: 0,
+  lastX: 0, lastY: 0,
+  velX: 0, velY: 0,
+  rafId: null
+};
+
+let vDownClientX = 0;
+let vDownClientY = 0;
+let vMoveDistance = 0;
+
+function vApply(){
+  viewerCard.style.setProperty('--rx', vState.rx + 'deg');
+  viewerCard.style.setProperty('--ry', vState.ry + 'deg');
+  viewerStage.style.setProperty('--zoom', vState.zoom);
+}
+
+function vReset(){
+  vState.rx = 0;
+  vState.ry = 0;
+  vState.zoom = 1;
+  vState.velX = 0;
+  vState.velY = 0;
+  vApply();
+}
+
+function vZoom(factor){
+  let z = vState.zoom * factor;
+  z = Math.max(VIEWER_MIN_ZOOM, Math.min(VIEWER_MAX_ZOOM, z));
+  vState.zoom = z;
+  vApply();
+}
+
+function openViewer(name){
+  const char = BY_NAME.get(name);
+  if (!char) return;
+
+  const meta = RARITY_META[char.rarity];
+  const count = collection[char.name]?.count || 1;
+
+  viewerPh.textContent = initialOf(char.name);
+  viewerName.textContent = char.name;
+  viewerSeries.textContent = char.series;
+  viewerStars.innerHTML = starsHTML(char.rarity);
+  viewerBadge.textContent = meta.label + ' · x' + count;
+  viewerBadge.style.color = meta.color;
+
+  viewerImg.style.display = 'none';
+  viewerPh.style.display = 'grid';
+  loadCharImage(viewerImg, viewerPh, char.name);
+
+  viewerCard.className = 'viewer-card ' + meta.cls;
+
+  vReset();
+
+  const isTouch = matchMedia('(hover: none)').matches;
+  viewerHint.textContent = isTouch
+    ? '👆 Arrastra para rotar · Pellizca para zoom'
+    : '🖱️ Arrastra para rotar · Scroll para zoom';
+
+  viewer.classList.add('open');
+  viewer.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeViewer(){
+  viewer.classList.remove('open');
+  viewer.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  if (vState.rafId){ cancelAnimationFrame(vState.rafId); vState.rafId = null; }
+}
+
+/* ★ SIMPLIFICADO: sin signo, rotación siempre en la misma dirección ★ */
+function vPointerDown(e){
+  if (e.target.closest('.viewer-controls')) return;
+  vState.dragging = true;
+  viewerStage.classList.add('grabbing');
+  const p = e.touches ? e.touches[0] : e;
+  vState.startX = p.clientX;
+  vState.startY = p.clientY;
+  vState.lastX = p.clientX;
+  vState.lastY = p.clientY;
+  vState.velX = 0;
+  vState.velY = 0;
+  vDownClientX = p.clientX;
+  vDownClientY = p.clientY;
+  vMoveDistance = 0;
+  if (vState.rafId){ cancelAnimationFrame(vState.rafId); vState.rafId = null; }
+}
+
+/* ★ SIMPLIFICADO: siempre ry += dx, rx -= dy. Sin inversión. ★ */
+function vPointerMove(e){
+  if (!vState.dragging) return;
+  const p = e.touches ? e.touches[0] : e;
+  const dx = p.clientX - vState.lastX;
+  const dy = p.clientY - vState.lastY;
+  vState.lastX = p.clientX;
+  vState.lastY = p.clientY;
+
+  vMoveDistance += Math.abs(dx) + Math.abs(dy);
+
+  vState.ry += dx * 0.55;
+  vState.rx -= dy * 0.55;
+  vState.rx = Math.max(-85, Math.min(85, vState.rx));
+
+  vState.velX = dx * 0.55;
+  vState.velY = -dy * 0.55;
+
+  vApply();
+  if (e.cancelable) e.preventDefault();
+}
+
+function vPointerUp(){
+  if (!vState.dragging) return;
+  vState.dragging = false;
+  viewerStage.classList.remove('grabbing');
+
+  function inertia(){
+    if (vState.dragging) return;
+    vState.velX *= 0.94;
+    vState.velY *= 0.94;
+    vState.ry += vState.velX;
+    vState.rx += vState.velY;
+    vState.rx = Math.max(-85, Math.min(85, vState.rx));
+
+    if (Math.abs(vState.velX) > 0.05 || Math.abs(vState.velY) > 0.05){
+      vApply();
+      vState.rafId = requestAnimationFrame(inertia);
+    } else {
+      vState.rafId = null;
+    }
+  }
+  inertia();
+}
+
+viewerStage.addEventListener('mousedown', vPointerDown);
+window.addEventListener('mousemove', vPointerMove);
+window.addEventListener('mouseup', vPointerUp);
+
+viewerStage.addEventListener('touchstart', vPointerDown, {passive:true});
+window.addEventListener('touchmove', vPointerMove, {passive:false});
+window.addEventListener('touchend', vPointerUp);
+window.addEventListener('touchcancel', vPointerUp);
+
+viewerStage.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 1/1.1;
+  vZoom(factor);
+}, {passive:false});
+
+let pinchStartDist = 0;
+let pinchStartZoom = 1;
+
+viewerStage.addEventListener('touchstart', (e)=>{
+  if (e.touches.length === 2){
+    const [a,b] = e.touches;
+    pinchStartDist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    pinchStartZoom = vState.zoom;
+  }
+}, {passive:true});
+
+viewerStage.addEventListener('touchmove', (e)=>{
+  if (e.touches.length === 2 && pinchStartDist > 0){
+    const [a,b] = e.touches;
+    const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const ratio = dist / pinchStartDist;
+    let z = pinchStartZoom * ratio;
+    z = Math.max(VIEWER_MIN_ZOOM, Math.min(VIEWER_MAX_ZOOM, z));
+    vState.zoom = z;
+    vApply();
+    if (e.cancelable) e.preventDefault();
+  }
+}, {passive:false});
+
+$('viewerReset').addEventListener('click', vReset);
+$('viewerZoomIn').addEventListener('click', ()=> vZoom(1.2));
+$('viewerZoomOut').addEventListener('click', ()=> vZoom(1/1.2));
+$('viewerFlip').addEventListener('click', ()=>{
+  vState.ry += 180;
+  vApply();
+});
+
+$('viewerClose').addEventListener('click', closeViewer);
+
+viewer.addEventListener('click', (e)=>{
+  if (e.target !== viewer) return;
+  const cx = (typeof e.clientX === 'number') ? e.clientX : vState.lastX;
+  const cy = (typeof e.clientY === 'number') ? e.clientY : vState.lastY;
+  const dx = Math.abs(cx - vDownClientX);
+  const dy = Math.abs(cy - vDownClientY);
+  if (dx > 10 || dy > 10) return;
+  if (vMoveDistance > 15) return;
+  closeViewer();
+});
+
+viewer.addEventListener('mousedown', (e)=>{
+  if (e.target !== viewer) return;
+  vDownClientX = e.clientX;
+  vDownClientY = e.clientY;
+  vMoveDistance = 0;
+});
+viewer.addEventListener('touchstart', (e)=>{
+  if (e.target !== viewer) return;
+  if (e.touches.length !== 1) return;
+  vDownClientX = e.touches[0].clientX;
+  vDownClientY = e.touches[0].clientY;
+  vMoveDistance = 0;
+}, {passive:true});
+
+window.addEventListener('keydown', (e)=>{
+  if (!viewer.classList.contains('open')) return;
+  if (e.key === 'Escape') closeViewer();
+  if (e.key === 'ArrowLeft') { vState.ry -= 15; vApply(); }
+  if (e.key === 'ArrowRight'){ vState.ry += 15; vApply(); }
+  if (e.key === 'ArrowUp')   { vState.rx = Math.max(-85, vState.rx - 15); vApply(); }
+  if (e.key === 'ArrowDown') { vState.rx = Math.min(85, vState.rx + 15); vApply(); }
+  if (e.key === '+' || e.key === '=') vZoom(1.15);
+  if (e.key === '-') vZoom(1/1.15);
+  if (e.key === '0') vReset();
+});
+
+/* ============================================================
+   10. TIENDA
    ============================================================ */
 function updateCooldownTexts(){
   const now = Date.now();
@@ -1713,7 +2252,7 @@ function sellAllDupes(){
 }
 
 /* ============================================================
-   10. MEMORIA EMOJI
+   11. MEMORIA EMOJI
    ============================================================ */
 const memGrid     = $('memGrid');
 const memLivesEl  = $('memLives');
@@ -1916,7 +2455,7 @@ function memEnd(){
 }
 
 /* ============================================================
-   11. PERFIL
+   12. PERFIL
    ============================================================ */
 function renderProfile(){
   $('stPulls').textContent  = stats.pulls.toLocaleString('es');
@@ -1953,7 +2492,7 @@ function updateFooter(){
 }
 
 /* ============================================================
-   12. TABS
+   13. TABS
    ============================================================ */
 function initTabs(){
   const tabs = document.querySelectorAll('.tab');
@@ -1974,7 +2513,7 @@ function initTabs(){
 }
 
 /* ============================================================
-   13. RATES
+   14. RATES
    ============================================================ */
 function renderRates(){
   const total = Object.values(WAIFU_DATA.pool).reduce((s,p)=> s + p.weight, 0);
@@ -1994,7 +2533,7 @@ function renderRates(){
 }
 
 /* ============================================================
-   14. EVENTOS
+   15. EVENTOS
    ============================================================ */
 $('btnRoll').addEventListener('click', ()=> doRoll(1));
 $('btnRoll10').addEventListener('click', ()=> doRoll(10));
@@ -2043,7 +2582,7 @@ setInterval(()=>{
 }, 1000);
 
 /* ============================================================
-   15. INIT
+   16. INIT
    ============================================================ */
 (function init(){
   initTabs();
