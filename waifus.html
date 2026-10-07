@@ -1,8 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07030f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Jinx Waifus — HUD</title>
 <link rel="icon" href="data:,">
 <style>
@@ -23,86 +26,92 @@
   @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
   @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
   @keyframes pop { 0%{transform:scale(.9);opacity:0} 60%{transform:scale(1.03)} 100%{transform:scale(1);opacity:1} }
+  @keyframes modalFade { from{opacity:0} to{opacity:1} }
   @keyframes toastIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
 
-  *::-webkit-scrollbar { width: 10px; height: 10px; }
-  *::-webkit-scrollbar-track {
-    background: linear-gradient(180deg, rgba(13,6,32,.6), rgba(7,3,15,.8));
-    border-radius: 10px;
+  html {
+    background: #07030f;
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
   }
-  *::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--pink), var(--purple), var(--cyan));
-    border-radius: 10px;
-    border: 2px solid rgba(13,6,32,.9);
-    box-shadow: inset 0 0 6px rgba(255,45,146,.5), 0 0 12px rgba(139,92,246,.4);
-  }
-  *::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, var(--pink), var(--cyan), var(--purple));
-    box-shadow: inset 0 0 8px rgba(255,45,146,.7), 0 0 20px rgba(34,211,238,.6);
-  }
-  *::-webkit-scrollbar-corner { background: transparent; }
-  * { scrollbar-width: thin; scrollbar-color: var(--purple) rgba(13,6,32,.8); }
-
-  html,body{ height:100%; }
-  body{
+  body {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     color: var(--text);
-    background: var(--bg);
+    background: #07030f;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    position: relative;
   }
-  body::before{
-    content:''; position:fixed; inset:0; z-index:-2;
+  body.modal-open { overflow: hidden; }
+
+  .ic { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+
+  .bg-layers {
+    position: fixed; inset: 0; z-index: -2; pointer-events: none;
     background:
       radial-gradient(circle at 15% 15%, rgba(255,45,146,.15), transparent 45%),
       radial-gradient(circle at 85% 25%, rgba(139,92,246,.22), transparent 40%),
       radial-gradient(circle at 50% 90%, rgba(34,211,238,.15), transparent 45%),
       linear-gradient(180deg, #07030f, #0a0518 50%, #07030f);
   }
-  body::after{
-    content:''; position:fixed; inset:0; z-index:-1; opacity:.30; pointer-events:none;
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1; opacity: .30; pointer-events: none;
     background-image:
       linear-gradient(rgba(139,92,246,.07) 1px, transparent 1px),
       linear-gradient(90deg, rgba(139,92,246,.07) 1px, transparent 1px);
     background-size: 40px 40px;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 100%);
     mask-image: radial-gradient(ellipse at center, black 40%, transparent 100%);
   }
-  .scanline{
-    position:fixed; inset:0; pointer-events:none; z-index:9999;
+  .scanline {
+    position: fixed; top: 0; left: 0;
+    pointer-events: none; z-index: 9999;
     background: linear-gradient(transparent 0%, rgba(139,92,246,.06) 50%, transparent 100%);
-    height: 20vh; width:100%;
+    height: 20vh; width: 100%;
     animation: scanline 8s linear infinite;
-    opacity:.4;
+    opacity: .4;
   }
 
+  *::-webkit-scrollbar { width: 8px; height: 8px; }
+  *::-webkit-scrollbar-track { background: rgba(13,6,32,.6); border-radius: 10px; }
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--pink), var(--purple), var(--cyan));
+    border-radius: 10px;
+    border: 2px solid rgba(13,6,32,.9);
+    box-shadow: inset 0 0 6px rgba(255,45,146,.5);
+  }
+  * { scrollbar-width: thin; scrollbar-color: var(--purple) rgba(13,6,32,.8); }
+
   #toast-wrap{
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: max(20px, env(safe-area-inset-top, 20px));
+    left: 50%; transform: translateX(-50%);
     z-index: 99999;
     display:flex; flex-direction:column; gap: 8px;
-    align-items: center;
-    pointer-events: none;
+    align-items: center; pointer-events: none;
+    padding: 0 12px; width: 100%; max-width: 500px;
   }
   .toast{
-    padding: 14px 22px;
-    border-radius: 12px;
+    padding: 14px 22px; border-radius: 12px;
     background: linear-gradient(180deg, rgba(21,11,38,.98), rgba(13,6,32,.98));
-    border: 1px solid var(--purple);
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: .5px;
+    border: 1px solid var(--purple); color: var(--text);
+    font-size: 13px; font-weight: 700; letter-spacing: .5px;
     box-shadow: 0 0 30px rgba(139,92,246,.5), inset 0 1px 0 rgba(255,255,255,.1);
     animation: toastIn .3s ease;
-    max-width: 90vw;
-    text-align: center;
+    width: fit-content; max-width: 100%; text-align: center;
     pointer-events: auto;
+    display: flex; align-items: center; gap: 8px; justify-content: center;
   }
   .toast.ok{ border-color: var(--ok); box-shadow: 0 0 30px rgba(34,197,94,.45); }
   .toast.err{ border-color: var(--err); box-shadow: 0 0 30px rgba(239,68,68,.45); }
   .toast.hide{ animation: toastOut .3s ease forwards; }
 
-  .layout{ display: flex; min-height: 100vh; position: relative; }
+  .layout{ display: flex; min-height: 100vh; position: relative; width: 100%; overflow-x: clip; }
 
   .sidebar{
     width: var(--sidebar-w);
@@ -110,41 +119,29 @@
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
     position: fixed; top: 0; left: 0; bottom: 0;
-    z-index: 100;
-    transition: transform .3s ease;
-    backdrop-filter: blur(10px);
+    z-index: 100; transition: transform .3s ease;
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   }
   .sidebar::before{
     content:''; position:absolute; top:0; right:0; width:2px; height:100%;
     background: linear-gradient(180deg, transparent, var(--purple), var(--pink), transparent);
     opacity:.5;
   }
-
-  .sidebar-brand{
-    padding: 24px 20px 20px;
-    border-bottom: 1px solid var(--border);
-    position: relative;
-  }
+  .sidebar-brand{ padding: 24px 20px 20px; border-bottom: 1px solid var(--border); position: relative; }
   .sidebar-brand .logo{
     font-size: 22px; font-weight: 900; letter-spacing: 1.5px;
     background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink));
     background-size: 200% auto;
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shimmer 4s linear infinite;
-    text-transform: uppercase; line-height: 1.1;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite; text-transform: uppercase; line-height: 1.1;
   }
-  .sidebar-brand .sub{
-    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
-    color: var(--muted); margin-top: 6px;
-  }
+  .sidebar-brand .sub{ font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
   .sidebar-brand .badge-dot{
     position:absolute; top: 24px; right: 20px;
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--cyan); box-shadow: 0 0 12px var(--cyan);
     animation: pulse 2s infinite;
   }
-
   .sidebar-user{
     padding: 14px 20px; border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 10px; font-size: 12px;
@@ -156,24 +153,17 @@
     font-weight: 900; font-size: 15px;
     border: 1.5px solid rgba(255,255,255,.15);
     box-shadow: 0 0 15px rgba(139,92,246,.4);
-    flex-shrink: 0;
+    flex-shrink: 0; overflow: hidden;
   }
+  .sidebar-user .avatar-sm img{ width:100%; height:100%; object-fit: cover; display:block; }
   .sidebar-user .uinfo{ min-width: 0; flex: 1; }
-  .sidebar-user .uname{
-    font-weight: 700; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; font-size: 12px;
-  }
-  .sidebar-user .utag{
-    color: var(--muted); font-size: 10px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-
+  .sidebar-user .uname{ font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+  .sidebar-user .utag{ color: var(--muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sidebar-nav{
-    flex: 1; padding: 14px 12px;
-    overflow-y: auto;
+    flex: 1; padding: 14px 12px; overflow-y: auto;
     display: flex; flex-direction: column; gap: 4px;
+    -webkit-overflow-scrolling: touch;
   }
-
   .nav-item{
     display: flex; align-items: center; gap: 12px;
     padding: 12px 14px; border-radius: 10px;
@@ -184,12 +174,8 @@
     text-align: left; font-family: inherit; width: 100%;
     position: relative;
   }
-  .nav-item .icon{ font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
-  .nav-item:hover:not(.active){
-    color: var(--text);
-    background: rgba(139,92,246,.08);
-    border-color: rgba(139,92,246,.25);
-  }
+  .nav-item .icon{ font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .nav-item:hover:not(.active){ color: var(--text); background: rgba(139,92,246,.08); border-color: rgba(139,92,246,.25); }
   .nav-item.active{
     color: var(--text);
     background: linear-gradient(90deg, rgba(255,45,146,.18), rgba(139,92,246,.15));
@@ -202,9 +188,9 @@
     background: linear-gradient(180deg, var(--pink), var(--cyan));
     border-radius: 3px; box-shadow: 0 0 10px var(--pink);
   }
-
   .sidebar-footer{
-    padding: 14px 12px; border-top: 1px solid var(--border);
+    padding: 14px 12px;
+    padding-bottom: max(14px, env(safe-area-inset-bottom, 14px));
   }
   .btn-logout{
     width: 100%; display: flex; align-items: center; gap: 10px;
@@ -214,65 +200,66 @@
     letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
     font-family: inherit; transition: .2s;
   }
-  .btn-logout:hover{
-    background: rgba(239,68,68,.1);
-    border-color: rgba(239,68,68,.6);
-    box-shadow: 0 0 20px rgba(239,68,68,.25);
-    transform: translateX(2px);
-  }
-  .btn-logout .icon{ font-size: 15px; }
+  .btn-logout:hover{ background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.6); box-shadow: 0 0 20px rgba(239,68,68,.25); }
+  .btn-logout .icon{ font-size: 15px; display:flex; align-items:center; }
 
-  .main{ flex: 1; margin-left: var(--sidebar-w); padding: 26px 24px 60px; min-width: 0; }
-  .main-inner{ max-width: 1080px; margin: 0 auto; }
+  .main{
+    flex: 1; margin-left: var(--sidebar-w);
+    padding: 26px 24px 60px;
+    min-width: 0; width: 100%; max-width: 100%;
+  }
+  .main-inner{ max-width: 1080px; margin: 0 auto; width: 100%; }
 
   .topbar{
     display: none; align-items: center; gap: 12px;
-    padding: 12px 16px; background: rgba(13,6,32,.9);
+    padding: 12px 16px;
+    padding-top: max(12px, env(safe-area-inset-top, 12px));
+    background: rgba(13,6,32,.95);
     border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 90;
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   }
   .hamburger{
     width: 40px; height: 40px; border-radius: 10px;
     background: rgba(139,92,246,.15); border: 1px solid var(--border);
     color: var(--text); font-size: 18px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; padding: 0; box-shadow: none;
+    cursor: pointer; padding: 0; box-shadow: none; flex-shrink: 0;
   }
   .hamburger:hover{ background: rgba(139,92,246,.25); transform: none; }
   .topbar-title{
     font-size: 14px; font-weight: 800; letter-spacing: 2px;
     background: linear-gradient(90deg, var(--pink), var(--cyan));
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     text-transform: uppercase; flex: 1; text-align: right;
   }
 
   .overlay{
     display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,.7); z-index: 95;
-    backdrop-filter: blur(2px);
+    background: rgba(0,0,0,.75); z-index: 95;
   }
   .overlay.show{ display: block; }
 
   .card{
     background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(13,6,32,.95));
     border: 1px solid var(--border); border-radius: 16px;
-    padding: 22px 20px; position:relative; overflow:hidden;
+    padding: 22px 20px; position:relative;
     box-shadow: 0 0 30px rgba(139,92,246,.15), inset 0 1px 0 rgba(255,255,255,.04);
-    margin-bottom: 16px;
+    margin-bottom: 16px; width: 100%;
   }
   .card::before{
     content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    border-radius: 16px 16px 0 0;
     background: linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
+    pointer-events: none;
   }
   .card::after{
     content:''; position:absolute; top:8px; right:8px; width:14px; height:14px;
     border-top:2px solid var(--cyan); border-right:2px solid var(--cyan);
-    opacity:.6;
+    opacity:.6; pointer-events: none;
   }
 
-  .screen{ display:none; }
+  .screen{ display:none; width: 100%; }
   .screen.active{ display:block; animation: slideUp .4s ease; }
   .tab-content{ display:none; }
   .tab-content.active{ display:block; animation: slideUp .3s ease; }
@@ -281,7 +268,8 @@
   input{
     width:100%; padding: 14px 16px; border-radius: 10px;
     border: 1px solid var(--border); background: #0a0420; color: var(--text);
-    font-size: 15px; outline: none; transition: .2s; font-family: inherit;
+    font-size: 16px; outline: none; transition: .2s; font-family: inherit;
+    -webkit-appearance: none;
   }
   input:focus{ border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,.25), 0 0 20px rgba(139,92,246,.3); }
 
@@ -293,56 +281,43 @@
     text-transform: uppercase; letter-spacing: 1px;
     font-family: inherit;
     box-shadow: 0 0 20px rgba(255,45,146,.35), inset 0 1px 0 rgba(255,255,255,.15);
+    -webkit-appearance: none; -webkit-tap-highlight-color: transparent;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   }
   button:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 0 30px rgba(255,45,146,.55), inset 0 1px 0 rgba(255,255,255,.2); }
   button:active:not(:disabled){ transform: translateY(0) scale(.98); }
   button:disabled{ opacity: .5; cursor: not-allowed; box-shadow:none; }
   .btn-full{ width:100%; margin-top: 16px; }
-  .btn-ghost{
-    background: transparent; border: 1px solid var(--border);
-    color: var(--muted); box-shadow:none;
-  }
+  .btn-ghost{ background: transparent; border: 1px solid var(--border); color: var(--muted); box-shadow:none; }
   .btn-ghost:hover{ color: var(--text); border-color: var(--purple); box-shadow: 0 0 15px rgba(139,92,246,.3); }
 
   .msg{ margin-top: 14px; padding: 12px; border-radius: 10px; font-size: 13px; display: none; font-weight: 500; }
   .msg.err{ display:block; background: rgba(239,68,68,.12); color:#fca5a5; border:1px solid rgba(239,68,68,.4); }
   .msg.ok { display:block; background: rgba(34,211,238,.12); color:#7ae6f5; border:1px solid rgba(34,211,238,.4); }
 
-  .tabs{ display:flex; gap:6px; margin-bottom: 18px; background: rgba(13,6,32,.7); padding:5px; border-radius:12px; border:1px solid var(--border); flex-wrap: wrap; backdrop-filter: blur(6px); }
+  .tabs{ display:flex; gap:6px; margin-bottom: 18px; background: rgba(13,6,32,.7); padding:5px; border-radius:12px; border:1px solid var(--border); flex-wrap: wrap; }
   .tab{
     flex:1; min-width: 80px; padding:10px 6px; border-radius: 8px;
     cursor:pointer; font-size: 11px; color: var(--muted);
     text-align:center; background: transparent; border:none;
     text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
     transition: .2s; font-family: inherit; box-shadow:none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   }
   .tab:hover:not(.active){ color: var(--text); }
-  .tab.active{
-    background: linear-gradient(90deg, rgba(255,45,146,.25), rgba(139,92,246,.25));
-    color: var(--text);
-    box-shadow: inset 0 0 20px rgba(139,92,246,.3), 0 0 15px rgba(139,92,246,.25);
-  }
+  .tab.active{ background: linear-gradient(90deg, rgba(255,45,146,.25), rgba(139,92,246,.25)); color: var(--text); box-shadow: inset 0 0 20px rgba(139,92,246,.3), 0 0 15px rgba(139,92,246,.25); }
 
-  /* SUB-TABS (dentro de tienda) */
-  .subtabs{
-    display:flex; gap:8px; margin-bottom: 20px; flex-wrap:wrap;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
-  }
+  .subtabs{ display:flex; gap:8px; margin-bottom: 20px; flex-wrap:wrap; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
   .subtab{
     padding: 10px 18px; border-radius: 20px;
     background: transparent; border: 1px solid var(--border);
     color: var(--muted); font-size: 11px; font-weight: 800;
     letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
-    font-family: inherit; transition: .2s;
-    box-shadow: none;
+    font-family: inherit; transition: .2s; box-shadow: none;
+    display: inline-flex; align-items: center; gap: 8px;
   }
   .subtab:hover:not(.active){ color: var(--text); border-color: var(--border2); box-shadow: none; transform: none; }
-  .subtab.active{
-    background: linear-gradient(90deg, rgba(255,45,146,.25), rgba(139,92,246,.25));
-    color: var(--text); border-color: var(--purple);
-    box-shadow: inset 0 0 20px rgba(139,92,246,.25), 0 0 15px rgba(139,92,246,.3);
-  }
+  .subtab.active{ background: linear-gradient(90deg, rgba(255,45,146,.25), rgba(139,92,246,.25)); color: var(--text); border-color: var(--purple); box-shadow: inset 0 0 20px rgba(139,92,246,.25), 0 0 15px rgba(139,92,246,.3); }
 
   .profile{
     display:flex; align-items:center; gap:16px;
@@ -359,19 +334,20 @@
     box-shadow: 0 0 25px rgba(139,92,246,.5);
     overflow:hidden;
   }
-  .avatar img{ width:100%; height:100%; object-fit: cover; }
+  .avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
   .profile-info{ flex:1; min-width:0; }
-  .profile-info .name{ font-size: 17px; font-weight: 800; letter-spacing: .3px; }
+  .profile-info .name{ font-size: 17px; font-weight: 800; letter-spacing: .3px; word-break: break-word; }
   .profile-info .tag{ font-size: 12px; color: var(--muted); margin-top: 3px; }
   .plus-badge{
-    display: inline-block; font-size: 10px; padding: 3px 10px; border-radius: 20px;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; padding: 3px 10px; border-radius: 20px;
     background: linear-gradient(90deg, #f59e0b, #ec4899);
     color: white; font-weight: 800; margin-left: 8px; letter-spacing: 1px;
     text-transform: uppercase;
   }
 
   .stats-grid{
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 10px; margin-bottom: 16px;
   }
   .stat{
@@ -385,12 +361,12 @@
     background: linear-gradient(90deg, transparent, var(--cyan), transparent);
     opacity:.6;
   }
-  .stat .num{
-    font-size: 22px; font-weight: 900; color: var(--cyan);
-    text-shadow: 0 0 15px rgba(34,211,238,.6);
-    font-variant-numeric: tabular-nums;
+  .stat .num{ font-size: 22px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 15px rgba(34,211,238,.6); font-variant-numeric: tabular-nums; }
+  .stat .lbl{
+    font-size: 10px; color: var(--muted); margin-top: 5px;
+    text-transform: uppercase; letter-spacing: 1.2px; font-weight:600;
+    display: inline-flex; align-items: center; gap: 5px; justify-content: center;
   }
-  .stat .lbl{ font-size: 10px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 1.2px; font-weight:600; }
 
   .rarity-bar{
     display:flex; height: 6px; border-radius: 20px; overflow: hidden;
@@ -405,18 +381,18 @@
     display:flex; align-items:center; gap:10px;
   }
   .section-title::before{
-    content:''; width: 3px; height: 14px; background: linear-gradient(180deg, var(--pink), var(--cyan)); border-radius: 3px;
-    box-shadow: 0 0 10px var(--pink);
+    content:''; width: 3px; height: 14px;
+    background: linear-gradient(180deg, var(--pink), var(--cyan));
+    border-radius: 3px; box-shadow: 0 0 10px var(--pink);
   }
-  .section-title::after{
-    content:''; flex:1; height:1px; background: linear-gradient(90deg, var(--border), transparent);
-  }
+  .section-title::after{ content:''; flex:1; height:1px; background: linear-gradient(90deg, var(--border), transparent); }
 
   .filters{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap:wrap; }
   .filters button{
     font-size: 10px; padding: 7px 12px; border-radius: 20px;
     background: transparent; border: 1px solid var(--border); color: var(--muted);
     text-transform: uppercase; letter-spacing: 1px; font-weight: 700; box-shadow:none;
+    display: inline-flex; align-items: center; gap: 5px;
   }
   .filters button:hover{ color: var(--text); box-shadow: 0 0 12px rgba(139,92,246,.25); }
   .filters button.active{
@@ -435,6 +411,8 @@
     overflow: hidden; position:relative; cursor: pointer;
     transition: transform .2s, box-shadow .3s, border-color .3s;
     animation: pop .3s ease;
+    content-visibility: auto;
+    contain-intrinsic-size: 200px 260px;
   }
   .wcard:hover{ transform: translateY(-3px); box-shadow: 0 12px 30px rgba(139,92,246,.35); border-color: var(--border2); }
   .wcard .img{
@@ -450,10 +428,7 @@
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     opacity:.7;
   }
-  .wcard .info{
-    padding: 10px 10px 12px; position:relative;
-    border-top: 1px solid var(--border);
-  }
+  .wcard .info{ padding: 10px 10px 12px; position:relative; border-top: 1px solid var(--border); }
   .wcard .name{
     font-size: 12px; font-weight: 700; letter-spacing: .3px;
     overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -468,6 +443,7 @@
   .wcard .count{
     font-size: 11px; font-weight: 800; color: var(--cyan);
     text-shadow: 0 0 8px rgba(34,211,238,.6);
+    display: inline-flex; align-items: center; gap: 3px;
   }
   .wcard[data-r="comun"]{ border-color: rgba(255,182,193,.4); }
   .wcard[data-r="comun"] .rarity{ color: var(--comun); background: rgba(255,182,193,.1); }
@@ -485,8 +461,25 @@
     color: white; font-size: 10px; font-weight: 800;
     padding: 3px 7px; border-radius: 20px;
     box-shadow: 0 0 12px rgba(255,45,146,.6);
-    z-index:2;
+    z-index:2; display: flex; align-items: center;
   }
+  .wcard .seller-line{
+    font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-top: 6px;
+  }
+  .wcard .btn-buy-card{
+    width: 100%; margin-top: 8px; padding: 9px 6px; border-radius: 8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    border: none; color: white; cursor: pointer;
+    box-shadow: 0 0 15px rgba(255,45,146,.3), inset 0 1px 0 rgba(255,255,255,.12);
+    font-family: inherit; transition: .2s;
+  }
+  .wcard .btn-buy-card:hover:not(:disabled){ box-shadow: 0 0 25px rgba(255,45,146,.55); transform: translateY(-1px); }
+  .wcard .btn-buy-card:disabled{ opacity: .55; cursor: not-allowed; background: rgba(139,92,246,.18); box-shadow: none; color: var(--muted); }
 
   .row{
     display: flex; justify-content: space-between; align-items: center;
@@ -494,6 +487,7 @@
     background: linear-gradient(180deg, rgba(21,11,38,.7), rgba(10,4,32,.7));
     border: 1px solid var(--border); margin-bottom: 8px;
     font-size: 13px; transition: .2s;
+    gap: 8px;
   }
   .row:hover{ border-color: var(--border2); }
   .row .left{ display:flex; align-items:center; gap: 12px; min-width:0; flex: 1; }
@@ -505,53 +499,275 @@
     border: 1px solid var(--border);
     flex-shrink:0; overflow: hidden;
   }
+  .row .rank img{ width:100%; height:100%; object-fit: cover; display:block; }
   .row .rank.gold{ background: linear-gradient(135deg, #fbbf24, #d97706); border-color: #fbbf24; color:#1a0a00; box-shadow: 0 0 15px rgba(251,191,36,.6); }
   .row .rank.silver{ background: linear-gradient(135deg, #e5e7eb, #9ca3af); border-color: #e5e7eb; color:#1a0a00; box-shadow: 0 0 12px rgba(229,231,235,.5); }
   .row .rank.bronze{ background: linear-gradient(135deg, #f59e0b, #b45309); border-color: #f59e0b; color:#1a0a00; box-shadow: 0 0 12px rgba(245,158,11,.5); }
   .row .info{ min-width:0; flex: 1; }
   .row .name{ font-weight: 700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 13px; }
   .row .sub{ color: var(--muted); font-size: 10px; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
-  .row .right{ color: var(--cyan); font-weight: 900; flex-shrink:0; font-variant-numeric: tabular-nums; }
+  .row .right{ color: var(--cyan); font-weight: 900; flex-shrink:0; font-variant-numeric: tabular-nums; display:inline-flex; align-items: center; gap:5px; }
 
-  .btn-buy{
-    padding: 8px 14px; border-radius: 8px; font-size: 11px;
-    font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
-    background: linear-gradient(90deg, var(--pink), var(--purple));
-    border: none; color: white; cursor: pointer;
-    box-shadow: 0 0 15px rgba(255,45,146,.4);
-    transition: .2s; margin-left: 8px; font-family: inherit;
-    white-space: nowrap;
+  /* ============================================================
+     RANKING CARDS
+     ============================================================ */
+  .rank-list{ display: flex; flex-direction: column; gap: 10px; }
+  .rank-card{
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border-radius: 14px;
+    background: linear-gradient(180deg, rgba(21,11,38,.75), rgba(10,4,32,.85));
+    border: 1px solid var(--border);
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .3s;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 110px;
   }
-  .btn-buy:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 0 25px rgba(255,45,146,.6); }
-  .btn-buy:disabled{ opacity: .5; cursor: not-allowed; }
+  .rank-card::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background: linear-gradient(180deg, var(--purple), var(--pink));
+    opacity:.4; pointer-events:none;
+  }
+  .rank-card:hover{
+    transform: translateX(3px);
+    border-color: var(--border2);
+    box-shadow: 0 8px 30px rgba(139,92,246,.3);
+  }
+  .rank-card.p1{ border-color: rgba(251,191,36,.55); box-shadow: 0 0 30px rgba(251,191,36,.25); }
+  .rank-card.p1::before{ background: linear-gradient(180deg, #fbbf24, #ff2d92); opacity:1; }
+  .rank-card.p2{ border-color: rgba(229,231,235,.5); box-shadow: 0 0 25px rgba(229,231,235,.15); }
+  .rank-card.p2::before{ background: linear-gradient(180deg, #e5e7eb, #9ca3af); opacity:1; }
+  .rank-card.p3{ border-color: rgba(245,158,11,.5); box-shadow: 0 0 25px rgba(245,158,11,.2); }
+  .rank-card.p3::before{ background: linear-gradient(180deg, #f59e0b, #b45309); opacity:1; }
+  .rank-card.is-me{ border-color: var(--cyan); box-shadow: 0 0 20px rgba(34,211,238,.3); }
 
-  .boxes-grid{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
+  .rank-card .place{
+    width: 44px; height: 44px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 17px; color: var(--muted);
+    border-radius: 12px;
+    background: rgba(139,92,246,.1);
+    border: 1px solid var(--border);
   }
-  .box-card{
-    padding: 22px 18px;
-    border-radius: 16px;
-    border: 1.5px solid var(--border);
-    background: linear-gradient(180deg, rgba(21,11,38,.9), rgba(10,4,32,.95));
-    text-align: center;
-    cursor: pointer;
-    transition: .25s;
-    position: relative;
+  .rank-card.p1 .place{ background: linear-gradient(135deg, #fbbf24, #d97706); color:#1a0a00; border-color:#fbbf24; }
+  .rank-card.p2 .place{ background: linear-gradient(135deg, #e5e7eb, #9ca3af); color:#1a0a00; border-color:#e5e7eb; }
+  .rank-card.p3 .place{ background: linear-gradient(135deg, #f59e0b, #b45309); color:#1a0a00; border-color:#f59e0b; }
+
+  .rank-card .avatar-md{
+    width: 54px; height: 54px; flex-shrink: 0;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900; color: white;
+    border: 2px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 15px rgba(139,92,246,.4);
     overflow: hidden;
   }
-  .box-card::before{
-    content:''; position:absolute; inset:0;
-    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.05) 50%, transparent 60%);
-    background-size: 200% auto;
-    opacity: 0;
-    transition: opacity .3s;
+  .rank-card .avatar-md img{ width:100%; height:100%; object-fit: cover; display:block; }
+
+  .rank-card .body{ flex: 1; min-width: 0; }
+  .rank-card .top-line{
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap; margin-bottom: 3px;
+  }
+  .rank-card .rn-name{
+    font-size: 15px; font-weight: 800; letter-spacing: .2px;
+    overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--text);
+  }
+  .rank-card .rn-user{
+    font-size: 11px; color: var(--muted);
+    overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .rank-card .stats{
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-top: 7px;
+  }
+  .rank-card .stats .sp{
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 800; letter-spacing: .3px;
+    color: var(--cyan);
+    font-variant-numeric: tabular-nums;
+  }
+  .rank-card .stats .sp.gold{ color: var(--gold); }
+  .rank-card .stats .sp.pink{ color: var(--pink); }
+  .rank-card .stats .sp .lbl-s{
+    color: var(--muted); font-weight: 600; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .rank-card .chev{
+    flex-shrink: 0; color: var(--muted);
+    transition: color .2s, transform .2s;
+    display: flex; align-items: center;
+  }
+  .rank-card:hover .chev{ color: var(--cyan); transform: translateX(2px); }
+
+  /* ============================================================
+     MODAL PERFIL — versión fluida
+     ============================================================ */
+  .modal{ display: none; position: fixed; inset: 0; z-index: 9998; }
+  .modal.show{ display: block; }
+  .modal-overlay{
+    position: absolute; inset: 0;
+    background: rgba(3,1,10,.92);
+  }
+  .modal-content{
+    position: relative;
+    max-width: 780px;
+    margin: 40px auto;
+    width: calc(100% - 32px);
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #0d0620;
+    border: 1px solid var(--border2);
+    border-radius: 18px;
+    padding: 24px 22px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.6);
+    -webkit-overflow-scrolling: touch;
+    animation: modalFade .15s ease;
+  }
+  .modal-content::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    border-radius: 18px 18px 0 0;
+    background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent);
     pointer-events: none;
   }
-  .box-card:hover::before{ opacity: 1; animation: shimmer 1.5s linear infinite; }
+  .modal-close{
+    position: sticky;
+    top: 0;
+    float: right;
+    width: 38px; height: 38px;
+    padding: 0;
+    border-radius: 10px;
+    background: rgba(139,92,246,.18);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 20px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: none;
+    z-index: 2;
+    margin: -8px -8px 0 0;
+  }
+  .modal-close:hover{ background: rgba(239,68,68,.2); border-color: rgba(239,68,68,.5); transform: none; }
+
+  .mp-header{ display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .mp-avatar{
+    width: 88px; height: 88px; flex-shrink: 0;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 38px; font-weight: 900; color: white;
+    border: 2px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 30px rgba(139,92,246,.6);
+    overflow: hidden;
+  }
+  .mp-avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
+  .mp-info{ flex:1; min-width: 0; }
+  .mp-name{
+    font-size: 22px; font-weight: 900; letter-spacing: .3px;
+    word-break: break-word; line-height: 1.2;
+  }
+  .mp-user{ font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .mp-rank-badge{
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+    padding: 4px 10px; border-radius: 20px;
+    background: linear-gradient(90deg, rgba(255,45,146,.3), rgba(139,92,246,.3));
+    border: 1px solid var(--border2);
+    color: var(--text); text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  .mp-stats{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px; margin-bottom: 20px;
+  }
+  .mp-stat{
+    padding: 14px 10px; border-radius: 12px;
+    background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(10,4,32,.9));
+    border: 1px solid var(--border); text-align: center;
+    position:relative; overflow:hidden;
+  }
+  .mp-stat::before{
+    content:''; position:absolute; bottom:0; left:10%; right:10%; height:2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:.5;
+  }
+  .mp-stat .num{
+    font-size: 20px; font-weight: 900; color: var(--cyan);
+    text-shadow: 0 0 12px rgba(34,211,238,.55);
+    font-variant-numeric: tabular-nums;
+  }
+  .mp-stat.gold .num{ color: var(--gold); text-shadow: 0 0 12px rgba(251,191,36,.55); }
+  .mp-stat.pink .num{ color: var(--pink); text-shadow: 0 0 12px rgba(255,45,146,.55); }
+  .mp-stat .lbl{
+    font-size: 9px; color: var(--muted); margin-top: 5px;
+    text-transform: uppercase; letter-spacing: 1.2px; font-weight:600;
+    display: inline-flex; align-items: center; gap: 4px; justify-content: center;
+  }
+
+  .mp-collection{ display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .mp-collection .wcard{
+    animation: none !important;
+    content-visibility: visible;
+    contain-intrinsic-size: auto;
+    transition: border-color .15s;
+  }
+  .mp-collection .wcard:hover{
+    transform: none;
+    box-shadow: none;
+    border-color: var(--border);
+  }
+  .mp-collection .wcard .img .placeholder{ font-size: 32px; }
+  .mp-collection .wcard .name{ font-size: 11px; }
+
+  .mp-empty{
+    text-align: center; padding: 30px 10px; color: var(--muted);
+    font-size: 12px; line-height: 1.7;
+  }
+  .mp-empty .icon{ display:flex; justify-content:center; margin-bottom: 10px; opacity:.5; color: var(--purple); }
+
+  .mp-loading{ text-align: center; padding: 50px 20px; color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 640px){
+    .modal-content{ margin: 16px auto; padding: 18px 14px; max-height: calc(100vh - 32px); }
+    .mp-avatar{ width: 70px; height: 70px; font-size: 30px; border-radius: 14px; }
+    .mp-name{ font-size: 18px; }
+    .rank-card{ padding: 12px; gap: 10px; }
+    .rank-card .avatar-md{ width: 46px; height: 46px; font-size: 18px; border-radius: 12px; }
+    .rank-card .place{ width: 38px; height: 38px; font-size: 15px; }
+    .rank-card .rn-name{ font-size: 14px; }
+    .mp-collection{ grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+  }
+
+  /* ============================================================
+     CAJAS — con imágenes de cofre
+     ============================================================ */
+  .boxes-grid{
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;
+  }
+  .box-card{
+    padding: 22px 18px; border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: linear-gradient(180deg, rgba(21,11,38,.9), rgba(10,4,32,.95));
+    text-align: center; cursor: pointer; transition: .25s;
+    position: relative; overflow: hidden;
+  }
   .box-card:hover{ transform: translateY(-4px); }
-  .box-card .bemoji{ font-size: 52px; line-height: 1; margin-bottom: 12px; display: block; }
+  .box-card .bicon{
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+    width: 100%;
+    height: 100px;
+  }
+  .box-card .bicon img{
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px rgba(251,191,36,.35));
+  }
   .box-card .bname{ font-size: 15px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
   .box-card .bdesc{ font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; min-height: 50px; }
   .box-card .bprice{
@@ -561,12 +777,15 @@
     background: rgba(0,0,0,.35); border: 1px solid var(--border);
   }
   .box-card[data-box="comun"]{ border-color: rgba(255,182,193,.45); }
+  .box-card[data-box="comun"] .bicon img{ filter: drop-shadow(0 0 14px rgba(255,182,193,.45)); }
   .box-card[data-box="comun"]:hover{ box-shadow: 0 15px 40px rgba(255,182,193,.25); }
   .box-card[data-box="comun"] .bprice{ color: var(--comun); }
   .box-card[data-box="premium"]{ border-color: rgba(167,139,250,.55); box-shadow: 0 0 25px rgba(167,139,250,.15); }
+  .box-card[data-box="premium"] .bicon img{ filter: drop-shadow(0 0 16px rgba(167,139,250,.5)); }
   .box-card[data-box="premium"]:hover{ box-shadow: 0 15px 45px rgba(167,139,250,.4); }
   .box-card[data-box="premium"] .bprice{ color: var(--epica); }
   .box-card[data-box="legendaria"]{ border-color: rgba(251,191,36,.65); box-shadow: 0 0 30px rgba(251,191,36,.25); animation: glowPulse 3s infinite; }
+  .box-card[data-box="legendaria"] .bicon img{ filter: drop-shadow(0 0 20px rgba(251,191,36,.7)); }
   .box-card[data-box="legendaria"]:hover{ box-shadow: 0 15px 50px rgba(251,191,36,.55); }
   .box-card[data-box="legendaria"] .bprice{ color: var(--legendaria); }
 
@@ -580,34 +799,35 @@
   .auction-hero::before{
     content:''; position:absolute; inset:0;
     background: linear-gradient(90deg, transparent, rgba(251,191,36,.15), transparent);
-    animation: shimmer 3s linear infinite;
-    background-size: 200% auto;
+    animation: shimmer 3s linear infinite; background-size: 200% auto;
+    pointer-events: none;
   }
-  .auction-name{ font-size: 24px; font-weight: 900; letter-spacing: 1px; margin-bottom: 6px;
+  .auction-name{
+    font-size: 24px; font-weight: 900; letter-spacing: 1px; margin-bottom: 6px;
     background: linear-gradient(90deg, #fbbf24, #ff2d92, #22d3ee);
     background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
+    word-break: break-word;
   }
-  .auction-tag{ font-size: 11px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-weight:700; }
+  .auction-tag{ font-size: 11px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-weight:700; display:flex; align-items:center; gap:6px; }
   .countdown{
     font-size: 32px; font-weight: 900; font-variant-numeric: tabular-nums;
     text-align: center; padding: 16px; margin: 12px 0;
     background: rgba(0,0,0,.35); border-radius: 12px;
     border: 1px solid rgba(251,191,36,.4);
-    color: var(--gold);
-    text-shadow: 0 0 20px rgba(251,191,36,.7);
+    color: var(--gold); text-shadow: 0 0 20px rgba(251,191,36,.7);
     letter-spacing: 3px;
   }
   .countdown.urgent{ color:#ff2d92; text-shadow: 0 0 20px rgba(255,45,146,.8); animation: pulse 1s infinite; }
 
   .empty{ text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; }
-  .empty .icon{ font-size: 46px; margin-bottom: 12px; display:block; opacity:.6; }
+  .empty .icon{ font-size: 46px; margin-bottom: 12px; display:flex; justify-content:center; opacity:.6; color: var(--purple); }
 
   .loading{ display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color: transparent; border-radius:50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px;}
 
-  .code-inputs{ display:flex; gap:8px; justify-content:center; margin: 20px 0; }
+  .code-inputs{ display:flex; gap:6px; justify-content:center; margin: 20px 0; }
   .code-inputs input{
-    width: 46px; height: 58px; text-align:center; font-size: 24px; font-weight: 900;
+    width: 44px; height: 56px; text-align:center; font-size: 22px; font-weight: 900;
     padding: 0; border-radius: 10px; letter-spacing: 0; background: #0a0420;
   }
   .code-inputs input:focus{ box-shadow: 0 0 0 3px rgba(139,92,246,.3), 0 0 20px rgba(139,92,246,.4); }
@@ -615,7 +835,7 @@
   .hint{ color: var(--muted); font-size: 11px; text-align:center; margin-top: 14px; line-height:1.7; }
   .hint b{ color: var(--cyan); }
 
-  .login-wrap{ min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .login-wrap{ min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; width: 100%; }
   .login-wrap .card{ max-width: 440px; width: 100%; margin: 0; }
   .login-wrap .logo-hero{ text-align: center; margin-bottom: 22px; }
   .login-wrap .logo-hero .l1{
@@ -624,8 +844,7 @@
     background-size: 200% auto;
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: shimmer 4s linear infinite;
-    text-transform: uppercase;
+    animation: shimmer 4s linear infinite; text-transform: uppercase;
   }
   .login-wrap .logo-hero .l2{
     font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
@@ -633,24 +852,44 @@
   }
 
   @media (max-width: 860px){
-    .sidebar{ transform: translateX(-100%); box-shadow: 0 0 40px rgba(0,0,0,.8); }
+    .sidebar{
+      transform: translateX(-100%);
+      box-shadow: 0 0 40px rgba(0,0,0,.8);
+      width: 260px; max-width: 85vw;
+    }
     .sidebar.open{ transform: translateX(0); }
-    .main{ margin-left: 0; padding: 0 14px 40px; }
+    .main{ margin-left: 0; padding: 0; width: 100%; max-width: 100%; }
+    .main-inner{
+      padding: 18px 14px 40px;
+      padding-bottom: max(40px, env(safe-area-inset-bottom, 40px));
+      max-width: 100%;
+    }
     .topbar{ display: flex; }
-    .main-inner{ padding-top: 18px; }
+    .card{ padding: 18px 14px; }
+    .card::after{ display: none; }
   }
+
   @media (max-width: 500px){
     .stat .num{ font-size: 18px; }
-    .grid{ grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .grid{ grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
     .auction-name{ font-size: 20px; }
-    .countdown{ font-size: 26px; }
-    .row{ flex-wrap: wrap; gap: 8px; }
-    .btn-buy{ margin-left: 0; margin-top: 6px; width: 100%; }
+    .countdown{ font-size: 26px; padding: 12px; }
+    .row{ flex-wrap: wrap; }
     .subtab{ padding: 8px 14px; font-size: 10px; }
+    .stat{ padding: 12px 6px; }
+    .stat .lbl{ font-size: 9px; }
+    .code-inputs{ gap: 4px; }
+    .code-inputs input{ width: 40px; height: 52px; font-size: 20px; }
+    .boxes-grid{ grid-template-columns: 1fr; }
+    .card{ padding: 16px 12px; }
+    .main-inner{ padding: 14px 10px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
   }
 </style>
 </head>
 <body>
+
+<div class="bg-layers"></div>
+<div class="bg-grid"></div>
 <div class="scanline"></div>
 <div id="toast-wrap"></div>
 
@@ -664,12 +903,12 @@
       </div>
       <div class="section-title">Acceso</div>
       <div class="tabs" id="login-tabs">
-        <button class="tab active" data-mode="username">👤 @ Usuario</button>
-        <button class="tab" data-mode="id">🔢 ID</button>
+        <button class="tab active" data-mode="username" data-icon="user">@ Usuario</button>
+        <button class="tab" data-mode="id" data-icon="hash">ID</button>
       </div>
       <label id="label-id" for="identifier">Usuario de Telegram</label>
       <input id="identifier" type="text" placeholder="@tunombre" autocomplete="username">
-      <button id="btn-request" class="btn-full">▶ Enviar código</button>
+      <button id="btn-request" class="btn-full" data-icon="play">Enviar código</button>
       <div id="msg-1" class="msg"></div>
       <p class="hint" id="hint-1">
         El bot te enviará un <b>código de 6 dígitos</b>.<br>
@@ -692,8 +931,8 @@
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
       </div>
-      <button id="btn-verify" class="btn-full">▶ Verificar</button>
-      <button id="btn-back" class="btn-ghost btn-full" style="margin-top:8px">← Volver</button>
+      <button id="btn-verify" class="btn-full" data-icon="check">Verificar</button>
+      <button id="btn-back" class="btn-ghost btn-full" style="margin-top:8px" data-icon="back">Volver</button>
       <div id="msg-2" class="msg"></div>
     </div>
   </div>
@@ -712,7 +951,7 @@
         <div class="sub">◢ Collection System ◣</div>
       </div>
 
-      <div class="sidebar-user" id="sidebar-user">
+      <div class="sidebar-user">
         <div class="avatar-sm" id="sb-avatar">?</div>
         <div class="uinfo">
           <div class="uname" id="sb-name">—</div>
@@ -721,48 +960,53 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="profile">
-          <span class="icon">🏠</span><span>Perfil</span>
+        <button class="nav-item active" data-tab="profile" data-icon="home">
+          <span class="icon"></span><span>Perfil</span>
         </button>
-        <button class="nav-item" data-tab="collection">
-          <span class="icon">📦</span><span>Colección</span>
+        <button class="nav-item" data-tab="collection" data-icon="package">
+          <span class="icon"></span><span>Colección</span>
         </button>
-        <button class="nav-item" data-tab="system">
-          <span class="icon">🌍</span><span>Sistema</span>
+        <button class="nav-item" data-tab="ranking" data-icon="trophy">
+          <span class="icon"></span><span>Ranking</span>
         </button>
-        <button class="nav-item" data-tab="ranking">
-          <span class="icon">🏆</span><span>Ranking</span>
+        <button class="nav-item" data-tab="shop" data-icon="store">
+          <span class="icon"></span><span>Tienda</span>
         </button>
-        <button class="nav-item" data-tab="shop">
-          <span class="icon">🏪</span><span>Tienda</span>
-        </button>
-        <button class="nav-item" data-tab="auction">
-          <span class="icon">🌟</span><span>Subasta</span>
+        <button class="nav-item" data-tab="auction" data-icon="star">
+          <span class="icon"></span><span>Subasta</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="btn-logout" id="btn-logout">
-          <span class="icon">⏻</span><span>Cerrar sesión</span>
+        <button class="btn-logout" id="btn-logout" data-icon="logout">
+          <span class="icon"></span><span>Cerrar sesión</span>
         </button>
       </div>
     </aside>
 
     <div class="main">
       <div class="topbar">
-        <button class="hamburger" id="hamburger">☰</button>
+        <button class="hamburger" id="hamburger" data-icon="menu" data-icon-size="18"></button>
         <div class="topbar-title" id="topbar-title">Perfil</div>
       </div>
       <div class="main-inner">
         <div id="tab-profile" class="tab-content active"></div>
         <div id="tab-collection" class="tab-content"></div>
-        <div id="tab-system" class="tab-content"></div>
         <div id="tab-ranking" class="tab-content"></div>
         <div id="tab-shop" class="tab-content"></div>
         <div id="tab-auction" class="tab-content"></div>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ========== MODAL PERFIL ========== -->
+<div id="user-modal" class="modal">
+  <div class="modal-overlay" data-close="1"></div>
+  <div class="modal-content">
+    <button class="modal-close" id="modal-close" aria-label="Cerrar">×</button>
+    <div id="modal-body"></div>
   </div>
 </div>
 
@@ -798,19 +1042,85 @@ function imageKey(name) {
   return String(name).replace(/[.#$\[\]\/]/g, '_');
 }
 
-const RARITY_EMOJI = { comun:'🌸', rara:'🔥', epica:'💎', legendaria:'👑', exclusiva:'🌟' };
+/* ============================================================
+   ICONOS SVG
+   ============================================================ */
+const I = {
+  home:     '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  package:  '<path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  trophy:   '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  store:    '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  star:     '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  sparkles: '<path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9z"/><path d="M19 3v3"/><path d="M20.5 4.5h-3"/>',
+  flame:    '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  diamond:  '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 21 8 9l4-6 4 6-4 12"/>',
+  crown:    '<path d="M2 20h20"/><path d="M4 20V8l4 4 4-8 4 8 4-4v12"/>',
+  circle:   '<circle cx="12" cy="12" r="8"/>',
+  coin:     '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 12h5"/>',
+  users:    '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  globe:    '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  gift:     '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+  logout:   '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  user:     '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  hash:     '<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
+  mail:     '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+  check:    '<polyline points="20 6 9 17 4 12"/>',
+  x:        '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  clock:    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  chart:    '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  layers:   '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  play:     '<polygon points="5 3 19 12 5 21 5 3"/>',
+  back:     '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  shield:   '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  menu:     '<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
+  box:      '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>',
+  card:     '<rect x="2" y="6" width="20" height="12" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
+  filter:   '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+  award:    '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+  chevron:  '<polyline points="9 18 15 12 9 6"/>'
+};
+function ico(name, size = 16) {
+  return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ''}</svg>`;
+}
+function hydrateIcons(root = document) {
+  root.querySelectorAll('[data-icon]').forEach(el => {
+    const name = el.dataset.icon;
+    const size = parseInt(el.dataset.iconSize || '16', 10);
+    const svg = ico(name, size);
+    const iconSpan = el.querySelector('.icon');
+    if (iconSpan) iconSpan.innerHTML = svg;
+    else if (el.tagName === 'BUTTON' && !el.querySelector('svg')) el.insertAdjacentHTML('afterbegin', svg);
+  });
+}
+
 const RARITY_LABEL = { comun:'Común', rara:'Rara', epica:'Épica', legendaria:'Legendaria', exclusiva:'Exclusiva' };
 
 const CAJAS = {
-  comun:      { emoji: '📦', name: 'Caja Común',      price: 1500, desc: '1 premio: 150-700 monedas o waifu común.' },
-  premium:    { emoji: '🎁', name: 'Caja Premium',    price: 2500, desc: '2 premios: 400-1200 monedas o waifu épica.' },
-  legendaria: { emoji: '👑', name: 'Caja Legendaria', price: 3500, desc: '3 premios: monedas, épica o legendaria.' }
+  comun:      {
+    name: 'Caja Común',
+    price: 1500,
+    desc: '1 premio: 150-700 monedas o waifu común.',
+    img: 'https://i.ibb.co/hpNWDNM/cofre-plata.png'
+  },
+  premium:    {
+    name: 'Caja Premium',
+    price: 2500,
+    desc: '2 premios: 400-1200 monedas o waifu épica.',
+    img: 'https://i.ibb.co/SXsBq9HF/cofre-oro.png'
+  },
+  legendaria: {
+    name: 'Caja Legendaria',
+    price: 3500,
+    desc: '3 premios: monedas, épica o legendaria.',
+    img: 'https://i.ibb.co/4ZxdsQFZ/cofre-diamante.png'
+  }
 };
 
-function showToast(text, kind = 'ok', duration = 3500) {
+function showToast(text, kind = 'ok', duration = 3500, iconName = null) {
   const el = document.createElement('div');
   el.className = 'toast ' + kind;
-  el.textContent = text;
+  const ic = iconName || (kind === 'err' ? 'x' : 'check');
+  el.innerHTML = ico(ic, 15) + '<span>' + esc(text) + '</span>';
   $('toast-wrap').appendChild(el);
   setTimeout(() => {
     el.classList.add('hide');
@@ -830,12 +1140,17 @@ let sales = null;
 let auction = null;
 let collectionFilter = 'all';
 let currentTab = 'profile';
-let shopSubTab = 'waifus';   // 'waifus' | 'boxes' | 'catalog'
+let shopSubTab = 'waifus';
 let imageUrls = {};
 let imageUnsubs = new Map();
 const unsubs = [];
 const actionUnsubs = new Map();
 let auctionTimer = null;
+let modalOpenUserId = null;
+let modalUserDoc = null;
+let modalUserData = null;
+let modalRankInfo = null;
+let modalImageUnsubs = new Map();
 
 /* ============================================================
    LOGIN
@@ -905,7 +1220,7 @@ $('btn-request').addEventListener('click', async () => {
       identifier, username: mode === 'username' ? identifier : null, mode,
       status: 'pending', createdAt: Date.now()
     });
-    setMsg(msg, '📡 Solicitud enviada. Revisa tu Telegram.', 'ok');
+    setMsg(msg, 'Solicitud enviada. Revisa tu Telegram.', 'ok');
 
     if (unsubRequest) unsubRequest();
     unsubRequest = onValue(ref(db, `loginRequests/${id}`), (snap) => {
@@ -917,7 +1232,7 @@ $('btn-request').addEventListener('click', async () => {
       } else if (data.status === 'error') {
         setMsg(msg, data.error || 'Error desconocido.');
         btn.disabled = false;
-        btn.textContent = '▶ Enviar código';
+        btn.innerHTML = ico('play',15) + 'Enviar código';
       }
     });
 
@@ -925,13 +1240,13 @@ $('btn-request').addEventListener('click', async () => {
       if ($('screen-login').classList.contains('active')) {
         setMsg(msg, 'El bot no respondió. Verifica que ya le escribiste /start.');
         btn.disabled = false;
-        btn.textContent = '▶ Enviar código';
+        btn.innerHTML = ico('play',15) + 'Enviar código';
       }
     }, 30000);
   } catch (e) {
     setMsg(msg, 'Error: ' + (e.message || e));
     btn.disabled = false;
-    btn.textContent = '▶ Enviar código';
+    btn.innerHTML = ico('play',15) + 'Enviar código';
   }
 });
 
@@ -966,7 +1281,7 @@ $('btn-verify').addEventListener('click', async () => {
     setMsg(msg, e.message || 'Error.');
   } finally {
     btn.disabled = false;
-    btn.textContent = '▶ Verificar';
+    btn.innerHTML = ico('check',15) + 'Verificar';
   }
 });
 
@@ -975,7 +1290,7 @@ $('btn-back').addEventListener('click', () => {
   show('screen-login');
   clearMsg($('msg-1'));
   $('btn-request').disabled = false;
-  $('btn-request').textContent = '▶ Enviar código';
+  $('btn-request').innerHTML = ico('play',15) + 'Enviar código';
   codeInputs.forEach(i => i.value = '');
 });
 
@@ -1018,45 +1333,48 @@ function subscribeRealtime() {
     userData = s.val() || {};
     renderProfile(); renderSidebarUser();
     if (currentTab === 'collection') renderCollection();
-    if (currentTab === 'system')     renderSystem();
     if (currentTab === 'shop')       renderShop();
+    if (modalOpenUserId && String(modalOpenUserId) === String(uid)) renderModalProfile();
   }));
   unsubs.push(onValue(ref(db, `users/${uid}`), (s) => {
     userDoc = s.val() || {};
     renderProfile(); renderSidebarUser();
+    if (modalOpenUserId && String(modalOpenUserId) === String(uid)) renderModalProfile();
   }));
   unsubs.push(onValue(ref(db, `catalog`), (s) => {
     catalog = s.val() || { pool: {}, series: {} };
-    if (currentTab === 'system') renderSystem();
-    if (currentTab === 'shop')   renderShop();
+    if (currentTab === 'shop') renderShop();
   }));
   unsubs.push(onValue(ref(db, `sales`),   (s) => { sales = s.val() || {}; if (currentTab === 'shop') renderShop(); }));
-  unsubs.push(onValue(ref(db, `ranking`), (s) => { ranking = s.val() || { top: [] }; if (currentTab === 'ranking') renderRanking(); }));
+  unsubs.push(onValue(ref(db, `ranking`), (s) => {
+    ranking = s.val() || { top: [] };
+    if (currentTab === 'ranking') renderRanking();
+  }));
   unsubs.push(onValue(ref(db, `auction`), (s) => { auction = s.val() || { active: null }; if (currentTab === 'auction') renderAuction(); }));
 }
 
 /* ============================================================
    IMÁGENES
    ============================================================ */
-function watchImage(name) {
-  if (!name || imageUnsubs.has(name)) return;
+function watchImage(name, targetMap = imageUnsubs) {
+  if (!name || targetMap.has(name)) return;
   const key = imageKey(name);
   const unsub = onValue(ref(db, `characterImages/${key}/url`), (snap) => {
     const url = snap.val();
     if (typeof url === 'string' && url) {
       imageUrls[name] = url;
-      const target = document.querySelector(`[data-img="${CSS.escape(name)}"]`);
-      if (!target) return;
-      const holder = target.querySelector('.img') || target;
-      let img = holder.querySelector('img');
-      if (!img) {
-        holder.innerHTML = `<img src="${esc(url)}" alt="" loading="lazy" style="opacity:0;transition:opacity .4s" onload="this.style.opacity='1'">`;
-      } else if (img.src !== url) {
-        img.src = url; img.style.opacity = '1';
-      }
+      document.querySelectorAll(`[data-img="${CSS.escape(name)}"]`).forEach(target => {
+        const holder = target.querySelector('.img') || target;
+        let img = holder.querySelector('img');
+        if (!img) {
+          holder.innerHTML = `<img src="${esc(url)}" alt="" loading="lazy" style="opacity:0;transition:opacity .4s" onload="this.style.opacity='1'">`;
+        } else if (img.src !== url) {
+          img.src = url; img.style.opacity = '1';
+        }
+      });
     }
   });
-  imageUnsubs.set(name, unsub);
+  targetMap.set(name, unsub);
 }
 
 /* ============================================================
@@ -1072,16 +1390,16 @@ async function requestBuy(saleId) {
     createdAt: Date.now()
   });
 
-  showToast('⏳ Procesando compra...', 'ok', 2000);
+  showToast('Procesando compra...', 'ok', 2000, 'clock');
 
   const unsub = onValue(ref(db, `buyRequests/${reqId}`), (snap) => {
     const r = snap.val();
     if (!r) return;
     if (r.status === 'done') {
-      showToast(`✅ Compraste a ${r.waifuName || 'la waifu'} por ${fmt(r.price)} 🪙`, 'ok', 4000);
+      showToast(`Compraste a ${r.waifuName || 'la waifu'} por ${fmt(r.price)}`, 'ok', 4000, 'check');
       unsub(); actionUnsubs.delete(reqId);
     } else if (r.status === 'error') {
-      showToast('❌ ' + (r.error || 'Error en la compra'), 'err', 5000);
+      showToast(r.error || 'Error en la compra', 'err', 5000, 'x');
       unsub(); actionUnsubs.delete(reqId);
     }
   });
@@ -1103,7 +1421,7 @@ async function requestBox(tipo) {
     createdAt: Date.now()
   });
 
-  showToast(`⏳ Abriendo ${CAJAS[tipo]?.name || 'caja'}...`, 'ok', 2000);
+  showToast(`Abriendo ${CAJAS[tipo]?.name || 'caja'}...`, 'ok', 2000, 'clock');
 
   const unsub = onValue(ref(db, `boxRequests/${reqId}`), (snap) => {
     const r = snap.val();
@@ -1113,12 +1431,12 @@ async function requestBox(tipo) {
       const names = gained.slice(0, 3).map(w => w.name).join(', ');
       const extra = gained.length > 3 ? ` +${gained.length - 3}` : '';
       const parts = [];
-      if (r.coinsGained > 0) parts.push(`+${fmt(r.coinsGained)} 🪙`);
+      if (r.coinsGained > 0) parts.push(`+${fmt(r.coinsGained)} monedas`);
       if (gained.length > 0) parts.push(`${names}${extra}`);
-      showToast(`🎉 ${parts.join(' · ') || 'Caja abierta'}`, 'ok', 5000);
+      showToast(parts.join(' · ') || 'Caja abierta', 'ok', 5000, 'gift');
       unsub(); actionUnsubs.delete(reqId);
     } else if (r.status === 'error') {
-      showToast('❌ ' + (r.error || 'Error al abrir la caja'), 'err', 5000);
+      showToast(r.error || 'Error al abrir la caja', 'err', 5000, 'x');
       unsub(); actionUnsubs.delete(reqId);
     }
   });
@@ -1136,7 +1454,6 @@ async function requestBox(tipo) {
 const TAB_TITLES = {
   profile:    'Perfil',
   collection: 'Colección',
-  system:     'Sistema',
   ranking:    'Ranking',
   shop:       'Tienda',
   auction:    'Subasta'
@@ -1154,10 +1471,11 @@ function navigateTo(tab) {
 
   if (tab === 'profile')    renderProfile();
   if (tab === 'collection') renderCollection();
-  if (tab === 'system')     renderSystem();
   if (tab === 'ranking')    renderRanking();
   if (tab === 'shop')       renderShop();
   if (tab === 'auction')    renderAuction();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.querySelectorAll('.nav-item').forEach(b => {
@@ -1174,13 +1492,165 @@ $('overlay').addEventListener('click', () => {
 });
 
 /* ============================================================
+   MODAL DE PERFIL
+   ============================================================ */
+const modalEl   = $('user-modal');
+const modalBody = $('modal-body');
+
+function openUserModal(userId, rankInfo = null) {
+  modalOpenUserId = userId;
+  modalUserDoc = null;
+  modalUserData = null;
+  modalRankInfo = rankInfo;
+  modalEl.classList.add('show');
+  document.body.classList.add('modal-open');
+  modalBody.innerHTML = `<div class="mp-loading"><span class="loading"></span>Cargando perfil…</div>`;
+  loadModalData(userId);
+}
+
+async function loadModalData(userId) {
+  try {
+    const [uSnap, dSnap] = await Promise.all([
+      get(ref(db, `users/${userId}`)),
+      get(ref(db, `users/${userId}/data`))
+    ]);
+    if (String(modalOpenUserId) !== String(userId)) return;
+    modalUserDoc  = uSnap.val()  || {};
+    modalUserData = dSnap.val()  || {};
+    renderModalProfile();
+  } catch (e) {
+    if (String(modalOpenUserId) !== String(userId)) return;
+    modalBody.innerHTML = `<div class="mp-empty"><span class="icon">${ico('x',40)}</span>No se pudo cargar el perfil.</div>`;
+  }
+}
+
+function closeUserModal() {
+  modalOpenUserId = null;
+  modalUserDoc = null;
+  modalUserData = null;
+  modalRankInfo = null;
+  // Liberar listeners de imágenes del modal (evita acumular al abrir varios perfiles)
+  modalImageUnsubs.forEach(u => { try { u(); } catch {} });
+  modalImageUnsubs.clear();
+  modalEl.classList.remove('show');
+  document.body.classList.remove('modal-open');
+  modalBody.innerHTML = '';
+}
+
+function renderModalProfile() {
+  if (!modalOpenUserId) return;
+  const isSelf = String(modalOpenUserId) === String(session.userId);
+  const uDoc  = isSelf && userDoc  ? userDoc  : (modalUserDoc  || {});
+  const uData = isSelf && userData ? userData : (modalUserData || {});
+
+  const name = [uDoc.firstName, uDoc.lastName].filter(Boolean).join(' ')
+    || uDoc.username
+    || uDoc.name
+    || `Usuario ${modalOpenUserId}`;
+  const initial = (name || '?').charAt(0).toUpperCase();
+
+  const waifus = Array.isArray(uData.waifus) ? uData.waifus : [];
+  const unique = new Set(waifus.map(w => (w?.name || '').toLowerCase()).filter(Boolean));
+  const coins  = Number(uData.coins) || 0;
+
+  const rc = { comun:0, rara:0, epica:0, legendaria:0, exclusiva:0 };
+  for (const w of waifus) if (w?.rarity && rc[w.rarity] != null) rc[w.rarity]++;
+
+  const plusActive = uData.plusExpiresAt && uData.plusExpiresAt > Date.now();
+  const plusDays = plusActive ? Math.ceil((uData.plusExpiresAt - Date.now()) / 86400000) : 0;
+
+  const countMap = new Map();
+  for (const w of waifus) {
+    if (!w?.name) continue;
+    const k = String(w.name);
+    if (!countMap.has(k)) countMap.set(k, { name: k, rarity: w.rarity || 'comun', count: 0 });
+    countMap.get(k).count++;
+  }
+  const order = { legendaria:0, exclusiva:1, epica:2, rara:3, comun:4 };
+  const collection = [...countMap.values()].sort((a, b) => {
+    const d = (order[a.rarity] ?? 9) - (order[b.rarity] ?? 9);
+    return d !== 0 ? d : a.name.localeCompare(b.name);
+  });
+
+  const rankBadge = modalRankInfo
+    ? `<span class="mp-rank-badge">${ico('trophy',11)} #${modalRankInfo.place} · ${modalRankInfo.total} jugadores</span>`
+    : (isSelf ? `<span class="mp-rank-badge">${ico('user',11)} Tu perfil</span>` : '');
+
+  const avatarInner = uDoc.photoUrl
+    ? `<img src="${esc(uDoc.photoUrl)}" alt="" loading="lazy">`
+    : initial;
+
+  let html = `
+    <div class="mp-header">
+      <div class="mp-avatar">${avatarInner}</div>
+      <div class="mp-info">
+        <div class="mp-name">${esc(name)}${plusActive ? ` <span class="plus-badge">${ico('diamond',10)} Plus ${plusDays}d</span>` : ''}</div>
+        <div class="mp-user">${uDoc.username ? '@' + esc(uDoc.username) : ('ID: ' + modalOpenUserId)}</div>
+        ${rankBadge}
+      </div>
+    </div>
+
+    <div class="mp-stats">
+      <div class="mp-stat gold"><div class="num">${fmt(coins)}</div><div class="lbl">${ico('coin',11)} Monedas</div></div>
+      <div class="mp-stat"><div class="num">${waifus.length}</div><div class="lbl">${ico('layers',11)} Copias</div></div>
+      <div class="mp-stat pink"><div class="num">${unique.size}</div><div class="lbl">${ico('sparkles',11)} Únicas</div></div>
+    </div>
+
+    <div class="section-title">Rarezas</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${rc.comun}</div><div class="lbl">${ico('circle',11)} Común</div></div>
+      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${rc.rara}</div><div class="lbl">${ico('flame',11)} Rara</div></div>
+      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${rc.epica}</div><div class="lbl">${ico('diamond',11)} Épica</div></div>
+      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${rc.legendaria}</div><div class="lbl">${ico('crown',11)} Legendaria</div></div>
+      <div class="stat"><div class="num" style="color:var(--exclusiva);text-shadow:0 0 15px var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">${ico('star',11)} Exclusiva</div></div>
+    </div>
+  `;
+
+  if (collection.length === 0) {
+    html += `<div class="section-title">${ico('package',11)} Colección</div>
+      <div class="mp-empty"><span class="icon">${ico('package',40)}</span>Aún no tiene waifus.</div>`;
+  } else {
+    // ✅ COLECCIÓN COMPLETA (sin límite)
+    html += `<div class="section-title">${ico('package',11)} Colección (${collection.length})</div>
+      <div class="mp-collection">`;
+    for (const w of collection) {
+      watchImage(w.name, modalImageUnsubs);
+      const url = imageUrls[w.name] || '';
+      const wInitial = (w.name || '?').charAt(0).toUpperCase();
+      html += `<div class="wcard" data-r="${w.rarity}" data-img="${esc(w.name)}">
+        <div class="img">
+          ${url
+            ? `<img src="${esc(url)}" alt="" loading="lazy">`
+            : `<span class="placeholder">${wInitial}</span>`}
+        </div>
+        <div class="info">
+          <div class="name" title="${esc(w.name)}">${esc(w.name)}</div>
+          <div class="meta">
+            <span class="rarity">${RARITY_LABEL[w.rarity] || w.rarity}</span>
+            <span class="count">x${w.count}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  modalBody.innerHTML = html;
+}
+
+$('modal-close').addEventListener('click', closeUserModal);
+modalEl.querySelector('.modal-overlay').addEventListener('click', closeUserModal);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modalEl.classList.contains('show')) closeUserModal();
+});
+
+/* ============================================================
    RENDERS
    ============================================================ */
 function renderAll() {
   renderSidebarUser();
   renderProfile();
   renderCollection();
-  renderSystem();
   renderRanking();
   renderShop();
   renderAuction();
@@ -1189,7 +1659,12 @@ function renderAll() {
 function renderSidebarUser() {
   if (!userDoc) return;
   const name = [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') || userDoc.username || 'Usuario';
-  $('sb-avatar').textContent = (name || '?').charAt(0).toUpperCase();
+  const avatarEl = $('sb-avatar');
+  if (userDoc.photoUrl) {
+    avatarEl.innerHTML = `<img src="${esc(userDoc.photoUrl)}" alt="" loading="lazy">`;
+  } else {
+    avatarEl.textContent = (name || '?').charAt(0).toUpperCase();
+  }
   $('sb-name').textContent = name;
   $('sb-tag').textContent = userDoc.username ? '@' + userDoc.username : 'ID: ' + session.userId;
 }
@@ -1220,20 +1695,24 @@ function renderProfile() {
     exclusiva:  (rc.exclusiva / total) * 100
   };
 
+  const avatarInner = userDoc.photoUrl
+    ? `<img src="${esc(userDoc.photoUrl)}" alt="" loading="lazy">`
+    : initial;
+
   let html = `<div class="card">
     <div class="profile">
-      <div class="avatar">${initial}</div>
+      <div class="avatar">${avatarInner}</div>
       <div class="profile-info">
-        <div class="name">${esc(name)}${plusActive ? `<span class="plus-badge">💎 Plus ${plusDays}d</span>` : ''}</div>
+        <div class="name">${esc(name)}${plusActive ? `<span class="plus-badge">${ico('diamond',11)} Plus ${plusDays}d</span>` : ''}</div>
         <div class="tag">${userDoc.username ? '@' + esc(userDoc.username) : 'ID: ' + session.userId}</div>
       </div>
     </div>
 
     <div class="stats-grid">
-      <div class="stat"><div class="num">${fmt(coins)}</div><div class="lbl">🪙 Monedas</div></div>
-      <div class="stat"><div class="num">${waifus.length}</div><div class="lbl">🍥 Copias</div></div>
-      <div class="stat"><div class="num">${unique.size}</div><div class="lbl">✨ Únicas</div></div>
-      <div class="stat"><div class="num">${fmt(ranking?.totalWaifus || 0)}</div><div class="lbl">🌍 Global</div></div>
+      <div class="stat"><div class="num">${fmt(coins)}</div><div class="lbl">${ico('coin',12)} Monedas</div></div>
+      <div class="stat"><div class="num">${waifus.length}</div><div class="lbl">${ico('layers',12)} Copias</div></div>
+      <div class="stat"><div class="num">${unique.size}</div><div class="lbl">${ico('sparkles',12)} Únicas</div></div>
+      <div class="stat"><div class="num">${fmt(ranking?.totalWaifus || 0)}</div><div class="lbl">${ico('globe',12)} Global</div></div>
     </div>
 
     <div class="section-title">Balance de rarezas</div>
@@ -1246,18 +1725,18 @@ function renderProfile() {
     </div>
 
     <div class="stats-grid">
-      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${rc.comun}</div><div class="lbl">🌸 Común</div></div>
-      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${rc.rara}</div><div class="lbl">🔥 Rara</div></div>
-      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${rc.epica}</div><div class="lbl">💎 Épica</div></div>
-      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${rc.legendaria}</div><div class="lbl">👑 Legendaria</div></div>
-      <div class="stat"><div class="num" style="color:var(--exclusiva);text-shadow:0 0 15px var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">🌟 Exclusiva</div></div>
+      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${rc.comun}</div><div class="lbl">${ico('circle',12)} Común</div></div>
+      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${rc.rara}</div><div class="lbl">${ico('flame',12)} Rara</div></div>
+      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${rc.epica}</div><div class="lbl">${ico('diamond',12)} Épica</div></div>
+      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${rc.legendaria}</div><div class="lbl">${ico('crown',12)} Legendaria</div></div>
+      <div class="stat"><div class="num" style="color:var(--exclusiva);text-shadow:0 0 15px var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">${ico('star',12)} Exclusiva</div></div>
     </div>
 
     ${userData.predeterminada ? `
-      <div class="section-title">🎴 Predeterminada</div>
+      <div class="section-title">Predeterminada</div>
       <div class="row">
         <div class="left">
-          <div class="rank">🎴</div>
+          <div class="rank">${ico('card',16)}</div>
           <div class="info"><div class="name">${esc(userData.predeterminada)}</div></div>
         </div>
       </div>
@@ -1273,7 +1752,7 @@ function renderCollection() {
 
   if (waifus.length === 0) {
     c.innerHTML = `<div class="card"><div class="empty">
-      <span class="icon">📭</span>
+      <span class="icon">${ico('package',44)}</span>
       Aún no tienes waifus.<br>¡Captura salvajes cada hora en el bot!
     </div></div>`;
     return;
@@ -1289,26 +1768,26 @@ function renderCollection() {
   const all = [...countMap.values()].sort((a, b) => a.name.localeCompare(b.name));
 
   const filters = [
-    { k: 'all', label: '✨ Todas' },
-    { k: 'legendaria', label: '👑 Legendaria' },
-    { k: 'epica', label: '💎 Épica' },
-    { k: 'rara', label: '🔥 Rara' },
-    { k: 'comun', label: '🌸 Común' },
-    { k: 'exclusiva', label: '🌟 Exclusiva' }
+    { k: 'all',        label: 'Todas',      ic: 'filter' },
+    { k: 'legendaria', label: 'Legendaria', ic: 'crown' },
+    { k: 'epica',      label: 'Épica',      ic: 'diamond' },
+    { k: 'rara',       label: 'Rara',       ic: 'flame' },
+    { k: 'comun',      label: 'Común',      ic: 'circle' },
+    { k: 'exclusiva',  label: 'Exclusiva',  ic: 'star' }
   ];
 
   let html = `<div class="card"><div class="filters">`;
   for (const f of filters) {
     const count = f.k === 'all' ? all.length : all.filter(x => x.rarity === f.k).length;
     if (f.k !== 'all' && count === 0) continue;
-    html += `<button data-f="${f.k}" class="${collectionFilter === f.k ? 'active' : ''}">${f.label} (${count})</button>`;
+    html += `<button data-f="${f.k}" class="${collectionFilter === f.k ? 'active' : ''}">${ico(f.ic,12)}${f.label} (${count})</button>`;
   }
   html += `</div>`;
 
   const list = collectionFilter === 'all' ? all : all.filter(x => x.rarity === collectionFilter);
 
   if (list.length === 0) {
-    html += `<div class="empty"><span class="icon">🔎</span>Sin waifus en esta rareza.</div>`;
+    html += `<div class="empty"><span class="icon">${ico('filter',40)}</span>Sin waifus en esta rareza.</div>`;
   } else {
     html += `<div class="grid">`;
     const covers = new Set(userData.covers || []);
@@ -1319,7 +1798,7 @@ function renderCollection() {
       const hasCover = covers.has(w.name) && !coversOff.has(w.name);
       const initial = (w.name || '?').charAt(0).toUpperCase();
       html += `<div class="wcard" data-r="${w.rarity}" data-img="${esc(w.name)}">
-        ${hasCover ? '<span class="cover-badge">🎨</span>' : ''}
+        ${hasCover ? `<span class="cover-badge">${ico('star',10)}</span>` : ''}
         <div class="img">
           ${url
             ? `<img src="${esc(url)}" alt="" loading="lazy">`
@@ -1344,218 +1823,71 @@ function renderCollection() {
   });
 }
 
-/* ---------- SISTEMA ---------- */
-function renderSystem() {
-  const c = $('tab-system');
-  const pool = catalog?.pool || {};
-  const series = catalog?.series || {};
-
-  const rc = { comun: 0, rara: 0, epica: 0, legendaria: 0 };
-  for (const r in rc) {
-    const entry = pool[r];
-    if (!entry) { rc[r] = 0; continue; }
-    const chars = entry.characters;
-    if (Array.isArray(chars)) rc[r] = chars.length;
-    else if (chars && typeof chars === 'object') rc[r] = Object.keys(chars).length;
-    else rc[r] = 0;
-  }
-
-  const totalSalvajes = rc.comun + rc.rara + rc.epica + rc.legendaria;
-
-  if (totalSalvajes === 0) {
-    c.innerHTML = `<div class="card"><div class="empty">
-      <span class="icon">⚠️</span>
-      <b>El catálogo no se ha sincronizado aún.</b><br><br>
-      El bot debe estar corriendo y haber hecho al menos un sync.<br>
-      Como admin, envía <b>/syncfirebase</b> al bot y espera 5 segundos.<br><br>
-      <span style="color:var(--muted);font-size:11px">Si el problema persiste, revisa que <code>waifu_data.json</code> exista en <code>data/</code>.</span>
-    </div></div>`;
-    return;
-  }
-
-  const poolNames = new Set();
-  for (const r in pool) {
-    const chars = pool[r]?.characters;
-    if (Array.isArray(chars)) chars.forEach(n => poolNames.add(n));
-    else if (chars && typeof chars === 'object') Object.keys(chars).forEach(n => poolNames.add(n));
-  }
-  let exclusivas = 0;
-  const exclusivaNames = [];
-  for (const n of Object.keys(series)) {
-    if (!poolNames.has(n)) { exclusivas++; exclusivaNames.push(n); }
-  }
-
-  const totalConExclusivas = totalSalvajes + exclusivas;
-
-  const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
-  const ownedSet = new Set();
-  for (const w of waifus) if (w?.name) ownedSet.add(String(w.name).toLowerCase());
-
-  const owned = { comun: 0, rara: 0, epica: 0, legendaria: 0, exclusiva: 0 };
-  for (const w of waifus) if (w?.rarity && owned[w.rarity] != null) owned[w.rarity]++;
-
-  const seriesCount = {};
-  for (const [name, serie] of Object.entries(series)) {
-    if (!serie) continue;
-    if (!seriesCount[serie]) seriesCount[serie] = 0;
-    seriesCount[serie]++;
-  }
-  const seriesList = Object.entries(seriesCount).sort((a, b) => b[1] - a[1]);
-  const topSeries = seriesList.slice(0, 10);
-
-  const pct = (have, total) => total > 0 ? Math.round((have / total) * 100) : 0;
-
-  let html = `<div class="card">
-    <div class="stats-grid">
-      <div class="stat"><div class="num">${fmt(totalConExclusivas)}</div><div class="lbl">🍥 Total sistema</div></div>
-      <div class="stat"><div class="num">${fmt(totalSalvajes)}</div><div class="lbl">🌿 Salvajes</div></div>
-      <div class="stat"><div class="num">${fmt(exclusivas)}</div><div class="lbl">🌟 Exclusivas</div></div>
-      <div class="stat"><div class="num">${fmt(seriesList.length)}</div><div class="lbl">📺 Series</div></div>
-    </div>
-
-    <div class="section-title">🎯 Tu progreso por rareza</div>`;
-
-  const rarityRows = [
-    { k: 'comun',      label: 'Común',      color: 'var(--comun)' },
-    { k: 'rara',       label: 'Rara',       color: 'var(--rara)' },
-    { k: 'epica',      label: 'Épica',      color: 'var(--epica)' },
-    { k: 'legendaria', label: 'Legendaria', color: 'var(--legendaria)' }
-  ];
-
-  for (const r of rarityRows) {
-    const totalR = rc[r.k];
-    const have = owned[r.k] || 0;
-    const p = pct(have, totalR);
-    const emoji = RARITY_EMOJI[r.k] || '';
-    html += `<div class="row" style="padding:14px">
-      <div class="left" style="flex-direction:column;align-items:stretch;width:100%">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="name" style="color:${r.color};text-shadow:0 0 10px ${r.color}">${emoji} ${r.label}</div>
-          <div class="right">${fmt(have)}<span style="color:var(--muted);font-weight:400;font-size:11px">/${fmt(totalR)}</span></div>
-        </div>
-        <div style="height:5px;background:rgba(10,4,32,.9);border-radius:20px;margin-top:8px;border:1px solid var(--border);overflow:hidden">
-          <div style="height:100%;width:${p}%;background:${r.color};box-shadow:0 0 12px ${r.color};transition:width .5s"></div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  if (exclusivas > 0) {
-    const haveExcl = owned.exclusiva || 0;
-    const p = pct(haveExcl, exclusivas);
-    html += `<div class="row" style="padding:14px">
-      <div class="left" style="flex-direction:column;align-items:stretch;width:100%">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="name" style="color:var(--exclusiva);text-shadow:0 0 10px var(--exclusiva)">🌟 Exclusiva</div>
-          <div class="right">${fmt(haveExcl)}<span style="color:var(--muted);font-weight:400;font-size:11px">/${fmt(exclusivas)}</span></div>
-        </div>
-        <div style="height:5px;background:rgba(10,4,32,.9);border-radius:20px;margin-top:8px;border:1px solid var(--border);overflow:hidden">
-          <div style="height:100%;width:${p}%;background:var(--exclusiva);box-shadow:0 0 12px var(--exclusiva);transition:width .5s"></div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  const totalRef = totalSalvajes || 1;
-  html += `<div class="section-title">📊 Distribución del catálogo</div>
-    <div class="rarity-bar" style="height:10px">
-      ${rc.comun>0 ? `<div style="width:${(rc.comun/totalRef)*100}%;background:var(--comun)"></div>` : ''}
-      ${rc.rara>0 ? `<div style="width:${(rc.rara/totalRef)*100}%;background:var(--rara)"></div>` : ''}
-      ${rc.epica>0 ? `<div style="width:${(rc.epica/totalRef)*100}%;background:var(--epica)"></div>` : ''}
-      ${rc.legendaria>0 ? `<div style="width:${(rc.legendaria/totalRef)*100}%;background:var(--legendaria)"></div>` : ''}
-    </div>`;
-
-  html += `<div class="stats-grid">
-    <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${fmt(rc.comun)}</div><div class="lbl">🌸 Común</div></div>
-    <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${fmt(rc.rara)}</div><div class="lbl">🔥 Rara</div></div>
-    <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${fmt(rc.epica)}</div><div class="lbl">💎 Épica</div></div>
-    <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${fmt(rc.legendaria)}</div><div class="lbl">👑 Legendaria</div></div>
-  </div>`;
-
-  if (topSeries.length > 0) {
-    html += `<div class="section-title">📺 Top series (${seriesList.length})</div>`;
-    for (let i = 0; i < topSeries.length; i++) {
-      const [name, count] = topSeries[i];
-      const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-      html += `<div class="row">
-        <div class="left">
-          <div class="rank ${cls}">${medal}</div>
-          <div class="info">
-            <div class="name">${esc(name)}</div>
-            <div class="sub">${count} personaje${count !== 1 ? 's' : ''}</div>
-          </div>
-        </div>
-      </div>`;
-    }
-  }
-
-  if (exclusivaNames.length > 0) {
-    html += `<div class="section-title">🌟 Waifus exclusivas</div>`;
-    for (const n of exclusivaNames.slice(0, 20)) {
-      const has = ownedSet.has(n.toLowerCase());
-      html += `<div class="row">
-        <div class="left">
-          <div class="rank" style="background:${has ? 'linear-gradient(135deg, var(--exclusiva), #0891b2)' : 'linear-gradient(135deg, rgba(34,211,238,.15), rgba(34,211,238,.05))'}; ${has ? 'color:#001a20;box-shadow:0 0 15px rgba(34,211,238,.6)' : 'color:var(--exclusiva)'}">🌟</div>
-          <div class="info">
-            <div class="name" style="color:${has ? 'var(--exclusiva)' : 'var(--text)'}">${esc(n)}</div>
-            <div class="sub">${has ? 'En tu colección' : 'No la tienes'}</div>
-          </div>
-        </div>
-        <div class="right">${has ? '✅' : '—'}</div>
-      </div>`;
-    }
-    if (exclusivaNames.length > 20) {
-      html += `<p class="hint">… y ${exclusivaNames.length - 20} más</p>`;
-    }
-  }
-
-  html += `<p class="hint" style="text-align:left;margin-top:16px">
-    💡 Datos desde <b>/catalog</b> en Firebase. Actualizado cada 5 min.
-  </p></div>`;
-
-  c.innerHTML = html;
-}
-
 /* ---------- RANKING ---------- */
 function renderRanking() {
   const c = $('tab-ranking');
   const top = ranking?.top || [];
   if (!top.length) {
-    c.innerHTML = `<div class="card"><div class="empty"><span class="icon">🏆</span>Sin datos de ranking aún.</div></div>`;
+    c.innerHTML = `<div class="card"><div class="empty"><span class="icon">${ico('trophy',44)}</span>Sin datos de ranking aún.</div></div>`;
     return;
   }
   const myId = session.userId;
+  const totalUsers = ranking.totalUsers || top.length;
 
   let html = `<div class="card">
     <div class="stats-grid">
-      <div class="stat"><div class="num">${fmt(ranking.totalUsers || 0)}</div><div class="lbl">👥 Jugadores</div></div>
-      <div class="stat"><div class="num">${fmt(ranking.totalWaifus || 0)}</div><div class="lbl">🍥 Waifus totales</div></div>
+      <div class="stat"><div class="num">${fmt(totalUsers)}</div><div class="lbl">${ico('users',12)} Jugadores</div></div>
+      <div class="stat"><div class="num">${fmt(ranking.totalWaifus || 0)}</div><div class="lbl">${ico('layers',12)} Waifus totales</div></div>
     </div>
-    <div class="section-title">Top 10</div>`;
+    <div class="section-title">${ico('trophy',11)} Top ${Math.min(top.length, 50)}</div>
+    <div class="rank-list">`;
 
-  for (let i = 0; i < Math.min(top.length, 10); i++) {
+  for (let i = 0; i < Math.min(top.length, 50); i++) {
     const u = top[i];
     const isMe = String(u.userId) === String(myId);
-    const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-    html += `<div class="row" ${isMe ? 'style="border-color:var(--cyan);box-shadow:0 0 15px rgba(34,211,238,.3)"' : ''}>
-      <div class="left">
-        <div class="rank ${cls}">${medal}</div>
-        <div class="info">
-          <div class="name">${esc(u.display)}${isMe ? ' (tú)' : ''}</div>
-          <div class="sub">${u.unique} únicas</div>
+    const placeClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+    const placeIcon = i < 3 ? ico('award', 20) : (i + 1);
+
+    const displayName = u.name || u.display || `Usuario ${u.userId}`;
+    const initial = (displayName || '?').charAt(0).toUpperCase();
+    const avatarInner = u.photoUrl
+      ? `<img src="${esc(u.photoUrl)}" alt="" loading="lazy">`
+      : initial;
+
+    html += `<div class="rank-card ${placeClass} ${isMe ? 'is-me' : ''}" data-uid="${u.userId}" data-place="${i + 1}">
+      <div class="place">${placeIcon}</div>
+      <div class="avatar-md">${avatarInner}</div>
+      <div class="body">
+        <div class="top-line">
+          <div class="rn-name">${esc(displayName)}${isMe ? ' · tú' : ''}</div>
+        </div>
+        <div class="rn-user">${u.username ? '@' + esc(u.username) : ('ID: ' + u.userId)}</div>
+        <div class="stats">
+          <span class="sp pink">${ico('layers',11)} ${fmt(u.count)} <span class="lbl-s">copias</span></span>
+          <span class="sp">${ico('sparkles',11)} ${fmt(u.unique)} <span class="lbl-s">únicas</span></span>
+          ${typeof u.coins === 'number' ? `<span class="sp gold">${ico('coin',11)} ${fmt(u.coins)}</span>` : ''}
         </div>
       </div>
-      <div class="right">${fmt(u.count)}</div>
+      <div class="chev">${ico('chevron',18)}</div>
     </div>`;
   }
-  html += `</div>`;
+
+  html += `</div>
+    <p class="hint" style="text-align:left;margin-top:14px">Toca cualquier jugador para ver su perfil completo.</p>
+  </div>`;
   c.innerHTML = html;
+
+  c.querySelectorAll('.rank-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const uid = parseInt(card.dataset.uid, 10);
+      const place = parseInt(card.dataset.place, 10);
+      if (!isNaN(uid)) openUserModal(uid, { place, total: totalUsers });
+    });
+  });
 }
 
 /* ============================================================
-   TIENDA (con sub-pestañas)
+   TIENDA
    ============================================================ */
 function renderShop() {
   const c = $('tab-shop');
@@ -1563,14 +1895,13 @@ function renderShop() {
 
   let html = `<div class="card">
     <div class="stats-grid">
-      <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">🪙 Tu saldo</div></div>
-      <div class="stat"><div class="num">${Object.keys(sales || {}).length}</div><div class="lbl">🌸 En venta</div></div>
+      <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">${ico('coin',12)} Tu saldo</div></div>
+      <div class="stat"><div class="num">${Object.keys(sales || {}).length}</div><div class="lbl">${ico('store',12)} En venta</div></div>
     </div>
 
     <div class="subtabs" id="shop-subtabs">
-      <button class="subtab ${shopSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">🌸 Waifus</button>
-      <button class="subtab ${shopSubTab === 'boxes' ? 'active' : ''}" data-sub="boxes">🎁 Cajas misteriosas</button>
-      <button class="subtab ${shopSubTab === 'catalog' ? 'active' : ''}" data-sub="catalog">📊 Catálogo</button>
+      <button class="subtab ${shopSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">${ico('store',13)}Waifus</button>
+      <button class="subtab ${shopSubTab === 'boxes' ? 'active' : ''}" data-sub="boxes">${ico('gift',13)}Cajas misteriosas</button>
     </div>
 
     <div id="shop-content"></div>
@@ -1578,7 +1909,6 @@ function renderShop() {
 
   c.innerHTML = html;
 
-  // Bind subtabs
   c.querySelectorAll('#shop-subtabs .subtab').forEach(btn => {
     btn.addEventListener('click', () => {
       shopSubTab = btn.dataset.sub;
@@ -1586,57 +1916,62 @@ function renderShop() {
     });
   });
 
-  // Render sub-content
   const content = $('shop-content');
-  if (shopSubTab === 'waifus')  renderShopWaifus(content);
-  if (shopSubTab === 'boxes')   renderShopBoxes(content);
-  if (shopSubTab === 'catalog') renderShopCatalog(content);
+  if (shopSubTab === 'waifus') renderShopWaifus(content);
+  if (shopSubTab === 'boxes')  renderShopBoxes(content);
 }
 
-/* Sub-tab: Waifus en venta */
 function renderShopWaifus(container) {
   const allSales = Object.values(sales || {});
-  const series = catalog?.series || {};
   const myCoins = Number(userData?.coins) || 0;
   const myId = session.userId;
 
-  let html = '';
   if (allSales.length === 0) {
-    html = `<div class="empty"><span class="icon">🏪</span>No hay waifus en venta ahora mismo.</div>`;
-  } else {
-    allSales.sort((a, b) => a.price - b.price);
-    for (const s of allSales.slice(0, 60)) {
-      watchImage(s.waifu?.name);
-      const url = imageUrls[s.waifu?.name] || '';
-      const initial = (s.waifu?.name || '?').charAt(0).toUpperCase();
-      const seller = s.sellerUsername ? '@' + esc(s.sellerUsername) : esc(s.sellerName || 'Anónimo');
-      const isMine = String(s.sellerId) === String(myId);
-      const canAfford = myCoins >= (s.price || 0);
-      const disabled = isMine || !canAfford;
-
-      html += `<div class="row">
-        <div class="left">
-          <div class="rank" style="background:${url ? `url('${esc(url)}') center/cover` : 'linear-gradient(135deg, rgba(255,45,146,.2), rgba(139,92,246,.2))'}; color:${url ? 'transparent' : 'inherit'}">${initial}</div>
-          <div class="info">
-            <div class="name">${esc(s.waifu?.name || '?')}</div>
-            <div class="sub">${seller}${series[s.waifu?.name] ? ' · ' + esc(series[s.waifu.name]) : ''}</div>
-          </div>
-        </div>
-        <button class="btn-buy" data-buy="${esc(s.saleId)}" ${disabled ? 'disabled' : ''}>
-          ${isMine ? 'Tu venta' : (canAfford ? `Comprar ${fmt(s.price)}🪙` : `Faltan ${fmt((s.price||0)-myCoins)}🪙`)}
-        </button>
-      </div>`;
-    }
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('store',44)}</span>No hay waifus en venta ahora mismo.</div>`;
+    return;
   }
 
-  html += `<p class="hint" style="text-align:left;margin-top:14px">
-    💡 Haz clic en <b>Comprar</b> para adquirir una waifu directamente desde la web.<br>
-    Las compras son procesadas por el bot en <b>~3 segundos</b>.
-  </p>`;
+  allSales.sort((a, b) => a.price - b.price);
+
+  let html = `<div class="grid">`;
+  for (const s of allSales.slice(0, 90)) {
+    const wname = s.waifu?.name || '?';
+    const rarity = s.waifu?.rarity || 'comun';
+    watchImage(wname);
+    const url = imageUrls[wname] || '';
+    const initial = (wname || '?').charAt(0).toUpperCase();
+    const seller = s.sellerUsername ? '@' + esc(s.sellerUsername) : esc(s.sellerName || 'Anónimo');
+    const isMine = String(s.sellerId) === String(myId);
+    const canAfford = myCoins >= (s.price || 0);
+    const disabled = isMine || !canAfford;
+    const btnText = isMine
+      ? 'Tu venta'
+      : (canAfford ? `Comprar ${fmt(s.price)}` : `Faltan ${fmt((s.price||0)-myCoins)}`);
+
+    html += `<div class="wcard" data-r="${rarity}" data-img="${esc(wname)}">
+      <div class="img">
+        ${url
+          ? `<img src="${esc(url)}" alt="" loading="lazy">`
+          : `<span class="placeholder">${initial}</span>`}
+      </div>
+      <div class="info">
+        <div class="name" title="${esc(wname)}">${esc(wname)}</div>
+        <div class="meta">
+          <span class="rarity">${RARITY_LABEL[rarity] || rarity}</span>
+          <span class="count">${fmt(s.price)}${ico('coin',10)}</span>
+        </div>
+        <div class="seller-line">${seller}</div>
+        <button class="btn-buy-card" data-buy="${esc(s.saleId)}" ${disabled ? 'disabled' : ''}>
+          ${esc(btnText)}
+        </button>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
 
   container.innerHTML = html;
 
-  container.querySelectorAll('.btn-buy').forEach(btn => {
+  container.querySelectorAll('.btn-buy-card').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const saleId = btn.dataset.buy;
@@ -1647,19 +1982,18 @@ function renderShopWaifus(container) {
       try {
         await requestBuy(saleId);
       } catch (err) {
-        showToast('❌ ' + (err.message || 'Error'), 'err');
+        showToast(err.message || 'Error', 'err', 4000, 'x');
       } finally {
-        setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 5000);
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = original; }, 5000);
       }
     });
   });
 }
 
-/* Sub-tab: Cajas misteriosas */
 function renderShopBoxes(container) {
   const myCoins = Number(userData?.coins) || 0;
 
-  let html = `<div class="section-title">🎁 Cajas misteriosas</div>
+  let html = `<div class="section-title">${ico('gift',13)} Cajas misteriosas</div>
     <div class="boxes-grid">`;
 
   for (const key of ['comun', 'premium', 'legendaria']) {
@@ -1667,19 +2001,18 @@ function renderShopBoxes(container) {
     const canAfford = myCoins >= box.price;
     const disabled = !canAfford;
     html += `<div class="box-card" data-box="${key}" data-can="${disabled ? 0 : 1}">
-      <span class="bemoji">${box.emoji}</span>
+      <div class="bicon"><img src="${esc(box.img)}" alt="${esc(box.name)}" loading="lazy"></div>
       <div class="bname">${box.name}</div>
       <div class="bdesc">${box.desc}</div>
-      <div class="bprice">${fmt(box.price)} 🪙</div>
+      <div class="bprice">${fmt(box.price)} ${ico('coin',14)}</div>
     </div>`;
   }
 
   html += `</div>
-
     <p class="hint" style="text-align:left;margin-top:18px">
-      💡 Toca una caja para abrirla al instante.<br>
+      Toca una caja para abrirla al instante.<br>
       El bot procesará la apertura, te avisará por DM con las imágenes y las waifus aparecerán en tu colección en segundos.<br>
-      🔒 Cada apertura consume las monedas correspondientes.
+      Cada apertura consume las monedas correspondientes.
     </p>`;
 
   container.innerHTML = html;
@@ -1701,7 +2034,7 @@ function renderShopBoxes(container) {
       try {
         await requestBox(key);
       } catch (err) {
-        showToast('❌ ' + (err.message || 'Error'), 'err');
+        showToast(err.message || 'Error', 'err', 4000, 'x');
       } finally {
         setTimeout(() => {
           card.innerHTML = original;
@@ -1714,60 +2047,6 @@ function renderShopBoxes(container) {
   });
 }
 
-/* Sub-tab: Catálogo */
-function renderShopCatalog(container) {
-  const pool = catalog?.pool || {};
-  const series = catalog?.series || {};
-
-  const rc = { comun: 0, rara: 0, epica: 0, legendaria: 0 };
-  for (const r in rc) {
-    const entry = pool[r];
-    if (!entry) { rc[r] = 0; continue; }
-    const chars = entry.characters;
-    if (Array.isArray(chars)) rc[r] = chars.length;
-    else if (chars && typeof chars === 'object') rc[r] = Object.keys(chars).length;
-    else rc[r] = 0;
-  }
-
-  const totalSalvajes = rc.comun + rc.rara + rc.epica + rc.legendaria;
-
-  const poolNames = new Set();
-  for (const r in pool) {
-    const chars = pool[r]?.characters;
-    if (Array.isArray(chars)) chars.forEach(n => poolNames.add(n));
-    else if (chars && typeof chars === 'object') Object.keys(chars).forEach(n => poolNames.add(n));
-  }
-  let exclusivas = 0;
-  for (const n of Object.keys(series)) {
-    if (!poolNames.has(n)) exclusivas++;
-  }
-
-  const totalSeriesSet = new Set(Object.values(series).filter(Boolean));
-  const totalSeries = totalSeriesSet.size;
-
-  let html = `<div class="section-title">📊 Catálogo del sistema</div>
-    <div class="stats-grid">
-      <div class="stat"><div class="num">${fmt(totalSalvajes)}</div><div class="lbl">🌿 Salvajes</div></div>
-      <div class="stat"><div class="num">${fmt(exclusivas)}</div><div class="lbl">🌟 Exclusivas</div></div>
-      <div class="stat"><div class="num">${fmt(totalSeries)}</div><div class="lbl">📺 Series</div></div>
-    </div>
-
-    <div class="section-title">🌸 Rareza del catálogo</div>
-    <div class="stats-grid">
-      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${fmt(rc.comun)}</div><div class="lbl">🌸 Común</div></div>
-      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${fmt(rc.rara)}</div><div class="lbl">🔥 Rara</div></div>
-      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${fmt(rc.epica)}</div><div class="lbl">💎 Épica</div></div>
-      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${fmt(rc.legendaria)}</div><div class="lbl">👑 Legendaria</div></div>
-    </div>
-
-    <p class="hint" style="text-align:left;margin-top:14px">
-      💡 El catálogo se actualiza cada 5 minutos desde el bot.<br>
-      Para ver tu <b>progreso personal</b>, abre la pestaña <b>🌍 Sistema</b> del menú lateral.
-    </p>`;
-
-  container.innerHTML = html;
-}
-
 /* ---------- SUBASTA ---------- */
 function renderAuction() {
   if (auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; }
@@ -1776,7 +2055,7 @@ function renderAuction() {
 
   if (!a) {
     c.innerHTML = `<div class="card"><div class="empty">
-      <span class="icon">🌟</span>
+      <span class="icon">${ico('star',44)}</span>
       No hay subasta activa.<br>
       La próxima empieza a las <b>8:00 AM (MX)</b>.
     </div></div>`;
@@ -1789,17 +2068,17 @@ function renderAuction() {
 
   let html = `<div class="card">
     <div class="auction-hero">
-      <div class="auction-tag">${a.testMode ? '🧪 Prueba' : '🌟 En vivo'} · Copia ${copyNum}/${a.maxCopies || 3}</div>
+      <div class="auction-tag">${a.testMode ? ico('shield',12) + ' Prueba' : ico('star',12) + ' En vivo'} · Copia ${copyNum}/${a.maxCopies || 3}</div>
       <div class="auction-name">${esc(a.waifuName)}</div>
       <div class="countdown" id="auction-countdown">--:--</div>
     </div>
 
     <div class="stats-grid">
-      <div class="stat"><div class="num">${bids.length}</div><div class="lbl">📊 Pujas</div></div>
-      <div class="stat"><div class="num">${bids[0] ? fmt(bids[0].amount) : 0}</div><div class="lbl">🏆 Mejor puja</div></div>
+      <div class="stat"><div class="num">${bids.length}</div><div class="lbl">${ico('chart',12)} Pujas</div></div>
+      <div class="stat"><div class="num">${bids[0] ? fmt(bids[0].amount) : 0}</div><div class="lbl">${ico('trophy',12)} Mejor puja</div></div>
     </div>
 
-    <div class="section-title">🏆 Top postores</div>`;
+    <div class="section-title">Top postores</div>`;
 
   if (bids.length === 0) {
     html += `<div class="empty">Sin pujas aún. ¡Sé el primero desde el bot!</div>`;
@@ -1807,15 +2086,14 @@ function renderAuction() {
     for (let i = 0; i < Math.min(bids.length, 5); i++) {
       const b = bids[i];
       const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
       const display = b.username ? '@' + esc(b.username) : esc(b.name || ('Usuario ' + b.userId));
       html += `<div class="row">
-        <div class="left"><div class="rank ${cls}">${medal}</div><div class="info"><div class="name">${display}</div></div></div>
-        <div class="right">${fmt(b.amount)} 🪙</div>
+        <div class="left"><div class="rank ${cls}">${i < 3 ? ico('award',16) : (i + 1)}</div><div class="info"><div class="name">${display}</div></div></div>
+        <div class="right">${fmt(b.amount)} ${ico('coin',12)}</div>
       </div>`;
     }
   }
-  html += `<p class="hint" style="text-align:left;margin-top:14px">💡 Para pujar, usa los botones del mensaje en el grupo.</p></div>`;
+  html += `<p class="hint" style="text-align:left;margin-top:14px">Para pujar, usa los botones del mensaje en el grupo.</p></div>`;
   c.innerHTML = html;
 
   const cdEl = $('auction-countdown');
@@ -1846,6 +2124,7 @@ $('btn-logout').addEventListener('click', async () => {
   actionUnsubs.forEach(u => { try { u(); } catch {} });
   actionUnsubs.clear();
   if (auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; }
+  closeUserModal();
 
   if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
   localStorage.removeItem('jinx_session');
@@ -1859,9 +2138,14 @@ $('btn-logout').addEventListener('click', async () => {
   show('screen-login');
   inputEl.value = '';
   $('btn-request').disabled = false;
-  $('btn-request').textContent = '▶ Enviar código';
+  $('btn-request').innerHTML = ico('play',15) + 'Enviar código';
   codeInputs.forEach(i => i.value = '');
 });
+
+/* ============================================================
+   HIDRATAR ICONOS
+   ============================================================ */
+hydrateIcons();
 
 /* ============================================================
    AUTOLOGIN
