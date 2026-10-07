@@ -2,2638 +2,1875 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>✦ Waifu Cards ✦</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jinx Waifus — HUD</title>
+<link rel="icon" href="data:,">
 <style>
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0b0714;
-  --bg2:#140c22;
-  --panel:rgba(255,255,255,.045);
-  --panel-brd:rgba(255,255,255,.10);
-  --txt:#f2ecff;
-  --txt-dim:#a294c4;
-  --accent:#c084fc;
-  --accent2:#f472b6;
-  --gold:#fbbf24;
-
-  --c-comun:#6ee7a8;
-  --c-rara:#60a5fa;
-  --c-epica:#c084fc;
-  --c-legendaria:#fbbf24;
-
-  --radius:16px;
-  --radius-lg:20px;
-  --pad-x:16px;
-  --card-depth:6px;
-}
-html{height:100%;-webkit-text-size-adjust:100%}
-body{
-  font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans',sans-serif;
-  background:var(--bg);
-  color:var(--txt);
-  min-height:100vh;
-  min-height:100dvh;
-  overflow-x:hidden;
-  padding-bottom:70px;
-  -webkit-font-smoothing:antialiased;
-  line-height:1.4;
-}
-
-.bg-orbs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.bg-orbs span{
-  position:absolute;border-radius:50%;filter:blur(90px);opacity:.35;
-  animation:float 18s ease-in-out infinite;
-}
-.bg-orbs span:nth-child(1){width:520px;height:520px;background:#7c3aed;top:-160px;left:-140px}
-.bg-orbs span:nth-child(2){width:440px;height:440px;background:#db2777;bottom:-140px;right:-120px;animation-delay:-6s}
-.bg-orbs span:nth-child(3){width:380px;height:380px;background:#2563eb;top:45%;left:55%;animation-delay:-12s}
-@keyframes float{
-  0%,100%{transform:translate(0,0) scale(1)}
-  33%{transform:translate(40px,-50px) scale(1.12)}
-  66%{transform:translate(-45px,35px) scale(.92)}
-}
-body::before{
-  content:'';position:fixed;inset:0;z-index:-1;
-  background:
-    radial-gradient(circle at 20% 10%,rgba(124,58,237,.18),transparent 55%),
-    radial-gradient(circle at 85% 80%,rgba(219,39,119,.15),transparent 55%),
-    linear-gradient(160deg,#0b0714,#140c22 45%,#0b0714);
-}
-
-/* ============================================================
-   WALLET
-   ============================================================ */
-.wallet{
-  position:fixed;top:12px;right:12px;z-index:90;
-  display:flex;align-items:center;gap:7px;
-  background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(245,158,11,.08));
-  border:1px solid rgba(251,191,36,.45);
-  padding:8px 14px;border-radius:999px;
-  font-weight:900;font-size:.92rem;color:var(--gold);
-  box-shadow:0 8px 26px rgba(251,191,36,.25);
-  backdrop-filter:blur(10px);
-  transition:transform .18s;
-  font-variant-numeric:tabular-nums;
-  max-width:calc(100vw - 24px);
-}
-.wallet.bump{animation:bump .35s ease}
-@keyframes bump{
-  0%{transform:scale(1)}
-  40%{transform:scale(1.18)}
-  100%{transform:scale(1)}
-}
-.wallet .coin{font-size:1.05rem;filter:drop-shadow(0 0 6px rgba(251,191,36,.8))}
-
-.coin-float{
-  position:fixed;z-index:999;pointer-events:none;
-  font-weight:900;font-size:1rem;color:var(--gold);
-  text-shadow:0 2px 10px rgba(0,0,0,.85);
-  animation:coinFloat 1.3s cubic-bezier(.2,.8,.4,1) forwards;
-}
-@keyframes coinFloat{
-  0%{opacity:1;transform:translateY(0) scale(.9)}
-  100%{opacity:0;transform:translateY(-72px) scale(1.25)}
-}
-
-/* ============================================================
-   HEADER
-   ============================================================ */
-.topbar{text-align:center;padding:60px 16px 8px}
-.topbar h1{
-  font-size:clamp(1.7rem,6vw,3rem);
-  font-weight:800;letter-spacing:1.5px;
-  background:linear-gradient(100deg,#c084fc,#f472b6 45%,#fbbf24);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  filter:drop-shadow(0 4px 24px rgba(192,132,252,.35));
-  line-height:1.15;
-}
-.subtitle{color:var(--txt-dim);font-size:clamp(.78rem,2.4vw,.9rem);margin-top:6px;letter-spacing:1px}
-
-main{max-width:1220px;margin:0 auto;padding:0 var(--pad-x);width:100%}
-
-/* ============================================================
-   TABS
-   ============================================================ */
-.tabs{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:5px;
-  margin:24px auto 10px;
-  padding:6px;
-  background:var(--panel);
-  border:1px solid var(--panel-brd);
-  border-radius:var(--radius);
-  max-width:620px;
-  width:calc(100% - 40px);
-}
-.tab{
-  font-family:inherit;font-size:clamp(.7rem,2.4vw,.86rem);
-  font-weight:700;letter-spacing:.2px;
-  color:var(--txt-dim);background:transparent;border:none;cursor:pointer;
-  padding:11px 8px;border-radius:11px;
-  transition:color .18s,background .18s,transform .18s;
-  white-space:nowrap;
-  display:flex;align-items:center;justify-content:center;gap:4px;
-}
-.tab:hover{color:var(--txt)}
-.tab.active{
-  color:#fff;
-  background:linear-gradient(100deg,#7c3aed,#c026d3);
-  box-shadow:0 8px 22px rgba(124,58,237,.5);
-}
-.tab-panel{display:none;animation:fadePanel .35s ease}
-.tab-panel.active{display:block}
-@keyframes fadePanel{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-/* ============================================================
-   GACHA
-   ============================================================ */
-.gacha{display:flex;flex-direction:column;align-items:center;gap:20px;padding:22px 0 40px}
-
-.card-stage{
-  perspective:1600px;
-  width:min(300px,72vw,calc(100vh * .48));
-  max-width:100%;
-  aspect-ratio:3/4.4;
-}
-
-.card{
-  width:100%;height:100%;position:relative;
-  transform-style:preserve-3d;
-  transition:transform .75s cubic-bezier(.2,.8,.25,1);
-  cursor:pointer;
-}
-.card.flipped{transform:rotateY(180deg)}
-
-.card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d}
-
-.card-face{
-  position:absolute;inset:0;border-radius:var(--radius-lg);overflow:hidden;
-  backface-visibility:hidden;-webkit-backface-visibility:hidden;
-  box-shadow:0 26px 60px rgba(0,0,0,.65);
-}
-
-.card-back{
-  background:
-    radial-gradient(circle at 50% 30%,rgba(192,132,252,.35),transparent 60%),
-    linear-gradient(150deg,#241238,#3b1d5c 45%,#160c26);
-  border:1px solid rgba(192,132,252,.35);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-}
-.back-ring{
-  width:34%;aspect-ratio:1;max-width:120px;
-  border-radius:50%;
-  border:2px dashed rgba(244,114,182,.55);
-  display:grid;place-items:center;
-  animation:spin 14s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.back-logo{font-size:clamp(2rem,7vw,3rem);color:var(--gold);text-shadow:0 0 26px rgba(251,191,36,.8)}
-.back-text{
-  font-weight:800;letter-spacing:5px;font-size:clamp(.7rem,2.4vw,.85rem);
-  color:var(--txt-dim);padding-left:5px;
-}
-
-.card-front{
-  transform:rotateY(180deg);
-  background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
-  border:1px solid rgba(255,255,255,.12);
-}
-.card-front img{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;display:block;
-}
-.ph{
-  position:absolute;inset:0;
-  display:grid;place-items:center;
-  font-size:clamp(3.5rem,15vw,5.5rem);font-weight:800;color:rgba(255,255,255,.14);
-  background:linear-gradient(150deg,#2a1745,#4c1d95 50%,#1e1030);
-  user-select:none;
-}
-.card-shade{
-  position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(5,2,12,.96) 0%,rgba(5,2,12,.75) 26%,transparent 58%);
-}
-.card-shine{
-  position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.22) 45%,transparent 60%);
-  transform:translateX(-120%);
-}
-.card.flipped .card-shine{animation:shine 1.1s ease-out .35s 1}
-@keyframes shine{to{transform:translateX(120%)}}
-
-.card-info{
-  position:absolute;left:0;right:0;bottom:0;
-  padding:14px 12px 16px;text-align:center;
-}
-.card-stars{font-size:clamp(.8rem,2.8vw,.95rem);letter-spacing:2px;margin-bottom:5px;min-height:16px}
-.card-info h2{
-  font-size:clamp(.95rem,3.6vw,1.16rem);font-weight:800;line-height:1.2;
-  text-shadow:0 2px 14px rgba(0,0,0,.9);
-}
-.card-info p{
-  font-size:clamp(.65rem,2.4vw,.76rem);color:#cbbcdf;margin-top:4px;line-height:1.3;
-  text-shadow:0 1px 8px rgba(0,0,0,.9);
-}
-.badge{
-  display:inline-block;margin-top:8px;
-  font-size:clamp(.55rem,2vw,.63rem);font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
-  padding:3px 10px;border-radius:999px;
-  border:1px solid currentColor;
-}
-
-.card-front.rare-comun    {border-color:var(--c-comun);    box-shadow:0 0 34px rgba(110,231,168,.30),0 26px 60px rgba(0,0,0,.7)}
-.card-front.rare-rara     {border-color:var(--c-rara);     box-shadow:0 0 40px rgba(96,165,250,.42),0 26px 60px rgba(0,0,0,.7)}
-.card-front.rare-epica    {border-color:var(--c-epica);    box-shadow:0 0 52px rgba(192,132,252,.55),0 26px 60px rgba(0,0,0,.7)}
-.card-front.rare-legendaria{border-color:var(--c-legendaria);box-shadow:0 0 70px rgba(251,191,36,.65),0 26px 60px rgba(0,0,0,.7)}
-.card.flipped .card-front.rare-legendaria{animation:legendPulse 1.9s ease-in-out infinite}
-@keyframes legendPulse{
-  0%,100%{box-shadow:0 0 56px rgba(251,191,36,.5),0 26px 60px rgba(0,0,0,.7)}
-  50%    {box-shadow:0 0 96px rgba(251,191,36,.95),0 26px 60px rgba(0,0,0,.7)}
-}
-
-.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:520px;padding:0 4px}
-.btn{
-  font-family:inherit;font-size:.9rem;font-weight:700;letter-spacing:.4px;
-  padding:13px 22px;border-radius:13px;cursor:pointer;border:1px solid transparent;
-  transition:transform .16s,box-shadow .16s,filter .16s;
-  color:#fff;
-  display:inline-flex;align-items:center;gap:7px;justify-content:center;
-  text-align:center;line-height:1.2;
-}
-.btn small{font-size:.7rem;opacity:.9;font-weight:800;letter-spacing:.4px;display:inline}
-.btn:active{transform:scale(.96)}
-.btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
-.btn-primary{
-  background:linear-gradient(100deg,#7c3aed,#c026d3);
-  box-shadow:0 10px 30px rgba(124,58,237,.5);
-}
-.btn-primary:hover:not(:disabled){box-shadow:0 14px 42px rgba(192,38,211,.75)}
-.btn-secondary{
-  background:linear-gradient(100deg,#db2777,#f59e0b);
-  box-shadow:0 10px 30px rgba(219,39,119,.45);
-}
-.btn-secondary:hover:not(:disabled){box-shadow:0 14px 42px rgba(245,158,11,.7)}
-.btn-gold{
-  background:linear-gradient(100deg,#f59e0b,#fbbf24);
-  color:#1a0b2e;
-  box-shadow:0 10px 30px rgba(251,191,36,.45);
-}
-.btn-gold:hover:not(:disabled){box-shadow:0 14px 42px rgba(251,191,36,.75)}
-
-.hint{color:var(--txt-dim);font-size:clamp(.75rem,2.6vw,.85rem);text-align:center;min-height:20px;padding:0 8px}
-.hint strong{font-weight:800}
-
-.rates{
-  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
-  font-size:clamp(.66rem,2.2vw,.74rem);font-weight:700;letter-spacing:.5px;
-  padding:0 4px;
-}
-.rates span{
-  padding:5px 11px;border-radius:999px;
-  background:var(--panel);border:1px solid var(--panel-brd);
-  white-space:nowrap;
-}
-
-.results{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(72px,1fr));
-  gap:9px;
-  justify-items:center;
-  width:100%;max-width:640px;
-}
-.mini{
-  width:100%;max-width:86px;
-  border-radius:12px;overflow:hidden;position:relative;
-  border:1px solid rgba(255,255,255,.14);
-  background:#150e26;
-  animation:pop .42s cubic-bezier(.2,1.5,.5,1) backwards;
-}
-@keyframes pop{from{opacity:0;transform:scale(.55) translateY(14px)}to{opacity:1;transform:none}}
-.mini img{
-  position:absolute;top:0;left:0;
-  width:100%;
-  aspect-ratio:3/4;
-  object-fit:cover;
-  display:block;
-}
-.mini .mini-ph{
-  width:100%;aspect-ratio:3/4;display:grid;place-items:center;
-  font-size:1.7rem;font-weight:800;color:rgba(255,255,255,.16);
-  background:linear-gradient(150deg,#2a1745,#4c1d95);
-}
-.mini .mini-bar{height:3px;position:relative}
-.mini .mini-name{
-  font-size:.55rem;font-weight:700;text-align:center;padding:4px 3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ddd3f0;
-  position:relative;
-}
-.mini .mini-coin{
-  position:absolute;top:3px;right:3px;
-  font-size:.52rem;font-weight:900;
-  background:rgba(251,191,36,.95);color:#1a0b2e;
-  padding:2px 5px;border-radius:999px;
-  z-index:2;
-}
-.mini.rare-comun    {box-shadow:0 0 12px rgba(110,231,168,.45)}
-.mini.rare-rara     {box-shadow:0 0 14px rgba(96,165,250,.55)}
-.mini.rare-epica    {box-shadow:0 0 18px rgba(192,132,252,.7)}
-.mini.rare-legendaria{box-shadow:0 0 24px rgba(251,191,36,.9)}
-
-/* ============================================================
-   COLECCIÓN
-   ============================================================ */
-.collection{
-  background:var(--panel);
-  border:1px solid var(--panel-brd);
-  border-radius:var(--radius-lg);padding:18px;margin-bottom:30px;
-  backdrop-filter:blur(12px);
-}
-.collection-head{
-  display:flex;flex-direction:column;gap:14px;
-  margin-bottom:18px;
-}
-.collection-head h2{
-  font-size:clamp(1.05rem,4vw,1.25rem);font-weight:800;letter-spacing:.4px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-.counter{
-  font-size:.7rem;font-weight:700;color:#0b0714;
-  background:linear-gradient(100deg,#c084fc,#f472b6);
-  padding:4px 11px;border-radius:999px;
-  white-space:nowrap;
-}
-.filters{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.filters input[type=search],.filters select{
-  font-family:inherit;font-size:.82rem;
-  background:rgba(0,0,0,.32);color:var(--txt);
-  border:1px solid var(--panel-brd);border-radius:10px;
-  padding:10px 13px;outline:none;transition:border-color .18s;
-  min-width:0;
-}
-.filters input[type=search]{flex:1;min-width:160px}
-.filters input[type=search]:focus,.filters select:focus{border-color:var(--accent)}
-.filters select option{background:#1a1030}
-.switch{display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--txt-dim);cursor:pointer;user-select:none;white-space:nowrap}
-.switch input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(108px,1fr));
-  gap:10px;
-}
-.gcard{
-  position:relative;border-radius:14px;overflow:hidden;
-  border:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
-  transition:transform .18s,box-shadow .18s;
-  animation:fadeIn .3s ease backwards;
-  cursor:pointer;
-}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@media(hover:hover){.gcard:hover{transform:translateY(-4px)}}
-.gcard img{
-  position:absolute;top:0;left:0;
-  width:100%;
-  aspect-ratio:3/4;
-  object-fit:cover;
-  display:block;
-}
-.gcard .g-ph{
-  width:100%;aspect-ratio:3/4;display:grid;place-items:center;
-  font-size:2rem;font-weight:800;color:rgba(255,255,255,.15);
-  background:linear-gradient(150deg,#2a1745,#4c1d95);
-}
-.gcard .g-veil{
-  position:absolute;left:0;right:0;bottom:0;height:60%;
-  background:linear-gradient(to top,rgba(5,2,12,.97),transparent);
-  pointer-events:none;
-}
-.gcard .g-txt{
-  position:absolute;left:0;right:0;bottom:0;padding:7px 6px;
-  pointer-events:none;
-}
-.gcard .g-name{
-  font-size:.64rem;font-weight:800;line-height:1.2;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  text-shadow:0 1px 6px #000;
-}
-.gcard .g-stars{font-size:.55rem;letter-spacing:1px;margin-top:2px}
-.gcard .g-count{
-  position:absolute;top:5px;right:5px;
-  font-size:.6rem;font-weight:800;
-  background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.22);
-  padding:2px 7px;border-radius:999px;color:#fff;
-}
-.gcard.rare-comun    {box-shadow:inset 0 0 0 1px rgba(110,231,168,.45)}
-.gcard.rare-rara     {box-shadow:inset 0 0 0 1px rgba(96,165,250,.55)}
-.gcard.rare-epica    {box-shadow:inset 0 0 0 1px rgba(192,132,252,.7)}
-.gcard.rare-legendaria{box-shadow:inset 0 0 0 1px rgba(251,191,36,.9),0 0 16px rgba(251,191,36,.35)}
-.gcard.locked{filter:grayscale(1) brightness(.34);opacity:.72;cursor:not-allowed}
-.gcard.locked .g-veil{background:linear-gradient(to top,rgba(5,2,12,.9),transparent)}
-
-.empty{
-  grid-column:1/-1;text-align:center;padding:44px 10px;
-  color:var(--txt-dim);font-size:.9rem;
-}
-
-/* ============================================================
-   VISOR 3D DE CARTA (MODAL)
-   ============================================================ */
-.viewer{
-  position:fixed;inset:0;z-index:200;
-  background:rgba(5,2,12,.92);
-  backdrop-filter:blur(14px);
-  display:none;
-  align-items:center;justify-content:center;
-  padding:20px;
-  overflow:hidden;
-  animation:viewerIn .3s ease;
-}
-.viewer.open{display:flex}
-@keyframes viewerIn{from{opacity:0}to{opacity:1}}
-
-.viewer-close{
-  position:absolute;top:16px;right:16px;z-index:220;
-  width:44px;height:44px;border-radius:50%;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
-  color:#fff;font-size:1.3rem;font-weight:800;cursor:pointer;
-  display:grid;place-items:center;
-  transition:background .18s,transform .18s;
-  -webkit-tap-highlight-color:transparent;
-}
-.viewer-close:hover{background:rgba(255,255,255,.18);transform:scale(1.05)}
-.viewer-close:active{transform:scale(.92)}
-
-.viewer-stage{
-  position:relative;
-  width:min(260px,68vw);
-  aspect-ratio:3/4.4;
-  perspective:1400px;
-  /* ★ CLAVE PARA ANDROID: bloquea scroll/zoom nativo */
-  touch-action:none;
-  -ms-touch-action:none;
-  user-select:none;
-  -webkit-user-select:none;
-  -webkit-touch-callout:none;
-  -webkit-tap-highlight-color:transparent;
-  cursor:grab;
-  transform:scale(var(--zoom,1));
-  transition:transform .18s ease;
-}
-.viewer-stage.grabbing{cursor:grabbing;transition:none}
-
-.viewer-card{
-  position:absolute;inset:0;
-  transform-style:preserve-3d;
-  transform:rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));
-  transition:transform .12s ease-out;
-  will-change:transform;
-  pointer-events:none;   /* ★ deja que el stage capture todos los toques */
-}
-.viewer-stage.grabbing .viewer-card{transition:none}
-
-.viewer-face{
-  position:absolute;inset:0;
-  border-radius:var(--radius-lg);
-  overflow:hidden;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-  background:linear-gradient(160deg,#1a1030,#0f0a1c 55%,#241238);
-  pointer-events:none;
-}
-
-.viewer-front{
-  transform:translateZ(calc(var(--card-depth) / 2));
-  border:2px solid rgba(255,255,255,.15);
-}
-.viewer-front img{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;display:block;
-  pointer-events:none;
-  -webkit-user-drag:none;
-}
-.viewer-front .v-ph{
-  position:absolute;inset:0;display:grid;place-items:center;
-  font-size:5rem;font-weight:900;color:rgba(255,255,255,.16);
-  background:linear-gradient(150deg,#2a1745,#4c1d95 50%,#1e1030);
-  pointer-events:none;
-}
-.viewer-front .v-shade{
-  position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(to top,rgba(5,2,12,.96) 0%,rgba(5,2,12,.7) 28%,transparent 58%);
-}
-.viewer-front .v-info{
-  position:absolute;left:0;right:0;bottom:0;
-  padding:14px 14px 16px;text-align:center;
-  pointer-events:none;
-}
-.viewer-front .v-stars{font-size:.9rem;letter-spacing:3px;margin-bottom:5px}
-.viewer-front .v-name{
-  font-size:1.05rem;font-weight:800;line-height:1.2;
-  text-shadow:0 2px 16px rgba(0,0,0,.95);
-}
-.viewer-front .v-series{
-  font-size:.72rem;color:#cbbcdf;margin-top:4px;
-  text-shadow:0 1px 8px rgba(0,0,0,.9);
-}
-.viewer-front .v-badge{
-  display:inline-block;margin-top:8px;
-  font-size:.6rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
-  padding:3px 10px;border-radius:999px;
-  border:1px solid currentColor;
-}
-
-.viewer-front::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.18) 48%,transparent 62%);
-  transform:translateX(-130%);
-  opacity:.9;
-  mix-blend-mode:screen;
-}
-.viewer-stage:not(.grabbing) .viewer-front::after{
-  animation:viewerShine 3.5s ease-in-out infinite;
-}
-@keyframes viewerShine{
-  0%,70%{transform:translateX(-130%)}
-  100%{transform:translateX(130%)}
-}
-
-.viewer-back{
-  transform:rotateY(180deg) translateZ(calc(var(--card-depth) / 2));
-  background:
-    radial-gradient(circle at 50% 35%,rgba(192,132,252,.42),transparent 62%),
-    linear-gradient(150deg,#2a1745,#3b1d5c 45%,#160c26);
-  border:2px solid rgba(192,132,252,.45);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-  overflow:hidden;
-}
-.viewer-back::before{
-  content:'';position:absolute;inset:0;
-  background-image:
-    radial-gradient(circle at 20% 20%,rgba(244,114,182,.18) 1.5px,transparent 2px),
-    radial-gradient(circle at 80% 70%,rgba(192,132,252,.18) 1.5px,transparent 2px),
-    radial-gradient(circle at 50% 50%,rgba(251,191,36,.12) 1px,transparent 1.5px);
-  background-size:36px 36px,44px 44px,28px 28px;
-  opacity:.7;
-  pointer-events:none;
-}
-.viewer-back::after{
-  content:'';position:absolute;inset:10px;
-  border-radius:calc(var(--radius-lg) - 6px);
-  border:1px dashed rgba(244,114,182,.35);
-  pointer-events:none;
-}
-.viewer-back-ring{
-  width:42%;aspect-ratio:1;max-width:150px;
-  border-radius:50%;
-  border:2px dashed rgba(244,114,182,.6);
-  display:grid;place-items:center;
-  animation:spin 14s linear infinite;
-  position:relative;
-  z-index:1;
-}
-.viewer-back-logo{
-  font-size:clamp(2.4rem,10vw,3.6rem);
-  color:var(--gold);
-  text-shadow:0 0 30px rgba(251,191,36,.9),0 0 60px rgba(251,191,36,.5);
-  line-height:1;
-}
-.viewer-back-text{
-  font-weight:900;letter-spacing:8px;font-size:clamp(.75rem,2.6vw,.9rem);
-  color:rgba(255,255,255,.45);
-  padding-left:8px;
-  position:relative;z-index:1;
-  text-shadow:0 1px 8px rgba(0,0,0,.8);
-}
-
-.viewer-side{
-  position:absolute;
-  pointer-events:none;
-  background:linear-gradient(180deg,#2a1745,#1a0e2e 50%,#241238);
-  transform-style:preserve-3d;
-}
-.viewer-side-left{
-  top:8px;bottom:8px;left:0;
-  width:var(--card-depth);
-  transform-origin:left center;
-  transform:translateZ(calc(var(--card-depth) / -2)) rotateY(-90deg);
-  background:linear-gradient(90deg,#241238,#1a0e2e);
-}
-.viewer-side-right{
-  top:8px;bottom:8px;right:0;
-  width:var(--card-depth);
-  transform-origin:right center;
-  transform:translateZ(calc(var(--card-depth) / -2)) rotateY(90deg);
-  background:linear-gradient(90deg,#1a0e2e,#241238);
-}
-.viewer-side-top{
-  left:8px;right:8px;top:0;
-  height:var(--card-depth);
-  transform-origin:center top;
-  transform:translateZ(calc(var(--card-depth) / -2)) rotateX(90deg);
-  background:linear-gradient(180deg,#3b1d5c,#241238);
-}
-.viewer-side-bottom{
-  left:8px;right:8px;bottom:0;
-  height:var(--card-depth);
-  transform-origin:center bottom;
-  transform:translateZ(calc(var(--card-depth) / -2)) rotateX(-90deg);
-  background:linear-gradient(180deg,#241238,#160c26);
-}
-
-.viewer-card.rare-comun .viewer-front,
-.viewer-card.rare-comun .viewer-back{
-  border-color:var(--c-comun);
-  box-shadow:0 0 44px rgba(110,231,168,.35);
-}
-.viewer-card.rare-rara .viewer-front,
-.viewer-card.rare-rara .viewer-back{
-  border-color:var(--c-rara);
-  box-shadow:0 0 52px rgba(96,165,250,.45);
-}
-.viewer-card.rare-epica .viewer-front,
-.viewer-card.rare-epica .viewer-back{
-  border-color:var(--c-epica);
-  box-shadow:0 0 66px rgba(192,132,252,.6);
-}
-.viewer-card.rare-legendaria .viewer-front,
-.viewer-card.rare-legendaria .viewer-back{
-  border-color:var(--c-legendaria);
-  box-shadow:0 0 90px rgba(251,191,36,.75);
-  animation:legendPulseViewer 2s ease-in-out infinite;
-}
-@keyframes legendPulseViewer{
-  0%,100%{box-shadow:0 0 70px rgba(251,191,36,.55)}
-  50%    {box-shadow:0 0 120px rgba(251,191,36,1)}
-}
-
-.viewer-controls{
-  position:absolute;left:50%;bottom:24px;transform:translateX(-50%);
-  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
-  z-index:215;padding:0 12px;width:100%;max-width:520px;
-  pointer-events:auto;
-}
-.viewer-btn{
-  font-family:inherit;font-size:.8rem;font-weight:800;letter-spacing:.3px;
-  padding:9px 16px;border-radius:11px;
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);
-  color:#fff;cursor:pointer;
-  display:inline-flex;align-items:center;gap:6px;
-  transition:background .18s,transform .18s;
-  -webkit-tap-highlight-color:transparent;
-  white-space:nowrap;
-  touch-action:manipulation;
-}
-.viewer-btn:hover{background:rgba(255,255,255,.2)}
-.viewer-btn:active{transform:scale(.94)}
-.viewer-hint{
-  position:absolute;top:16px;left:50%;transform:translateX(-50%);
-  font-size:.75rem;color:var(--txt-dim);
-  background:rgba(0,0,0,.5);border:1px solid var(--panel-brd);
-  padding:6px 14px;border-radius:999px;z-index:215;
-  text-align:center;white-space:nowrap;
-  max-width:calc(100vw - 100px);
-  overflow:hidden;text-overflow:ellipsis;
-}
-
-@media(max-width:560px){
-  .viewer-controls{bottom:18px}
-  .viewer-btn{padding:8px 13px;font-size:.75rem}
-  .viewer-hint{font-size:.7rem;padding:5px 11px}
-  .viewer-close{top:12px;right:12px;width:40px;height:40px}
-}
-
-/* ============================================================
-   TIENDA
-   ============================================================ */
-.shop{padding:20px 0 30px}
-.shop-title{text-align:center;margin-bottom:20px}
-.shop-title h2{font-size:clamp(1.2rem,5vw,1.5rem);font-weight:800;letter-spacing:.8px}
-.shop-title p{color:var(--txt-dim);font-size:.84rem;margin-top:6px}
-
-.shop-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;margin-bottom:20px;
-}
-.shop-card{
-  background:var(--panel);border:1px solid var(--panel-brd);
-  border-radius:var(--radius-lg);padding:20px;text-align:center;
-  display:flex;flex-direction:column;gap:10px;align-items:center;
-  transition:transform .18s,border-color .18s;
-}
-@media(hover:hover){.shop-card:hover{transform:translateY(-4px);border-color:var(--accent)}}
-.shop-icon{font-size:2.4rem;filter:drop-shadow(0 0 14px rgba(192,132,252,.5))}
-.shop-card h3{font-size:1rem;font-weight:800;letter-spacing:.3px}
-.shop-card p{font-size:.78rem;color:var(--txt-dim);line-height:1.4}
-.shop-card .reward{
-  font-size:.82rem;font-weight:800;color:var(--gold);
-  background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);
-  padding:4px 12px;border-radius:999px;
-}
-.shop-card .cd{
-  font-size:.72rem;color:var(--txt-dim);
-  font-variant-numeric:tabular-nums;
-}
-.shop-card .btn{width:100%;margin-top:auto}
-
-/* ============================================================
-   MINIJUEGO — MEMORIA EMOJI
-   ============================================================ */
-.mem-wrap{
-  background:linear-gradient(150deg,rgba(251,191,36,.10),rgba(245,158,11,.02));
-  border:1px solid rgba(251,191,36,.35);
-  border-radius:var(--radius-lg);padding:18px;margin-bottom:20px;
-  box-shadow:0 14px 44px rgba(251,191,36,.10);
-}
-.mem-head{
-  display:flex;flex-direction:column;gap:12px;
-  margin-bottom:16px;
-}
-.mem-head h3{font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:8px}
-.mem-head p{font-size:.78rem;color:var(--txt-dim);margin-top:4px;line-height:1.4}
-.mem-info{display:flex;gap:8px;flex-wrap:wrap}
-.mem-info span{
-  font-size:.78rem;font-weight:900;
-  background:rgba(0,0,0,.4);border:1px solid var(--panel-brd);
-  padding:6px 12px;border-radius:999px;
-  font-variant-numeric:tabular-nums;
-  white-space:nowrap;
-}
-.mem-info span#memLives{color:#f87171;letter-spacing:2px}
-.mem-info span#memRound{color:#60a5fa}
-.mem-info span#memScore{color:var(--gold)}
-
-.mem-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:8px;
-  width:100%;max-width:400px;
-  margin:0 auto 14px;
-}
-.mem-card{
-  aspect-ratio:1;
-  border-radius:12px;
-  background:transparent;
-  border:none;
-  cursor:pointer;
-  position:relative;
-  transform-style:preserve-3d;
-  transition:transform .42s cubic-bezier(.2,.8,.3,1);
-  padding:0;
-  font-family:inherit;
-  -webkit-tap-highlight-color:transparent;
-  perspective:800px;
-}
-.mem-card:disabled{cursor:default}
-.mem-card .mem-face{
-  position:absolute;inset:0;
-  border-radius:12px;
-  display:grid;place-items:center;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-  font-size:clamp(1.3rem,5vw,1.85rem);
-  transition:box-shadow .2s;
-}
-.mem-card .mem-back{
-  background:
-    radial-gradient(circle at 40% 30%,rgba(192,132,252,.35),transparent 65%),
-    linear-gradient(150deg,#3b1d5c,#1e1030);
-  border:1px solid rgba(192,132,252,.35);
-  color:rgba(192,132,252,.55);
-  font-size:clamp(1rem,4vw,1.35rem);font-weight:900;
-  box-shadow:inset 0 0 16px rgba(192,132,252,.18);
-}
-@media(hover:hover){
-  .mem-card:hover:not(:disabled) .mem-back{
-    border-color:var(--accent);
-    box-shadow:inset 0 0 22px rgba(192,132,252,.35);
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --pink:#ff2d92; --purple:#8b5cf6; --cyan:#22d3ee; --gold:#fbbf24;
+    --bg:#07030f; --panel:#0d0620; --panel2:#150b26;
+    --border:#3d2561; --border2:#5b3fa0;
+    --text:#e9e2ff; --muted:#8a7bb0;
+    --comun:#ffb6c1; --rara:#ff8383; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee;
+    --sidebar-w: 250px;
+    --ok:#22c55e; --err:#ef4444;
   }
-}
-.mem-card .mem-front{
-  background:
-    radial-gradient(circle at 50% 40%,rgba(251,191,36,.35),transparent 65%),
-    linear-gradient(140deg,#3b2400,#1a0e00);
-  border:1px solid var(--gold);
-  transform:rotateY(180deg);
-  box-shadow:0 0 18px rgba(251,191,36,.45);
-  filter:drop-shadow(0 0 6px rgba(251,191,36,.4));
-}
-.mem-card.flipped{transform:rotateY(180deg)}
-.mem-card.matched{pointer-events:none}
-.mem-card.matched .mem-front{
-  animation:memMatched .55s ease forwards;
-  background:
-    radial-gradient(circle at 50% 40%,rgba(110,231,168,.5),transparent 65%),
-    linear-gradient(140deg,#0a2a1c,#04140d);
-  border-color:var(--c-comun);
-  box-shadow:0 0 24px rgba(110,231,168,.6);
-}
-@keyframes memMatched{
-  0%  {transform:rotateY(180deg) scale(1)}
-  45% {transform:rotateY(180deg) scale(1.18)}
-  100%{transform:rotateY(180deg) scale(.92);opacity:.42}
-}
-.mem-card.shake{animation:memShake .4s ease}
-@keyframes memShake{
-  0%,100%{transform:rotateY(180deg) translateX(0)}
-  25%    {transform:rotateY(180deg) translateX(-7px)}
-  75%    {transform:rotateY(180deg) translateX(7px)}
-}
-.mem-card.shake .mem-front{
-  background:
-    radial-gradient(circle at 50% 40%,rgba(248,113,113,.45),transparent 65%),
-    linear-gradient(140deg,#3b0d0d,#1a0505);
-  border-color:#f87171;
-  box-shadow:0 0 20px rgba(248,113,113,.6);
-}
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shimmer { 0%{background-position: -200% 0} 100%{background-position: 200% 0} }
+  @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(139,92,246,.35)} 50%{box-shadow:0 0 35px rgba(255,45,146,.55)} }
+  @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pop { 0%{transform:scale(.9);opacity:0} 60%{transform:scale(1.03)} 100%{transform:scale(1);opacity:1} }
+  @keyframes toastIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
 
-.mem-feedback{
-  text-align:center;font-size:.85rem;font-weight:800;
-  min-height:24px;margin-bottom:12px;
-  transition:color .2s;
-}
-.mem-feedback.ok{color:#6ee7a8}
-.mem-feedback.bad{color:#f87171}
-.mem-feedback.gold{color:var(--gold)}
-
-.minigame-foot{
-  display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;
-  text-align:center;
-}
-.minigame-foot .cd{
-  font-size:.75rem;color:var(--txt-dim);font-variant-numeric:tabular-nums;
-}
-.btn-gold.mg-ready{animation:mgReady 1.8s ease-in-out infinite}
-@keyframes mgReady{
-  0%,100%{box-shadow:0 10px 30px rgba(251,191,36,.45)}
-  50%    {box-shadow:0 14px 46px rgba(251,191,36,1)}
-}
-
-/* ============================================================
-   DUPLICADOS
-   ============================================================ */
-.dupes-wrap{
-  background:var(--panel);border:1px solid var(--panel-brd);
-  border-radius:var(--radius-lg);padding:18px;
-}
-.dupes-head{
-  display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
-  margin-bottom:14px;
-}
-.dupes-head h3{font-size:1.05rem;font-weight:800}
-.dupes-head p{font-size:.78rem;color:var(--txt-dim)}
-.dupes-list{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:9px;
-}
-.dupe-item{
-  display:flex;align-items:center;gap:10px;
-  background:rgba(0,0,0,.28);border:1px solid var(--panel-brd);
-  border-radius:12px;padding:9px 11px;
-}
-.dupe-item .dot{
-  width:10px;height:10px;border-radius:50%;flex-shrink:0;
-}
-.dupe-item .info{flex:1;min-width:0}
-.dupe-item .info .nm{
-  font-size:.8rem;font-weight:800;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.dupe-item .info .sub{
-  font-size:.66rem;color:var(--txt-dim);margin-top:1px;
-}
-.dupe-item .sell{
-  font-family:inherit;font-size:.72rem;font-weight:800;
-  background:linear-gradient(100deg,#f59e0b,#fbbf24);color:#1a0b2e;
-  border:none;border-radius:9px;padding:8px 12px;cursor:pointer;
-  white-space:nowrap;transition:transform .15s;
-  min-height:34px;
-}
-.dupe-item .sell:hover{transform:scale(1.06)}
-.dupe-item .sell:disabled{opacity:.4;cursor:not-allowed;transform:none}
-
-.dupes-empty{
-  text-align:center;color:var(--txt-dim);font-size:.85rem;padding:24px 10px;
-}
-
-/* ============================================================
-   PERFIL
-   ============================================================ */
-.profile{padding:20px 0 30px;max-width:820px;margin:0 auto}
-.profile-hero{
-  text-align:center;
-  background:linear-gradient(150deg,rgba(124,58,237,.22),rgba(219,39,119,.12));
-  border:1px solid var(--panel-brd);
-  border-radius:var(--radius-lg);padding:24px 18px;margin-bottom:16px;
-}
-.profile-hero .avatar{
-  width:80px;height:80px;border-radius:50%;margin:0 auto 12px;
-  background:linear-gradient(140deg,#c084fc,#f472b6);
-  display:grid;place-items:center;
-  font-size:2.4rem;font-weight:900;color:#1a0b2e;
-  box-shadow:0 10px 34px rgba(192,132,252,.55);
-}
-.profile-hero h2{font-size:1.35rem;font-weight:800}
-.profile-hero .coins-hero{
-  font-size:clamp(1.5rem,7vw,1.9rem);font-weight:900;color:var(--gold);
-  margin-top:8px;font-variant-numeric:tabular-nums;
-}
-.profile-hero .coins-hero small{font-size:.78rem;color:var(--txt-dim);font-weight:700;display:block;letter-spacing:1px}
-
-.stat-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:10px;margin-bottom:16px;
-}
-.stat{
-  background:var(--panel);border:1px solid var(--panel-brd);
-  border-radius:14px;padding:14px 15px;
-}
-.stat .k{font-size:.68rem;color:var(--txt-dim);font-weight:700;letter-spacing:1px;text-transform:uppercase}
-.stat .v{font-size:1.4rem;font-weight:900;margin-top:4px;font-variant-numeric:tabular-nums}
-
-.rarity-bars{
-  background:var(--panel);border:1px solid var(--panel-brd);
-  border-radius:var(--radius);padding:16px;
-}
-.rarity-bars h3{font-size:.95rem;font-weight:800;margin-bottom:12px}
-.bar-row{display:flex;align-items:center;gap:9px;margin-bottom:10px;font-size:.78rem;font-weight:700}
-.bar-row .lbl{width:82px;flex-shrink:0}
-.bar-row .track{
-  flex:1;height:9px;border-radius:999px;background:rgba(0,0,0,.4);
-  overflow:hidden;
-}
-.bar-row .fill{height:100%;border-radius:999px;transition:width .6s ease}
-.bar-row .num{width:44px;text-align:right;color:var(--txt-dim);font-variant-numeric:tabular-nums}
-
-/* ============================================================
-   FOOTER & TOAST
-   ============================================================ */
-.footer{
-  position:fixed;left:0;right:0;bottom:0;z-index:40;
-  text-align:center;font-size:.72rem;color:var(--txt-dim);
-  padding:11px 12px;background:rgba(11,7,20,.9);
-  backdrop-filter:blur(10px);
-  border-top:1px solid var(--panel-brd);
-  padding-bottom:calc(11px + env(safe-area-inset-bottom));
-}
-.toast{
-  position:fixed;left:50%;bottom:80px;transform:translate(-50%,26px);
-  background:rgba(20,12,34,.96);border:1px solid var(--accent);
-  color:var(--txt);font-size:.83rem;font-weight:600;
-  padding:11px 20px;border-radius:12px;
-  box-shadow:0 14px 40px rgba(0,0,0,.6);
-  opacity:0;pointer-events:none;transition:.3s;z-index:100;
-  max-width:calc(100vw - 32px);text-align:center;
-}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.gold{border-color:var(--gold);color:var(--gold)}
-.toast.error{border-color:#f87171;color:#fca5a5}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media(max-width:640px){
-  .controls{
-    flex-direction:column;
-    align-items:stretch;
-    max-width:340px;
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, rgba(13,6,32,.6), rgba(7,3,15,.8));
+    border-radius: 10px;
   }
-  .controls .btn{width:100%}
-  .btn{padding:14px 20px;font-size:.92rem}
-  .shop-grid{grid-template-columns:1fr}
-  .stat-grid{grid-template-columns:repeat(2,1fr)}
-  .bar-row .lbl{width:70px;font-size:.72rem}
-}
-
-@media(max-width:480px){
-  .tabs{
-    width:calc(100% - 28px);
-    margin:18px auto 8px;
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--pink), var(--purple), var(--cyan));
+    border-radius: 10px;
+    border: 2px solid rgba(13,6,32,.9);
+    box-shadow: inset 0 0 6px rgba(255,45,146,.5), 0 0 12px rgba(139,92,246,.4);
   }
-  .viewer-stage{width:min(230px,72vw)}
-}
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--pink), var(--cyan), var(--purple));
+    box-shadow: inset 0 0 8px rgba(255,45,146,.7), 0 0 20px rgba(34,211,238,.6);
+  }
+  *::-webkit-scrollbar-corner { background: transparent; }
+  * { scrollbar-width: thin; scrollbar-color: var(--purple) rgba(13,6,32,.8); }
 
-@media(max-width:420px){
-  .tab{padding:10px 4px;gap:2px}
-  .tab span.tab-label{display:none}
-  .tab .tab-icon{font-size:1.05rem}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:8px}
-  .gcard .g-name{font-size:.6rem}
-  .filters{flex-direction:column;align-items:stretch}
-  .filters input[type=search],
-  .filters select,
-  .switch{width:100%}
-  .switch{justify-content:flex-start}
-  .mem-info{width:100%}
-  .mem-info span{flex:1;text-align:center;font-size:.72rem;padding:6px 8px}
-  .minigame-foot{flex-direction:column;gap:8px}
-  .minigame-foot .btn{width:100%}
-  .dupes-list{grid-template-columns:1fr}
-  .stat-grid{grid-template-columns:1fr}
-  .card-info h2{font-size:.9rem}
-}
+  html,body{ height:100%; }
+  body{
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before{
+    content:''; position:fixed; inset:0; z-index:-2;
+    background:
+      radial-gradient(circle at 15% 15%, rgba(255,45,146,.15), transparent 45%),
+      radial-gradient(circle at 85% 25%, rgba(139,92,246,.22), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(34,211,238,.15), transparent 45%),
+      linear-gradient(180deg, #07030f, #0a0518 50%, #07030f);
+  }
+  body::after{
+    content:''; position:fixed; inset:0; z-index:-1; opacity:.30; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(139,92,246,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 100%);
+  }
+  .scanline{
+    position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background: linear-gradient(transparent 0%, rgba(139,92,246,.06) 50%, transparent 100%);
+    height: 20vh; width:100%;
+    animation: scanline 8s linear infinite;
+    opacity:.4;
+  }
 
-@media(max-width:360px){
-  .topbar h1{font-size:1.55rem}
-  .mem-grid{gap:6px}
-  .viewer-stage{width:min(200px,74vw)}
-}
+  #toast-wrap{
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 99999;
+    display:flex; flex-direction:column; gap: 8px;
+    align-items: center;
+    pointer-events: none;
+  }
+  .toast{
+    padding: 14px 22px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(21,11,38,.98), rgba(13,6,32,.98));
+    border: 1px solid var(--purple);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    box-shadow: 0 0 30px rgba(139,92,246,.5), inset 0 1px 0 rgba(255,255,255,.1);
+    animation: toastIn .3s ease;
+    max-width: 90vw;
+    text-align: center;
+    pointer-events: auto;
+  }
+  .toast.ok{ border-color: var(--ok); box-shadow: 0 0 30px rgba(34,197,94,.45); }
+  .toast.err{ border-color: var(--err); box-shadow: 0 0 30px rgba(239,68,68,.45); }
+  .toast.hide{ animation: toastOut .3s ease forwards; }
+
+  .layout{ display: flex; min-height: 100vh; position: relative; }
+
+  .sidebar{
+    width: var(--sidebar-w);
+    background: linear-gradient(180deg, rgba(13,6,32,.98), rgba(7,3,15,.98));
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform .3s ease;
+    backdrop-filter: blur(10px);
+  }
+  .sidebar::before{
+    content:''; position:absolute; top:0; right:0; width:2px; height:100%;
+    background: linear-gradient(180deg, transparent, var(--purple), var(--pink), transparent);
+    opacity:.5;
+  }
+
+  .sidebar-brand{
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .sidebar-brand .logo{
+    font-size: 22px; font-weight: 900; letter-spacing: 1.5px;
+    background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink));
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+    text-transform: uppercase; line-height: 1.1;
+  }
+  .sidebar-brand .sub{
+    font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); margin-top: 6px;
+  }
+  .sidebar-brand .badge-dot{
+    position:absolute; top: 24px; right: 20px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--cyan); box-shadow: 0 0 12px var(--cyan);
+    animation: pulse 2s infinite;
+  }
+
+  .sidebar-user{
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; font-size: 12px;
+  }
+  .sidebar-user .avatar-sm{
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 15px;
+    border: 1.5px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 15px rgba(139,92,246,.4);
+    flex-shrink: 0;
+  }
+  .sidebar-user .uinfo{ min-width: 0; flex: 1; }
+  .sidebar-user .uname{
+    font-weight: 700; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; font-size: 12px;
+  }
+  .sidebar-user .utag{
+    color: var(--muted); font-size: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .sidebar-nav{
+    flex: 1; padding: 14px 12px;
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+
+  .nav-item{
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 10px;
+    color: var(--muted); font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; border: 1px solid transparent;
+    background: transparent; transition: .2s;
+    text-align: left; font-family: inherit; width: 100%;
+    position: relative;
+  }
+  .nav-item .icon{ font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+  .nav-item:hover:not(.active){
+    color: var(--text);
+    background: rgba(139,92,246,.08);
+    border-color: rgba(139,92,246,.25);
+  }
+  .nav-item.active{
+    color: var(--text);
+    background: linear-gradient(90deg, rgba(255,45,146,.18), rgba(139,92,246,.15));
+    border-color: var(--purple);
+    box-shadow: inset 0 0 20px rgba(139,92,246,.2), 0 0 15px rgba(139,92,246,.2);
+  }
+  .nav-item.active::before{
+    content:''; position:absolute; left: -12px; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 60%;
+    background: linear-gradient(180deg, var(--pink), var(--cyan));
+    border-radius: 3px; box-shadow: 0 0 10px var(--pink);
+  }
+
+  .sidebar-footer{
+    padding: 14px 12px; border-top: 1px solid var(--border);
+  }
+  .btn-logout{
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-radius: 10px;
+    background: transparent; border: 1px solid rgba(239,68,68,.3);
+    color: #fca5a5; font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    font-family: inherit; transition: .2s;
+  }
+  .btn-logout:hover{
+    background: rgba(239,68,68,.1);
+    border-color: rgba(239,68,68,.6);
+    box-shadow: 0 0 20px rgba(239,68,68,.25);
+    transform: translateX(2px);
+  }
+  .btn-logout .icon{ font-size: 15px; }
+
+  .main{ flex: 1; margin-left: var(--sidebar-w); padding: 26px 24px 60px; min-width: 0; }
+  .main-inner{ max-width: 1080px; margin: 0 auto; }
+
+  .topbar{
+    display: none; align-items: center; gap: 12px;
+    padding: 12px 16px; background: rgba(13,6,32,.9);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 90;
+    backdrop-filter: blur(10px);
+  }
+  .hamburger{
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(139,92,246,.15); border: 1px solid var(--border);
+    color: var(--text); font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; box-shadow: none;
+  }
+  .hamburger:hover{ background: rgba(139,92,246,.25); transform: none; }
+  .topbar-title{
+    font-size: 14px; font-weight: 800; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink), var(--cyan));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase; flex: 1; text-align: right;
+  }
+
+  .overlay{
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 95;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.show{ display: block; }
+
+  .card{
+    background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(13,6,32,.95));
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 22px 20px; position:relative; overflow:hidden;
+    box-shadow: 0 0 30px rgba(139,92,246,.15), inset 0 1px 0 rgba(255,255,255,.04);
+    margin-bottom: 16px;
+  }
+  .card::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
+  }
+  .card::after{
+    content:''; position:absolute; top:8px; right:8px; width:14px; height:14px;
+    border-top:2px solid var(--cyan); border-right:2px solid var(--cyan);
+    opacity:.6;
+  }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; animation: slideUp .4s ease; }
+  .tab-content{ display:none; }
+  .tab-content.active{ display:block; animation: slideUp .3s ease; }
+
+  label { display:block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  input{
+    width:100%; padding: 14px 16px; border-radius: 10px;
+    border: 1px solid var(--border); background: #0a0420; color: var(--text);
+    font-size: 15px; outline: none; transition: .2s; font-family: inherit;
+  }
+  input:focus{ border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,.25), 0 0 20px rgba(139,92,246,.3); }
+
+  button{
+    padding: 14px 18px; border: none; border-radius: 10px;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    color: white; font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: .2s;
+    text-transform: uppercase; letter-spacing: 1px;
+    font-family: inherit;
+    box-shadow: 0 0 20px rgba(255,45,146,.35), inset 0 1px 0 rgba(255,255,255,.15);
+  }
+  button:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 0 30px rgba(255,45,146,.55), inset 0 1px 0 rgba(255,255,255,.2); }
+  button:active:not(:disabled){ transform: translateY(0) scale(.98); }
+  button:disabled{ opacity: .5; cursor: not-allowed; box-shadow:none; }
+  .btn-full{ width:100%; margin-top: 16px; }
+  .btn-ghost{
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); box-shadow:none;
+  }
+  .btn-ghost:hover{ color: var(--text); border-color: var(--purple); box-shadow: 0 0 15px rgba(139,92,246,.3); }
+
+  .msg{ margin-top: 14px; padding: 12px; border-radius: 10px; font-size: 13px; display: none; font-weight: 500; }
+  .msg.err{ display:block; background: rgba(239,68,68,.12); color:#fca5a5; border:1px solid rgba(239,68,68,.4); }
+  .msg.ok { display:block; background: rgba(34,211,238,.12); color:#7ae6f5; border:1px solid rgba(34,211,238,.4); }
+
+  .tabs{ display:flex; gap:6px; margin-bottom: 18px; background: rgba(13,6,32,.7); padding:5px; border-radius:12px; border:1px solid var(--border); flex-wrap: wrap; backdrop-filter: blur(6px); }
+  .tab{
+    flex:1; min-width: 80px; padding:10px 6px; border-radius: 8px;
+    cursor:pointer; font-size: 11px; color: var(--muted);
+    text-align:center; background: transparent; border:none;
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+    transition: .2s; font-family: inherit; box-shadow:none;
+  }
+  .tab:hover:not(.active){ color: var(--text); }
+  .tab.active{
+    background: linear-gradient(90deg, rgba(255,45,146,.25), rgba(139,92,246,.25));
+    color: var(--text);
+    box-shadow: inset 0 0 20px rgba(139,92,246,.3), 0 0 15px rgba(139,92,246,.25);
+  }
+
+  /* SUB-TABS (dentro de tienda) */
+  .subtabs{
+    display:flex; gap:8px; margin-bottom: 20px; flex-wrap:wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+  .subtab{
+    padding: 10px 18px; border-radius: 20px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font-size: 11px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    font-family: inherit; transition: .2s;
+    box-shadow: none;
+  }
+  .subtab:hover:not(.active){ color: var(--text); border-color: var(--border2); box-shadow: none; transform: none; }
+  .subtab.active{
+    background: linear-gradient(90deg, rgba(255,45,146,.25), rgba(139,92,246,.25));
+    color: var(--text); border-color: var(--purple);
+    box-shadow: inset 0 0 20px rgba(139,92,246,.25), 0 0 15px rgba(139,92,246,.3);
+  }
+
+  .profile{
+    display:flex; align-items:center; gap:16px;
+    padding: 16px; border-radius: 14px;
+    background: rgba(10,4,32,.7); border: 1px solid var(--border);
+    margin-bottom: 16px; position:relative;
+  }
+  .avatar{
+    width: 64px; height: 64px; border-radius: 12px; flex-shrink:0;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items:center; justify-content:center;
+    font-size: 26px; font-weight: 900;
+    border: 2px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 25px rgba(139,92,246,.5);
+    overflow:hidden;
+  }
+  .avatar img{ width:100%; height:100%; object-fit: cover; }
+  .profile-info{ flex:1; min-width:0; }
+  .profile-info .name{ font-size: 17px; font-weight: 800; letter-spacing: .3px; }
+  .profile-info .tag{ font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .plus-badge{
+    display: inline-block; font-size: 10px; padding: 3px 10px; border-radius: 20px;
+    background: linear-gradient(90deg, #f59e0b, #ec4899);
+    color: white; font-weight: 800; margin-left: 8px; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .stats-grid{
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px; margin-bottom: 16px;
+  }
+  .stat{
+    padding: 14px 10px; border-radius: 12px;
+    background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(10,4,32,.9));
+    border: 1px solid var(--border); text-align: center;
+    position:relative; overflow:hidden;
+  }
+  .stat::before{
+    content:''; position:absolute; bottom:0; left:10%; right:10%; height:2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:.6;
+  }
+  .stat .num{
+    font-size: 22px; font-weight: 900; color: var(--cyan);
+    text-shadow: 0 0 15px rgba(34,211,238,.6);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .lbl{ font-size: 10px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 1.2px; font-weight:600; }
+
+  .rarity-bar{
+    display:flex; height: 6px; border-radius: 20px; overflow: hidden;
+    margin-bottom: 16px; background: rgba(10,4,32,.9);
+    border: 1px solid var(--border);
+  }
+  .rarity-bar > div{ height: 100%; transition: width .5s ease; }
+
+  .section-title{
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); margin: 20px 0 12px; font-weight:700;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-title::before{
+    content:''; width: 3px; height: 14px; background: linear-gradient(180deg, var(--pink), var(--cyan)); border-radius: 3px;
+    box-shadow: 0 0 10px var(--pink);
+  }
+  .section-title::after{
+    content:''; flex:1; height:1px; background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  .filters{ display:flex; gap:6px; margin-bottom: 14px; flex-wrap:wrap; }
+  .filters button{
+    font-size: 10px; padding: 7px 12px; border-radius: 20px;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 700; box-shadow:none;
+  }
+  .filters button:hover{ color: var(--text); box-shadow: 0 0 12px rgba(139,92,246,.25); }
+  .filters button.active{
+    background: linear-gradient(90deg, rgba(255,45,146,.3), rgba(139,92,246,.3));
+    color: var(--text); border-color: var(--purple);
+    box-shadow: 0 0 15px rgba(139,92,246,.4);
+  }
+
+  .grid{
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .wcard{
+    background: linear-gradient(180deg, rgba(21,11,38,.9), rgba(10,4,32,.95));
+    border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; position:relative; cursor: pointer;
+    transition: transform .2s, box-shadow .3s, border-color .3s;
+    animation: pop .3s ease;
+  }
+  .wcard:hover{ transform: translateY(-3px); box-shadow: 0 12px 30px rgba(139,92,246,.35); border-color: var(--border2); }
+  .wcard .img{
+    width: 100%; aspect-ratio: 3/4;
+    background: linear-gradient(135deg, #1a0a33, #0a0420);
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .wcard .img img{ width:100%; height:100%; object-fit: cover; display:block; }
+  .wcard .img .placeholder{
+    font-size: 42px; font-weight: 900;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    opacity:.7;
+  }
+  .wcard .info{
+    padding: 10px 10px 12px; position:relative;
+    border-top: 1px solid var(--border);
+  }
+  .wcard .name{
+    font-size: 12px; font-weight: 700; letter-spacing: .3px;
+    overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-bottom: 6px;
+  }
+  .wcard .meta{ display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  .wcard .rarity{
+    font-size: 8px; padding: 2px 8px; border-radius: 20px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    border: 1px solid currentColor;
+  }
+  .wcard .count{
+    font-size: 11px; font-weight: 800; color: var(--cyan);
+    text-shadow: 0 0 8px rgba(34,211,238,.6);
+  }
+  .wcard[data-r="comun"]{ border-color: rgba(255,182,193,.4); }
+  .wcard[data-r="comun"] .rarity{ color: var(--comun); background: rgba(255,182,193,.1); }
+  .wcard[data-r="rara"]{ border-color: rgba(255,131,131,.5); box-shadow: 0 0 20px rgba(255,131,131,.15); }
+  .wcard[data-r="rara"] .rarity{ color: var(--rara); background: rgba(255,131,131,.1); }
+  .wcard[data-r="epica"]{ border-color: rgba(167,139,250,.55); box-shadow: 0 0 22px rgba(167,139,250,.22); }
+  .wcard[data-r="epica"] .rarity{ color: var(--epica); background: rgba(167,139,250,.12); }
+  .wcard[data-r="legendaria"]{ border-color: rgba(251,191,36,.65); box-shadow: 0 0 28px rgba(251,191,36,.3); animation: glowPulse 3s infinite; }
+  .wcard[data-r="legendaria"] .rarity{ color: var(--legendaria); background: rgba(251,191,36,.12); }
+  .wcard[data-r="exclusiva"]{ border-color: rgba(34,211,238,.7); box-shadow: 0 0 30px rgba(34,211,238,.35); }
+  .wcard[data-r="exclusiva"] .rarity{ color: var(--exclusiva); background: rgba(34,211,238,.12); }
+  .wcard .cover-badge{
+    position:absolute; top:6px; right:6px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: white; font-size: 10px; font-weight: 800;
+    padding: 3px 7px; border-radius: 20px;
+    box-shadow: 0 0 12px rgba(255,45,146,.6);
+    z-index:2;
+  }
+
+  .row{
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; border-radius: 10px;
+    background: linear-gradient(180deg, rgba(21,11,38,.7), rgba(10,4,32,.7));
+    border: 1px solid var(--border); margin-bottom: 8px;
+    font-size: 13px; transition: .2s;
+  }
+  .row:hover{ border-color: var(--border2); }
+  .row .left{ display:flex; align-items:center; gap: 12px; min-width:0; flex: 1; }
+  .row .rank{
+    width: 32px; height: 32px; border-radius: 8px;
+    display:flex; align-items:center; justify-content:center;
+    font-weight: 900; font-size: 14px;
+    background: linear-gradient(135deg, rgba(255,45,146,.2), rgba(139,92,246,.2));
+    border: 1px solid var(--border);
+    flex-shrink:0; overflow: hidden;
+  }
+  .row .rank.gold{ background: linear-gradient(135deg, #fbbf24, #d97706); border-color: #fbbf24; color:#1a0a00; box-shadow: 0 0 15px rgba(251,191,36,.6); }
+  .row .rank.silver{ background: linear-gradient(135deg, #e5e7eb, #9ca3af); border-color: #e5e7eb; color:#1a0a00; box-shadow: 0 0 12px rgba(229,231,235,.5); }
+  .row .rank.bronze{ background: linear-gradient(135deg, #f59e0b, #b45309); border-color: #f59e0b; color:#1a0a00; box-shadow: 0 0 12px rgba(245,158,11,.5); }
+  .row .info{ min-width:0; flex: 1; }
+  .row .name{ font-weight: 700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 13px; }
+  .row .sub{ color: var(--muted); font-size: 10px; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+  .row .right{ color: var(--cyan); font-weight: 900; flex-shrink:0; font-variant-numeric: tabular-nums; }
+
+  .btn-buy{
+    padding: 8px 14px; border-radius: 8px; font-size: 11px;
+    font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    border: none; color: white; cursor: pointer;
+    box-shadow: 0 0 15px rgba(255,45,146,.4);
+    transition: .2s; margin-left: 8px; font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn-buy:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 0 25px rgba(255,45,146,.6); }
+  .btn-buy:disabled{ opacity: .5; cursor: not-allowed; }
+
+  .boxes-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .box-card{
+    padding: 22px 18px;
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    background: linear-gradient(180deg, rgba(21,11,38,.9), rgba(10,4,32,.95));
+    text-align: center;
+    cursor: pointer;
+    transition: .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .box-card::before{
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.05) 50%, transparent 60%);
+    background-size: 200% auto;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+  }
+  .box-card:hover::before{ opacity: 1; animation: shimmer 1.5s linear infinite; }
+  .box-card:hover{ transform: translateY(-4px); }
+  .box-card .bemoji{ font-size: 52px; line-height: 1; margin-bottom: 12px; display: block; }
+  .box-card .bname{ font-size: 15px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .box-card .bdesc{ font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 14px; min-height: 50px; }
+  .box-card .bprice{
+    font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums;
+    display: inline-flex; align-items: center; gap: 6px; justify-content: center;
+    padding: 8px 16px; border-radius: 30px;
+    background: rgba(0,0,0,.35); border: 1px solid var(--border);
+  }
+  .box-card[data-box="comun"]{ border-color: rgba(255,182,193,.45); }
+  .box-card[data-box="comun"]:hover{ box-shadow: 0 15px 40px rgba(255,182,193,.25); }
+  .box-card[data-box="comun"] .bprice{ color: var(--comun); }
+  .box-card[data-box="premium"]{ border-color: rgba(167,139,250,.55); box-shadow: 0 0 25px rgba(167,139,250,.15); }
+  .box-card[data-box="premium"]:hover{ box-shadow: 0 15px 45px rgba(167,139,250,.4); }
+  .box-card[data-box="premium"] .bprice{ color: var(--epica); }
+  .box-card[data-box="legendaria"]{ border-color: rgba(251,191,36,.65); box-shadow: 0 0 30px rgba(251,191,36,.25); animation: glowPulse 3s infinite; }
+  .box-card[data-box="legendaria"]:hover{ box-shadow: 0 15px 50px rgba(251,191,36,.55); }
+  .box-card[data-box="legendaria"] .bprice{ color: var(--legendaria); }
+
+  .auction-hero{
+    padding: 20px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(251,191,36,.15), rgba(255,45,146,.1));
+    border: 1px solid rgba(251,191,36,.5);
+    margin-bottom: 16px; position:relative; overflow:hidden;
+    animation: glowPulse 3s infinite;
+  }
+  .auction-hero::before{
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(90deg, transparent, rgba(251,191,36,.15), transparent);
+    animation: shimmer 3s linear infinite;
+    background-size: 200% auto;
+  }
+  .auction-name{ font-size: 24px; font-weight: 900; letter-spacing: 1px; margin-bottom: 6px;
+    background: linear-gradient(90deg, #fbbf24, #ff2d92, #22d3ee);
+    background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite;
+  }
+  .auction-tag{ font-size: 11px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-weight:700; }
+  .countdown{
+    font-size: 32px; font-weight: 900; font-variant-numeric: tabular-nums;
+    text-align: center; padding: 16px; margin: 12px 0;
+    background: rgba(0,0,0,.35); border-radius: 12px;
+    border: 1px solid rgba(251,191,36,.4);
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(251,191,36,.7);
+    letter-spacing: 3px;
+  }
+  .countdown.urgent{ color:#ff2d92; text-shadow: 0 0 20px rgba(255,45,146,.8); animation: pulse 1s infinite; }
+
+  .empty{ text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+  .empty .icon{ font-size: 46px; margin-bottom: 12px; display:block; opacity:.6; }
+
+  .loading{ display:inline-block; width:14px; height:14px; border:2px solid #fff; border-top-color: transparent; border-radius:50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px;}
+
+  .code-inputs{ display:flex; gap:8px; justify-content:center; margin: 20px 0; }
+  .code-inputs input{
+    width: 46px; height: 58px; text-align:center; font-size: 24px; font-weight: 900;
+    padding: 0; border-radius: 10px; letter-spacing: 0; background: #0a0420;
+  }
+  .code-inputs input:focus{ box-shadow: 0 0 0 3px rgba(139,92,246,.3), 0 0 20px rgba(139,92,246,.4); }
+
+  .hint{ color: var(--muted); font-size: 11px; text-align:center; margin-top: 14px; line-height:1.7; }
+  .hint b{ color: var(--cyan); }
+
+  .login-wrap{ min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .login-wrap .card{ max-width: 440px; width: 100%; margin: 0; }
+  .login-wrap .logo-hero{ text-align: center; margin-bottom: 22px; }
+  .login-wrap .logo-hero .l1{
+    font-size: 32px; font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink));
+    background-size: 200% auto;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+    text-transform: uppercase;
+  }
+  .login-wrap .logo-hero .l2{
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--muted); margin-top: 8px;
+  }
+
+  @media (max-width: 860px){
+    .sidebar{ transform: translateX(-100%); box-shadow: 0 0 40px rgba(0,0,0,.8); }
+    .sidebar.open{ transform: translateX(0); }
+    .main{ margin-left: 0; padding: 0 14px 40px; }
+    .topbar{ display: flex; }
+    .main-inner{ padding-top: 18px; }
+  }
+  @media (max-width: 500px){
+    .stat .num{ font-size: 18px; }
+    .grid{ grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .auction-name{ font-size: 20px; }
+    .countdown{ font-size: 26px; }
+    .row{ flex-wrap: wrap; gap: 8px; }
+    .btn-buy{ margin-left: 0; margin-top: 6px; width: 100%; }
+    .subtab{ padding: 8px 14px; font-size: 10px; }
+  }
 </style>
 </head>
 <body>
+<div class="scanline"></div>
+<div id="toast-wrap"></div>
 
-<div class="bg-orbs"><span></span><span></span><span></span></div>
-
-<div class="wallet" id="wallet">
-  <span class="coin">🪙</span>
-  <span class="amt" id="coinAmount">0</span>
-</div>
-
-<header class="topbar">
-  <h1>✦ Waifu Cards ✦</h1>
-  <p class="subtitle">Sistema de invocación por rareza</p>
-</header>
-
-<nav class="tabs" id="tabs">
-  <button class="tab active" data-tab="gacha">
-    <span class="tab-icon">✦</span><span class="tab-label">Invocar</span>
-  </button>
-  <button class="tab" data-tab="collection">
-    <span class="tab-icon">📚</span><span class="tab-label">Colección</span>
-  </button>
-  <button class="tab" data-tab="shop">
-    <span class="tab-icon">🛒</span><span class="tab-label">Tienda</span>
-  </button>
-  <button class="tab" data-tab="profile">
-    <span class="tab-icon">👤</span><span class="tab-label">Perfil</span>
-  </button>
-</nav>
-
-<main>
-
-  <section class="tab-panel active" data-tab-content="gacha">
-    <div class="gacha">
-      <div class="card-stage">
-        <div class="card" id="card">
-          <div class="card-inner">
-            <div class="card-face card-back">
-              <div class="back-ring"><span class="back-logo">✦</span></div>
-              <span class="back-text">WAIFU</span>
-            </div>
-            <div class="card-face card-front" id="cardFront">
-              <div class="ph" id="cardPh">?</div>
-              <img id="cardImg" alt="" draggable="false">
-              <div class="card-shade"></div>
-              <div class="card-shine"></div>
-              <div class="card-info">
-                <div class="card-stars" id="cardStars"></div>
-                <h2 id="cardName">— — —</h2>
-                <p id="cardSeries">Pulsa «Invocar» para empezar</p>
-                <span class="badge" id="cardBadge" hidden></span>
-              </div>
-            </div>
-          </div>
-        </div>
+<!-- ========== LOGIN ========== -->
+<div id="screen-login" class="screen active">
+  <div class="login-wrap">
+    <div class="card">
+      <div class="logo-hero">
+        <div class="l1">Jinx Waifus</div>
+        <div class="l2">◢ Collection System ◣</div>
       </div>
-
-      <div class="controls">
-        <button id="btnRoll" class="btn btn-primary">
-          ✦ Invocar x1 <small>100 🪙</small>
-        </button>
-        <button id="btnRoll10" class="btn btn-secondary">
-          ✦✦ Invocar x10 <small>900 🪙</small>
-        </button>
+      <div class="section-title">Acceso</div>
+      <div class="tabs" id="login-tabs">
+        <button class="tab active" data-mode="username">👤 @ Usuario</button>
+        <button class="tab" data-mode="id">🔢 ID</button>
       </div>
-
-      <p class="hint" id="hint">Pulsa el botón para invocar a tu waifu</p>
-      <div class="rates" id="rates"></div>
-      <div class="results" id="results"></div>
+      <label id="label-id" for="identifier">Usuario de Telegram</label>
+      <input id="identifier" type="text" placeholder="@tunombre" autocomplete="username">
+      <button id="btn-request" class="btn-full">▶ Enviar código</button>
+      <div id="msg-1" class="msg"></div>
+      <p class="hint" id="hint-1">
+        El bot te enviará un <b>código de 6 dígitos</b>.<br>
+        Debes haber hablado antes con el bot.
+      </p>
     </div>
-  </section>
-
-  <section class="tab-panel" data-tab-content="collection">
-    <div class="collection">
-      <div class="collection-head">
-        <h2>Colección <span class="counter" id="colCount">0 / 0</span></h2>
-        <div class="filters">
-          <input type="search" id="search" placeholder="🔍 Buscar personaje o serie…" autocomplete="off">
-          <select id="filterRarity">
-            <option value="all">Todas las rarezas</option>
-            <option value="legendaria">★ Legendaria</option>
-            <option value="epica">Épica</option>
-            <option value="rara">Rara</option>
-            <option value="comun">Común</option>
-          </select>
-          <label class="switch">
-            <input type="checkbox" id="onlyOwned">
-            <span>Solo obtenidas</span>
-          </label>
-        </div>
-      </div>
-      <p class="hint" style="margin-bottom:12px;text-align:center">💡 Toca una carta para verla en 3D</p>
-      <div class="grid" id="grid"></div>
-    </div>
-  </section>
-
-  <section class="tab-panel" data-tab-content="shop">
-    <div class="shop">
-      <div class="shop-title">
-        <h2>🛒 Tienda & Ganancias</h2>
-        <p>Consigue monedas para seguir invocando</p>
-      </div>
-
-      <div class="shop-grid">
-        <div class="shop-card">
-          <div class="shop-icon">🎁</div>
-          <h3>Recompensa Diaria</h3>
-          <p>Reclama monedas gratis cada 24 horas.</p>
-          <span class="reward">+250 🪙</span>
-          <span class="cd" id="dailyCd">Disponible ahora</span>
-          <button class="btn btn-gold" id="btnDaily">Reclamar</button>
-        </div>
-        <div class="shop-card">
-          <div class="shop-icon">💼</div>
-          <h3>Trabajar</h3>
-          <p>Gana monedas rápidas con un pequeño descanso.</p>
-          <span class="reward">+50 🪙</span>
-          <span class="cd" id="workCd">Listo para trabajar</span>
-          <button class="btn btn-secondary" id="btnWork">Trabajar</button>
-        </div>
-        <div class="shop-card">
-          <div class="shop-icon">💰</div>
-          <h3>Vender Todo</h3>
-          <p>Convierte todas tus copias extra en monedas al instante.</p>
-          <span class="reward" id="sellAllReward">0 🪙</span>
-          <button class="btn btn-primary" id="btnSellAll">Vender duplicados</button>
-        </div>
-      </div>
-
-      <div class="mem-wrap">
-        <div class="mem-head">
-          <div>
-            <h3>🧠 Memoria Emoji</h3>
-            <p>Toca un recuadro para revelar su emoji. Encuentra su pareja para eliminarla.
-               Cada fallo te cuesta una vida — ¡tienes 3!</p>
-          </div>
-          <div class="mem-info">
-            <span id="memLives">❤️❤️❤️</span>
-            <span id="memRound">Ronda 0</span>
-            <span id="memScore">0 🪙</span>
-          </div>
-        </div>
-        <div class="mem-grid" id="memGrid"></div>
-        <div class="mem-feedback" id="memFeedback"></div>
-        <div class="minigame-foot">
-          <button class="btn btn-gold mg-ready" id="btnMemory">▶ Jugar</button>
-          <span class="cd" id="memCd">Listo para jugar</span>
-        </div>
-      </div>
-
-      <div class="dupes-wrap">
-        <div class="dupes-head">
-          <div>
-            <h3>Copias duplicadas</h3>
-            <p>Vende una a una las copias extra de cada personaje.</p>
-          </div>
-        </div>
-        <div class="dupes-list" id="dupesList"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="tab-panel" data-tab-content="profile">
-    <div class="profile">
-      <div class="profile-hero">
-        <div class="avatar">✦</div>
-        <h2>Invocador</h2>
-        <div class="coins-hero">
-          <small>Monedas actuales</small>
-          <span id="heroCoins">0</span> 🪙
-        </div>
-      </div>
-      <div class="stat-grid">
-        <div class="stat"><div class="k">Tiradas</div><div class="v" id="stPulls">0</div></div>
-        <div class="stat"><div class="k">Personajes</div><div class="v" id="stOwned">0</div></div>
-        <div class="stat"><div class="k">Copias extra</div><div class="v" id="stDupes">0</div></div>
-        <div class="stat"><div class="k">Monedas ganadas</div><div class="v" id="stEarned">0</div></div>
-      </div>
-      <div class="rarity-bars">
-        <h3>Obtenidos por rareza</h3>
-        <div id="rarityBars"></div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer class="footer">
-  <span id="footerStats">Tiradas: 0</span>
-</footer>
-
-<div class="viewer" id="viewer" aria-hidden="true">
-  <button class="viewer-close" id="viewerClose" aria-label="Cerrar">✕</button>
-  <div class="viewer-hint" id="viewerHint">🖱️ Arrastra para rotar · Scroll para zoom</div>
-
-  <div class="viewer-stage" id="viewerStage">
-    <div class="viewer-card" id="viewerCard">
-
-      <div class="viewer-face viewer-front">
-        <div class="v-ph" id="viewerPh">?</div>
-        <img id="viewerImg" alt="" draggable="false">
-        <div class="v-shade"></div>
-        <div class="v-info">
-          <div class="v-stars" id="viewerStars"></div>
-          <div class="v-name" id="viewerName">— — —</div>
-          <div class="v-series" id="viewerSeries">—</div>
-          <span class="v-badge" id="viewerBadge"></span>
-        </div>
-      </div>
-
-      <div class="viewer-face viewer-back">
-        <div class="viewer-back-ring">
-          <span class="viewer-back-logo">✦</span>
-        </div>
-        <span class="viewer-back-text">WAIFU</span>
-      </div>
-
-      <div class="viewer-side viewer-side-left"></div>
-      <div class="viewer-side viewer-side-right"></div>
-      <div class="viewer-side viewer-side-top"></div>
-      <div class="viewer-side viewer-side-bottom"></div>
-
-    </div>
-  </div>
-
-  <div class="viewer-controls">
-    <button class="viewer-btn" id="viewerReset">↺ Reiniciar</button>
-    <button class="viewer-btn" id="viewerZoomIn">🔍+ Zoom</button>
-    <button class="viewer-btn" id="viewerZoomOut">🔍− Zoom</button>
-    <button class="viewer-btn" id="viewerFlip">↻ Voltear</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ========== CÓDIGO ========== -->
+<div id="screen-code" class="screen">
+  <div class="login-wrap">
+    <div class="card">
+      <div class="logo-hero">
+        <div class="l1">Verificación</div>
+        <div class="l2">◢ Revisa tu Telegram ◣</div>
+      </div>
+      <div class="code-inputs" id="code-inputs">
+        <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+        <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
+      </div>
+      <button id="btn-verify" class="btn-full">▶ Verificar</button>
+      <button id="btn-back" class="btn-ghost btn-full" style="margin-top:8px">← Volver</button>
+      <div id="msg-2" class="msg"></div>
+    </div>
+  </div>
+</div>
 
-<script>
-/* ============================================================
-   1. DATOS
-   ============================================================ */
-const WAIFU_DATA = {
-  "pool": {
-    "comun": {
-      "weight": 40,
-      "characters": [
-        "Asuka Langley","Rei Ayanami","Mikasa Ackerman","Nami","Bulma","Sakura Haruno",
-        "Erza Scarlet","Mabel Pines","Videl","C.C.","Mayuri","Sargento Calhoun","Darkness",
-        "Celestia Ludenberg","Rio Morales","Ouka Yuuouji","Yuragi Hakoniwa","Furano Yukihira",
-        "Shinobu Kocho","Ariel","Fern","Blancanieves","Chika Fujiwara","Hange Zoe",
-        "Lucia Caminos","Aston Machan","Special Week","Kaoruko Tenkawa","Ayumu Kasuga",
-        "Sistine Fibel","Karane Inda","Natsuki","Chie Satonaka","Colette Tatou",
-        "Kagamine Rin","Belle","Miku Nakano","marcy boonchuy","Willow Park","boscha",
-        "Vee Noceda","Raven","Bowsette","Topaz","Coraline","gogo tomago","Rumi",
-        "Rosita Vanderquack","Kiriko","Nimona","Megara","Charlotte","Leni Loud",
-        "Kendall Perkins","Lynn Loud","Lana Loud","Cookie","Candace Flynn","Kim Possible",
-        "Fischl","Cerydra","Hysilens","Linnea","cafe manhattan","Dream Journey"
-      ]
-    },
-    "rara": {
-      "weight": 30,
-      "characters": [
-        "Zero Two","Rem","Mai Sakurajima","Kurisu Makise","Rias Gremory","Wendy Corduroy",
-        "Esdeath","Ram","Lucy Heartfilia","Aqua","Vanellope","Gwen Stacy","Daphne Blake",
-        "Nijika Ijichi","Tiana","Reze","Kirigiri Kyoko","Yaniko","Kaguya Shinomiya",
-        "Rapunzel","Yui Hirasawa","Ubel","Shizuka Yoshimoto","Alisa Mikhailovna Kujou",
-        "Ember Lumen","Anna","2B","Futaba Sakura","Kasane Teto","Kobeni Higashiyama",
-        "anne boonchuy","sasha boonchuy","Eda Clawthorne","Chel","Caitlyn Kiramman",
-        "riley andersen","Sparxie","susan storm","HuoHuo","Mark Grayson",
-        "pacifica noroeste","Rosalina","Konata Izumi","Princesa Daisy","Chiaki Nanami",
-        "Mira","Tsuyu Asui","Cammy White","Stelle","Evernight","Betty Boop","Bella",
-        "Isabella","Sandrone","Kafka","Pocahontas","Androide 18","Herta","Iroha"
-      ]
-    },
-    "epica": {
-      "weight": 20,
-      "characters": [
-        "Saber","Rin Tohsaka","Asuna Yuuki","Mikoto Misaka","Yoruichi Shihouin",
-        "Mahiro Oyama","Mitsuri Kanroji","Makima","Emilia","Hinata Hyuga","Sparkle",
-        "Luz Noceda","VI","Diana","Nobara Kugisaki","Peni Parker","Ikuyo Kita",
-        "Ryo Yamada","Chun Li","Seele","Beatriz","Satanichia Kurumizawa McDowell",
-        "Utena Hiiragi","Elma","Maria Mikhailovna Kujou","Aigis","Lily",
-        "Chelsea Van Der Zee","Amity Blight","Sra. Herta","Gwen Tennyson",
-        "Elastic girl","judy hopps","star butterfly","marinette","Zoey","Jasmín",
-        "Lara Croft","Misty","Zelda","Jessie","BonBon & ChuChu","Mulan","Jane Doe",
-        "Momo Ayase","Noelle","kaguya"
-      ]
-    },
-    "legendaria": {
-      "weight": 10,
-      "characters": [
-        "Holo","Violet Evergarden","Hitagi Senjougahara","Frieren","Kanna Kamui",
-        "Himiko Toga","Anya Forger","Megumin","Jinx","Power","Nezuko Kamado",
-        "Hitori Goto","Yuno Gasai","Anko Uguisu","Agnes Tachyon","Furina","Gawr Gura",
-        "Hatsune Miku","Elsa","Tia Cass","Mita","Ellie","Princesa Peach","Harley Quinn",
-        "Mavis","Pomni","Hornet","Lola Bunny","D.Va","Yachiyo"
-      ]
-    }
-  },
-  "series": {
-    "Asuka Langley":"Neon Genesis Evangelion","Rei Ayanami":"Neon Genesis Evangelion",
-    "Mikasa Ackerman":"Attack on Titan","Nami":"One Piece","Bulma":"Dragon Ball",
-    "Sakura Haruno":"Naruto","Lucy Heartfilia":"Fairy Tail","Erza Scarlet":"Fairy Tail",
-    "Mabel Pines":"Gravity Falls","Videl":"Dragon Ball","Anya Forger":"Spy x Family",
-    "Wendy Corduroy":"Gravity Falls","Esdeath":"Akame ga Kill","Ram":"Re:Zero",
-    "Zero Two":"Darling in the Franxx","Rem":"Re:Zero","Emilia":"Re:Zero",
-    "Mai Sakurajima":"Seishun Buta Yarou","Kurisu Makise":"Steins;Gate",
-    "Rias Gremory":"High School DxD","Saber":"Fate/stay night","Rin Tohsaka":"Fate/stay night",
-    "Asuna Yuuki":"Sword Art Online","Mikoto Misaka":"Toaru Kagaku no Railgun",
-    "Yoruichi Shihouin":"Bleach","Mahiro Oyama":"Onimai","Holo":"Spice and Wolf",
-    "C.C.":"Code Geass","Violet Evergarden":"Violet Evergarden",
-    "Hitagi Senjougahara":"Monogatari Series","Frieren":"Sousou no Frieren",
-    "Kanna Kamui":"Miss Kobayashi's Dragon Maid",
-    "Mitsuri Kanroji":"Demon Slayer: Kimetsu no Yaiba","Makima":"Chainsaw Man",
-    "Himiko Toga":"My Hero Academia","Hinata Hyuga":"Naruto","Sparkle":"Honkai star rail",
-    "Megumin":"Kono Subarashii Sekai ni Shukufuku o!","Luz Noceda":"The owl house",
-    "Aqua":"Konosuba","Jinx":"Arcane","VI":"Arcane","Mayuri":"Steins Gate",
-    "Vanellope":"Ralph El Demoledor","Sargento Calhoun":"Ralph El Demoledor",
-    "Diana":"Pragmata","Darkness":"Kono Subarashii Sekai ni Shukufuku o!",
-    "Gwen Stacy":"Spider-Man: un nuevo universo","Nobara Kugisaki":"Jujutsu Kaisen",
-    "Peni Parker":"Spider-Man: un nuevo universo","Celestia Ludenberg":"Danganronpa",
-    "Rio Morales":"Spider-Man: un nuevo universo","Ouka Yuuouji":"Noucome",
-    "Yuragi Hakoniwa":"Noucome","Furano Yukihira":"Noucome","Power":"Chainsaw Man",
-    "Nezuko Kamado":"Demon Slayer: Kimetsu no Yaiba",
-    "Shinobu Kocho":"Demon Slayer: Kimetsu no Yaiba","Hitori Goto":"Bocchi the Rock!",
-    "Daphne Blake":"Scooby-Doo","Ikuyo Kita":"Bocchi the Rock!","Ryo Yamada":"Bocchi the Rock!",
-    "Nijika Ijichi":"Bocchi the Rock!","Tiana":"La princesa y el sapo","Ariel":"La Sirenita",
-    "Fern":"Sousou no Frieren","Blancanieves":"Blancanieves","Yuno Gasai":"Mirai Nikki",
-    "Chun Li":"Street Fighter","Reze":"Chainsaw Man","Kirigiri Kyoko":"Danganronpa",
-    "Yaniko":"Yani Neko","Kaguya Shinomiya":"Kaguya-sama: Love Is War",
-    "Seele":"Honkai Star Rail","Chika Fujiwara":"Kaguya-sama: Love Is War",
-    "Rapunzel":"Enredados","Hange Zoe":"Shingeki no Kyojin","Anko Uguisu":"Yofukashi no Uta",
-    "Beatriz":"RE:ZERO","Lucia Caminos":"Grand Theft Auto VI",
-    "Aston Machan":"Uma Musume: Pretty Derby","Special Week":"Uma Musume: Pretty Derby",
-    "Agnes Tachyon":"Uma Musume: Pretty Derby","Yui Hirasawa":"K-On!",
-    "Kaoruko Tenkawa":"Gushing over Magical Girls (Maho Shojo ni Akogarete)",
-    "Satanichia Kurumizawa McDowell":"Gabriel DropOut","Furina":"Genshin Impact",
-    "Ubel":"Sousou no Frieren","Utena Hiiragi":"Gushing over Magical Girls (Maho Shojo ni Akogarete)",
-    "Gawr Gura":"hololive English","Ayumu Kasuga":"Azumanga Daioh",
-    "Sistine Fibel":"Rokudenashi Majutsu Koushi to Akashic Records",
-    "Karane Inda":"The 100 Girlfriends Who Really, Really, Really, Really, Really Love You (Kimi no Koto ga Dai Dai Dai Dai Daisuki na 100-nin no Kanojo)",
-    "Elma":"Miss Kobayashi's Dragon Maid",
-    "Shizuka Yoshimoto":"The 100 Girlfriends Who Really, Really, Really, Really, Really Love You (Kimi no Koto ga Dai Dai Dai Dai Daisuki na 100-nin no Kanojo)",
-    "Alisa Mikhailovna Kujou":"Alya Sometimes Hides Her Feelings in Russian",
-    "Maria Mikhailovna Kujou":"Alya Sometimes Hides Her Feelings in Russian",
-    "Natsuki":"Doki Doki Literature Club!","Hatsune Miku":"Crypton Future Media",
-    "Ember Lumen":"Elementos","Aigis":"Persona 3","Elsa":"Frozen",
-    "Chie Satonaka":"Persona 4","Anna":"Frozen","2B":"NieR:Automata",
-    "Tía Cass":"Grandes Héroes","Colette Tatou":"Ratatouille","Lily":"Duolingo",
-    "Chelsea Van Der Zee":"Krakens y sirenas: Conoce a los Gillman",
-    "Futaba Sakura":"Persona 5","Kagamine Rin":"Vocaloid","Kasane Teto":"UTAU / Vocal Synth",
-    "Belle":"Zenless Zone Zero","Kobeni Higashiyama":"Chainsaw Man","Mita":"MiSide",
-    "Ellie":"The Last of Us Part II","anne boonchuy":"amphibia",
-    "Miku Nakano":"The Quintessential Quintuplets (Go-Tōbun no Hanayome / Las Quintillizas)",
-    "marcy boonchuy":"amphibia","sasha boonchuy":"amphibia","Amity Blight":"The owl house",
-    "Willow Park":"The owl hot","Eda Clawthorne":"The owl hot","Sra. Herta":"Honkai: Star Rail",
-    "boscha":"The owl hot","Vee Noceda":"The owl hot","Chel":"El dorado",
-    "Caitlyn Kiramman":"Arcane","Elastic girl":"Los Increíbles","Raven":"jovenes titanes",
-    "judy hopps":"zootopia","riley andersen":"intensamente","Sparxie":"Honkai: Star Rail",
-    "susan storm":"los 4 fantásticos","HuoHuo":"Honkai: Star Rail","Mark Grayson":"invincible",
-    "pacifica noroeste":"Gravity Falls","star butterfly":"Star vs la fuerza del mal",
-    "Princesa Peach":"Mario Bros","Rosalina":"Mario Bros","Konata Izumi":"Lucky Star",
-    "Princesa Daisy":"Mario Bros","Bowsette":"Mario Bros","Topaz":"Honkai: Star Rail",
-    "Coraline":"Coraline","marinette":"miraculous ladybug","gogo tomago":"Grandes heroes",
-    "Chiaki Nanami":"Danganronpa","Gwen Tennyson":"Ben 10",
-    "Mira":"HUNTR/X / K-Pop Demon Hunters","Rumi":"HUNTR/X / K-Pop Demon Hunters",
-    "Harley Quinn":"DC","Zoey":"HUNTR/X / K-Pop Demon Hunters","Mavis":"Hotel Transylvania",
-    "Pomni":"Amazing Digital Circus","Hornet":"Hollow Knight: Silksong",
-    "Tsuyu Asui":"Boku no Hero Academia","Rosita Vanderquack":"Patoaventuras",
-    "Jasmín":"Aladdín","Lola Bunny":"Tune Squad","Lara Croft":"Tomb Raider",
-    "D.Va":"Overwatch","Misty":"Pokémon","Cammy White":"Street Fighter",
-    "Zelda":"The Legend of Zelda: Breath of the Wild","Stelle":"Honkai: Star Rail",
-    "Kiriko":"Overwatch 2 x LE SSERAFIM","Jessie":"Toy Story","Evernight":"Honkai: Star Rail",
-    "Nimona":"Nimona","Betty Boop":"Talkartoons","BonBon & ChuChu":"Mime and Dash(Derpixon)",
-    "Mulan":"Disney","Megara":"Hercules","Charlotte":"The Princess and the Frog",
-    "Bella":"La bella y la bestia","Leni Loud":"The Loud House",
-    "Kendall Perkins":"Kick Buttowski","Lynn Loud":"The Loud House","Lana Loud":"The Loud House",
-    "Cookie":"Los padrinos mágicos","Isabella":"Phineas y Ferb","Jane Doe":"Zenless Zone Zero",
-    "Sandrone":"Genshin Impact","Kafka":"Honkai: Star Rail","Candace Flynn":"Phineas y Ferb",
-    "Momo Ayase":"Dandadan","Pocahontas":"Disney","Kim Possible":"Disney",
-    "Androide 18":"dragon Ball","Noelle":"Genshin Impact","Fischl":"Genshin Impact",
-    "Cerydra":"Honkai: Star Rail","Hysilens":"Honkai: Star Rail","Herta":"Honkai: Star Rail",
-    "Linnea":"Genshin Impact","kaguya":"la princesa kaguya del cosmo",
-    "Iroha":"la princesa kaguya del cosmo","Yachiyo":"la princesa kaguya del cosmo",
-    "cafe manhattan":"umamusume pretty derby","Dream Journey":"uma musume pretty derby"
-  }
+<!-- ========== PANEL ========== -->
+<div id="screen-panel" class="screen">
+  <div class="layout">
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="badge-dot"></div>
+        <div class="logo">Jinx Waifus</div>
+        <div class="sub">◢ Collection System ◣</div>
+      </div>
+
+      <div class="sidebar-user" id="sidebar-user">
+        <div class="avatar-sm" id="sb-avatar">?</div>
+        <div class="uinfo">
+          <div class="uname" id="sb-name">—</div>
+          <div class="utag" id="sb-tag">—</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="profile">
+          <span class="icon">🏠</span><span>Perfil</span>
+        </button>
+        <button class="nav-item" data-tab="collection">
+          <span class="icon">📦</span><span>Colección</span>
+        </button>
+        <button class="nav-item" data-tab="system">
+          <span class="icon">🌍</span><span>Sistema</span>
+        </button>
+        <button class="nav-item" data-tab="ranking">
+          <span class="icon">🏆</span><span>Ranking</span>
+        </button>
+        <button class="nav-item" data-tab="shop">
+          <span class="icon">🏪</span><span>Tienda</span>
+        </button>
+        <button class="nav-item" data-tab="auction">
+          <span class="icon">🌟</span><span>Subasta</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" id="btn-logout">
+          <span class="icon">⏻</span><span>Cerrar sesión</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <button class="hamburger" id="hamburger">☰</button>
+        <div class="topbar-title" id="topbar-title">Perfil</div>
+      </div>
+      <div class="main-inner">
+        <div id="tab-profile" class="tab-content active"></div>
+        <div id="tab-collection" class="tab-content"></div>
+        <div id="tab-system" class="tab-content"></div>
+        <div id="tab-ranking" class="tab-content"></div>
+        <div id="tab-shop" class="tab-content"></div>
+        <div id="tab-auction" class="tab-content"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCZLLVqrcw3IjhRFeAAzNDh_hgvrdkPDJo",
+  authDomain: "jinx-waifus.firebaseapp.com",
+  databaseURL: "https://jinx-waifus-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jinx-waifus",
+  storageBucket: "jinx-waifus.firebasestorage.app",
+  messagingSenderId: "557335223260",
+  appId: "1:557335223260:web:c12de44f028ef9969c4d19"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+const $ = (id) => document.getElementById(id);
+const show = (id) => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+};
+function setMsg(el, text, kind = 'err') { el.className = 'msg ' + kind; el.textContent = text; }
+function clearMsg(el) { el.className = 'msg'; el.textContent = ''; }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n){ try { return Number(n).toLocaleString('es-MX'); } catch { return String(n); } }
+
+function imageKey(name) {
+  if (!name) return '';
+  return String(name).replace(/[.#$\[\]\/]/g, '_');
+}
+
+const RARITY_EMOJI = { comun:'🌸', rara:'🔥', epica:'💎', legendaria:'👑', exclusiva:'🌟' };
+const RARITY_LABEL = { comun:'Común', rara:'Rara', epica:'Épica', legendaria:'Legendaria', exclusiva:'Exclusiva' };
+
+const CAJAS = {
+  comun:      { emoji: '📦', name: 'Caja Común',      price: 1500, desc: '1 premio: 150-700 monedas o waifu común.' },
+  premium:    { emoji: '🎁', name: 'Caja Premium',    price: 2500, desc: '2 premios: 400-1200 monedas o waifu épica.' },
+  legendaria: { emoji: '👑', name: 'Caja Legendaria', price: 3500, desc: '3 premios: monedas, épica o legendaria.' }
 };
 
-/* ============================================================
-   2. CONFIGURACIÓN
-   ============================================================ */
-const RARITY_META = {
-  legendaria:{ label:'Legendaria', stars:6, color:'#fbbf24', cls:'rare-legendaria' },
-  epica:     { label:'Épica',      stars:5, color:'#c084fc', cls:'rare-epica'      },
-  rara:      { label:'Rara',       stars:4, color:'#60a5fa', cls:'rare-rara'       },
-  comun:     { label:'Común',      stars:3, color:'#6ee7a8', cls:'rare-comun'      }
-};
-const RARITY_ORDER = ['legendaria','epica','rara','comun'];
-
-const PULL_COST_1  = 100;
-const PULL_COST_10 = 900;
-const DUPE_COINS   = { comun:10, rara:25, epica:75, legendaria:200 };
-const WORK_REWARD  = 50;
-const WORK_CD_MS   = 60 * 1000;
-const DAILY_REWARD = 250;
-const DAILY_CD_MS  = 24 * 60 * 60 * 1000;
-const START_COINS  = 500;
-
-const MEM_COOLDOWN_MS    = 30 * 1000;
-const MEM_MAX_LIVES      = 3;
-const MEM_REWARD_PER_MATCH = 15;
-const MEM_ROUND_BONUS      = 30;
-const MEM_PAIRS            = 8;
-const MEM_EMOJIS = [
-  '🍎','🍌','🍇','🍓','🍒','🥝','🍍','🥥','🍑','🍋',
-  '🍊','🍉','🥕','🌽','🍄','🌶️','🥑','🥦','🍆','🍅',
-  '🐶','🐱','🐼','🦊','🐸','🐵','🦁','🐯','🐨','🐷'
-];
-
-const VIEWER_MIN_ZOOM = 0.6;
-const VIEWER_MAX_ZOOM = 2.4;
-
-/* ============================================================
-   3. CATÁLOGO
-   ============================================================ */
-const CATALOG = [];
-const BY_NAME = new Map();
-
-(function buildCatalog(){
-  for (const [rarity, pool] of Object.entries(WAIFU_DATA.pool)) {
-    for (const name of pool.characters) {
-      const existing = BY_NAME.get(name);
-      if (existing){
-        if (RARITY_ORDER.indexOf(rarity) < RARITY_ORDER.indexOf(existing.rarity))
-          existing.rarity = rarity;
-        continue;
-      }
-      const entry = { name, rarity, series: WAIFU_DATA.series[name] || 'Serie desconocida' };
-      BY_NAME.set(name, entry);
-      CATALOG.push(entry);
-    }
-  }
-  CATALOG.sort((a,b)=>{
-    const d = RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity);
-    return d !== 0 ? d : a.name.localeCompare(b.name,'es');
-  });
-})();
-const TOTAL_CHARS = CATALOG.length;
-
-/* ============================================================
-   4. ESTADO
-   ============================================================ */
-const LS_COLLECTION = 'waifu_collection_v1';
-const LS_STATS      = 'waifu_stats_v1';
-const LS_WALLET     = 'waifu_wallet_v1';
-
-const WALLET_DEFAULTS = {
-  coins: START_COINS,
-  earned: 0,
-  lastWork: 0,
-  lastDaily: 0,
-  lastMemory: 0
-};
-
-let collection = loadJSON(LS_COLLECTION, {});
-let stats      = loadJSON(LS_STATS, { pulls:0, byRarity:{comun:0,rara:0,epica:0,legendaria:0} });
-let wallet     = Object.assign({}, WALLET_DEFAULTS, loadJSON(LS_WALLET, {}));
-
-function loadJSON(key, fallback){
-  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-  catch(e){ return fallback; }
-}
-function saveJSON(key, value){
-  try{ localStorage.setItem(key, JSON.stringify(value)); }catch(e){}
-}
-const saveAll = () => {
-  saveJSON(LS_COLLECTION, collection);
-  saveJSON(LS_STATS, stats);
-  saveJSON(LS_WALLET, wallet);
-};
-
-/* ============================================================
-   5. UTILIDADES
-   ============================================================ */
-const $ = id => document.getElementById(id);
-
-const EXTS = ['png','jpg','jpeg','webp','gif'];
-const FOLDER = 'personajes';
-
-function loadCharImage(imgEl, phEl, name){
-  let i = 0;
-  imgEl.style.display = '';
-  if (phEl) {
-    phEl.style.display = 'grid';
-    phEl.style.visibility = 'visible';
-  }
-
-  imgEl.onload = () => {
-    imgEl.style.display = 'block';
-    if (phEl) phEl.style.visibility = 'hidden';
-  };
-  imgEl.onerror = () => {
-    if (i < EXTS.length){
-      imgEl.src = `${FOLDER}/${encodeURIComponent(name)}.${EXTS[i++]}`;
-    } else {
-      imgEl.onerror = null;
-      imgEl.removeAttribute('src');
-      imgEl.style.display = 'none';
-      if (phEl) {
-        phEl.style.display = 'grid';
-        phEl.style.visibility = 'visible';
-      }
-    }
-  };
-  imgEl.src = `${FOLDER}/${encodeURIComponent(name)}.${EXTS[i++]}`;
-}
-
-function initialOf(name){
-  const c = name.replace(/[^\p{L}\p{N}]/gu,'').charAt(0);
-  return (c || '?').toUpperCase();
-}
-function starsHTML(rarity){
-  const m = RARITY_META[rarity];
-  return `<span style="color:${m.color}">${'★'.repeat(m.stars)}</span>`;
-}
-function fmtTime(ms){
-  const s = Math.max(0, Math.ceil(ms/1000));
-  if (s < 60) return s + 's';
-  const m = Math.floor(s/60);
-  const r = s % 60;
-  if (m < 60) return `${m}m ${r}s`;
-  const h = Math.floor(m/60);
-  return `${h}h ${m%60}m`;
-}
-
-let toastTimer = null;
-function toast(msg, type){
-  const el = $('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (type ? ' ' + type : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=> el.classList.remove('show'), 2300);
-}
-
-/* ============================================================
-   6. MONEDAS
-   ============================================================ */
-const walletEl = $('wallet');
-const coinAmountEl = $('coinAmount');
-
-function renderCoins(){
-  coinAmountEl.textContent = wallet.coins.toLocaleString('es');
-  const hero = $('heroCoins');
-  if (hero) hero.textContent = wallet.coins.toLocaleString('es');
-}
-
-function coinFloat(amount, x, y){
+function showToast(text, kind = 'ok', duration = 3500) {
   const el = document.createElement('div');
-  el.className = 'coin-float';
-  el.textContent = '+' + amount + ' 🪙';
-  el.style.left = (x || window.innerWidth - 140) + 'px';
-  el.style.top  = (y || 40) + 'px';
-  document.body.appendChild(el);
-  setTimeout(()=> el.remove(), 1400);
+  el.className = 'toast ' + kind;
+  el.textContent = text;
+  $('toast-wrap').appendChild(el);
+  setTimeout(() => {
+    el.classList.add('hide');
+    setTimeout(() => el.remove(), 300);
+  }, duration);
 }
 
-function addCoins(amount, opts){
-  opts = opts || {};
-  wallet.coins += amount;
-  wallet.earned += amount;
-  saveJSON(LS_WALLET, wallet);
-  renderCoins();
-
-  walletEl.classList.remove('bump');
-  void walletEl.offsetWidth;
-  walletEl.classList.add('bump');
-
-  if (amount > 0 && !opts.silent){
-    const rect = walletEl.getBoundingClientRect();
-    coinFloat(amount, rect.left + rect.width/2 - 30, rect.top + 4);
-  }
-  renderProfile();
-  updatePullButtons();
-}
-
-function spendCoins(amount){
-  if (wallet.coins < amount) return false;
-  wallet.coins -= amount;
-  saveJSON(LS_WALLET, wallet);
-  renderCoins();
-  renderProfile();
-  updatePullButtons();
-  return true;
-}
+let currentRequestId = null;
+let unsubRequest = null;
+let mode = 'username';
+let session = null;
+let userDoc = null;
+let userData = null;
+let catalog = null;
+let ranking = null;
+let sales = null;
+let auction = null;
+let collectionFilter = 'all';
+let currentTab = 'profile';
+let shopSubTab = 'waifus';   // 'waifus' | 'boxes' | 'catalog'
+let imageUrls = {};
+let imageUnsubs = new Map();
+const unsubs = [];
+const actionUnsubs = new Map();
+let auctionTimer = null;
 
 /* ============================================================
-   7. GACHA
+   LOGIN
    ============================================================ */
-function pickRarity(){
-  const entries = Object.entries(WAIFU_DATA.pool);
-  const total = entries.reduce((s,[,v]) => s + v.weight, 0);
-  let r = Math.random() * total;
-  for (const [key, val] of entries){
-    if (r < val.weight) return key;
-    r -= val.weight;
-  }
-  return entries[entries.length-1][0];
-}
-function pickCharacter(){
-  const rarity = pickRarity();
-  const list = WAIFU_DATA.pool[rarity].characters;
-  const name = list[Math.floor(Math.random() * list.length)];
-  return BY_NAME.get(name) || { name, rarity, series: WAIFU_DATA.series[name] || 'Serie desconocida' };
-}
-
-function registerPull(char){
-  const isNew = !collection[char.name];
-  collection[char.name] = { count: (collection[char.name]?.count || 0) + 1 };
-  stats.pulls++;
-  stats.byRarity[char.rarity] = (stats.byRarity[char.rarity] || 0) + 1;
-
-  let coinsEarned = 0;
-  if (!isNew){
-    coinsEarned = DUPE_COINS[char.rarity];
-    wallet.coins += coinsEarned;
-    wallet.earned += coinsEarned;
-  }
-  saveAll();
-  return { isNew, coinsEarned };
-}
-
-const cardEl      = $('card');
-const cardFront   = $('cardFront');
-const cardImg     = $('cardImg');
-const cardPh      = $('cardPh');
-const cardName    = $('cardName');
-const cardSeries  = $('cardSeries');
-const cardStars   = $('cardStars');
-const cardBadge   = $('cardBadge');
-let flipTimer = null;
-
-function renderCard(char, isNew){
-  const meta = RARITY_META[char.rarity];
-  cardEl.classList.remove('flipped');
-  clearTimeout(flipTimer);
-
-  cardPh.textContent   = initialOf(char.name);
-  cardName.textContent = char.name;
-  cardSeries.textContent = char.series;
-  cardStars.innerHTML  = starsHTML(char.rarity);
-  cardBadge.textContent = isNew ? '¡NUEVA!' : `x${collection[char.name].count}`;
-  cardBadge.style.color = isNew ? meta.color : 'rgba(255,255,255,.55)';
-  cardBadge.hidden = false;
-
-  cardFront.className = 'card-face card-front ' + meta.cls;
-
-  loadCharImage(cardImg, cardPh, char.name);
-
-  flipTimer = setTimeout(()=> cardEl.classList.add('flipped'), 60);
-}
-
-function renderMiniResults(list){
-  const wrap = $('results');
-  wrap.innerHTML = '';
-  list.forEach((item, idx)=>{
-    const char = item.char;
-    const meta = RARITY_META[char.rarity];
-    const div = document.createElement('div');
-    div.className = 'mini ' + meta.cls;
-    div.style.animationDelay = (idx * 55) + 'ms';
-
-    const ph = document.createElement('div');
-    ph.className = 'mini-ph';
-    ph.textContent = initialOf(char.name);
-
-    const img = document.createElement('img');
-    img.alt = char.name;
-    img.style.display = 'none';
-    loadCharImage(img, ph, char.name);
-
-    const bar = document.createElement('div');
-    bar.className = 'mini-bar';
-    bar.style.background = meta.color;
-
-    const nm = document.createElement('div');
-    nm.className = 'mini-name';
-    nm.textContent = char.name;
-    nm.title = char.name;
-
-    div.append(ph, img, bar, nm);
-
-    if (item.coinsEarned > 0){
-      const c = document.createElement('span');
-      c.className = 'mini-coin';
-      c.textContent = '+' + item.coinsEarned;
-      div.appendChild(c);
+const inputEl = $('identifier');
+const labelEl = $('label-id');
+const hintEl  = $('hint-1');
+document.querySelectorAll('#login-tabs .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const m = tab.dataset.mode;
+    if (m === mode) return;
+    mode = m;
+    document.querySelectorAll('#login-tabs .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    clearMsg($('msg-1')); inputEl.value = '';
+    if (mode === 'username') {
+      labelEl.textContent = 'Usuario de Telegram';
+      inputEl.placeholder = '@tunombre';
+      inputEl.inputMode = 'text';
+      hintEl.innerHTML = 'El bot te enviará un <b>código de 6 dígitos</b>.<br>Debes haber hablado antes con el bot.';
+    } else {
+      labelEl.textContent = 'ID numérico de Telegram';
+      inputEl.placeholder = '123456789';
+      inputEl.inputMode = 'numeric';
+      hintEl.innerHTML = 'El bot te enviará un <b>código de 6 dígitos</b>.<br>Obtén tu ID con <b>@userinfobot</b>.';
     }
-    wrap.appendChild(div);
+    inputEl.focus();
   });
-}
+});
 
-let busy = false;
+const codeInputs = [...document.querySelectorAll('#code-inputs input')];
+codeInputs.forEach((inp, i) => {
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
+    if (inp.value && i < codeInputs.length - 1) codeInputs[i + 1].focus();
+  });
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !inp.value && i > 0) codeInputs[i - 1].focus();
+  });
+});
+const getTypedCode = () => codeInputs.map(i => i.value).join('');
 
-function updatePullButtons(){
-  if (busy) return;
-  $('btnRoll').disabled   = wallet.coins < PULL_COST_1;
-  $('btnRoll10').disabled = wallet.coins < PULL_COST_10;
-}
+$('btn-request').addEventListener('click', async () => {
+  const raw = inputEl.value.trim();
+  const msg = $('msg-1');
+  clearMsg(msg);
+  if (!raw) return setMsg(msg, mode === 'id' ? 'Escribe tu ID.' : 'Escribe tu usuario.');
 
-function doRoll(times){
-  if (busy) return;
-  const cost = times === 1 ? PULL_COST_1 : PULL_COST_10;
-
-  if (wallet.coins < cost){
-    toast(`Necesitas ${cost} 🪙 — ve a la Tienda a ganar más`, 'error');
-    return;
-  }
-
-  busy = true;
-  $('btnRoll').disabled = true;
-  $('btnRoll10').disabled = true;
-
-  spendCoins(cost);
-
-  const results = [];
-  let lastNew = false;
-  let totalDupes = 0;
-
-  for (let i = 0; i < times; i++){
-    const char = pickCharacter();
-    const r = registerPull(char);
-    results.push({ char, isNew: r.isNew, coinsEarned: r.coinsEarned });
-    if (r.coinsEarned > 0) totalDupes += r.coinsEarned;
-    if (i === times - 1) lastNew = r.isNew;
-  }
-
-  const last = results[results.length - 1];
-  renderCard(last.char, last.isNew);
-
-  if (times === 1){
-    $('results').innerHTML = '';
-    const m = RARITY_META[last.char.rarity];
-    let extra = '';
-    if (last.coinsEarned > 0) extra = ` · +${last.coinsEarned} 🪙 por duplicado`;
-    $('hint').innerHTML =
-      `Has obtenido a <strong style="color:${m.color}">${last.char.name}</strong> ` +
-      `(${m.label})${last.isNew ? ' — ¡NUEVA!' : ''}${extra}`;
-    toast(last.isNew ? `¡NUEVA! ${last.char.name}` : `${last.char.name} · +${last.coinsEarned} 🪙`);
+  let identifier;
+  if (mode === 'id') {
+    if (!/^\d{5,15}$/.test(raw.replace(/^@/, ''))) return setMsg(msg, 'ID solo números (5-15 dígitos).');
+    identifier = raw.replace(/^@/, '');
   } else {
-    renderMiniResults(results);
-    const best = results.reduce((a,b)=>
-      RARITY_ORDER.indexOf(a.char.rarity) <= RARITY_ORDER.indexOf(b.char.rarity) ? a : b
-    );
-    const bm = RARITY_META[best.char.rarity];
-    const newCount = results.filter(r => r.isNew).length;
-    $('hint').innerHTML =
-      `Mejor resultado: <strong style="color:${bm.color}">${best.char.name}</strong> (${bm.label})` +
-      (newCount ? ` · <strong>${newCount} nueva(s)</strong>` : '') +
-      (totalDupes ? ` · +${totalDupes} 🪙` : '');
-    toast(`x10 completado · ${newCount} nueva(s)` + (totalDupes ? ` · +${totalDupes} 🪙` : ''), 'gold');
+    const clean = raw.replace(/^@/, '').toLowerCase().trim();
+    if (!/^[a-zA-Z0-9_]{3,32}$/.test(clean)) return setMsg(msg, 'Usuario inválido.');
+    identifier = clean;
   }
 
-  renderCoins();
-  updateFooter();
-  renderCollection();
-  renderShop();
-  renderProfile();
+  const btn = $('btn-request');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span>Enviando...';
 
-  setTimeout(()=>{
-    busy = false;
-    updatePullButtons();
-  }, 780);
+  try {
+    const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    currentRequestId = id;
+    await set(ref(db, `loginRequests/${id}`), {
+      identifier, username: mode === 'username' ? identifier : null, mode,
+      status: 'pending', createdAt: Date.now()
+    });
+    setMsg(msg, '📡 Solicitud enviada. Revisa tu Telegram.', 'ok');
+
+    if (unsubRequest) unsubRequest();
+    unsubRequest = onValue(ref(db, `loginRequests/${id}`), (snap) => {
+      const data = snap.val();
+      if (!data) return;
+      if (data.status === 'sent') {
+        show('screen-code');
+        setTimeout(() => codeInputs[0].focus(), 100);
+      } else if (data.status === 'error') {
+        setMsg(msg, data.error || 'Error desconocido.');
+        btn.disabled = false;
+        btn.textContent = '▶ Enviar código';
+      }
+    });
+
+    setTimeout(() => {
+      if ($('screen-login').classList.contains('active')) {
+        setMsg(msg, 'El bot no respondió. Verifica que ya le escribiste /start.');
+        btn.disabled = false;
+        btn.textContent = '▶ Enviar código';
+      }
+    }, 30000);
+  } catch (e) {
+    setMsg(msg, 'Error: ' + (e.message || e));
+    btn.disabled = false;
+    btn.textContent = '▶ Enviar código';
+  }
+});
+
+$('btn-verify').addEventListener('click', async () => {
+  const msg = $('msg-2');
+  clearMsg(msg);
+  const typed = getTypedCode();
+  if (typed.length !== 6) return setMsg(msg, 'Ingresa los 6 dígitos.');
+
+  const btn = $('btn-verify');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading"></span>Verificando...';
+
+  try {
+    const snap = await get(ref(db, `loginRequests/${currentRequestId}`));
+    const data = snap.val();
+    if (!data) throw new Error('Solicitud no encontrada.');
+    if (data.status !== 'sent') throw new Error('Solicitud inválida.');
+    if (Date.now() > data.expiresAt) throw new Error('Código expirado.');
+    if (String(data.code) !== typed) throw new Error('Código incorrecto.');
+
+    const token = crypto.randomUUID();
+    await set(ref(db, `sessions/${token}`), {
+      userId: data.userId, username: data.username || null,
+      createdAt: Date.now(), expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
+    });
+    localStorage.setItem('jinx_session', token);
+    await set(ref(db, `loginRequests/${currentRequestId}/status`), 'verified');
+
+    await startSession(token);
+  } catch (e) {
+    setMsg(msg, e.message || 'Error.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶ Verificar';
+  }
+});
+
+$('btn-back').addEventListener('click', () => {
+  if (unsubRequest) { unsubRequest(); unsubRequest = null; }
+  show('screen-login');
+  clearMsg($('msg-1'));
+  $('btn-request').disabled = false;
+  $('btn-request').textContent = '▶ Enviar código';
+  codeInputs.forEach(i => i.value = '');
+});
+
+/* ============================================================
+   SESIÓN
+   ============================================================ */
+async function startSession(token) {
+  const sessSnap = await get(ref(db, `sessions/${token}`));
+  const sess = sessSnap.val();
+  if (!sess) throw new Error('Sesión no válida.');
+  session = { token, ...sess };
+
+  show('screen-panel');
+  await loadAll();
+  subscribeRealtime();
+  renderAll();
+}
+
+async function loadAll() {
+  const uid = session.userId;
+  const [uSnap, dSnap, cSnap, rSnap, sSnap, aSnap] = await Promise.all([
+    get(ref(db, `users/${uid}`)),
+    get(ref(db, `users/${uid}/data`)),
+    get(ref(db, `catalog`)),
+    get(ref(db, `ranking`)),
+    get(ref(db, `sales`)),
+    get(ref(db, `auction`))
+  ]);
+  userDoc  = uSnap.val()  || {};
+  userData = dSnap.val()  || {};
+  catalog  = cSnap.val()  || { pool: {}, series: {} };
+  ranking  = rSnap.val()  || { top: [], totalUsers: 0, totalWaifus: 0 };
+  sales    = sSnap.val()  || {};
+  auction  = aSnap.val()  || { active: null };
+}
+
+function subscribeRealtime() {
+  const uid = session.userId;
+  unsubs.push(onValue(ref(db, `users/${uid}/data`), (s) => {
+    userData = s.val() || {};
+    renderProfile(); renderSidebarUser();
+    if (currentTab === 'collection') renderCollection();
+    if (currentTab === 'system')     renderSystem();
+    if (currentTab === 'shop')       renderShop();
+  }));
+  unsubs.push(onValue(ref(db, `users/${uid}`), (s) => {
+    userDoc = s.val() || {};
+    renderProfile(); renderSidebarUser();
+  }));
+  unsubs.push(onValue(ref(db, `catalog`), (s) => {
+    catalog = s.val() || { pool: {}, series: {} };
+    if (currentTab === 'system') renderSystem();
+    if (currentTab === 'shop')   renderShop();
+  }));
+  unsubs.push(onValue(ref(db, `sales`),   (s) => { sales = s.val() || {}; if (currentTab === 'shop') renderShop(); }));
+  unsubs.push(onValue(ref(db, `ranking`), (s) => { ranking = s.val() || { top: [] }; if (currentTab === 'ranking') renderRanking(); }));
+  unsubs.push(onValue(ref(db, `auction`), (s) => { auction = s.val() || { active: null }; if (currentTab === 'auction') renderAuction(); }));
 }
 
 /* ============================================================
-   8. COLECCIÓN
+   IMÁGENES
    ============================================================ */
-const grid = $('grid');
-
-function renderCollection(){
-  const q = $('search').value.trim().toLowerCase();
-  const fr = $('filterRarity').value;
-  const onlyOwned = $('onlyOwned').checked;
-
-  const frag = document.createDocumentFragment();
-  let visible = 0;
-
-  for (const char of CATALOG){
-    const owned = !!collection[char.name];
-    if (onlyOwned && !owned) continue;
-    if (fr !== 'all' && char.rarity !== fr) continue;
-    if (q && !(char.name.toLowerCase().includes(q) || char.series.toLowerCase().includes(q))) continue;
-
-    visible++;
-    const meta = RARITY_META[char.rarity];
-    const el = document.createElement('div');
-    el.className = `gcard ${meta.cls}${owned ? '' : ' locked'}`;
-    el.title = `${char.name} — ${char.series}`;
-
-    const ph = document.createElement('div');
-    ph.className = 'g-ph';
-    ph.textContent = initialOf(char.name);
-
-    const img = document.createElement('img');
-    img.alt = char.name;
-    img.loading = 'lazy';
-    img.style.display = 'none';
-    loadCharImage(img, ph, char.name);
-
-    const veil = document.createElement('div');
-    veil.className = 'g-veil';
-
-    const txt = document.createElement('div');
-    txt.className = 'g-txt';
-
-    const nm = document.createElement('div');
-    nm.className = 'g-name';
-    nm.textContent = owned ? char.name : '???';
-
-    const st = document.createElement('div');
-    st.className = 'g-stars';
-    st.innerHTML = owned
-      ? starsHTML(char.rarity)
-      : `<span style="color:rgba(255,255,255,.25)">${'★'.repeat(meta.stars)}</span>`;
-
-    txt.append(nm, st);
-    el.append(ph, img, veil, txt);
-
-    if (owned){
-      const cnt = document.createElement('span');
-      cnt.className = 'g-count';
-      cnt.textContent = 'x' + collection[char.name].count;
-      el.appendChild(cnt);
-
-      el.addEventListener('click', ()=> openViewer(char.name));
+function watchImage(name) {
+  if (!name || imageUnsubs.has(name)) return;
+  const key = imageKey(name);
+  const unsub = onValue(ref(db, `characterImages/${key}/url`), (snap) => {
+    const url = snap.val();
+    if (typeof url === 'string' && url) {
+      imageUrls[name] = url;
+      const target = document.querySelector(`[data-img="${CSS.escape(name)}"]`);
+      if (!target) return;
+      const holder = target.querySelector('.img') || target;
+      let img = holder.querySelector('img');
+      if (!img) {
+        holder.innerHTML = `<img src="${esc(url)}" alt="" loading="lazy" style="opacity:0;transition:opacity .4s" onload="this.style.opacity='1'">`;
+      } else if (img.src !== url) {
+        img.src = url; img.style.opacity = '1';
+      }
     }
-
-    frag.appendChild(el);
-  }
-
-  grid.innerHTML = '';
-  if (visible === 0){
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = 'No se encontraron personajes con esos filtros.';
-    grid.appendChild(empty);
-  } else {
-    grid.appendChild(frag);
-  }
-
-  const ownedCount = Object.keys(collection).length;
-  $('colCount').textContent = `${ownedCount} / ${TOTAL_CHARS}`;
+  });
+  imageUnsubs.set(name, unsub);
 }
 
 /* ============================================================
-   9. VISOR 3D  —  Pointer Events (compatible Android)
+   ACCIONES WEB
    ============================================================ */
-const viewer        = $('viewer');
-const viewerStage   = $('viewerStage');
-const viewerCard    = $('viewerCard');
-const viewerImg     = $('viewerImg');
-const viewerPh      = $('viewerPh');
-const viewerName    = $('viewerName');
-const viewerSeries  = $('viewerSeries');
-const viewerStars   = $('viewerStars');
-const viewerBadge   = $('viewerBadge');
-const viewerHint    = $('viewerHint');
+async function requestBuy(saleId) {
+  const reqId = 'buy_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  await set(ref(db, `buyRequests/${reqId}`), {
+    saleId,
+    buyerId: session.userId,
+    sessionToken: session.token,
+    status: 'pending',
+    createdAt: Date.now()
+  });
 
-let vState = {
-  rx: 0, ry: 0, zoom: 1,
-  dragging: false,
-  startX: 0, startY: 0,
-  lastX: 0, lastY: 0,
-  velX: 0, velY: 0,
-  rafId: null
+  showToast('⏳ Procesando compra...', 'ok', 2000);
+
+  const unsub = onValue(ref(db, `buyRequests/${reqId}`), (snap) => {
+    const r = snap.val();
+    if (!r) return;
+    if (r.status === 'done') {
+      showToast(`✅ Compraste a ${r.waifuName || 'la waifu'} por ${fmt(r.price)} 🪙`, 'ok', 4000);
+      unsub(); actionUnsubs.delete(reqId);
+    } else if (r.status === 'error') {
+      showToast('❌ ' + (r.error || 'Error en la compra'), 'err', 5000);
+      unsub(); actionUnsubs.delete(reqId);
+    }
+  });
+  actionUnsubs.set(reqId, unsub);
+
+  setTimeout(() => {
+    const u = actionUnsubs.get(reqId);
+    if (u) { u(); actionUnsubs.delete(reqId); }
+  }, 30000);
+}
+
+async function requestBox(tipo) {
+  const reqId = 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  await set(ref(db, `boxRequests/${reqId}`), {
+    tipo,
+    userId: session.userId,
+    sessionToken: session.token,
+    status: 'pending',
+    createdAt: Date.now()
+  });
+
+  showToast(`⏳ Abriendo ${CAJAS[tipo]?.name || 'caja'}...`, 'ok', 2000);
+
+  const unsub = onValue(ref(db, `boxRequests/${reqId}`), (snap) => {
+    const r = snap.val();
+    if (!r) return;
+    if (r.status === 'done') {
+      const gained = Array.isArray(r.waifusGained) ? r.waifusGained : [];
+      const names = gained.slice(0, 3).map(w => w.name).join(', ');
+      const extra = gained.length > 3 ? ` +${gained.length - 3}` : '';
+      const parts = [];
+      if (r.coinsGained > 0) parts.push(`+${fmt(r.coinsGained)} 🪙`);
+      if (gained.length > 0) parts.push(`${names}${extra}`);
+      showToast(`🎉 ${parts.join(' · ') || 'Caja abierta'}`, 'ok', 5000);
+      unsub(); actionUnsubs.delete(reqId);
+    } else if (r.status === 'error') {
+      showToast('❌ ' + (r.error || 'Error al abrir la caja'), 'err', 5000);
+      unsub(); actionUnsubs.delete(reqId);
+    }
+  });
+  actionUnsubs.set(reqId, unsub);
+
+  setTimeout(() => {
+    const u = actionUnsubs.get(reqId);
+    if (u) { u(); actionUnsubs.delete(reqId); }
+  }, 30000);
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+const TAB_TITLES = {
+  profile:    'Perfil',
+  collection: 'Colección',
+  system:     'Sistema',
+  ranking:    'Ranking',
+  shop:       'Tienda',
+  auction:    'Subasta'
 };
 
-let vDownClientX = 0;
-let vDownClientY = 0;
-let vMoveDistance = 0;
+function navigateTo(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  $('tab-' + tab)?.classList.add('active');
+  $('topbar-title').textContent = TAB_TITLES[tab] || tab;
 
-/* Para zoom con pinza (2 dedos) */
-let pinchActive = false;
-let pinchStartDist = 0;
-let pinchStartZoom = 1;
-const activePointers = new Map();
+  $('sidebar').classList.remove('open');
+  $('overlay').classList.remove('show');
 
-function vApply(){
-  viewerCard.style.setProperty('--rx', vState.rx + 'deg');
-  viewerCard.style.setProperty('--ry', vState.ry + 'deg');
-  viewerStage.style.setProperty('--zoom', vState.zoom);
+  if (tab === 'profile')    renderProfile();
+  if (tab === 'collection') renderCollection();
+  if (tab === 'system')     renderSystem();
+  if (tab === 'ranking')    renderRanking();
+  if (tab === 'shop')       renderShop();
+  if (tab === 'auction')    renderAuction();
 }
 
-function vReset(){
-  vState.rx = 0;
-  vState.ry = 0;
-  vState.zoom = 1;
-  vState.velX = 0;
-  vState.velY = 0;
-  vApply();
-}
-
-function vZoom(factor){
-  let z = vState.zoom * factor;
-  z = Math.max(VIEWER_MIN_ZOOM, Math.min(VIEWER_MAX_ZOOM, z));
-  vState.zoom = z;
-  vApply();
-}
-
-function openViewer(name){
-  const char = BY_NAME.get(name);
-  if (!char) return;
-
-  const meta = RARITY_META[char.rarity];
-  const count = collection[char.name]?.count || 1;
-
-  viewerPh.textContent = initialOf(char.name);
-  viewerName.textContent = char.name;
-  viewerSeries.textContent = char.series;
-  viewerStars.innerHTML = starsHTML(char.rarity);
-  viewerBadge.textContent = meta.label + ' · x' + count;
-  viewerBadge.style.color = meta.color;
-
-  viewerImg.style.display = 'none';
-  viewerPh.style.display = 'grid';
-  loadCharImage(viewerImg, viewerPh, char.name);
-
-  viewerCard.className = 'viewer-card ' + meta.cls;
-
-  vReset();
-
-  const isTouch = matchMedia('(hover: none)').matches;
-  viewerHint.textContent = isTouch
-    ? '👆 Arrastra con un dedo · Pellizca para zoom'
-    : '🖱️ Arrastra para rotar · Scroll para zoom';
-
-  viewer.classList.add('open');
-  viewer.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeViewer(){
-  viewer.classList.remove('open');
-  viewer.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  if (vState.rafId){ cancelAnimationFrame(vState.rafId); vState.rafId = null; }
-  activePointers.clear();
-  pinchActive = false;
-}
-
-/* ★ POINTER DOWN ★ */
-function vPointerDown(e){
-  if (e.target.closest('.viewer-controls')) return;
-
-  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-  /* Si hay 2 punteros → modo pinza */
-  if (activePointers.size === 2){
-    const pts = Array.from(activePointers.values());
-    pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-    pinchStartZoom = vState.zoom;
-    pinchActive = true;
-    vState.dragging = false;
-    viewerStage.classList.remove('grabbing');
-    return;
-  }
-
-  if (activePointers.size !== 1) return;
-
-  vState.dragging = true;
-  viewerStage.classList.add('grabbing');
-  vState.startX = e.clientX;
-  vState.startY = e.clientY;
-  vState.lastX = e.clientX;
-  vState.lastY = e.clientY;
-  vState.velX = 0;
-  vState.velY = 0;
-  vDownClientX = e.clientX;
-  vDownClientY = e.clientY;
-  vMoveDistance = 0;
-  if (vState.rafId){ cancelAnimationFrame(vState.rafId); vState.rafId = null; }
-
-  try { viewerStage.setPointerCapture(e.pointerId); } catch(err){}
-  if (e.cancelable) e.preventDefault();
-}
-
-/* ★ POINTER MOVE ★ */
-function vPointerMove(e){
-  if (activePointers.has(e.pointerId)){
-    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  }
-
-  /* Modo pinza (2 dedos) */
-  if (pinchActive && activePointers.size === 2){
-    const pts = Array.from(activePointers.values());
-    const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-    if (pinchStartDist > 0){
-      let z = pinchStartZoom * (dist / pinchStartDist);
-      z = Math.max(VIEWER_MIN_ZOOM, Math.min(VIEWER_MAX_ZOOM, z));
-      vState.zoom = z;
-      vApply();
-    }
-    if (e.cancelable) e.preventDefault();
-    return;
-  }
-
-  if (!vState.dragging) return;
-  if (activePointers.size > 1) return;
-
-  const dx = e.clientX - vState.lastX;
-  const dy = e.clientY - vState.lastY;
-  vState.lastX = e.clientX;
-  vState.lastY = e.clientY;
-
-  vMoveDistance += Math.abs(dx) + Math.abs(dy);
-
-  /* ★ Rotación consistente — sin inversión ★ */
-  vState.ry += dx * 0.55;
-  vState.rx -= dy * 0.55;
-  vState.rx = Math.max(-85, Math.min(85, vState.rx));
-
-  vState.velX = dx * 0.55;
-  vState.velY = -dy * 0.55;
-
-  vApply();
-  if (e.cancelable) e.preventDefault();
-}
-
-/* ★ POINTER UP / CANCEL ★ */
-function vPointerUp(e){
-  if (e && e.pointerId !== undefined){
-    activePointers.delete(e.pointerId);
-    try { viewerStage.releasePointerCapture(e.pointerId); } catch(err){}
-  }
-
-  if (activePointers.size < 2){
-    pinchActive = false;
-    pinchStartDist = 0;
-  }
-
-  if (!vState.dragging) return;
-  if (activePointers.size > 0) return;
-
-  vState.dragging = false;
-  viewerStage.classList.remove('grabbing');
-
-  function inertia(){
-    if (vState.dragging) return;
-    vState.velX *= 0.94;
-    vState.velY *= 0.94;
-    vState.ry += vState.velX;
-    vState.rx += vState.velY;
-    vState.rx = Math.max(-85, Math.min(85, vState.rx));
-
-    if (Math.abs(vState.velX) > 0.05 || Math.abs(vState.velY) > 0.05){
-      vApply();
-      vState.rafId = requestAnimationFrame(inertia);
-    } else {
-      vState.rafId = null;
-    }
-  }
-  inertia();
-}
-
-/* Usamos pointer events (unificados, funcionan en Android e iOS) */
-viewerStage.addEventListener('pointerdown', vPointerDown);
-viewerStage.addEventListener('pointermove', vPointerMove);
-viewerStage.addEventListener('pointerup', vPointerUp);
-viewerStage.addEventListener('pointercancel', vPointerUp);
-
-/* Bloquear el context menu al mantener pulsado en Android/iOS */
-viewerStage.addEventListener('contextmenu', (e)=> e.preventDefault());
-
-/* Zoom con rueda (solo escritorio) */
-viewerStage.addEventListener('wheel', (e)=>{
-  e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.1 : 1/1.1;
-  vZoom(factor);
-}, {passive:false});
-
-/* Controles */
-$('viewerReset').addEventListener('click', vReset);
-$('viewerZoomIn').addEventListener('click', ()=> vZoom(1.2));
-$('viewerZoomOut').addEventListener('click', ()=> vZoom(1/1.2));
-$('viewerFlip').addEventListener('click', ()=>{
-  vState.ry += 180;
-  vApply();
+document.querySelectorAll('.nav-item').forEach(b => {
+  b.addEventListener('click', () => navigateTo(b.dataset.tab));
 });
 
-$('viewerClose').addEventListener('click', closeViewer);
-
-/* Cierre al tocar el fondo (solo si fue un toque limpio, no un drag) */
-viewer.addEventListener('click', (e)=>{
-  if (e.target !== viewer) return;
-  const cx = (typeof e.clientX === 'number') ? e.clientX : vState.lastX;
-  const cy = (typeof e.clientY === 'number') ? e.clientY : vState.lastY;
-  const dx = Math.abs(cx - vDownClientX);
-  const dy = Math.abs(cy - vDownClientY);
-  if (dx > 10 || dy > 10) return;
-  if (vMoveDistance > 15) return;
-  closeViewer();
+$('hamburger').addEventListener('click', () => {
+  $('sidebar').classList.toggle('open');
+  $('overlay').classList.toggle('show');
 });
-
-viewer.addEventListener('pointerdown', (e)=>{
-  if (e.target !== viewer) return;
-  vDownClientX = e.clientX;
-  vDownClientY = e.clientY;
-  vMoveDistance = 0;
-});
-
-/* Atajos de teclado */
-window.addEventListener('keydown', (e)=>{
-  if (!viewer.classList.contains('open')) return;
-  if (e.key === 'Escape') closeViewer();
-  if (e.key === 'ArrowLeft') { vState.ry -= 15; vApply(); }
-  if (e.key === 'ArrowRight'){ vState.ry += 15; vApply(); }
-  if (e.key === 'ArrowUp')   { vState.rx = Math.max(-85, vState.rx - 15); vApply(); }
-  if (e.key === 'ArrowDown') { vState.rx = Math.min(85, vState.rx + 15); vApply(); }
-  if (e.key === '+' || e.key === '=') vZoom(1.15);
-  if (e.key === '-') vZoom(1/1.15);
-  if (e.key === '0') vReset();
+$('overlay').addEventListener('click', () => {
+  $('sidebar').classList.remove('open');
+  $('overlay').classList.remove('show');
 });
 
 /* ============================================================
-   10. TIENDA
+   RENDERS
    ============================================================ */
-function updateCooldownTexts(){
-  const now = Date.now();
-
-  const dailyReady = now - wallet.lastDaily >= DAILY_CD_MS;
-  $('btnDaily').disabled = !dailyReady;
-  $('dailyCd').textContent = dailyReady
-    ? 'Disponible ahora'
-    : 'Vuelve en ' + fmtTime(DAILY_CD_MS - (now - wallet.lastDaily));
-
-  const workReady = now - wallet.lastWork >= WORK_CD_MS;
-  $('btnWork').disabled = !workReady;
-  $('workCd').textContent = workReady
-    ? 'Listo para trabajar'
-    : 'Descanso: ' + fmtTime(WORK_CD_MS - (now - wallet.lastWork));
-
-  const memReady = now - (wallet.lastMemory || 0) >= MEM_COOLDOWN_MS;
-  if (!memActive){
-    $('btnMemory').disabled = !memReady;
-    $('btnMemory').classList.toggle('mg-ready', memReady);
-    $('memCd').textContent = memReady
-      ? 'Listo para jugar'
-      : 'Enfriamiento: ' + fmtTime(MEM_COOLDOWN_MS - (now - wallet.lastMemory));
-  }
+function renderAll() {
+  renderSidebarUser();
+  renderProfile();
+  renderCollection();
+  renderSystem();
+  renderRanking();
+  renderShop();
+  renderAuction();
 }
 
-function renderShop(){
-  updateCooldownTexts();
+function renderSidebarUser() {
+  if (!userDoc) return;
+  const name = [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') || userDoc.username || 'Usuario';
+  $('sb-avatar').textContent = (name || '?').charAt(0).toUpperCase();
+  $('sb-name').textContent = name;
+  $('sb-tag').textContent = userDoc.username ? '@' + userDoc.username : 'ID: ' + session.userId;
+}
 
-  let total = 0;
-  for (const [name, data] of Object.entries(collection)){
-    if (data.count > 1){
-      const c = BY_NAME.get(name);
-      if (c) total += (data.count - 1) * DUPE_COINS[c.rarity];
-    }
-  }
-  $('sellAllReward').textContent = total.toLocaleString('es') + ' 🪙';
-  $('btnSellAll').disabled = total === 0;
+/* ---------- PERFIL ---------- */
+function renderProfile() {
+  const c = $('tab-profile');
+  if (!userDoc || !userData) { c.innerHTML = '<div class="card"><div class="empty">Cargando…</div></div>'; return; }
 
-  const list = $('dupesList');
-  list.innerHTML = '';
-  const dupes = Object.entries(collection)
-    .filter(([,d]) => d.count > 1)
-    .map(([name, d]) => ({ name, count: d.count, char: BY_NAME.get(name) }))
-    .filter(x => x.char)
-    .sort((a,b)=> RARITY_ORDER.indexOf(a.char.rarity) - RARITY_ORDER.indexOf(b.char.rarity));
+  const name = [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') || userDoc.username || 'Usuario';
+  const initial = (name || '?').charAt(0).toUpperCase();
+  const waifus = Array.isArray(userData.waifus) ? userData.waifus : [];
+  const unique = new Set(waifus.map(w => (w?.name || '').toLowerCase()).filter(Boolean));
+  const coins = Number(userData.coins) || 0;
 
-  if (dupes.length === 0){
-    list.innerHTML = '<div class="dupes-empty">Aún no tienes copias duplicadas. ¡Sigue invocando!</div>';
-    return;
-  }
+  const rc = { comun:0, rara:0, epica:0, legendaria:0, exclusiva:0 };
+  for (const w of waifus) if (w?.rarity && rc[w.rarity] != null) rc[w.rarity]++;
 
-  for (const d of dupes){
-    const meta = RARITY_META[d.char.rarity];
-    const extras = d.count - 1;
-    const reward = extras * DUPE_COINS[d.char.rarity];
+  const plusActive = userData.plusExpiresAt && userData.plusExpiresAt > Date.now();
+  const plusDays = plusActive ? Math.ceil((userData.plusExpiresAt - Date.now()) / 86400000) : 0;
 
-    const el = document.createElement('div');
-    el.className = 'dupe-item';
+  const total = waifus.length || 1;
+  const pct = {
+    comun:      (rc.comun / total) * 100,
+    rara:       (rc.rara / total) * 100,
+    epica:      (rc.epica / total) * 100,
+    legendaria: (rc.legendaria / total) * 100,
+    exclusiva:  (rc.exclusiva / total) * 100
+  };
 
-    el.innerHTML = `
-      <span class="dot" style="background:${meta.color};box-shadow:0 0 10px ${meta.color}"></span>
-      <div class="info">
-        <div class="nm" title="${d.name}">${d.name}</div>
-        <div class="sub">${meta.label} · ${extras} extra(s) → +${reward} 🪙</div>
+  let html = `<div class="card">
+    <div class="profile">
+      <div class="avatar">${initial}</div>
+      <div class="profile-info">
+        <div class="name">${esc(name)}${plusActive ? `<span class="plus-badge">💎 Plus ${plusDays}d</span>` : ''}</div>
+        <div class="tag">${userDoc.username ? '@' + esc(userDoc.username) : 'ID: ' + session.userId}</div>
       </div>
-    `;
+    </div>
 
-    const btn = document.createElement('button');
-    btn.className = 'sell';
-    btn.textContent = 'Vender 1';
-    btn.addEventListener('click', ()=> sellOne(d.name));
-    el.appendChild(btn);
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${fmt(coins)}</div><div class="lbl">🪙 Monedas</div></div>
+      <div class="stat"><div class="num">${waifus.length}</div><div class="lbl">🍥 Copias</div></div>
+      <div class="stat"><div class="num">${unique.size}</div><div class="lbl">✨ Únicas</div></div>
+      <div class="stat"><div class="num">${fmt(ranking?.totalWaifus || 0)}</div><div class="lbl">🌍 Global</div></div>
+    </div>
 
-    list.appendChild(el);
+    <div class="section-title">Balance de rarezas</div>
+    <div class="rarity-bar">
+      ${pct.comun>0 ? `<div style="width:${pct.comun}%;background:var(--comun)"></div>` : ''}
+      ${pct.rara>0 ? `<div style="width:${pct.rara}%;background:var(--rara)"></div>` : ''}
+      ${pct.epica>0 ? `<div style="width:${pct.epica}%;background:var(--epica)"></div>` : ''}
+      ${pct.legendaria>0 ? `<div style="width:${pct.legendaria}%;background:var(--legendaria)"></div>` : ''}
+      ${pct.exclusiva>0 ? `<div style="width:${pct.exclusiva}%;background:var(--exclusiva)"></div>` : ''}
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${rc.comun}</div><div class="lbl">🌸 Común</div></div>
+      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${rc.rara}</div><div class="lbl">🔥 Rara</div></div>
+      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${rc.epica}</div><div class="lbl">💎 Épica</div></div>
+      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${rc.legendaria}</div><div class="lbl">👑 Legendaria</div></div>
+      <div class="stat"><div class="num" style="color:var(--exclusiva);text-shadow:0 0 15px var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">🌟 Exclusiva</div></div>
+    </div>
+
+    ${userData.predeterminada ? `
+      <div class="section-title">🎴 Predeterminada</div>
+      <div class="row">
+        <div class="left">
+          <div class="rank">🎴</div>
+          <div class="info"><div class="name">${esc(userData.predeterminada)}</div></div>
+        </div>
+      </div>
+    ` : ''}
+  </div>`;
+  c.innerHTML = html;
+}
+
+/* ---------- COLECCIÓN ---------- */
+function renderCollection() {
+  const c = $('tab-collection');
+  const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
+
+  if (waifus.length === 0) {
+    c.innerHTML = `<div class="card"><div class="empty">
+      <span class="icon">📭</span>
+      Aún no tienes waifus.<br>¡Captura salvajes cada hora en el bot!
+    </div></div>`;
+    return;
   }
-}
 
-function sellOne(name){
-  const data = collection[name];
-  if (!data || data.count <= 1) return;
-  const char = BY_NAME.get(name);
-  if (!char) return;
-
-  data.count--;
-  const reward = DUPE_COINS[char.rarity];
-  addCoins(reward);
-
-  if (data.count <= 0) delete collection[name];
-  saveAll();
-  toast(`Vendida copia de ${name} · +${reward} 🪙`, 'gold');
-  renderCollection();
-  renderShop();
-  renderProfile();
-  updateFooter();
-}
-
-function sellAllDupes(){
-  let total = 0;
-  let sold = 0;
-  for (const [name, data] of Object.entries(collection)){
-    if (data.count <= 1) continue;
-    const char = BY_NAME.get(name);
-    if (!char) continue;
-    const extras = data.count - 1;
-    const reward = extras * DUPE_COINS[char.rarity];
-    data.count = 1;
-    total += reward;
-    sold += extras;
+  const countMap = new Map();
+  for (const w of waifus) {
+    if (!w?.name) continue;
+    const k = String(w.name);
+    if (!countMap.has(k)) countMap.set(k, { name: k, rarity: w.rarity || 'comun', count: 0 });
+    countMap.get(k).count++;
   }
-  if (total === 0) return;
-  addCoins(total);
-  saveAll();
-  toast(`Vendidas ${sold} copias · +${total} 🪙`, 'gold');
-  renderCollection();
-  renderShop();
-  renderProfile();
-  updateFooter();
-}
+  const all = [...countMap.values()].sort((a, b) => a.name.localeCompare(b.name));
 
-/* ============================================================
-   11. MEMORIA EMOJI
-   ============================================================ */
-const memGrid     = $('memGrid');
-const memLivesEl  = $('memLives');
-const memRoundEl  = $('memRound');
-const memScoreEl  = $('memScore');
-const memFeedback = $('memFeedback');
-const btnMemory   = $('btnMemory');
-const memCdEl     = $('memCd');
+  const filters = [
+    { k: 'all', label: '✨ Todas' },
+    { k: 'legendaria', label: '👑 Legendaria' },
+    { k: 'epica', label: '💎 Épica' },
+    { k: 'rara', label: '🔥 Rara' },
+    { k: 'comun', label: '🌸 Común' },
+    { k: 'exclusiva', label: '🌟 Exclusiva' }
+  ];
 
-let memActive        = false;
-let memLives         = MEM_MAX_LIVES;
-let memRound         = 0;
-let memScore         = 0;
-let memFirst         = null;
-let memLock          = false;
-let memMatchedInRound = 0;
-let memTotalPairs    = 0;
-let memPendingTimer  = null;
-
-function memShuffle(arr){
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+  let html = `<div class="card"><div class="filters">`;
+  for (const f of filters) {
+    const count = f.k === 'all' ? all.length : all.filter(x => x.rarity === f.k).length;
+    if (f.k !== 'all' && count === 0) continue;
+    html += `<button data-f="${f.k}" class="${collectionFilter === f.k ? 'active' : ''}">${f.label} (${count})</button>`;
   }
-  return a;
-}
+  html += `</div>`;
 
-function memRenderLives(){
-  memLivesEl.textContent =
-    '❤️'.repeat(Math.max(0, memLives)) +
-    '🖤'.repeat(Math.max(0, MEM_MAX_LIVES - memLives));
-}
+  const list = collectionFilter === 'all' ? all : all.filter(x => x.rarity === collectionFilter);
 
-function memBuildRound(){
-  memGrid.innerHTML = '';
-  memFirst = null;
-  memLock = false;
-  memMatchedInRound = 0;
-  memTotalPairs = MEM_PAIRS;
+  if (list.length === 0) {
+    html += `<div class="empty"><span class="icon">🔎</span>Sin waifus en esta rareza.</div>`;
+  } else {
+    html += `<div class="grid">`;
+    const covers = new Set(userData.covers || []);
+    const coversOff = new Set(userData.coversOff || []);
+    for (const w of list) {
+      watchImage(w.name);
+      const url = imageUrls[w.name] || '';
+      const hasCover = covers.has(w.name) && !coversOff.has(w.name);
+      const initial = (w.name || '?').charAt(0).toUpperCase();
+      html += `<div class="wcard" data-r="${w.rarity}" data-img="${esc(w.name)}">
+        ${hasCover ? '<span class="cover-badge">🎨</span>' : ''}
+        <div class="img">
+          ${url
+            ? `<img src="${esc(url)}" alt="" loading="lazy">`
+            : `<span class="placeholder">${initial}</span>`}
+        </div>
+        <div class="info">
+          <div class="name" title="${esc(w.name)}">${esc(w.name)}</div>
+          <div class="meta">
+            <span class="rarity">${RARITY_LABEL[w.rarity] || w.rarity}</span>
+            <span class="count">x${w.count}</span>
+          </div>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
 
-  const chosen = memShuffle(MEM_EMOJIS).slice(0, MEM_PAIRS);
-  const deck = memShuffle(chosen.concat(chosen));
-
-  deck.forEach((emoji, i)=>{
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = 'mem-card';
-    card.dataset.emoji = emoji;
-    card.dataset.index = i;
-
-    const back = document.createElement('span');
-    back.className = 'mem-face mem-back';
-    back.textContent = '❓';
-
-    const front = document.createElement('span');
-    front.className = 'mem-face mem-front';
-    front.textContent = emoji;
-
-    card.append(back, front);
-    card.addEventListener('click', ()=> memClick(card));
-    memGrid.appendChild(card);
+  c.innerHTML = html;
+  c.querySelectorAll('.filters button').forEach(b => {
+    b.addEventListener('click', () => { collectionFilter = b.dataset.f; renderCollection(); });
   });
 }
 
-function memClick(card){
-  if (!memActive || memLock) return;
-  if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+/* ---------- SISTEMA ---------- */
+function renderSystem() {
+  const c = $('tab-system');
+  const pool = catalog?.pool || {};
+  const series = catalog?.series || {};
 
-  card.classList.add('flipped');
+  const rc = { comun: 0, rara: 0, epica: 0, legendaria: 0 };
+  for (const r in rc) {
+    const entry = pool[r];
+    if (!entry) { rc[r] = 0; continue; }
+    const chars = entry.characters;
+    if (Array.isArray(chars)) rc[r] = chars.length;
+    else if (chars && typeof chars === 'object') rc[r] = Object.keys(chars).length;
+    else rc[r] = 0;
+  }
 
-  if (!memFirst){
-    memFirst = card;
+  const totalSalvajes = rc.comun + rc.rara + rc.epica + rc.legendaria;
+
+  if (totalSalvajes === 0) {
+    c.innerHTML = `<div class="card"><div class="empty">
+      <span class="icon">⚠️</span>
+      <b>El catálogo no se ha sincronizado aún.</b><br><br>
+      El bot debe estar corriendo y haber hecho al menos un sync.<br>
+      Como admin, envía <b>/syncfirebase</b> al bot y espera 5 segundos.<br><br>
+      <span style="color:var(--muted);font-size:11px">Si el problema persiste, revisa que <code>waifu_data.json</code> exista en <code>data/</code>.</span>
+    </div></div>`;
     return;
   }
 
-  const second = card;
-  memLock = true;
+  const poolNames = new Set();
+  for (const r in pool) {
+    const chars = pool[r]?.characters;
+    if (Array.isArray(chars)) chars.forEach(n => poolNames.add(n));
+    else if (chars && typeof chars === 'object') Object.keys(chars).forEach(n => poolNames.add(n));
+  }
+  let exclusivas = 0;
+  const exclusivaNames = [];
+  for (const n of Object.keys(series)) {
+    if (!poolNames.has(n)) { exclusivas++; exclusivaNames.push(n); }
+  }
 
-  const isMatch = memFirst.dataset.emoji === second.dataset.emoji;
+  const totalConExclusivas = totalSalvajes + exclusivas;
 
-  if (isMatch){
-    const a = memFirst, b = second;
-    memFirst = null;
+  const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
+  const ownedSet = new Set();
+  for (const w of waifus) if (w?.name) ownedSet.add(String(w.name).toLowerCase());
 
-    clearTimeout(memPendingTimer);
-    memPendingTimer = setTimeout(()=>{
-      a.classList.add('matched');
-      b.classList.add('matched');
-      memLock = false;
-      memMatchedInRound++;
+  const owned = { comun: 0, rara: 0, epica: 0, legendaria: 0, exclusiva: 0 };
+  for (const w of waifus) if (w?.rarity && owned[w.rarity] != null) owned[w.rarity]++;
 
-      const reward = MEM_REWARD_PER_MATCH;
-      memScore += reward;
-      addCoins(reward, { silent: true });
-      memScoreEl.textContent = memScore + ' 🪙';
+  const seriesCount = {};
+  for (const [name, serie] of Object.entries(series)) {
+    if (!serie) continue;
+    if (!seriesCount[serie]) seriesCount[serie] = 0;
+    seriesCount[serie]++;
+  }
+  const seriesList = Object.entries(seriesCount).sort((a, b) => b[1] - a[1]);
+  const topSeries = seriesList.slice(0, 10);
 
-      memFeedback.textContent = `✓ ¡Pareja! +${reward} 🪙`;
-      memFeedback.className = 'mem-feedback ok';
+  const pct = (have, total) => total > 0 ? Math.round((have / total) * 100) : 0;
 
-      if (memMatchedInRound >= memTotalPairs){
-        memRoundComplete();
-      }
-    }, 320);
+  let html = `<div class="card">
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${fmt(totalConExclusivas)}</div><div class="lbl">🍥 Total sistema</div></div>
+      <div class="stat"><div class="num">${fmt(totalSalvajes)}</div><div class="lbl">🌿 Salvajes</div></div>
+      <div class="stat"><div class="num">${fmt(exclusivas)}</div><div class="lbl">🌟 Exclusivas</div></div>
+      <div class="stat"><div class="num">${fmt(seriesList.length)}</div><div class="lbl">📺 Series</div></div>
+    </div>
+
+    <div class="section-title">🎯 Tu progreso por rareza</div>`;
+
+  const rarityRows = [
+    { k: 'comun',      label: 'Común',      color: 'var(--comun)' },
+    { k: 'rara',       label: 'Rara',       color: 'var(--rara)' },
+    { k: 'epica',      label: 'Épica',      color: 'var(--epica)' },
+    { k: 'legendaria', label: 'Legendaria', color: 'var(--legendaria)' }
+  ];
+
+  for (const r of rarityRows) {
+    const totalR = rc[r.k];
+    const have = owned[r.k] || 0;
+    const p = pct(have, totalR);
+    const emoji = RARITY_EMOJI[r.k] || '';
+    html += `<div class="row" style="padding:14px">
+      <div class="left" style="flex-direction:column;align-items:stretch;width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="name" style="color:${r.color};text-shadow:0 0 10px ${r.color}">${emoji} ${r.label}</div>
+          <div class="right">${fmt(have)}<span style="color:var(--muted);font-weight:400;font-size:11px">/${fmt(totalR)}</span></div>
+        </div>
+        <div style="height:5px;background:rgba(10,4,32,.9);border-radius:20px;margin-top:8px;border:1px solid var(--border);overflow:hidden">
+          <div style="height:100%;width:${p}%;background:${r.color};box-shadow:0 0 12px ${r.color};transition:width .5s"></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (exclusivas > 0) {
+    const haveExcl = owned.exclusiva || 0;
+    const p = pct(haveExcl, exclusivas);
+    html += `<div class="row" style="padding:14px">
+      <div class="left" style="flex-direction:column;align-items:stretch;width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="name" style="color:var(--exclusiva);text-shadow:0 0 10px var(--exclusiva)">🌟 Exclusiva</div>
+          <div class="right">${fmt(haveExcl)}<span style="color:var(--muted);font-weight:400;font-size:11px">/${fmt(exclusivas)}</span></div>
+        </div>
+        <div style="height:5px;background:rgba(10,4,32,.9);border-radius:20px;margin-top:8px;border:1px solid var(--border);overflow:hidden">
+          <div style="height:100%;width:${p}%;background:var(--exclusiva);box-shadow:0 0 12px var(--exclusiva);transition:width .5s"></div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const totalRef = totalSalvajes || 1;
+  html += `<div class="section-title">📊 Distribución del catálogo</div>
+    <div class="rarity-bar" style="height:10px">
+      ${rc.comun>0 ? `<div style="width:${(rc.comun/totalRef)*100}%;background:var(--comun)"></div>` : ''}
+      ${rc.rara>0 ? `<div style="width:${(rc.rara/totalRef)*100}%;background:var(--rara)"></div>` : ''}
+      ${rc.epica>0 ? `<div style="width:${(rc.epica/totalRef)*100}%;background:var(--epica)"></div>` : ''}
+      ${rc.legendaria>0 ? `<div style="width:${(rc.legendaria/totalRef)*100}%;background:var(--legendaria)"></div>` : ''}
+    </div>`;
+
+  html += `<div class="stats-grid">
+    <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${fmt(rc.comun)}</div><div class="lbl">🌸 Común</div></div>
+    <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${fmt(rc.rara)}</div><div class="lbl">🔥 Rara</div></div>
+    <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${fmt(rc.epica)}</div><div class="lbl">💎 Épica</div></div>
+    <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${fmt(rc.legendaria)}</div><div class="lbl">👑 Legendaria</div></div>
+  </div>`;
+
+  if (topSeries.length > 0) {
+    html += `<div class="section-title">📺 Top series (${seriesList.length})</div>`;
+    for (let i = 0; i < topSeries.length; i++) {
+      const [name, count] = topSeries[i];
+      const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+      html += `<div class="row">
+        <div class="left">
+          <div class="rank ${cls}">${medal}</div>
+          <div class="info">
+            <div class="name">${esc(name)}</div>
+            <div class="sub">${count} personaje${count !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+
+  if (exclusivaNames.length > 0) {
+    html += `<div class="section-title">🌟 Waifus exclusivas</div>`;
+    for (const n of exclusivaNames.slice(0, 20)) {
+      const has = ownedSet.has(n.toLowerCase());
+      html += `<div class="row">
+        <div class="left">
+          <div class="rank" style="background:${has ? 'linear-gradient(135deg, var(--exclusiva), #0891b2)' : 'linear-gradient(135deg, rgba(34,211,238,.15), rgba(34,211,238,.05))'}; ${has ? 'color:#001a20;box-shadow:0 0 15px rgba(34,211,238,.6)' : 'color:var(--exclusiva)'}">🌟</div>
+          <div class="info">
+            <div class="name" style="color:${has ? 'var(--exclusiva)' : 'var(--text)'}">${esc(n)}</div>
+            <div class="sub">${has ? 'En tu colección' : 'No la tienes'}</div>
+          </div>
+        </div>
+        <div class="right">${has ? '✅' : '—'}</div>
+      </div>`;
+    }
+    if (exclusivaNames.length > 20) {
+      html += `<p class="hint">… y ${exclusivaNames.length - 20} más</p>`;
+    }
+  }
+
+  html += `<p class="hint" style="text-align:left;margin-top:16px">
+    💡 Datos desde <b>/catalog</b> en Firebase. Actualizado cada 5 min.
+  </p></div>`;
+
+  c.innerHTML = html;
+}
+
+/* ---------- RANKING ---------- */
+function renderRanking() {
+  const c = $('tab-ranking');
+  const top = ranking?.top || [];
+  if (!top.length) {
+    c.innerHTML = `<div class="card"><div class="empty"><span class="icon">🏆</span>Sin datos de ranking aún.</div></div>`;
+    return;
+  }
+  const myId = session.userId;
+
+  let html = `<div class="card">
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${fmt(ranking.totalUsers || 0)}</div><div class="lbl">👥 Jugadores</div></div>
+      <div class="stat"><div class="num">${fmt(ranking.totalWaifus || 0)}</div><div class="lbl">🍥 Waifus totales</div></div>
+    </div>
+    <div class="section-title">Top 10</div>`;
+
+  for (let i = 0; i < Math.min(top.length, 10); i++) {
+    const u = top[i];
+    const isMe = String(u.userId) === String(myId);
+    const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    html += `<div class="row" ${isMe ? 'style="border-color:var(--cyan);box-shadow:0 0 15px rgba(34,211,238,.3)"' : ''}>
+      <div class="left">
+        <div class="rank ${cls}">${medal}</div>
+        <div class="info">
+          <div class="name">${esc(u.display)}${isMe ? ' (tú)' : ''}</div>
+          <div class="sub">${u.unique} únicas</div>
+        </div>
+      </div>
+      <div class="right">${fmt(u.count)}</div>
+    </div>`;
+  }
+  html += `</div>`;
+  c.innerHTML = html;
+}
+
+/* ============================================================
+   TIENDA (con sub-pestañas)
+   ============================================================ */
+function renderShop() {
+  const c = $('tab-shop');
+  const myCoins = Number(userData?.coins) || 0;
+
+  let html = `<div class="card">
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">🪙 Tu saldo</div></div>
+      <div class="stat"><div class="num">${Object.keys(sales || {}).length}</div><div class="lbl">🌸 En venta</div></div>
+    </div>
+
+    <div class="subtabs" id="shop-subtabs">
+      <button class="subtab ${shopSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">🌸 Waifus</button>
+      <button class="subtab ${shopSubTab === 'boxes' ? 'active' : ''}" data-sub="boxes">🎁 Cajas misteriosas</button>
+      <button class="subtab ${shopSubTab === 'catalog' ? 'active' : ''}" data-sub="catalog">📊 Catálogo</button>
+    </div>
+
+    <div id="shop-content"></div>
+  </div>`;
+
+  c.innerHTML = html;
+
+  // Bind subtabs
+  c.querySelectorAll('#shop-subtabs .subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      shopSubTab = btn.dataset.sub;
+      renderShop();
+    });
+  });
+
+  // Render sub-content
+  const content = $('shop-content');
+  if (shopSubTab === 'waifus')  renderShopWaifus(content);
+  if (shopSubTab === 'boxes')   renderShopBoxes(content);
+  if (shopSubTab === 'catalog') renderShopCatalog(content);
+}
+
+/* Sub-tab: Waifus en venta */
+function renderShopWaifus(container) {
+  const allSales = Object.values(sales || {});
+  const series = catalog?.series || {};
+  const myCoins = Number(userData?.coins) || 0;
+  const myId = session.userId;
+
+  let html = '';
+  if (allSales.length === 0) {
+    html = `<div class="empty"><span class="icon">🏪</span>No hay waifus en venta ahora mismo.</div>`;
   } else {
-    const a = memFirst, b = second;
-    memFirst = null;
+    allSales.sort((a, b) => a.price - b.price);
+    for (const s of allSales.slice(0, 60)) {
+      watchImage(s.waifu?.name);
+      const url = imageUrls[s.waifu?.name] || '';
+      const initial = (s.waifu?.name || '?').charAt(0).toUpperCase();
+      const seller = s.sellerUsername ? '@' + esc(s.sellerUsername) : esc(s.sellerName || 'Anónimo');
+      const isMine = String(s.sellerId) === String(myId);
+      const canAfford = myCoins >= (s.price || 0);
+      const disabled = isMine || !canAfford;
 
-    memLives--;
-    memRenderLives();
+      html += `<div class="row">
+        <div class="left">
+          <div class="rank" style="background:${url ? `url('${esc(url)}') center/cover` : 'linear-gradient(135deg, rgba(255,45,146,.2), rgba(139,92,246,.2))'}; color:${url ? 'transparent' : 'inherit'}">${initial}</div>
+          <div class="info">
+            <div class="name">${esc(s.waifu?.name || '?')}</div>
+            <div class="sub">${seller}${series[s.waifu?.name] ? ' · ' + esc(series[s.waifu.name]) : ''}</div>
+          </div>
+        </div>
+        <button class="btn-buy" data-buy="${esc(s.saleId)}" ${disabled ? 'disabled' : ''}>
+          ${isMine ? 'Tu venta' : (canAfford ? `Comprar ${fmt(s.price)}🪙` : `Faltan ${fmt((s.price||0)-myCoins)}🪙`)}
+        </button>
+      </div>`;
+    }
+  }
 
-    a.classList.add('shake');
-    b.classList.add('shake');
+  html += `<p class="hint" style="text-align:left;margin-top:14px">
+    💡 Haz clic en <b>Comprar</b> para adquirir una waifu directamente desde la web.<br>
+    Las compras son procesadas por el bot en <b>~3 segundos</b>.
+  </p>`;
 
-    memFeedback.textContent = '✗ No coinciden… −1 vida';
-    memFeedback.className = 'mem-feedback bad';
+  container.innerHTML = html;
 
-    clearTimeout(memPendingTimer);
-    memPendingTimer = setTimeout(()=>{
-      a.classList.remove('flipped', 'shake');
-      b.classList.remove('flipped', 'shake');
-
-      if (memLives <= 0){
-        memEnd();
-      } else {
-        memLock = false;
-        memFeedback.textContent = '';
-        memFeedback.className = 'mem-feedback';
+  container.querySelectorAll('.btn-buy').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const saleId = btn.dataset.buy;
+      if (!saleId || btn.disabled) return;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.innerHTML = '<span class="loading"></span>';
+      try {
+        await requestBuy(saleId);
+      } catch (err) {
+        showToast('❌ ' + (err.message || 'Error'), 'err');
+      } finally {
+        setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 5000);
       }
-    }, 900);
-  }
-}
-
-function memRoundComplete(){
-  memLock = true;
-  const bonus = MEM_ROUND_BONUS + memRound * 10;
-  memScore += bonus;
-  addCoins(bonus, { silent: true });
-  memScoreEl.textContent = memScore + ' 🪙';
-  memFeedback.textContent = `🎉 ¡Ronda ${memRound} completada! +${bonus} 🪙`;
-  memFeedback.className = 'mem-feedback gold';
-
-  clearTimeout(memPendingTimer);
-  memPendingTimer = setTimeout(()=>{
-    if (!memActive) return;
-    memRound++;
-    memRoundEl.textContent = 'Ronda ' + memRound;
-    memFeedback.textContent = '';
-    memFeedback.className = 'mem-feedback';
-    memBuildRound();
-  }, 1400);
-}
-
-function memStart(){
-  if (memActive) return;
-  const now = Date.now();
-  if (now - (wallet.lastMemory || 0) < MEM_COOLDOWN_MS){
-    toast('El minijuego está en enfriamiento', 'error');
-    return;
-  }
-
-  memActive = true;
-  memLives = MEM_MAX_LIVES;
-  memRound = 1;
-  memScore = 0;
-  memFirst = null;
-  memLock = false;
-  memMatchedInRound = 0;
-  memPendingTimer = null;
-  wallet.lastMemory = now;
-  saveJSON(LS_WALLET, wallet);
-
-  memScoreEl.textContent = '0 🪙';
-  memRoundEl.textContent = 'Ronda 1';
-  memRenderLives();
-  memFeedback.textContent = 'Encuentra las 8 parejas';
-  memFeedback.className = 'mem-feedback';
-
-  btnMemory.disabled = true;
-  btnMemory.classList.remove('mg-ready');
-  memCdEl.textContent = 'Jugando…';
-
-  memBuildRound();
-}
-
-function memEnd(){
-  memActive = false;
-  memLock = true;
-  clearTimeout(memPendingTimer);
-
-  memGrid.querySelectorAll('.mem-card').forEach(c => c.disabled = true);
-
-  memFeedback.textContent =
-    `💀 ¡Sin vidas! Llegaste a la ronda ${memRound} · Total ganado: ${memScore} 🪙`;
-  memFeedback.className = 'mem-feedback bad';
-
-  btnMemory.disabled = false;
-  toast(`Juego terminado · ${memScore} 🪙`, 'gold');
-  renderShop();
-}
-
-/* ============================================================
-   12. PERFIL
-   ============================================================ */
-function renderProfile(){
-  $('stPulls').textContent  = stats.pulls.toLocaleString('es');
-  $('stOwned').textContent  = Object.keys(collection).length;
-  $('stEarned').textContent = wallet.earned.toLocaleString('es');
-
-  let dupes = 0;
-  for (const d of Object.values(collection)) if (d.count > 1) dupes += d.count - 1;
-  $('stDupes').textContent = dupes.toLocaleString('es');
-
-  const totalPulls = Math.max(1, stats.pulls);
-  const wrap = $('rarityBars');
-  wrap.innerHTML = '';
-  for (const key of RARITY_ORDER){
-    const meta = RARITY_META[key];
-    const count = stats.byRarity[key] || 0;
-    const pct = stats.pulls ? (count / totalPulls * 100) : 0;
-    const row = document.createElement('div');
-    row.className = 'bar-row';
-    row.innerHTML = `
-      <span class="lbl" style="color:${meta.color}">${meta.label}</span>
-      <span class="track"><span class="fill" style="width:${pct}%;background:${meta.color}"></span></span>
-      <span class="num">${count}</span>
-    `;
-    wrap.appendChild(row);
-  }
-}
-
-function updateFooter(){
-  const b = stats.byRarity;
-  $('footerStats').textContent =
-    `Tiradas: ${stats.pulls}  ·  ` +
-    `★${b.legendaria||0}  ·  Épica ${b.epica||0}  ·  Rara ${b.rara||0}  ·  Común ${b.comun||0}`;
-}
-
-/* ============================================================
-   13. TABS
-   ============================================================ */
-function initTabs(){
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', ()=>{
-      tabs.forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      const target = document.querySelector(`.tab-panel[data-tab-content="${tab.dataset.tab}"]`);
-      if (target) target.classList.add('active');
-
-      if (tab.dataset.tab === 'shop') renderShop();
-      if (tab.dataset.tab === 'profile') renderProfile();
-      if (tab.dataset.tab === 'collection') renderCollection();
-      window.scrollTo({top:0, behavior:'smooth'});
     });
   });
 }
 
-/* ============================================================
-   14. RATES
-   ============================================================ */
-function renderRates(){
-  const total = Object.values(WAIFU_DATA.pool).reduce((s,p)=> s + p.weight, 0);
-  const wrap = $('rates');
-  wrap.innerHTML = '';
-  for (const key of RARITY_ORDER){
-    const pool = WAIFU_DATA.pool[key];
-    if (!pool) continue;
-    const meta = RARITY_META[key];
-    const pct = (pool.weight / total * 100).toFixed(0);
-    const s = document.createElement('span');
-    s.style.color = meta.color;
-    s.style.borderColor = meta.color + '66';
-    s.textContent = `${meta.label} ${pct}%`;
-    wrap.appendChild(s);
+/* Sub-tab: Cajas misteriosas */
+function renderShopBoxes(container) {
+  const myCoins = Number(userData?.coins) || 0;
+
+  let html = `<div class="section-title">🎁 Cajas misteriosas</div>
+    <div class="boxes-grid">`;
+
+  for (const key of ['comun', 'premium', 'legendaria']) {
+    const box = CAJAS[key];
+    const canAfford = myCoins >= box.price;
+    const disabled = !canAfford;
+    html += `<div class="box-card" data-box="${key}" data-can="${disabled ? 0 : 1}">
+      <span class="bemoji">${box.emoji}</span>
+      <div class="bname">${box.name}</div>
+      <div class="bdesc">${box.desc}</div>
+      <div class="bprice">${fmt(box.price)} 🪙</div>
+    </div>`;
   }
+
+  html += `</div>
+
+    <p class="hint" style="text-align:left;margin-top:18px">
+      💡 Toca una caja para abrirla al instante.<br>
+      El bot procesará la apertura, te avisará por DM con las imágenes y las waifus aparecerán en tu colección en segundos.<br>
+      🔒 Cada apertura consume las monedas correspondientes.
+    </p>`;
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('.box-card').forEach(card => {
+    const key = card.dataset.box;
+    const canOpen = card.dataset.can === '1';
+    if (!canOpen) {
+      card.style.opacity = '.55';
+      card.style.cursor = 'not-allowed';
+      return;
+    }
+    card.addEventListener('click', async () => {
+      if (card.dataset.opening) return;
+      card.dataset.opening = '1';
+      const original = card.innerHTML;
+      card.style.opacity = '.6';
+      card.style.pointerEvents = 'none';
+      try {
+        await requestBox(key);
+      } catch (err) {
+        showToast('❌ ' + (err.message || 'Error'), 'err');
+      } finally {
+        setTimeout(() => {
+          card.innerHTML = original;
+          card.style.opacity = '1';
+          card.style.pointerEvents = '';
+          delete card.dataset.opening;
+        }, 5000);
+      }
+    });
+  });
+}
+
+/* Sub-tab: Catálogo */
+function renderShopCatalog(container) {
+  const pool = catalog?.pool || {};
+  const series = catalog?.series || {};
+
+  const rc = { comun: 0, rara: 0, epica: 0, legendaria: 0 };
+  for (const r in rc) {
+    const entry = pool[r];
+    if (!entry) { rc[r] = 0; continue; }
+    const chars = entry.characters;
+    if (Array.isArray(chars)) rc[r] = chars.length;
+    else if (chars && typeof chars === 'object') rc[r] = Object.keys(chars).length;
+    else rc[r] = 0;
+  }
+
+  const totalSalvajes = rc.comun + rc.rara + rc.epica + rc.legendaria;
+
+  const poolNames = new Set();
+  for (const r in pool) {
+    const chars = pool[r]?.characters;
+    if (Array.isArray(chars)) chars.forEach(n => poolNames.add(n));
+    else if (chars && typeof chars === 'object') Object.keys(chars).forEach(n => poolNames.add(n));
+  }
+  let exclusivas = 0;
+  for (const n of Object.keys(series)) {
+    if (!poolNames.has(n)) exclusivas++;
+  }
+
+  const totalSeriesSet = new Set(Object.values(series).filter(Boolean));
+  const totalSeries = totalSeriesSet.size;
+
+  let html = `<div class="section-title">📊 Catálogo del sistema</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${fmt(totalSalvajes)}</div><div class="lbl">🌿 Salvajes</div></div>
+      <div class="stat"><div class="num">${fmt(exclusivas)}</div><div class="lbl">🌟 Exclusivas</div></div>
+      <div class="stat"><div class="num">${fmt(totalSeries)}</div><div class="lbl">📺 Series</div></div>
+    </div>
+
+    <div class="section-title">🌸 Rareza del catálogo</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${fmt(rc.comun)}</div><div class="lbl">🌸 Común</div></div>
+      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${fmt(rc.rara)}</div><div class="lbl">🔥 Rara</div></div>
+      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${fmt(rc.epica)}</div><div class="lbl">💎 Épica</div></div>
+      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${fmt(rc.legendaria)}</div><div class="lbl">👑 Legendaria</div></div>
+    </div>
+
+    <p class="hint" style="text-align:left;margin-top:14px">
+      💡 El catálogo se actualiza cada 5 minutos desde el bot.<br>
+      Para ver tu <b>progreso personal</b>, abre la pestaña <b>🌍 Sistema</b> del menú lateral.
+    </p>`;
+
+  container.innerHTML = html;
+}
+
+/* ---------- SUBASTA ---------- */
+function renderAuction() {
+  if (auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; }
+  const c = $('tab-auction');
+  const a = auction?.active;
+
+  if (!a) {
+    c.innerHTML = `<div class="card"><div class="empty">
+      <span class="icon">🌟</span>
+      No hay subasta activa.<br>
+      La próxima empieza a las <b>8:00 AM (MX)</b>.
+    </div></div>`;
+    return;
+  }
+
+  const bids = Object.values(a.bids || {}).sort((x, y) => y.amount - x.amount);
+  const given = a.copiesGivenBefore || 0;
+  const copyNum = given + 1;
+
+  let html = `<div class="card">
+    <div class="auction-hero">
+      <div class="auction-tag">${a.testMode ? '🧪 Prueba' : '🌟 En vivo'} · Copia ${copyNum}/${a.maxCopies || 3}</div>
+      <div class="auction-name">${esc(a.waifuName)}</div>
+      <div class="countdown" id="auction-countdown">--:--</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${bids.length}</div><div class="lbl">📊 Pujas</div></div>
+      <div class="stat"><div class="num">${bids[0] ? fmt(bids[0].amount) : 0}</div><div class="lbl">🏆 Mejor puja</div></div>
+    </div>
+
+    <div class="section-title">🏆 Top postores</div>`;
+
+  if (bids.length === 0) {
+    html += `<div class="empty">Sin pujas aún. ¡Sé el primero desde el bot!</div>`;
+  } else {
+    for (let i = 0; i < Math.min(bids.length, 5); i++) {
+      const b = bids[i];
+      const cls = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+      const display = b.username ? '@' + esc(b.username) : esc(b.name || ('Usuario ' + b.userId));
+      html += `<div class="row">
+        <div class="left"><div class="rank ${cls}">${medal}</div><div class="info"><div class="name">${display}</div></div></div>
+        <div class="right">${fmt(b.amount)} 🪙</div>
+      </div>`;
+    }
+  }
+  html += `<p class="hint" style="text-align:left;margin-top:14px">💡 Para pujar, usa los botones del mensaje en el grupo.</p></div>`;
+  c.innerHTML = html;
+
+  const cdEl = $('auction-countdown');
+  if (!cdEl) return;
+  const updateCd = () => {
+    const rem = Math.max(0, a.endTime - Date.now());
+    const h = Math.floor(rem / 3600000);
+    const m = Math.floor((rem % 3600000) / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    cdEl.textContent = h > 0
+      ? `${h}h ${String(m).padStart(2,'0')}m`
+      : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (rem < 5 * 60 * 1000) cdEl.classList.add('urgent');
+    else cdEl.classList.remove('urgent');
+  };
+  updateCd();
+  auctionTimer = setInterval(updateCd, 1000);
 }
 
 /* ============================================================
-   15. EVENTOS
+   LOGOUT
    ============================================================ */
-$('btnRoll').addEventListener('click', ()=> doRoll(1));
-$('btnRoll10').addEventListener('click', ()=> doRoll(10));
+$('btn-logout').addEventListener('click', async () => {
+  unsubs.forEach(u => { try { u(); } catch {} });
+  unsubs.length = 0;
+  imageUnsubs.forEach(u => { try { u(); } catch {} });
+  imageUnsubs.clear();
+  actionUnsubs.forEach(u => { try { u(); } catch {} });
+  actionUnsubs.clear();
+  if (auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; }
 
-$('btnWork').addEventListener('click', ()=>{
-  const now = Date.now();
-  if (now - wallet.lastWork < WORK_CD_MS){
-    toast('Todavía estás descansando…', 'error');
-    return;
-  }
-  wallet.lastWork = now;
-  saveJSON(LS_WALLET, wallet);
-  addCoins(WORK_REWARD);
-  toast(`Has trabajado · +${WORK_REWARD} 🪙`, 'gold');
-  renderShop();
+  if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
+  localStorage.removeItem('jinx_session');
+  session = userDoc = userData = null;
+  if (unsubRequest) { unsubRequest(); unsubRequest = null; }
+
+  $('sidebar').classList.remove('open');
+  $('overlay').classList.remove('show');
+  navigateTo('profile');
+
+  show('screen-login');
+  inputEl.value = '';
+  $('btn-request').disabled = false;
+  $('btn-request').textContent = '▶ Enviar código';
+  codeInputs.forEach(i => i.value = '');
 });
-
-$('btnDaily').addEventListener('click', ()=>{
-  const now = Date.now();
-  if (now - wallet.lastDaily < DAILY_CD_MS){
-    toast('Ya reclamaste la recompensa diaria hoy', 'error');
-    return;
-  }
-  wallet.lastDaily = now;
-  saveJSON(LS_WALLET, wallet);
-  addCoins(DAILY_REWARD);
-  toast(`¡Recompensa diaria! +${DAILY_REWARD} 🪙`, 'gold');
-  renderShop();
-});
-
-btnMemory.addEventListener('click', memStart);
-
-$('btnSellAll').addEventListener('click', sellAllDupes);
-
-cardEl.addEventListener('click', ()=> cardEl.classList.toggle('flipped'));
-
-$('search').addEventListener('input', renderCollection);
-$('filterRarity').addEventListener('change', renderCollection);
-$('onlyOwned').addEventListener('change', renderCollection);
-
-setInterval(()=>{
-  const shopPanel = document.querySelector('.tab-panel[data-tab-content="shop"]');
-  if (shopPanel && shopPanel.classList.contains('active')){
-    updateCooldownTexts();
-  }
-}, 1000);
 
 /* ============================================================
-   16. INIT
+   AUTOLOGIN
    ============================================================ */
-(function init(){
-  initTabs();
-  renderRates();
-  renderCoins();
-  renderCollection();
-  renderShop();
-  renderProfile();
-  updateFooter();
-  updatePullButtons();
-  memRenderLives();
-  $('hint').textContent = `${TOTAL_CHARS} waifus en el catálogo · ¡Pulsa «Invocar»!`;
+(async () => {
+  const token = localStorage.getItem('jinx_session');
+  if (!token) return;
+  try { await startSession(token); }
+  catch { localStorage.removeItem('jinx_session'); }
 })();
 </script>
 </body>
