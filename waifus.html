@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#07030f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Jinx Waifus — HUD</title>
+<title>Jinx Waifus Web</title>
 <link rel="icon" href="data:,">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,6 +18,7 @@
     --comun:#ffb6c1; --rara:#ff8383; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee;
     --sidebar-w: 250px;
     --ok:#22c55e; --err:#ef4444;
+    --app-vh: 1vh;
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -30,6 +31,7 @@
   @keyframes toastIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
   @keyframes chatPop { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes stickerPop { 0%{opacity:0;transform:scale(.85)} 60%{transform:scale(1.03)} 100%{opacity:1;transform:scale(1)} }
   @keyframes resultIn{ 0%{opacity:0;transform:scale(.7) translateY(15px)} 60%{opacity:1;transform:scale(1.05) translateY(0)} 100%{transform:scale(1)} }
   @keyframes reelSymbol { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
   @keyframes playShine{ 0%{left:-60%} 50%,100%{left:130%} }
@@ -641,9 +643,21 @@
      CHAT GLOBAL
      ============================================================ */
   .chat-card{
-    padding: 0; display: flex; flex-direction: column;
-    height: calc(100vh - 90px); min-height: 400px; max-height: none; overflow: hidden;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 140px);
+    max-height: calc(100vh - 140px);
+    height: calc(var(--app-vh) * 100 - 140px);
+    max-height: calc(var(--app-vh) * 100 - 140px);
+    height: calc(100dvh - 140px);
+    max-height: calc(100dvh - 140px);
+    min-height: 360px;
+    overflow: hidden;
+    min-width: 0;
   }
+  .chat-card > *{ min-height: 0; min-width: 0; }
+
   .chat-head{
     display: flex; align-items: center; justify-content: space-between;
     padding: 14px 18px; border-bottom: 1px solid var(--border);
@@ -665,9 +679,13 @@
     animation: pulse 2s infinite;
   }
   .chat-messages{
-    flex: 1; overflow-y: auto; padding: 14px 16px 16px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 16px 16px;
     display: flex; flex-direction: column; gap: 12px;
-    overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     position: relative;
   }
   .chat-empty{
@@ -718,14 +736,91 @@
   .chat-msg.grouped{ margin-top: -6px; }
   .chat-msg.grouped .chat-avatar{ opacity: 0; visibility: hidden; height: 0; width: 38px; }
   .chat-msg.grouped .chat-meta{ display: none; }
+
+  /* ============================================================
+     STICKERS — estilo Telegram (sin burbuja)
+     ============================================================ */
+  .chat-bubble.sticker{
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    display: inline-block;
+    max-width: 100%;
+    line-height: 0;
+    white-space: normal;
+  }
+  .chat-bubble.sticker img{
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(139,92,246,.15));
+    transition: transform .2s ease;
+    animation: stickerPop .35s cubic-bezier(.2,.9,.3,1.3);
+  }
+  .chat-bubble.sticker img:hover{
+    transform: scale(1.03);
+  }
+  .chat-msg.me .chat-bubble.sticker,
+  .chat-msg.me .chat-bubble.sticker img{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .chat-msg:has(.chat-bubble.sticker) .chat-body{
+    background: transparent;
+  }
+
+  /* Mensajes con sticker — alineación estilo Telegram */
+  .chat-msg.chat-msg-sticker{
+    align-items: flex-end;
+  }
+  .chat-msg.chat-msg-sticker .chat-body{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 75%;
+    width: auto;
+    flex: 0 1 auto;
+  }
+  .chat-msg.chat-msg-sticker.me{
+    flex-direction: row-reverse;
+  }
+  .chat-msg.chat-msg-sticker.me .chat-body{
+    align-items: flex-end;
+  }
+  .chat-msg.chat-msg-sticker .chat-meta{
+    margin-bottom: 2px;
+    padding: 0;
+    width: 100%;
+  }
+  .chat-msg.chat-msg-sticker.me .chat-meta{
+    justify-content: flex-end;
+  }
+  .chat-msg.chat-msg-sticker .chat-avatar{
+    align-self: flex-end;
+    margin-bottom: 4px;
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .chat-msg.chat-msg-sticker.grouped .chat-avatar{
+    width: 32px;
+    height: 32px;
+  }
+
   .chat-input-row{
     display: flex; gap: 8px; padding: 12px 14px;
     padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
     border-top: 1px solid var(--border);
     background: rgba(10,4,32,.7);
     flex-shrink: 0; align-items: center; position: relative;
+    min-height: 0;
   }
-  .chat-input-row input{ flex: 1; padding: 11px 14px; font-size: 15px; border-radius: 22px; }
+  .chat-input-row input{ flex: 1; padding: 11px 14px; font-size: 16px; border-radius: 22px; min-width: 0; }
   .chat-send{
     width: 46px; height: 46px; min-width: 46px;
     padding: 0; border-radius: 50%; flex-shrink: 0;
@@ -733,6 +828,84 @@
     box-shadow: 0 0 20px rgba(255,45,146,.4), inset 0 1px 0 rgba(255,255,255,.15);
   }
   .chat-send:hover:not(:disabled){ box-shadow: 0 0 30px rgba(255,45,146,.6), inset 0 1px 0 rgba(255,255,255,.2); transform: scale(1.04); }
+  .chat-sticker-btn{
+    width: 46px; height: 46px; min-width: 46px;
+    padding: 0; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(139,92,246,.2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    box-shadow: none;
+    transition: .2s;
+  }
+  .chat-sticker-btn:hover:not(:disabled){
+    background: rgba(139,92,246,.35);
+    border-color: var(--purple);
+    box-shadow: 0 0 15px rgba(139,92,246,.5);
+    transform: scale(1.04);
+  }
+  .chat-stickers{
+    position: absolute;
+    bottom: 76px;
+    left: 12px;
+    right: 12px;
+    background: linear-gradient(180deg, rgba(21,11,38,.98), rgba(13,6,32,.99));
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    box-shadow: 0 0 40px rgba(139,92,246,.45), 0 -10px 30px rgba(0,0,0,.7);
+    z-index: 20;
+    max-height: 280px;
+    display: flex;
+    flex-direction: column;
+    animation: toastIn .2s ease;
+    overflow: hidden;
+  }
+  .chat-stickers[hidden]{ display: none; }
+  .chat-stickers-head{
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); font-weight: 800;
+    background: rgba(10,4,32,.4);
+  }
+  .chat-stickers-close{
+    background: transparent; border: none; color: var(--muted);
+    font-size: 22px; padding: 0; width: 28px; height: 28px;
+    min-width: 0; box-shadow: none; border-radius: 8px;
+    line-height: 1; text-transform: none;
+  }
+  .chat-stickers-close:hover{
+    color: var(--text); background: rgba(239,68,68,.15); transform: none;
+  }
+  .chat-stickers-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+    gap: 6px; padding: 10px; overflow-y: auto; flex: 1;
+    overscroll-behavior: contain;
+  }
+  .chat-sticker-item{
+    width: 100%; aspect-ratio: 1;
+    background: rgba(10,4,32,.7);
+    border: 1px solid var(--border); border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px; transition: .15s;
+    box-shadow: none; text-transform: none;
+  }
+  .chat-sticker-item:hover{
+    border-color: var(--purple);
+    background: rgba(139,92,246,.15);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(139,92,246,.4);
+  }
+  .chat-sticker-item img{ width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .chat-stickers-empty{
+    grid-column: 1 / -1;
+    text-align: center; padding: 30px 12px;
+    color: var(--muted); font-size: 12px; line-height: 1.7;
+  }
+  .chat-stickers-empty b{ color: var(--cyan); }
+
   .chat-char-counter{
     font-size: 10px; color: var(--muted);
     position: absolute; right: 76px; bottom: 52px;
@@ -807,7 +980,6 @@
     animation: pulse 1s infinite;
   }
 
-  /* Ruleta */
   .mg-wheel-wrap{
     position: relative;
     width: 200px; height: 200px;
@@ -819,9 +991,7 @@
     inset: -8px;
     border-radius: 50%;
     background: linear-gradient(135deg, #2d1b4e, #0d0620, #2d1b4e, #0d0620);
-    box-shadow:
-      0 0 40px rgba(139,92,246,.6),
-      inset 0 0 20px rgba(0,0,0,.7);
+    box-shadow: 0 0 40px rgba(139,92,246,.6), inset 0 0 20px rgba(0,0,0,.7);
     z-index: 0;
   }
   .mg-wheel-pointer{
@@ -845,36 +1015,32 @@
   .mg-wheel{
     width: 100%; height: 100%;
     border-radius: 50%;
-    /* 20 segmentos: 9 rojo, 9 negro, 2 verde. Offset -9deg para centrar seg 0 arriba */
     background: conic-gradient(from -9deg,
       #1f2937 0deg 18deg,
       #dc2626 18deg 36deg,
-      #1f2937 36deg 54deg,
+      #16a34a 36deg 54deg,
       #dc2626 54deg 72deg,
       #1f2937 72deg 90deg,
-      #16a34a 90deg 108deg,
-      #dc2626 108deg 126deg,
-      #1f2937 126deg 144deg,
+      #dc2626 90deg 108deg,
+      #1f2937 108deg 126deg,
+      #16a34a 126deg 144deg,
       #dc2626 144deg 162deg,
       #1f2937 162deg 180deg,
       #dc2626 180deg 198deg,
       #1f2937 198deg 216deg,
-      #dc2626 216deg 234deg,
-      #1f2937 234deg 252deg,
-      #dc2626 252deg 270deg,
-      #16a34a 270deg 288deg,
+      #16a34a 216deg 234deg,
+      #dc2626 234deg 252deg,
+      #1f2937 252deg 270deg,
+      #dc2626 270deg 288deg,
       #1f2937 288deg 306deg,
-      #dc2626 306deg 324deg,
-      #1f2937 324deg 342deg,
-      #dc2626 342deg 360deg
+      #16a34a 306deg 324deg,
+      #dc2626 324deg 342deg,
+      #1f2937 342deg 360deg
     );
     border: 4px solid rgba(139,92,246,.5);
     position: relative;
     z-index: 1;
-    box-shadow:
-      inset 0 0 25px rgba(0,0,0,.6),
-      inset 0 0 0 3px rgba(0,0,0,.3);
-    /* Sin animation ni transition por defecto — se maneja con JS */
+    box-shadow: inset 0 0 25px rgba(0,0,0,.6), inset 0 0 0 3px rgba(0,0,0,.3);
     will-change: transform;
   }
   .mg-wheel::after{
@@ -899,7 +1065,6 @@
     pointer-events: none;
   }
 
-  /* Slots */
   .mg-slots-wrap{
     position: relative;
     padding: 16px;
@@ -942,23 +1107,14 @@
     overflow: hidden;
     transition: border-color .3s, box-shadow .3s;
   }
-  .mg-reel-symbol{
-    display: block;
-    line-height: 1;
-    transition: opacity .15s ease;
-  }
-  .mg-reel.spinning .mg-reel-symbol{
-    animation: reelSymbol .08s linear infinite;
-  }
+  .mg-reel-symbol{ display: block; line-height: 1; }
+  .mg-reel.spinning .mg-reel-symbol{ animation: reelSymbol .08s linear infinite; }
   .mg-reel.win{
     border-color: var(--gold);
     animation: winPulse 1.2s ease-in-out infinite;
   }
-  .mg-reel.settled .mg-reel-symbol{
-    animation: pop .35s cubic-bezier(.2,.9,.3,1.3);
-  }
+  .mg-reel.settled .mg-reel-symbol{ animation: pop .35s cubic-bezier(.2,.9,.3,1.3); }
 
-  /* Cara o Cruz */
   .mg-coin-wrap{
     perspective: 1000px;
     width: 140px; height: 140px;
@@ -993,7 +1149,6 @@
     transform: rotateY(180deg);
   }
 
-  /* Resultado */
   .mg-result{
     display: flex; flex-direction: column;
     align-items: center; gap: 16px;
@@ -1042,7 +1197,6 @@
     border: 1px solid var(--border);
   }
 
-  /* Selectores */
   .mg-choice{
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -1130,10 +1284,7 @@
   }
   .mg-bet-amt{ color: inherit; display: inline-flex; align-items: center; gap: 4px; }
   .mg-bet-pct{ font-size: 9px; font-weight: 700; opacity: .7; letter-spacing: .5px; }
-  .mg-bet:hover:not(.active){
-    color: var(--text); border-color: var(--border2);
-    transform: translateY(-2px);
-  }
+  .mg-bet:hover:not(.active){ color: var(--text); border-color: var(--border2); transform: translateY(-2px); }
   .mg-bet.active{
     color: var(--text); border-color: var(--purple);
     background: linear-gradient(180deg, rgba(255,45,146,.22), rgba(139,92,246,.22));
@@ -1298,7 +1449,18 @@
     .topbar{ display: flex; }
     .card{ padding: 18px 14px; }
     .card::after{ display: none; }
-    .chat-card{ height: calc(100vh - 90px); min-height: 380px; max-height: none; border-radius: 12px; margin-bottom: 0; }
+
+    .chat-card{
+      height: calc(100vh - 130px);
+      max-height: calc(100vh - 130px);
+      height: calc(var(--app-vh) * 100 - 130px);
+      max-height: calc(var(--app-vh) * 100 - 130px);
+      height: calc(100dvh - 130px);
+      max-height: calc(100dvh - 130px);
+      min-height: 320px;
+      border-radius: 12px;
+      margin-bottom: 0;
+    }
     .chat-messages{ padding: 12px; gap: 10px; }
     .chat-head{ padding: 12px 14px; }
   }
@@ -1328,10 +1490,20 @@
     .boxes-grid{ grid-template-columns: 1fr; }
     .card{ padding: 16px 12px; }
     .main-inner{ padding: 14px 10px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
-    .chat-card{ height: calc(100vh - 90px); }
+
+    .chat-card{
+      height: calc(100vh - 120px);
+      max-height: calc(100vh - 120px);
+      height: calc(var(--app-vh) * 100 - 120px);
+      max-height: calc(var(--app-vh) * 100 - 120px);
+      height: calc(100dvh - 120px);
+      max-height: calc(100dvh - 120px);
+      min-height: 280px;
+    }
     .chat-avatar{ width: 34px; height: 34px; font-size: 13px; border-radius: 9px; }
     .chat-bubble{ font-size: 13px; padding: 8px 12px; }
     .chat-input-row input{ font-size: 16px; }
+    .chat-bubble.sticker img{ width: 130px; height: 130px; }
     .mg-reel{ width: 64px; height: 88px; font-size: 40px; }
     .mg-wheel-wrap{ width: 160px; height: 160px; }
     .mg-wheel-center{ width: 48px; height: 48px; font-size: 18px; }
@@ -1355,7 +1527,7 @@
     <div class="card">
       <div class="logo-hero">
         <div class="l1">Jinx Waifus</div>
-        <div class="l2">◢ Collection System ◣</div>
+        <div class="l2">◢ Web Edition ◣</div>
       </div>
       <div class="section-title">Acceso</div>
       <div class="tabs" id="login-tabs">
@@ -1404,7 +1576,7 @@
       <div class="sidebar-brand">
         <div class="badge-dot"></div>
         <div class="logo">Jinx Waifus</div>
-        <div class="sub">◢ Collection System ◣</div>
+        <div class="sub">◢ Web Edition ◣</div>
       </div>
 
       <div class="sidebar-user">
@@ -1491,6 +1663,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
+/* FIX ANDROID: altura dinámica según teclado/barras */
+(function setupAndroidViewportFix() {
+  if (!window.visualViewport) return;
+  const root = document.documentElement;
+  const apply = () => {
+    root.style.setProperty('--app-vh', (window.visualViewport.height * 0.01) + 'px');
+  };
+  window.visualViewport.addEventListener('resize', apply);
+  window.visualViewport.addEventListener('scroll', apply);
+  apply();
+  setTimeout(apply, 200);
+  setTimeout(apply, 800);
+})();
+
 const $ = (id) => document.getElementById(id);
 const show = (id) => {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1544,7 +1730,8 @@ const I = {
   message:  '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
   send:     '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
   gamepad:  '<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="6"/>',
-  target:   '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
+  target:   '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  smiley:   '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>'
 };
 function ico(name, size = 16) {
   return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ''}</svg>`;
@@ -1637,9 +1824,10 @@ let chatLastSentAt = 0;
 const CHAT_MAX_LEN = 500;
 const CHAT_COOLDOWN_MS = 2500;
 
-/* ============================================================
-   MINIJUEGOS — estado
-   ============================================================ */
+// Stickers
+let stickerUnsub = null;
+
+// Minijuegos
 let currentGame = 'ruleta';
 let currentBet = 250;
 let currentChoice = null;
@@ -1648,24 +1836,18 @@ let gameLastResult = null;
 let gameTotalWon = 0;
 const GAME_BETS = [100, 250, 500, 1000, 2500];
 
-// Ruleta: 20 segmentos
-// 0 negro, 1 rojo, 2 negro, 3 rojo, 4 negro, 5 verde, 6 rojo, 7 negro, 8 rojo, 9 negro,
-// 10 rojo, 11 negro, 12 rojo, 13 negro, 14 rojo, 15 verde, 16 negro, 17 rojo, 18 negro, 19 rojo
-// Total: 9 rojo, 9 negro, 2 verde = 20
 const ROULETTE_ORDER = [
-  'negro','rojo','negro','rojo','negro',
-  'verde','rojo','negro','rojo','negro',
-  'rojo','negro','rojo','negro','rojo',
-  'verde','negro','rojo','negro','rojo'
+  'negro','rojo','verde','rojo','negro',
+  'rojo','negro','verde','rojo','negro',
+  'rojo','negro','verde','rojo','negro',
+  'rojo','negro','verde','rojo','negro'
 ];
 
 const SLOT_SYMBOLS = ['🍒','🍋','🔔','⭐','💎'];
 
 let rouletteRaf = null;
 let rouletteAngle = 0;
-
 let slotIntervals = [];
-
 let coinRaf = null;
 let coinAngle = 0;
 
@@ -2184,6 +2366,11 @@ function chatCreateMessageElement(msg, { grouped = false } = {}) {
   const initial = (name || '?').charAt(0).toUpperCase();
   const avatarInner = msg.photoUrl ? `<img src="${esc(msg.photoUrl)}" alt="" loading="lazy">` : initial;
 
+  const isSticker = !!msg.sticker;
+  const bubbleContent = isSticker
+    ? `<img src="${esc(msg.sticker)}" alt="" loading="lazy">`
+    : chatFormatText(msg.text || '');
+
   div.innerHTML = `
     <div class="chat-avatar" title="Ver perfil">${avatarInner}</div>
     <div class="chat-body">
@@ -2191,9 +2378,15 @@ function chatCreateMessageElement(msg, { grouped = false } = {}) {
         <span class="chat-name">${esc(name)}</span>
         <span class="chat-time">${chatFormatTime(msg.timestamp)}</span>
       </div>
-      <div class="chat-bubble">${chatFormatText(msg.text || '')}</div>
+      <div class="chat-bubble${isSticker ? ' sticker' : ''}">${bubbleContent}</div>
     </div>
   `;
+
+  // Stickers: alineación propia como Telegram (derecha si es tuyo, izquierda si no)
+  if (isSticker) {
+    div.classList.add('chat-msg-sticker');
+    if (!isSelf) div.classList.add('chat-msg-sticker-left');
+  }
 
   const openProfile = () => {
     const uid = parseInt(msg.userId, 10);
@@ -2227,6 +2420,7 @@ function unsubscribeChat() {
   if (chatUnsub) { try { chatUnsub(); } catch {} chatUnsub = null; }
   chatSubscribed = false;
   chatShowNewBtn(false);
+  closeStickers();
 }
 
 function renderChat() {
@@ -2252,7 +2446,15 @@ function renderChat() {
         </div>
       </div>
       <div class="chat-new-btn" id="chat-new-btn">${ico('chevron',12)} Nuevos mensajes</div>
+      <div class="chat-stickers" id="chat-stickers" hidden>
+        <div class="chat-stickers-head">
+          <span>Stickers del bot</span>
+          <button class="chat-stickers-close" id="chat-stickers-close" aria-label="Cerrar">×</button>
+        </div>
+        <div class="chat-stickers-grid" id="chat-stickers-grid"></div>
+      </div>
       <div class="chat-input-row">
+        <button class="chat-sticker-btn" id="chat-sticker-btn" aria-label="Stickers">${ico('smiley',20)}</button>
         <input id="chat-input" type="text" placeholder="Escribe un mensaje…" maxlength="${CHAT_MAX_LEN}" autocomplete="off">
         <button class="chat-send" id="chat-send" aria-label="Enviar">${ico('send',20)}</button>
         <div class="chat-char-counter" id="chat-counter">0/${CHAT_MAX_LEN}</div>
@@ -2294,6 +2496,28 @@ function bindChatEvents() {
     chatAutoScroll = true;
     chatShowNewBtn(false);
     chatScrollToBottom(true);
+  });
+
+  const stickerBtn = $('chat-sticker-btn');
+  const stickerClose = $('chat-stickers-close');
+  stickerBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const panel = $('chat-stickers');
+    if (panel && !panel.hidden) closeStickers();
+    else openStickers();
+  });
+  stickerClose?.addEventListener('click', closeStickers);
+
+  document.addEventListener('click', (e) => {
+    const panel = $('chat-stickers');
+    if (!panel || panel.hidden) return;
+    if (panel.contains(e.target)) return;
+    if (e.target === stickerBtn || stickerBtn?.contains(e.target)) return;
+    closeStickers();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeStickers();
   });
 }
 
@@ -2354,7 +2578,8 @@ function subscribeChat() {
 
   chatUnsub = onChildAdded(messagesRef, (snap) => {
     const msg = snap.val();
-    if (!msg || typeof msg !== 'object' || !msg.text) return;
+    if (!msg || typeof msg !== 'object') return;
+    if (!msg.text && !msg.sticker) return;
 
     const empty = box.querySelector('.chat-empty');
     if (empty) empty.remove();
@@ -2371,6 +2596,84 @@ function subscribeChat() {
     if (wasAtBottom) { chatScrollToBottom(true); chatShowNewBtn(false); }
     else { chatShowNewBtn(true); }
   }, (err) => { console.warn('Chat listener error:', err); });
+}
+
+/* ============================================================
+   STICKERS
+   ============================================================ */
+function openStickers() {
+  const panel = $('chat-stickers');
+  if (!panel) return;
+  panel.hidden = false;
+  subscribeStickers();
+}
+function closeStickers() {
+  const panel = $('chat-stickers');
+  if (panel) panel.hidden = true;
+  unsubscribeStickers();
+}
+function unsubscribeStickers() {
+  if (stickerUnsub) { try { stickerUnsub(); } catch {} stickerUnsub = null; }
+}
+function subscribeStickers() {
+  if (stickerUnsub) return;
+  const grid = $('chat-stickers-grid');
+  if (!grid) return;
+  grid.innerHTML = `<div class="chat-stickers-empty">Cargando stickers…</div>`;
+  stickerUnsub = onValue(ref(db, 'stickers'), (snap) => {
+    const data = snap.val() || {};
+    const list = Object.values(data)
+      .filter(s => s && s.url)
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    if (list.length === 0) {
+      grid.innerHTML = `<div class="chat-stickers-empty">
+        Aún no hay stickers.<br>
+        <b>Envía un sticker al bot por DM</b> y aparecerá aquí.
+      </div>`;
+      return;
+    }
+    grid.innerHTML = list.map(s => `
+      <button class="chat-sticker-item" data-sticker="${esc(s.url)}" title="${esc(s.emoji || '')}">
+        <img src="${esc(s.url)}" alt="" loading="lazy">
+      </button>
+    `).join('');
+    grid.querySelectorAll('.chat-sticker-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.sticker;
+        if (url) sendStickerMessage(url);
+      });
+    });
+  });
+}
+
+async function sendStickerMessage(stickerUrl) {
+  if (!stickerUrl) return;
+  if (Date.now() - chatLastSentAt < CHAT_COOLDOWN_MS) {
+    const wait = Math.ceil((CHAT_COOLDOWN_MS - (Date.now() - chatLastSentAt)) / 1000);
+    showToast(`Espera ${wait}s antes de enviar`, 'err', 2000, 'clock');
+    return;
+  }
+  try {
+    const payload = {
+      userId: session.userId,
+      name: userDoc?.firstName
+        ? [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ')
+        : (userDoc?.username || 'Usuario'),
+      username: userDoc?.username || null,
+      photoUrl: userDoc?.photoUrl || null,
+      sticker: stickerUrl,
+      timestamp: Date.now()
+    };
+    await push(ref(db, 'chat'), payload);
+    chatLastSentAt = Date.now();
+    closeStickers();
+    chatAutoScroll = true;
+    chatShowNewBtn(false);
+    setTimeout(() => chatScrollToBottom(true), 80);
+  } catch (e) {
+    showToast('Error: ' + (e.message || e), 'err', 3000, 'x');
+  }
 }
 
 /* ============================================================
@@ -2403,7 +2706,6 @@ function renderMinigames() {
       currentGame = btn.dataset.game;
       currentChoice = null;
       gameLastResult = null;
-      // Reset angles cuando cambia de juego
       rouletteAngle = 0;
       coinAngle = 0;
       renderMinigames();
@@ -2414,7 +2716,6 @@ function renderMinigames() {
 }
 
 function mgRenderStage() {
-  // Idle
   if (!gameRunning && !gameLastResult) {
     if (currentGame === 'ruleta') {
       return `
@@ -2450,7 +2751,6 @@ function mgRenderStage() {
     }
   }
 
-  // Spinning (durante el juego)
   if (gameRunning) {
     if (currentGame === 'ruleta') {
       return `
@@ -2486,7 +2786,6 @@ function mgRenderStage() {
     }
   }
 
-  // Result
   if (gameLastResult) {
     return renderGameResultVisual(gameLastResult);
   }
@@ -2504,9 +2803,9 @@ function renderGameUI(content) {
     html += `<div class="section-title">${ico('target',11)} Elige un color</div>
       <div class="mg-choice" id="mg-choice">`;
     const opts = [
-      { k: 'rojo',  label: 'Rojo',  mult: 'x2',  color: 'rojo',  bg: '#dc2626' },
-      { k: 'negro', label: 'Negro', mult: 'x2',  color: 'negro', bg: '#1f2937' },
-      { k: 'verde', label: 'Verde', mult: 'x14', color: 'verde', bg: '#16a34a' }
+      { k: 'rojo',  label: 'Rojo',  mult: 'x2', color: 'rojo',  bg: '#dc2626' },
+      { k: 'negro', label: 'Negro', mult: 'x2', color: 'negro', bg: '#1f2937' },
+      { k: 'verde', label: 'Verde', mult: 'x4', color: 'verde', bg: '#16a34a' }
     ];
     for (const o of opts) {
       html += `<button class="mg-opt ${currentChoice === o.k ? 'active' : ''}" data-choice="${o.k}" data-color="${o.color}">
@@ -2551,7 +2850,7 @@ function renderGameUI(content) {
 
   const canPlay = !gameRunning && myCoins >= currentBet;
   const potential = currentGame === 'ruleta'
-    ? (currentChoice === 'verde' ? currentBet * 14 : currentBet * 2)
+    ? (currentChoice === 'verde' ? currentBet * 4 : currentBet * 2)
     : currentGame === 'caracruz' ? currentBet * 2 : currentBet * 50;
 
   html += `<button class="mg-play" id="mg-play" ${canPlay ? '' : 'disabled'}>
@@ -2591,7 +2890,6 @@ function renderGameResultVisual(r) {
   if (r.tipo === 'ruleta' && r.result) {
     const emoji = r.result === 'rojo' ? '🔴' : r.result === 'negro' ? '⚫' : '🟢';
     const centerBg = r.result === 'rojo' ? '#dc2626' : r.result === 'negro' ? '#1f2937' : '#16a34a';
-    // Rotación fija para apuntar a la primera ocurrencia del resultado
     const matches = [];
     ROULETTE_ORDER.forEach((c, i) => { if (c === r.result) matches.push(i); });
     const targetIdx = matches[0];
@@ -2643,7 +2941,7 @@ function startRouletteSpin() {
   wheel.style.animation = 'none';
 
   let lastT = performance.now();
-  const SPEED = 1200; // grados por segundo
+  const SPEED = 1200;
 
   function tick(now) {
     if (!wheel.isConnected) { rouletteRaf = null; return; }
@@ -2662,15 +2960,10 @@ async function stopRouletteSpin(result) {
   if (rouletteRaf) { cancelAnimationFrame(rouletteRaf); rouletteRaf = null; }
   if (!wheel || !result) return;
 
-  // Elegir índice del resultado
   const matches = [];
   ROULETTE_ORDER.forEach((c, i) => { if (c === result) matches.push(i); });
   const targetIdx = matches[Math.floor(Math.random() * matches.length)];
 
-  // Segmento i está centrado en ángulo (i * 18) en el conic-gradient (con offset from -9deg)
-  // Para que el pointer (top) apunte al segmento i:
-  //   rotation + i*18 ≡ 0 (mod 360)
-  //   rotation ≡ -i*18 (mod 360)
   const segAngle = 360 / ROULETTE_ORDER.length;
   const segCenter = targetIdx * segAngle;
   const jitter = (Math.random() - 0.5) * (segAngle * 0.55);
@@ -2680,19 +2973,15 @@ async function stopRouletteSpin(result) {
   let delta = desiredMod - currentMod;
   if (delta < 0) delta += 360;
 
-  // 4-7 giros completos extra
   const extraSpins = 4 + Math.floor(Math.random() * 4);
   const totalDelta = extraSpins * 360 + delta;
   const finalAngle = rouletteAngle + totalDelta;
 
-  // Aplicar transición con easing de desaceleración
   wheel.style.transition = 'transform 4s cubic-bezier(0.12, 0.85, 0.15, 1)';
-  // Force reflow
   void wheel.offsetWidth;
   wheel.style.transform = `rotate(${finalAngle}deg)`;
   rouletteAngle = finalAngle;
 
-  // Esperar que termine la transición
   await new Promise(res => {
     let done = false;
     const finish = () => {
@@ -2716,7 +3005,6 @@ function startSlotsSpin() {
     reel.classList.add('spinning');
     const symbolEl = reel.querySelector('.mg-reel-symbol');
     if (!symbolEl) return;
-    // Cada reel cicla símbolos a velocidad distinta
     const interval = setInterval(() => {
       if (!reel.isConnected) { clearInterval(interval); return; }
       symbolEl.textContent = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
@@ -2728,18 +3016,15 @@ function startSlotsSpin() {
 async function stopSlotsSpin(finalReels) {
   const reels = document.querySelectorAll('.mg-reel');
   if (!finalReels) {
-    // Solo parar
     reels.forEach((reel, i) => {
       if (slotIntervals[i]) { clearInterval(slotIntervals[i]); slotIntervals[i] = null; }
       reel.classList.remove('spinning');
     });
     return;
   }
-  // Parar de a uno con stagger
   for (let i = 0; i < reels.length; i++) {
     const reel = reels[i];
     if (!reel) continue;
-    // Stagger
     if (i > 0) await new Promise(res => setTimeout(res, 280));
     if (slotIntervals[i]) { clearInterval(slotIntervals[i]); slotIntervals[i] = null; }
     reel.classList.remove('spinning');
@@ -2750,7 +3035,6 @@ async function stopSlotsSpin(finalReels) {
       setTimeout(() => reel.classList.remove('settled'), 400);
     }
   }
-  // Pequeña pausa final
   await new Promise(res => setTimeout(res, 250));
 }
 
@@ -2764,7 +3048,7 @@ function startCoinSpin() {
   coin.style.animation = 'none';
 
   let lastT = performance.now();
-  const SPEED = 900; // grados Y por segundo
+  const SPEED = 900;
 
   function tick(now) {
     if (!coin.isConnected) { coinRaf = null; return; }
@@ -2783,7 +3067,6 @@ async function stopCoinSpin(result) {
   if (coinRaf) { cancelAnimationFrame(coinRaf); coinRaf = null; }
   if (!coin || !result) return;
 
-  // Ángulo objetivo: 0 para cara, 180 para cruz
   const desiredMod = result === 'cara' ? 0 : 180;
   const currentMod = (coinAngle % 360 + 360) % 360;
 
@@ -2834,11 +3117,8 @@ async function playCurrentGame() {
 
   gameRunning = true;
   gameLastResult = null;
-
-  // Re-render para activar el estado "spinning" (con IDs live)
   renderMinigames();
 
-  // Disable controls immediately
   const playBtn = $('mg-play');
   if (playBtn) {
     playBtn.disabled = true;
@@ -2849,13 +3129,11 @@ async function playCurrentGame() {
     b.style.opacity = '0.55';
   });
 
-  // Arrancar animación visual de inmediato
   const spinStart = Date.now();
-  if (currentGame === 'ruleta')      startRouletteSpin();
-  else if (currentGame === 'slots')  startSlotsSpin();
+  if (currentGame === 'ruleta')        startRouletteSpin();
+  else if (currentGame === 'slots')    startSlotsSpin();
   else if (currentGame === 'caracruz') startCoinSpin();
 
-  // Pedir resultado al bot
   let result = null, error = null;
   try {
     result = await requestGame(currentGame, currentBet, currentChoice);
@@ -2863,7 +3141,6 @@ async function playCurrentGame() {
     error = e;
   }
 
-  // Duración mínima del spin (para que se vea la animación)
   const MIN_SPIN = currentGame === 'ruleta' ? 2600
                  : currentGame === 'caracruz' ? 2200
                  : 1800;
@@ -2872,24 +3149,16 @@ async function playCurrentGame() {
     await new Promise(res => setTimeout(res, MIN_SPIN - elapsed));
   }
 
-  // Detener animación y aterrizar en el resultado
   if (result) {
-    if (currentGame === 'ruleta') {
-      await stopRouletteSpin(result.result);
-    } else if (currentGame === 'slots') {
-      await stopSlotsSpin(result.reels);
-    } else if (currentGame === 'caracruz') {
-      await stopCoinSpin(result.result);
-    }
+    if (currentGame === 'ruleta')      await stopRouletteSpin(result.result);
+    else if (currentGame === 'slots')  await stopSlotsSpin(result.reels);
+    else if (currentGame === 'caracruz') await stopCoinSpin(result.result);
     gameLastResult = result;
     if ((result.net || 0) > 0) gameTotalWon += result.net;
-
-    // Breve pausa para que se vea el aterrizaje
     await new Promise(res => setTimeout(res, 400));
   } else {
-    // Sin resultado: parar animación sin aterrizaje
-    if (currentGame === 'ruleta')      await stopRouletteSpin(null);
-    else if (currentGame === 'slots')  await stopSlotsSpin(null);
+    if (currentGame === 'ruleta')        await stopRouletteSpin(null);
+    else if (currentGame === 'slots')    await stopSlotsSpin(null);
     else if (currentGame === 'caracruz') await stopCoinSpin(null);
     if (error) showToast(error.message || 'Error', 'err', 4000, 'x');
   }
@@ -3340,13 +3609,13 @@ $('btn-logout').addEventListener('click', async () => {
   actionUnsubs.forEach(u => { try { u(); } catch {} });
   actionUnsubs.clear();
   if (auctionTimer) { clearInterval(auctionTimer); auctionTimer = null; }
-  // Cancelar animaciones de minijuegos
   if (rouletteRaf) { cancelAnimationFrame(rouletteRaf); rouletteRaf = null; }
   if (coinRaf) { cancelAnimationFrame(coinRaf); coinRaf = null; }
   slotIntervals.forEach(i => { if (i) clearInterval(i); });
   slotIntervals = [];
   closeUserModal();
   unsubscribeChat();
+  unsubscribeStickers();
   chatInitialized = false;
 
   if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
