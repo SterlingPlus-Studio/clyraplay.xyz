@@ -1,8 +1,8 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#07030f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,6 +50,7 @@
     color: var(--text); background: #07030f; min-height: 100vh; width: 100%;
     max-width: 100vw; overflow-x: hidden; -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none; position: relative;
+    margin: 0; padding: 0;
   }
   body.modal-open { overflow: hidden; }
   .ic { display: inline-block; vertical-align: middle; flex-shrink: 0; }
@@ -87,7 +88,7 @@
   * { scrollbar-width: thin; scrollbar-color: var(--purple) rgba(13,6,32,.8); }
 
   #toast-wrap{
-    position: fixed; top: max(20px, env(safe-area-inset-top, 20px));
+    position: fixed; top: 20px;
     left: 50%; transform: translateX(-50%); z-index: 99999;
     display:flex; flex-direction:column; gap: 8px;
     align-items: center; pointer-events: none; padding: 0 12px; width: 100%; max-width: 500px;
@@ -213,12 +214,15 @@
   }
   .main-inner{ max-width: 1080px; margin: 0 auto; width: 100%; }
 
+  /* ✅ TOPBAR: fija al borde real, sin padding-top adicional */
   .topbar{
     display: none; align-items: center; gap: 12px;
-    padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top, 12px));
-    background: rgba(13,6,32,.95);
+    padding: 10px 14px;
+    background: rgba(13,6,32,.98);
     border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 90;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 90;
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   }
   .hamburger{
@@ -236,12 +240,15 @@
     text-transform: uppercase; flex: 1; text-align: right;
   }
 
+  /* ✅ Safe-area SOLO si está instalada como PWA */
+  @media (display-mode: standalone) {
+    .topbar { padding-top: max(10px, env(safe-area-inset-top, 10px)); }
+    #toast-wrap { top: max(20px, env(safe-area-inset-top, 20px)); }
+  }
+
   .overlay{ display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 95; }
   .overlay.show{ display: block; }
 
-  /* ============================================================
-     CARD — solo para Login (los modales usan su propio estilo)
-     ============================================================ */
   .card{
     background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(13,6,32,.95));
     border: 1px solid var(--border); border-radius: 16px;
@@ -261,7 +268,6 @@
     opacity:.6; pointer-events: none;
   }
 
-  /* Wrapper SIN recuadro exterior — se usa en TODAS las pestañas del panel */
   .page-wrap{
     display: block;
     width: 100%;
@@ -612,9 +618,6 @@
 
   .mp-loading{ text-align: center; padding: 50px 20px; color: var(--muted); font-size: 13px; }
 
-  /* ============================================================
-     CHAT GLOBAL — conserva su contenedor propio (sin decoraciones .card)
-     ============================================================ */
   .chat-card{
     padding: 0;
     display: flex;
@@ -902,9 +905,6 @@
   }
   .chat-new-btn.show{ opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 
-  /* ============================================================
-     MINIJUEGOS
-     ============================================================ */
   .mg-stage{
     position: relative;
     padding: 32px 20px;
@@ -1299,9 +1299,6 @@
   }
   .mg-payout-item.gold b{ color: var(--gold); text-shadow: 0 0 10px rgba(251,191,36,.5); }
 
-  /* ============================================================
-     CAJAS
-     ============================================================ */
   .boxes-grid{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
   .box-card{
     padding: 22px 18px; border-radius: 16px;
@@ -1395,9 +1392,6 @@
     color: var(--muted); margin-top: 8px;
   }
 
-  /* ============================================================
-     MODAL CAJA — REVEAL
-     ============================================================ */
   #box-modal.show{
     display: flex;
     align-items: center;
@@ -1486,6 +1480,7 @@
   .box-prize-coins .bp-sub{ color: var(--gold); }
   .box-empty{ width: 100%; padding: 30px 10px; color: var(--muted); font-size: 13px; }
 
+  /* ✅ AJUSTE MÓVIL: topbar fijo + padding-top al main-inner */
   @media (max-width: 860px){
     .sidebar{
       transform: translateX(-100%);
@@ -1493,13 +1488,21 @@
       width: 260px; max-width: 85vw;
     }
     .sidebar.open{ transform: translateX(0); }
-    .main{ margin-left: 0; padding: 0; width: 100%; max-width: 100%; }
+    .main{
+      margin-left: 0;
+      padding: 0;
+      width: 100%; max-width: 100%;
+      padding-top: 0;
+      margin-top: 0;
+    }
     .main-inner{
-      padding: 18px 14px 40px;
+      padding: 72px 14px 40px;
       padding-bottom: max(40px, env(safe-area-inset-bottom, 40px));
       max-width: 100%;
+      margin: 0 auto;
     }
     .topbar{ display: flex; }
+    .layout { padding-top: 0; margin-top: 0; }
 
     .chat-card{
       height: calc(100vh - 130px);
@@ -1547,7 +1550,10 @@
     .code-inputs{ gap: 4px; }
     .code-inputs input{ width: 40px; height: 52px; font-size: 20px; }
     .boxes-grid{ grid-template-columns: 1fr; }
-    .main-inner{ padding: 14px 10px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
+    .main-inner{
+      padding: 72px 10px 40px;
+      padding-bottom: max(40px, env(safe-area-inset-bottom, 40px));
+    }
 
     .chat-card{
       height: calc(100vh - 120px);
@@ -1747,7 +1753,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-/* FIX ANDROID: altura dinámica según teclado/barras */
 (function setupAndroidViewportFix() {
   if (!window.visualViewport) return;
   const root = document.documentElement;
@@ -1899,7 +1904,6 @@ let modalUserData = null;
 let modalRankInfo = null;
 let modalImageUnsubs = new Map();
 
-// Chat global
 let chatUnsub = null;
 let chatInitialized = false;
 let chatSubscribed = false;
@@ -1908,10 +1912,8 @@ let chatLastSentAt = 0;
 const CHAT_MAX_LEN = 500;
 const CHAT_COOLDOWN_MS = 2500;
 
-// Stickers
 let stickerUnsub = null;
 
-// Minijuegos
 let currentGame = 'ruleta';
 let currentBet = 250;
 let currentChoice = null;
@@ -2213,9 +2215,6 @@ async function requestBox(tipo) {
   }, 30000);
 }
 
-/* ============================================================
-   REVEAL DE CAJA
-   ============================================================ */
 async function fetchWaifuImage(name) {
   if (!name) return '';
   if (imageUrls[name]) return imageUrls[name];
@@ -2383,9 +2382,6 @@ $('overlay').addEventListener('click', () => {
   $('overlay').classList.remove('show');
 });
 
-/* ============================================================
-   MODAL PERFIL
-   ============================================================ */
 const modalEl   = $('user-modal');
 const modalBody = $('modal-body');
 
@@ -2508,9 +2504,6 @@ function renderModalProfile() {
 $('modal-close').addEventListener('click', closeUserModal);
 modalEl.querySelector('.modal-overlay').addEventListener('click', closeUserModal);
 
-/* ============================================================
-   MODAL CAJA — listeners
-   ============================================================ */
 $('box-modal-close')?.addEventListener('click', closeBoxModal);
 $('box-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeBoxModal);
 
@@ -2521,9 +2514,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* ============================================================
-   CHAT
-   ============================================================ */
 function chatFormatTime(ts) {
   if (!ts) return '';
   const d = new Date(ts); const now = new Date();
@@ -2617,7 +2607,6 @@ function renderChat() {
     return;
   }
 
-  /* ✅ Contenedor propio, sin .card */
   c.innerHTML = `
     <div class="page-wrap">
       <div class="chat-card" style="position:relative">
@@ -2785,9 +2774,6 @@ function subscribeChat() {
   }, (err) => { console.warn('Chat listener error:', err); });
 }
 
-/* ============================================================
-   STICKERS
-   ============================================================ */
 function openStickers() {
   const panel = $('chat-stickers');
   if (!panel) return;
@@ -2863,15 +2849,11 @@ async function sendStickerMessage(stickerUrl) {
   }
 }
 
-/* ============================================================
-   MINIJUEGOS
-   ============================================================ */
 function renderMinigames() {
   const c = $('tab-minigames');
   if (!c) return;
   const myCoins = Number(userData?.coins) || 0;
 
-  /* ✅ Sin .card */
   let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">${ico('coin',12)} Tu saldo</div></div>
@@ -3133,9 +3115,6 @@ function renderGameResultVisual(r) {
   return inner;
 }
 
-/* ============================================================
-   SPIN — Ruleta
-   ============================================================ */
 function startRouletteSpin() {
   const wheel = $('mg-wheel-live') || document.querySelector('.mg-wheel');
   if (!wheel) return;
@@ -3197,9 +3176,6 @@ async function stopRouletteSpin(result) {
   });
 }
 
-/* ============================================================
-   SPIN — Slots
-   ============================================================ */
 function startSlotsSpin() {
   const reels = document.querySelectorAll('.mg-reel');
   slotIntervals = [];
@@ -3240,9 +3216,6 @@ async function stopSlotsSpin(finalReels) {
   await new Promise(res => setTimeout(res, 250));
 }
 
-/* ============================================================
-   SPIN — Cara o Cruz
-   ============================================================ */
 function startCoinSpin() {
   const coin = $('mg-coin-live') || document.querySelector('.mg-coin-3d');
   if (!coin) return;
@@ -3297,9 +3270,6 @@ async function stopCoinSpin(result) {
   });
 }
 
-/* ============================================================
-   PLAY FLOW
-   ============================================================ */
 async function playCurrentGame() {
   if (gameRunning) return;
   const myCoins = Number(userData?.coins) || 0;
@@ -3369,9 +3339,6 @@ async function playCurrentGame() {
   renderMinigames();
 }
 
-/* ============================================================
-   RENDERS
-   ============================================================ */
 function renderAll() {
   renderSidebarUser();
   renderProfile();
@@ -3424,7 +3391,6 @@ function renderProfile() {
     ? `<img src="${esc(userDoc.photoUrl)}" alt="" loading="lazy">`
     : initial;
 
-  /* ✅ Sin .card — el recuadro exterior fue eliminado */
   let html = `<div class="page-wrap">
     <div class="profile">
       <div class="avatar">${avatarInner}</div>
@@ -3801,9 +3767,6 @@ function renderAuction() {
   auctionTimer = setInterval(updateCd, 1000);
 }
 
-/* ============================================================
-   LOGOUT
-   ============================================================ */
 $('btn-logout').addEventListener('click', async () => {
   unsubs.forEach(u => { try { u(); } catch {} });
   unsubs.length = 0;
