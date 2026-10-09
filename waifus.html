@@ -214,9 +214,9 @@
   }
   .main-inner{ max-width: 1080px; margin: 0 auto; width: 100%; }
 
-  /* ✅ TOPBAR: fija al borde real, sin padding-top adicional */
+  /* ✅ TOPBAR: título pegado a la derecha del botón hamburguesa */
   .topbar{
-    display: none; align-items: center; gap: 12px;
+    display: none; align-items: center; gap: 8px;
     padding: 10px 14px;
     background: rgba(13,6,32,.98);
     border-bottom: 1px solid var(--border);
@@ -237,10 +237,10 @@
     font-size: 14px; font-weight: 800; letter-spacing: 2px;
     background: linear-gradient(90deg, var(--pink), var(--cyan));
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    text-transform: uppercase; flex: 1; text-align: right;
+    text-transform: uppercase;
+    text-align: left;
   }
 
-  /* ✅ Safe-area SOLO si está instalada como PWA */
   @media (display-mode: standalone) {
     .topbar { padding-top: max(10px, env(safe-area-inset-top, 10px)); }
     #toast-wrap { top: max(20px, env(safe-area-inset-top, 20px)); }
@@ -1480,7 +1480,6 @@
   .box-prize-coins .bp-sub{ color: var(--gold); }
   .box-empty{ width: 100%; padding: 30px 10px; color: var(--muted); font-size: 13px; }
 
-  /* ✅ AJUSTE MÓVIL: topbar fijo + padding-top al main-inner */
   @media (max-width: 860px){
     .sidebar{
       transform: translateX(-100%);
