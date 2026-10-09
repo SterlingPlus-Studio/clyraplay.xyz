@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -239,6 +239,9 @@
   .overlay{ display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 95; }
   .overlay.show{ display: block; }
 
+  /* ============================================================
+     CARD — solo para Login (los modales usan su propio estilo)
+     ============================================================ */
   .card{
     background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(13,6,32,.95));
     border: 1px solid var(--border); border-radius: 16px;
@@ -256,6 +259,13 @@
     content:''; position:absolute; top:8px; right:8px; width:14px; height:14px;
     border-top:2px solid var(--cyan); border-right:2px solid var(--cyan);
     opacity:.6; pointer-events: none;
+  }
+
+  /* Wrapper SIN recuadro exterior — se usa en TODAS las pestañas del panel */
+  .page-wrap{
+    display: block;
+    width: 100%;
+    margin-bottom: 16px;
   }
 
   .screen{ display:none; width: 100%; }
@@ -590,73 +600,20 @@
     position: sticky; top: 0; float: right;
     width: 38px; height: 38px; padding: 0; border-radius: 10px;
     background: rgba(139,92,246,.18); border: 1px solid var(--border);
-    color: var(--text); font-size: 20px; line-height: 1;
+    color: var(--text);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; box-shadow: none; z-index: 2;
     margin: -8px -8px 0 0;
+    font-family: inherit;
+    line-height: 0;
   }
+  .modal-close svg{ display: block; width: 20px; height: 20px; }
   .modal-close:hover{ background: rgba(239,68,68,.2); border-color: rgba(239,68,68,.5); transform: none; }
 
-  .mp-header{ display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-  .mp-avatar{
-    width: 88px; height: 88px; flex-shrink: 0;
-    border-radius: 18px;
-    background: linear-gradient(135deg, var(--pink), var(--purple));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 38px; font-weight: 900; color: white;
-    border: 2px solid rgba(255,255,255,.15);
-    box-shadow: 0 0 30px rgba(139,92,246,.6);
-    overflow: hidden;
-  }
-  .mp-avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
-  .mp-info{ flex:1; min-width: 0; }
-  .mp-name{ font-size: 22px; font-weight: 900; letter-spacing: .3px; word-break: break-word; line-height: 1.2; }
-  .mp-user{ font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .mp-rank-badge{
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
-    padding: 4px 10px; border-radius: 20px;
-    background: linear-gradient(90deg, rgba(255,45,146,.3), rgba(139,92,246,.3));
-    border: 1px solid var(--border2);
-    color: var(--text); text-transform: uppercase;
-    margin-top: 8px;
-  }
-  .mp-stats{ display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px; }
-  .mp-stat{
-    padding: 14px 10px; border-radius: 12px;
-    background: linear-gradient(180deg, rgba(21,11,38,.85), rgba(10,4,32,.9));
-    border: 1px solid var(--border); text-align: center;
-    position:relative; overflow:hidden;
-  }
-  .mp-stat::before{
-    content:''; position:absolute; bottom:0; left:10%; right:10%; height:2px;
-    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-    opacity:.5;
-  }
-  .mp-stat .num{ font-size: 20px; font-weight: 900; color: var(--cyan); text-shadow: 0 0 12px rgba(34,211,238,.55); font-variant-numeric: tabular-nums; }
-  .mp-stat.gold .num{ color: var(--gold); text-shadow: 0 0 12px rgba(251,191,36,.55); }
-  .mp-stat.pink .num{ color: var(--pink); text-shadow: 0 0 12px rgba(255,45,146,.55); }
-  .mp-stat .lbl{
-    font-size: 9px; color: var(--muted); margin-top: 5px;
-    text-transform: uppercase; letter-spacing: 1.2px; font-weight:600;
-    display: inline-flex; align-items: center; gap: 4px; justify-content: center;
-  }
-  .mp-collection{ display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
-  .mp-collection .wcard{
-    animation: none !important;
-    content-visibility: visible;
-    contain-intrinsic-size: auto;
-    transition: border-color .15s;
-  }
-  .mp-collection .wcard:hover{ transform: none; box-shadow: none; border-color: var(--border); }
-  .mp-collection .wcard .img .placeholder{ font-size: 32px; }
-  .mp-collection .wcard .name{ font-size: 11px; }
-  .mp-empty{ text-align: center; padding: 30px 10px; color: var(--muted); font-size: 12px; line-height: 1.7; }
-  .mp-empty .icon{ display:flex; justify-content:center; margin-bottom: 10px; opacity:.5; color: var(--purple); }
   .mp-loading{ text-align: center; padding: 50px 20px; color: var(--muted); font-size: 13px; }
 
   /* ============================================================
-     CHAT GLOBAL
+     CHAT GLOBAL — conserva su contenedor propio (sin decoraciones .card)
      ============================================================ */
   .chat-card{
     padding: 0;
@@ -671,6 +628,9 @@
     min-height: 360px;
     overflow: hidden;
     min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(21,11,38,.55), rgba(13,6,32,.75));
   }
   .chat-card > *{ min-height: 0; min-width: 0; }
 
@@ -753,9 +713,6 @@
   .chat-msg.grouped .chat-avatar{ opacity: 0; visibility: hidden; height: 0; width: 38px; }
   .chat-msg.grouped .chat-meta{ display: none; }
 
-  /* ============================================================
-     STICKERS — estilo Telegram (sin burbuja)
-     ============================================================ */
   .chat-bubble.sticker{
     background: transparent !important;
     border: none !important;
@@ -964,20 +921,6 @@
     box-shadow: inset 0 0 60px rgba(139,92,246,.12), 0 8px 30px rgba(0,0,0,.6);
     isolation: isolate;
   }
-  .mg-stage::before{
-    content:''; position:absolute; inset: 0;
-    background-image: radial-gradient(circle, rgba(139,92,246,.25) 1px, transparent 1.5px);
-    background-size: 24px 24px;
-    -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
-    mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
-    pointer-events: none;
-  }
-  .mg-stage::after{
-    content:''; position:absolute; top: 0; left: 15%; right: 15%; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--purple), var(--pink), transparent);
-    box-shadow: 0 0 20px var(--purple);
-    pointer-events: none;
-  }
   .mg-stage-inner{
     position: relative; z-index: 1;
     display: flex; flex-direction: column;
@@ -1030,27 +973,22 @@
   .mg-wheel{
     width: 100%; height: 100%;
     border-radius: 50%;
-    background: conic-gradient(from -9deg,
-      #1f2937 0deg 18deg,
-      #dc2626 18deg 36deg,
-      #16a34a 36deg 54deg,
-      #dc2626 54deg 72deg,
-      #1f2937 72deg 90deg,
-      #dc2626 90deg 108deg,
-      #1f2937 108deg 126deg,
-      #16a34a 126deg 144deg,
-      #dc2626 144deg 162deg,
-      #1f2937 162deg 180deg,
-      #dc2626 180deg 198deg,
-      #1f2937 198deg 216deg,
-      #16a34a 216deg 234deg,
-      #dc2626 234deg 252deg,
-      #1f2937 252deg 270deg,
-      #dc2626 270deg 288deg,
-      #1f2937 288deg 306deg,
-      #16a34a 306deg 324deg,
-      #dc2626 324deg 342deg,
-      #1f2937 342deg 360deg
+    background: conic-gradient(from -12deg,
+      #16a34a 0deg 24deg,
+      #1f2937 24deg 48deg,
+      #dc2626 48deg 72deg,
+      #16a34a 72deg 96deg,
+      #1f2937 96deg 120deg,
+      #dc2626 120deg 144deg,
+      #16a34a 144deg 168deg,
+      #1f2937 168deg 192deg,
+      #dc2626 192deg 216deg,
+      #16a34a 216deg 240deg,
+      #1f2937 240deg 264deg,
+      #dc2626 264deg 288deg,
+      #16a34a 288deg 312deg,
+      #1f2937 312deg 336deg,
+      #dc2626 336deg 360deg
     );
     border: 4px solid rgba(139,92,246,.5);
     position: relative;
@@ -1091,20 +1029,6 @@
       0 10px 30px rgba(0,0,0,.5),
       inset 0 0 50px rgba(139,92,246,.15);
     display: flex; gap: 12px;
-  }
-  .mg-slots-wrap::before,
-  .mg-slots-wrap::after{
-    content:''; position:absolute;
-    left: 20%; right: 20%; height: 2px;
-    pointer-events: none; filter: blur(2px);
-  }
-  .mg-slots-wrap::before{
-    top: 10px;
-    background: linear-gradient(90deg, transparent, rgba(34,211,238,.7), transparent);
-  }
-  .mg-slots-wrap::after{
-    bottom: 10px;
-    background: linear-gradient(90deg, transparent, rgba(34,211,238,.7), transparent);
   }
   .mg-reel{
     width: 80px; height: 108px;
@@ -1352,6 +1276,29 @@
   }
   .mg-play:disabled::before{ animation: none; }
 
+  .mg-payout{
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .mg-payout-item{
+    flex: 1; min-width: 90px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(10,4,32,.7);
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 10px; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); font-weight: 700;
+  }
+  .mg-payout-item b{
+    display: block; font-size: 15px;
+    color: var(--cyan); margin-top: 4px;
+    letter-spacing: 0; text-transform: none;
+    text-shadow: 0 0 10px rgba(34,211,238,.5);
+    font-variant-numeric: tabular-nums;
+  }
+  .mg-payout-item.gold b{ color: var(--gold); text-shadow: 0 0 10px rgba(251,191,36,.5); }
+
   /* ============================================================
      CAJAS
      ============================================================ */
@@ -1451,16 +1398,13 @@
   /* ============================================================
      MODAL CAJA — REVEAL
      ============================================================ */
-  /* Modal caja — centrado vertical y horizontal */
   #box-modal.show{
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
   }
-  #box-modal .modal-overlay{
-    position: fixed;
-  }
+  #box-modal .modal-overlay{ position: fixed; }
   .box-modal-content{
     max-width: 560px;
     width: 100%;
@@ -1494,7 +1438,6 @@
     font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
     color: var(--muted); font-weight: 800; animation: pulse 1s infinite;
   }
-
   .box-prizes{
     display: flex; flex-wrap: wrap; gap: 14px;
     justify-content: center; margin: 6px 0 22px;
@@ -1538,15 +1481,10 @@
   .box-prize[data-r="legendaria"] .bp-sub{ color: var(--legendaria); }
   .box-prize[data-r="exclusiva"] { border-color: rgba(34,211,238,.75); box-shadow: 0 0 30px rgba(34,211,238,.45); }
   .box-prize[data-r="exclusiva"] .bp-sub{ color: var(--exclusiva); }
-
   .box-prize-coins .bp-img{ color: var(--gold); filter: drop-shadow(0 0 20px rgba(251,191,36,.7)); }
   .box-prize-coins .bp-name{ color: var(--gold); text-shadow: 0 0 12px rgba(251,191,36,.5); }
   .box-prize-coins .bp-sub{ color: var(--gold); }
-
-  .box-empty{
-    width: 100%; padding: 30px 10px;
-    color: var(--muted); font-size: 13px;
-  }
+  .box-empty{ width: 100%; padding: 30px 10px; color: var(--muted); font-size: 13px; }
 
   @media (max-width: 860px){
     .sidebar{
@@ -1562,8 +1500,6 @@
       max-width: 100%;
     }
     .topbar{ display: flex; }
-    .card{ padding: 18px 14px; }
-    .card::after{ display: none; }
 
     .chat-card{
       height: calc(100vh - 130px);
@@ -1582,13 +1518,14 @@
 
   @media (max-width: 640px){
     .modal-content{ margin: 16px auto; padding: 18px 14px; max-height: calc(100vh - 32px); }
-    .mp-avatar{ width: 70px; height: 70px; font-size: 30px; border-radius: 14px; }
-    .mp-name{ font-size: 18px; }
+
     .rank-card{ padding: 12px; gap: 10px; }
     .rank-card .avatar-md{ width: 46px; height: 46px; font-size: 18px; border-radius: 12px; }
     .rank-card .place{ width: 38px; height: 38px; font-size: 15px; }
     .rank-card .rn-name{ font-size: 14px; }
-    .mp-collection{ grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+
+    #user-modal .grid,
+    #shop-content .grid{ grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
     #box-modal.show{ padding: 12px; align-items: center; }
     .box-modal-content{
@@ -1610,7 +1547,6 @@
     .code-inputs{ gap: 4px; }
     .code-inputs input{ width: 40px; height: 52px; font-size: 20px; }
     .boxes-grid{ grid-template-columns: 1fr; }
-    .card{ padding: 16px 12px; }
     .main-inner{ padding: 14px 10px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
 
     .chat-card{
@@ -1637,6 +1573,9 @@
     .box-prize .bp-ph{ font-size: 28px; }
     .box-prize .bp-name{ font-size: 11px; }
     .box-opening img{ width: 120px; height: 120px; }
+
+    #user-modal .grid,
+    #shop-content .grid{ grid-template-columns: repeat(2, 1fr); }
 
     #box-modal.show{ padding: 10px; }
     .box-modal-content{
@@ -1773,7 +1712,9 @@
 <div id="user-modal" class="modal">
   <div class="modal-overlay" data-close="1"></div>
   <div class="modal-content">
-    <button class="modal-close" id="modal-close" aria-label="Cerrar">×</button>
+    <button class="modal-close" id="modal-close" aria-label="Cerrar">
+      <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div id="modal-body"></div>
   </div>
 </div>
@@ -1782,7 +1723,9 @@
 <div id="box-modal" class="modal">
   <div class="modal-overlay" data-close-box="1"></div>
   <div class="modal-content box-modal-content">
-    <button class="modal-close" id="box-modal-close" aria-label="Cerrar">×</button>
+    <button class="modal-close" id="box-modal-close" aria-label="Cerrar">
+      <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <div id="box-modal-body"></div>
   </div>
 </div>
@@ -1978,10 +1921,11 @@ let gameTotalWon = 0;
 const GAME_BETS = [100, 250, 500, 1000, 2500];
 
 const ROULETTE_ORDER = [
-  'negro','rojo','verde','rojo','negro',
-  'rojo','negro','verde','rojo','negro',
-  'rojo','negro','verde','rojo','negro',
-  'rojo','negro','verde','rojo','negro'
+  'verde','negro','rojo',
+  'verde','negro','rojo',
+  'verde','negro','rojo',
+  'verde','negro','rojo',
+  'verde','negro','rojo'
 ];
 
 const SLOT_SYMBOLS = ['🍒','🍋','🔔','⭐','💎'];
@@ -2251,9 +2195,7 @@ async function requestBox(tipo) {
     if (!r) return;
     if (r.status === 'done') {
       const gained = Array.isArray(r.waifusGained) ? r.waifusGained : [];
-      // 🔥 Mostrar modal con imágenes
       showBoxResult(r, tipo).catch(() => {});
-      // Toast resumido (opcional)
       const parts = [];
       if (r.coinsGained > 0) parts.push(`+${fmt(r.coinsGained)} monedas`);
       if (gained.length > 0) parts.push(gained.length + ' waifu' + (gained.length > 1 ? 's' : ''));
@@ -2293,7 +2235,6 @@ function closeBoxModal() {
   if (!m) return;
   m.classList.remove('show');
   $('box-modal-body').innerHTML = '';
-  // Solo quitar modal-open si el user-modal no está abierto
   if (!document.getElementById('user-modal')?.classList.contains('show')) {
     document.body.classList.remove('modal-open');
   }
@@ -2311,7 +2252,6 @@ async function showBoxResult(r, tipo) {
   modal.classList.add('show');
   document.body.classList.add('modal-open');
 
-  // 1) Pantalla de "abriendo" con animación del cofre
   body.innerHTML = `
     <div class="box-reveal">
       <div class="box-reveal-title">${esc(box.name)}</div>
@@ -2322,16 +2262,11 @@ async function showBoxResult(r, tipo) {
     </div>
   `;
 
-  // 2) Precargar imágenes de las waifus en paralelo
   const urls = await Promise.all(won.map(w => fetchWaifuImage(w.name)));
 
-  // 3) Pequeña pausa dramática
   await new Promise(res => setTimeout(res, 800));
-
-  // Si el usuario cerró el modal mientras cargaba, abortamos
   if (!modal.classList.contains('show')) return;
 
-  // 4) Construir las cartas de premio
   let prizesHtml = '';
   let delay = 0;
 
@@ -2477,7 +2412,7 @@ async function loadModalData(userId) {
     renderModalProfile();
   } catch (e) {
     if (String(modalOpenUserId) !== String(userId)) return;
-    modalBody.innerHTML = `<div class="mp-empty"><span class="icon">${ico('x',40)}</span>No se pudo cargar el perfil.</div>`;
+    modalBody.innerHTML = `<div class="empty"><span class="icon">${ico('x',40)}</span>No se pudo cargar el perfil.</div>`;
   }
 }
 
@@ -2513,46 +2448,40 @@ function renderModalProfile() {
   const plusActive = uData.plusExpiresAt && uData.plusExpiresAt > Date.now();
   const plusDays = plusActive ? Math.ceil((uData.plusExpiresAt - Date.now()) / 86400000) : 0;
 
-  const rankBadge = modalRankInfo
-    ? `<span class="mp-rank-badge">${ico('trophy',11)} #${modalRankInfo.place} · ${modalRankInfo.total} jugadores</span>`
-    : (isSelf ? `<span class="mp-rank-badge">${ico('user',11)} Tu perfil</span>` : '');
-
   const avatarInner = uDoc.photoUrl
     ? `<img src="${esc(uDoc.photoUrl)}" alt="" loading="lazy">`
     : initial;
 
-  let html = `
-    <div class="mp-header">
-      <div class="mp-avatar">${avatarInner}</div>
-      <div class="mp-info">
-        <div class="mp-name">${esc(name)}${plusActive ? ` <span class="plus-badge">${ico('diamond',10)} Plus ${plusDays}d</span>` : ''}</div>
-        <div class="mp-user">${uDoc.username ? '@' + esc(uDoc.username) : ('ID: ' + modalOpenUserId)}</div>
-        ${rankBadge}
-      </div>
+  let html = `<div class="profile">
+    <div class="avatar">${avatarInner}</div>
+    <div class="profile-info">
+      <div class="name">${esc(name)}${plusActive ? `<span class="plus-badge">${ico('diamond',10)} Plus ${plusDays}d</span>` : ''}</div>
+      <div class="tag">${uDoc.username ? '@' + esc(uDoc.username) : 'ID: ' + modalOpenUserId}</div>
+      ${modalRankInfo ? `<div class="tag">${ico('trophy',11)} Puesto #${modalRankInfo.place} de ${modalRankInfo.total}</div>` : ''}
     </div>
+  </div>
 
-    <div class="mp-stats">
-      <div class="mp-stat gold"><div class="num">${fmt(coins)}</div><div class="lbl">${ico('coin',11)} Monedas</div></div>
-      <div class="mp-stat"><div class="num">${waifus.length}</div><div class="lbl">${ico('layers',11)} Copias</div></div>
-      <div class="mp-stat pink"><div class="num">${unique.size}</div><div class="lbl">${ico('sparkles',11)} Únicas</div></div>
-    </div>
+  <div class="stats-grid">
+    <div class="stat"><div class="num">${fmt(coins)}</div><div class="lbl">${ico('coin',12)} Monedas</div></div>
+    <div class="stat"><div class="num">${waifus.length}</div><div class="lbl">${ico('layers',12)} Copias</div></div>
+    <div class="stat"><div class="num">${unique.size}</div><div class="lbl">${ico('sparkles',12)} Únicas</div></div>
+  </div>
 
-    <div class="section-title">Rarezas</div>
-    <div class="stats-grid">
-      <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${rc.comun}</div><div class="lbl">${ico('circle',11)} Común</div></div>
-      <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${rc.rara}</div><div class="lbl">${ico('flame',11)} Rara</div></div>
-      <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${rc.epica}</div><div class="lbl">${ico('diamond',11)} Épica</div></div>
-      <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${rc.legendaria}</div><div class="lbl">${ico('crown',11)} Legendaria</div></div>
-      <div class="stat"><div class="num" style="color:var(--exclusiva);text-shadow:0 0 15px var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">${ico('star',11)} Exclusiva</div></div>
-    </div>
-  `;
+  <div class="section-title">${ico('chart',11)} Rarezas</div>
+  <div class="stats-grid">
+    <div class="stat"><div class="num" style="color:var(--comun);text-shadow:0 0 15px var(--comun)">${rc.comun}</div><div class="lbl">${ico('circle',11)} Común</div></div>
+    <div class="stat"><div class="num" style="color:var(--rara);text-shadow:0 0 15px var(--rara)">${rc.rara}</div><div class="lbl">${ico('flame',11)} Rara</div></div>
+    <div class="stat"><div class="num" style="color:var(--epica);text-shadow:0 0 15px var(--epica)">${rc.epica}</div><div class="lbl">${ico('diamond',11)} Épica</div></div>
+    <div class="stat"><div class="num" style="color:var(--legendaria);text-shadow:0 0 15px var(--legendaria)">${rc.legendaria}</div><div class="lbl">${ico('crown',11)} Legendaria</div></div>
+    <div class="stat"><div class="num" style="color:var(--exclusiva);text-shadow:0 0 15px var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">${ico('star',11)} Exclusiva</div></div>
+  </div>`;
 
   if (collection.length === 0) {
     html += `<div class="section-title">${ico('package',11)} Colección</div>
-      <div class="mp-empty"><span class="icon">${ico('package',40)}</span>Aún no tiene waifus.</div>`;
+      <div class="empty"><span class="icon">${ico('package',40)}</span>Aún no tiene waifus.</div>`;
   } else {
     html += `<div class="section-title">${ico('package',11)} Colección (${collection.length})</div>
-      <div class="mp-collection">`;
+      <div class="grid">`;
     for (const w of collection) {
       watchImage(w.name, modalImageUnsubs);
       const url = imageUrls[w.name] || '';
@@ -2688,31 +2617,34 @@ function renderChat() {
     return;
   }
 
+  /* ✅ Contenedor propio, sin .card */
   c.innerHTML = `
-    <div class="card chat-card" style="position:relative">
-      <div class="chat-head">
-        <div class="section-title">${ico('message',13)} Chat Global</div>
-        <div class="chat-badge"><span class="dot"></span>En vivo</div>
-      </div>
-      <div class="chat-messages" id="chat-messages">
-        <div class="chat-empty">
-          <span class="icon">${ico('message',40)}</span>
-          Cargando mensajes…
+    <div class="page-wrap">
+      <div class="chat-card" style="position:relative">
+        <div class="chat-head">
+          <div class="section-title">${ico('message',13)} Chat Global</div>
+          <div class="chat-badge"><span class="dot"></span>En vivo</div>
         </div>
-      </div>
-      <div class="chat-new-btn" id="chat-new-btn">${ico('chevron',12)} Nuevos mensajes</div>
-      <div class="chat-stickers" id="chat-stickers" hidden>
-        <div class="chat-stickers-head">
-          <span>Stickers del bot</span>
-          <button class="chat-stickers-close" id="chat-stickers-close" aria-label="Cerrar">×</button>
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-empty">
+            <span class="icon">${ico('message',40)}</span>
+            Cargando mensajes…
+          </div>
         </div>
-        <div class="chat-stickers-grid" id="chat-stickers-grid"></div>
-      </div>
-      <div class="chat-input-row">
-        <button class="chat-sticker-btn" id="chat-sticker-btn" aria-label="Stickers">${ico('smiley',20)}</button>
-        <input id="chat-input" type="text" placeholder="Escribe un mensaje…" maxlength="${CHAT_MAX_LEN}" autocomplete="off">
-        <button class="chat-send" id="chat-send" aria-label="Enviar">${ico('send',20)}</button>
-        <div class="chat-char-counter" id="chat-counter">0/${CHAT_MAX_LEN}</div>
+        <div class="chat-new-btn" id="chat-new-btn">${ico('chevron',12)} Nuevos mensajes</div>
+        <div class="chat-stickers" id="chat-stickers" hidden>
+          <div class="chat-stickers-head">
+            <span>Stickers del bot</span>
+            <button class="chat-stickers-close" id="chat-stickers-close" aria-label="Cerrar">×</button>
+          </div>
+          <div class="chat-stickers-grid" id="chat-stickers-grid"></div>
+        </div>
+        <div class="chat-input-row">
+          <button class="chat-sticker-btn" id="chat-sticker-btn" aria-label="Stickers">${ico('smiley',20)}</button>
+          <input id="chat-input" type="text" placeholder="Escribe un mensaje…" maxlength="${CHAT_MAX_LEN}" autocomplete="off">
+          <button class="chat-send" id="chat-send" aria-label="Enviar">${ico('send',20)}</button>
+          <div class="chat-char-counter" id="chat-counter">0/${CHAT_MAX_LEN}</div>
+        </div>
       </div>
     </div>
   `;
@@ -2939,7 +2871,8 @@ function renderMinigames() {
   if (!c) return;
   const myCoins = Number(userData?.coins) || 0;
 
-  let html = `<div class="card">
+  /* ✅ Sin .card */
+  let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">${ico('coin',12)} Tu saldo</div></div>
       <div class="stat"><div class="num" style="color:var(--ok);text-shadow:0 0 15px var(--ok)">${fmt(gameTotalWon)}</div><div class="lbl">${ico('trophy',12)} Ganado</div></div>
@@ -3055,6 +2988,22 @@ function renderGameUI(content) {
   html += `<div class="mg-stage"><div class="mg-stage-inner">${mgRenderStage()}</div></div>`;
 
   if (currentGame === 'ruleta') {
+    html += `<div class="mg-payout">
+      <div class="mg-payout-item"><span>Rojo / Negro</span><b>x2 · doblas</b></div>
+      <div class="mg-payout-item gold"><span>Verde</span><b>x4</b></div>
+    </div>`;
+  } else if (currentGame === 'caracruz') {
+    html += `<div class="mg-payout">
+      <div class="mg-payout-item gold"><span>Acertar</span><b>x2 · doblas</b></div>
+    </div>`;
+  } else {
+    html += `<div class="mg-payout">
+      <div class="mg-payout-item"><span>2 iguales</span><b>x2 · doblas</b></div>
+      <div class="mg-payout-item gold"><span>3 iguales</span><b>x10 / x20 / x50</b></div>
+    </div>`;
+  }
+
+  if (currentGame === 'ruleta') {
     html += `<div class="section-title">${ico('target',11)} Elige un color</div>
       <div class="mg-choice" id="mg-choice">`;
     const opts = [
@@ -3088,7 +3037,7 @@ function renderGameUI(content) {
   } else {
     html += `<div class="section-title">${ico('target',11)} Sin elección</div>
       <p class="hint" style="text-align:left;margin:0 0 18px">
-        Confía en la suerte — <b>2 iguales</b> pagan x2, <b>3 iguales</b> pagan x10 / x20 / x50 según el símbolo.
+        Confía en la suerte — <b>2 iguales doblan tu apuesta</b>, <b>3 iguales</b> pagan x10 / x20 / x50.
       </p>`;
   }
 
@@ -3104,15 +3053,13 @@ function renderGameUI(content) {
   html += `</div>`;
 
   const canPlay = !gameRunning && myCoins >= currentBet;
-  const potential = currentGame === 'ruleta'
-    ? (currentChoice === 'verde' ? currentBet * 4 : currentBet * 2)
-    : currentGame === 'caracruz' ? currentBet * 2 : currentBet * 50;
+  const minWin = currentBet * 2;
 
   html += `<button class="mg-play" id="mg-play" ${canPlay ? '' : 'disabled'}>
     ${ico('play',20)} ${gameRunning ? 'JUGANDO…' : 'JUGAR ' + fmt(currentBet)}
   </button>`;
-  if (canPlay && potential > currentBet) {
-    html += `<p class="hint" style="margin-top:12px">Ganancia máxima: <b>${fmt(potential)}</b> monedas</p>`;
+  if (canPlay) {
+    html += `<p class="hint" style="margin-top:12px">Ganas mínimo el doble: <b>+${fmt(minWin)}</b> monedas</p>`;
   }
 
   content.innerHTML = html;
@@ -3187,7 +3134,7 @@ function renderGameResultVisual(r) {
 }
 
 /* ============================================================
-   SPIN — Ruleta (RAF)
+   SPIN — Ruleta
    ============================================================ */
 function startRouletteSpin() {
   const wheel = $('mg-wheel-live') || document.querySelector('.mg-wheel');
@@ -3294,7 +3241,7 @@ async function stopSlotsSpin(finalReels) {
 }
 
 /* ============================================================
-   SPIN — Cara o Cruz (RAF)
+   SPIN — Cara o Cruz
    ============================================================ */
 function startCoinSpin() {
   const coin = $('mg-coin-live') || document.querySelector('.mg-coin-3d');
@@ -3450,7 +3397,7 @@ function renderSidebarUser() {
 
 function renderProfile() {
   const c = $('tab-profile');
-  if (!userDoc || !userData) { c.innerHTML = '<div class="card"><div class="empty">Cargando…</div></div>'; return; }
+  if (!userDoc || !userData) { c.innerHTML = '<div class="empty">Cargando…</div>'; return; }
 
   const name = [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') || userDoc.username || 'Usuario';
   const initial = (name || '?').charAt(0).toUpperCase();
@@ -3477,7 +3424,8 @@ function renderProfile() {
     ? `<img src="${esc(userDoc.photoUrl)}" alt="" loading="lazy">`
     : initial;
 
-  let html = `<div class="card">
+  /* ✅ Sin .card — el recuadro exterior fue eliminado */
+  let html = `<div class="page-wrap">
     <div class="profile">
       <div class="avatar">${avatarInner}</div>
       <div class="profile-info">
@@ -3528,7 +3476,7 @@ function renderCollection() {
   const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
 
   if (waifus.length === 0) {
-    c.innerHTML = `<div class="card"><div class="empty">
+    c.innerHTML = `<div class="page-wrap"><div class="empty">
       <span class="icon">${ico('package',44)}</span>
       Aún no tienes waifus.<br>¡Captura salvajes cada hora en el bot!
     </div></div>`;
@@ -3546,7 +3494,7 @@ function renderCollection() {
     { k: 'exclusiva',  label: 'Exclusiva',  ic: 'star' }
   ];
 
-  let html = `<div class="card"><div class="filters">`;
+  let html = `<div class="page-wrap"><div class="filters">`;
   for (const f of filters) {
     const count = f.k === 'all' ? all.length : all.filter(x => x.rarity === f.k).length;
     if (f.k !== 'all' && count === 0) continue;
@@ -3595,13 +3543,13 @@ function renderRanking() {
   const c = $('tab-ranking');
   const top = ranking?.top || [];
   if (!top.length) {
-    c.innerHTML = `<div class="card"><div class="empty"><span class="icon">${ico('trophy',44)}</span>Sin datos de ranking aún.</div></div>`;
+    c.innerHTML = `<div class="page-wrap"><div class="empty"><span class="icon">${ico('trophy',44)}</span>Sin datos de ranking aún.</div></div>`;
     return;
   }
   const myId = session.userId;
   const totalUsers = ranking.totalUsers || top.length;
 
-  let html = `<div class="card">
+  let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(totalUsers)}</div><div class="lbl">${ico('users',12)} Jugadores</div></div>
       <div class="stat"><div class="num">${fmt(ranking.totalWaifus || 0)}</div><div class="lbl">${ico('layers',12)} Waifus totales</div></div>
@@ -3653,7 +3601,7 @@ function renderShop() {
   const c = $('tab-shop');
   const myCoins = Number(userData?.coins) || 0;
 
-  let html = `<div class="card">
+  let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">${ico('coin',12)} Tu saldo</div></div>
       <div class="stat"><div class="num">${Object.keys(sales || {}).length}</div><div class="lbl">${ico('store',12)} En venta</div></div>
@@ -3796,7 +3744,7 @@ function renderAuction() {
   const a = auction?.active;
 
   if (!a) {
-    c.innerHTML = `<div class="card"><div class="empty">
+    c.innerHTML = `<div class="page-wrap"><div class="empty">
       <span class="icon">${ico('star',44)}</span>
       No hay subasta activa.<br>
       La próxima empieza a las <b>8:00 AM (MX)</b>.
@@ -3808,7 +3756,7 @@ function renderAuction() {
   const given = a.copiesGivenBefore || 0;
   const copyNum = given + 1;
 
-  let html = `<div class="card">
+  let html = `<div class="page-wrap">
     <div class="auction-hero">
       <div class="auction-tag">${a.testMode ? ico('shield',12) + ' Prueba' : ico('star',12) + ' En vivo'} · Copia ${copyNum}/${a.maxCopies || 3}</div>
       <div class="auction-name">${esc(a.waifuName)}</div>
