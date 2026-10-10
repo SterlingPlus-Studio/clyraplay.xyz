@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -214,7 +214,6 @@
   }
   .main-inner{ max-width: 1080px; margin: 0 auto; width: 100%; }
 
-  /* ✅ TOPBAR: título pegado a la derecha del botón hamburguesa */
   .topbar{
     display: none; align-items: center; gap: 8px;
     padding: 10px 14px;
@@ -1919,7 +1918,9 @@ let currentChoice = null;
 let gameRunning = false;
 let gameLastResult = null;
 let gameTotalWon = 0;
-const GAME_BETS = [100, 250, 500, 1000, 2500];
+
+/* ✅ APUESTAS ACTUALIZADAS: 100, 200, 300, 400, 500, 1000 (máx 1000) */
+const GAME_BETS = [100, 200, 300, 400, 500, 1000];
 
 const ROULETTE_ORDER = [
   'verde','negro','rojo',
@@ -2970,17 +2971,17 @@ function renderGameUI(content) {
 
   if (currentGame === 'ruleta') {
     html += `<div class="mg-payout">
-      <div class="mg-payout-item"><span>Rojo / Negro</span><b>x2 · doblas</b></div>
-      <div class="mg-payout-item gold"><span>Verde</span><b>x4</b></div>
+      <div class="mg-payout-item"><span>Rojo / Negro</span><b>x2</b></div>
+      <div class="mg-payout-item gold"><span>Verde</span><b>x3</b></div>
     </div>`;
   } else if (currentGame === 'caracruz') {
     html += `<div class="mg-payout">
-      <div class="mg-payout-item gold"><span>Acertar</span><b>x2 · doblas</b></div>
+      <div class="mg-payout-item gold"><span>Acertar</span><b>x2</b></div>
     </div>`;
   } else {
     html += `<div class="mg-payout">
-      <div class="mg-payout-item"><span>2 iguales</span><b>x2 · doblas</b></div>
-      <div class="mg-payout-item gold"><span>3 iguales</span><b>x10 / x20 / x50</b></div>
+      <div class="mg-payout-item"><span>2 iguales</span><b>x1.5</b></div>
+      <div class="mg-payout-item gold"><span>3 iguales</span><b>x5 / x10 / x20</b></div>
     </div>`;
   }
 
@@ -2990,7 +2991,7 @@ function renderGameUI(content) {
     const opts = [
       { k: 'rojo',  label: 'Rojo',  mult: 'x2', color: 'rojo',  bg: '#dc2626' },
       { k: 'negro', label: 'Negro', mult: 'x2', color: 'negro', bg: '#1f2937' },
-      { k: 'verde', label: 'Verde', mult: 'x4', color: 'verde', bg: '#16a34a' }
+      { k: 'verde', label: 'Verde', mult: 'x3', color: 'verde', bg: '#16a34a' }
     ];
     for (const o of opts) {
       html += `<button class="mg-opt ${currentChoice === o.k ? 'active' : ''}" data-choice="${o.k}" data-color="${o.color}">
@@ -3018,7 +3019,7 @@ function renderGameUI(content) {
   } else {
     html += `<div class="section-title">${ico('target',11)} Sin elección</div>
       <p class="hint" style="text-align:left;margin:0 0 18px">
-        Confía en la suerte — <b>2 iguales doblan tu apuesta</b>, <b>3 iguales</b> pagan x10 / x20 / x50.
+        Confía en la suerte — <b>2 iguales pagan x1.5</b>, <b>3 iguales</b> pagan x5 / x10 / x20.
       </p>`;
   }
 
@@ -3034,13 +3035,15 @@ function renderGameUI(content) {
   html += `</div>`;
 
   const canPlay = !gameRunning && myCoins >= currentBet;
-  const minWin = currentBet * 2;
+  // ✅ La apuesta máxima (1000) NO dobla, paga menos
+  const minWin = currentBet >= 1000 ? Math.floor(currentBet * 1.5) : currentBet * 2;
 
   html += `<button class="mg-play" id="mg-play" ${canPlay ? '' : 'disabled'}>
     ${ico('play',20)} ${gameRunning ? 'JUGANDO…' : 'JUGAR ' + fmt(currentBet)}
   </button>`;
   if (canPlay) {
-    html += `<p class="hint" style="margin-top:12px">Ganas mínimo el doble: <b>+${fmt(minWin)}</b> monedas</p>`;
+    const notaMax = currentBet >= 1000 ? ' (apuesta máxima: premio reducido)' : '';
+    html += `<p class="hint" style="margin-top:12px">Ganas mínimo: <b>+${fmt(minWin)}</b> monedas${notaMax}</p>`;
   }
 
   content.innerHTML = html;
