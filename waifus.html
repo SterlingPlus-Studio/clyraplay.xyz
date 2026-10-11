@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -23,17 +23,13 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes shimmer { 0%{background-position: -200% 0} 100%{background-position: 200% 0} }
-  @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(139,92,246,.35)} 50%{box-shadow:0 0 35px rgba(255,45,146,.55)} }
   @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
   @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
   @keyframes modalFade { from{opacity:0} to{opacity:1} }
   @keyframes toastIn { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
   @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
-  @keyframes chatPop { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes stickerPop { 0%{opacity:0;transform:scale(.85)} 60%{transform:scale(1.03)} 100%{opacity:1;transform:scale(1)} }
   @keyframes resultIn{ 0%{opacity:0;transform:scale(.7) translateY(15px)} 60%{opacity:1;transform:scale(1.05) translateY(0)} 100%{transform:scale(1)} }
   @keyframes reelSymbol { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes playShine{ 0%{left:-60%} 50%,100%{left:130%} }
   @keyframes winPulse { 0%,100% { box-shadow: 0 0 25px rgba(251,191,36,.6), inset 0 0 25px rgba(251,191,36,.25); } 50% { box-shadow: 0 0 55px rgba(251,191,36,1), inset 0 0 40px rgba(251,191,36,.5); } }
   @keyframes boxShake{ 0%,100%{ transform: rotate(-5deg) scale(1); } 50%{ transform: rotate(5deg) scale(1.07); } }
 
@@ -347,9 +343,6 @@
   .modal-close:hover{ background: rgba(239,68,68,.2); border-color: rgba(239,68,68,.5); transform: none; }
   .mp-loading{ text-align: center; padding: 50px 20px; color: var(--muted); font-size: 13px; }
 
-  /* ============================================================
-     🎴 CARTA 3D — Centrada, con hint abajo de la pantalla
-     ============================================================ */
   #card-modal.show {
     display: flex;
     align-items: center;
@@ -391,7 +384,6 @@
   }
   .card-modal-close svg{ display: block; width: 20px; height: 20px; }
 
-  /* ✅ Hint fijo abajo al centro de la PANTALLA */
   .card-modal-hint{
     position: fixed;
     bottom: max(24px, env(safe-area-inset-bottom, 24px));
@@ -524,117 +516,6 @@
     opacity: .75;
   }
 
-  /* CHAT */
-  .chat-card{ padding: 0; display: flex; flex-direction: column;
-    height: calc(100dvh - 140px); max-height: calc(100dvh - 140px); min-height: 360px; overflow: hidden; min-width: 0;
-    border: 1px solid var(--border); border-radius: 14px;
-    background: linear-gradient(180deg, rgba(21,11,38,.55), rgba(13,6,32,.75)); }
-  .chat-card > *{ min-height: 0; min-width: 0; }
-  .chat-head{ display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;
-    border-bottom: 1px solid var(--border); flex-shrink: 0; background: rgba(10,4,32,.5); }
-  .chat-head .section-title{ margin: 0; }
-  .chat-head .section-title::after{ display: none; }
-  .chat-badge{ display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; letter-spacing: 1px;
-    padding: 4px 10px; border-radius: 20px; background: rgba(34,211,238,.12); border: 1px solid rgba(34,211,238,.35);
-    color: var(--cyan); text-transform: uppercase; }
-  .chat-badge .dot{ width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 2s infinite; }
-  .chat-messages{ flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 16px;
-    display: flex; flex-direction: column; gap: 12px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; position: relative; }
-  .chat-empty{ margin: auto; text-align: center; color: var(--muted); font-size: 13px;
-    display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: .7; padding: 30px 10px; }
-  .chat-empty .icon{ color: var(--purple); opacity: .8; }
-  .chat-msg{ display: flex; gap: 10px; align-items: flex-start; animation: chatPop .2s ease; }
-  .chat-avatar{ width: 38px; height: 38px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--pink), var(--purple));
-    display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; color: white;
-    border: 1.5px solid rgba(255,255,255,.12); flex-shrink: 0; overflow: hidden;
-    box-shadow: 0 0 12px rgba(139,92,246,.3); cursor: pointer; transition: transform .15s; }
-  .chat-avatar:active{ transform: scale(.94); }
-  .chat-avatar img{ width:100%; height:100%; object-fit: cover; display:block; pointer-events: none; }
-  .chat-body{ flex: 1; min-width: 0; }
-  .chat-meta{ display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 0 4px; }
-  .chat-name{ font-size: 11px; font-weight: 800; color: var(--cyan); letter-spacing: .3px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
-  .chat-name:hover{ text-decoration: underline; }
-  .chat-time{ font-size: 10px; color: var(--muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
-  .chat-bubble{ padding: 9px 13px; border-radius: 4px 12px 12px 12px;
-    background: linear-gradient(180deg, rgba(21,11,38,.9), rgba(10,4,32,.95));
-    border: 1px solid var(--border); color: var(--text); font-size: 13px; line-height: 1.5;
-    word-break: break-word; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .chat-bubble a{ color: var(--cyan); text-decoration: underline; word-break: break-all; }
-  .chat-msg.me{ flex-direction: row-reverse; }
-  .chat-msg.me .chat-meta{ flex-direction: row-reverse; }
-  .chat-msg.me .chat-name{ color: var(--pink); }
-  .chat-msg.me .chat-bubble{ background: linear-gradient(135deg, rgba(255,45,146,.28), rgba(139,92,246,.28));
-    border-color: var(--purple); border-radius: 12px 4px 12px 12px; box-shadow: 0 0 15px rgba(139,92,246,.22); }
-  .chat-msg.grouped{ margin-top: -6px; }
-  .chat-msg.grouped .chat-avatar{ opacity: 0; visibility: hidden; height: 0; width: 38px; }
-  .chat-msg.grouped .chat-meta{ display: none; }
-  .chat-bubble.sticker{ background: transparent !important; border: none !important; padding: 0 !important;
-    box-shadow: none !important; border-radius: 0 !important; display: inline-block; max-width: 100%; line-height: 0; white-space: normal; }
-  .chat-bubble.sticker img{ width: 160px; height: 160px; object-fit: contain; display: block;
-    filter: drop-shadow(0 6px 16px rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(139,92,246,.15));
-    transition: transform .2s ease; animation: stickerPop .35s cubic-bezier(.2,.9,.3,1.3); }
-  .chat-bubble.sticker img:hover{ transform: scale(1.03); }
-  .chat-msg.me .chat-bubble.sticker, .chat-msg.me .chat-bubble.sticker img{ background: transparent !important; border: none !important; box-shadow: none !important; }
-  .chat-msg:has(.chat-bubble.sticker) .chat-body{ background: transparent; }
-  .chat-msg.chat-msg-sticker{ align-items: flex-end; }
-  .chat-msg.chat-msg-sticker .chat-body{ display: flex; flex-direction: column; align-items: flex-start; max-width: 75%; width: auto; flex: 0 1 auto; }
-  .chat-msg.chat-msg-sticker.me{ flex-direction: row-reverse; }
-  .chat-msg.chat-msg-sticker.me .chat-body{ align-items: flex-end; }
-  .chat-msg.chat-msg-sticker .chat-meta{ margin-bottom: 2px; padding: 0; width: 100%; }
-  .chat-msg.chat-msg-sticker.me .chat-meta{ justify-content: flex-end; }
-  .chat-msg.chat-msg-sticker .chat-avatar{ align-self: flex-end; margin-bottom: 4px; width: 32px; height: 32px; font-size: 12px; border-radius: 8px; }
-  .chat-input-row{ display: flex; gap: 8px; padding: 12px 14px;
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
-    border-top: 1px solid var(--border); background: rgba(10,4,32,.7);
-    flex-shrink: 0; align-items: center; position: relative; min-height: 0; }
-  .chat-input-row input{ flex: 1; padding: 11px 14px; font-size: 16px; border-radius: 22px; min-width: 0; }
-  .chat-send{ width: 46px; height: 46px; min-width: 46px; padding: 0; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 20px rgba(255,45,146,.4), inset 0 1px 0 rgba(255,255,255,.15); }
-  .chat-send:hover:not(:disabled){ box-shadow: 0 0 30px rgba(255,45,146,.6), inset 0 1px 0 rgba(255,255,255,.2); transform: scale(1.04); }
-  .chat-sticker-btn{ width: 46px; height: 46px; min-width: 46px; padding: 0; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; background: rgba(139,92,246,.2);
-    border: 1px solid var(--border2); color: var(--text); box-shadow: none; transition: .2s; }
-  .chat-sticker-btn:hover:not(:disabled){ background: rgba(139,92,246,.35); border-color: var(--purple); box-shadow: 0 0 15px rgba(139,92,246,.5); transform: scale(1.04); }
-  .chat-stickers{ position: absolute; bottom: 76px; left: 12px; right: 12px;
-    background: linear-gradient(180deg, rgba(21,11,38,.98), rgba(13,6,32,.99));
-    border: 1px solid var(--border2); border-radius: 14px;
-    box-shadow: 0 0 40px rgba(139,92,246,.45), 0 -10px 30px rgba(0,0,0,.7);
-    z-index: 20; max-height: 280px; display: flex; flex-direction: column;
-    animation: toastIn .2s ease; overflow: hidden; }
-  .chat-stickers[hidden]{ display: none; }
-  .chat-stickers-head{ display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 14px; border-bottom: 1px solid var(--border);
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-weight: 800;
-    background: rgba(10,4,32,.4); }
-  .chat-stickers-close{ background: transparent; border: none; color: var(--muted); font-size: 22px; padding: 0;
-    width: 28px; height: 28px; min-width: 0; box-shadow: none; border-radius: 8px; line-height: 1; text-transform: none; }
-  .chat-stickers-close:hover{ color: var(--text); background: rgba(239,68,68,.15); transform: none; }
-  .chat-stickers-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
-    gap: 6px; padding: 10px; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
-  .chat-sticker-item{ width: 100%; aspect-ratio: 1; background: rgba(10,4,32,.7); border: 1px solid var(--border);
-    border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    padding: 4px; transition: .15s; box-shadow: none; text-transform: none; }
-  .chat-sticker-item:hover{ border-color: var(--purple); background: rgba(139,92,246,.15); transform: scale(1.05); box-shadow: 0 0 15px rgba(139,92,246,.4); }
-  .chat-sticker-item img{ width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-  .chat-stickers-empty{ grid-column: 1 / -1; text-align: center; padding: 30px 12px; color: var(--muted); font-size: 12px; line-height: 1.7; }
-  .chat-stickers-empty b{ color: var(--cyan); }
-  .chat-char-counter{ font-size: 10px; color: var(--muted); position: absolute; right: 76px; bottom: 52px;
-    background: rgba(10,4,32,.9); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border);
-    opacity: 0; transition: opacity .2s; pointer-events: none; }
-  .chat-char-counter.show{ opacity: 1; }
-  .chat-char-counter.warn{ color: var(--gold); border-color: var(--gold); }
-  .chat-new-btn{ position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%) translateY(20px);
-    padding: 8px 16px; border-radius: 20px; background: linear-gradient(90deg, var(--pink), var(--purple));
-    color: white; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
-    box-shadow: 0 0 25px rgba(255,45,146,.5), inset 0 1px 0 rgba(255,255,255,.15);
-    opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; cursor: pointer; z-index: 5;
-    display: inline-flex; align-items: center; gap: 6px; }
-  .chat-new-btn.show{ opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-
-  /* MINIJUEGOS */
   .mg-stage{ position: relative; padding: 32px 20px; margin-bottom: 22px; border-radius: 20px;
     background: radial-gradient(ellipse at 50% 0%, rgba(139,92,246,.18), transparent 70%),
       radial-gradient(ellipse at 50% 100%, rgba(255,45,146,.12), transparent 70%),
@@ -845,9 +726,6 @@
     .main-inner{ padding: 72px 14px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); max-width: 100%; margin: 0 auto; }
     .topbar{ display: flex; }
     .layout { padding-top: 0; margin-top: 0; }
-    .chat-card{ height: calc(100dvh - 130px); max-height: calc(100dvh - 130px); min-height: 320px; border-radius: 12px; margin-bottom: 0; }
-    .chat-messages{ padding: 12px; gap: 10px; }
-    .chat-head{ padding: 12px 14px; }
   }
   @media (max-width: 640px){
     .modal-content{ margin: 16px auto; padding: 18px 14px; max-height: calc(100vh - 32px); }
@@ -871,10 +749,6 @@
     .code-inputs input{ width: 40px; height: 52px; font-size: 20px; }
     .boxes-grid{ grid-template-columns: 1fr; }
     .main-inner{ padding: 72px 10px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
-    .chat-card{ height: calc(100dvh - 120px); max-height: calc(100dvh - 120px); min-height: 280px; }
-    .chat-avatar{ width: 34px; height: 34px; font-size: 13px; border-radius: 9px; }
-    .chat-bubble{ font-size: 13px; padding: 8px 12px; }
-    .chat-bubble.sticker img{ width: 130px; height: 130px; }
     .mg-reel{ width: 64px; height: 88px; font-size: 40px; }
     .mg-wheel-wrap{ width: 160px; height: 160px; }
     .mg-coin-wrap{ width: 110px; height: 110px; }
@@ -945,7 +819,6 @@
         <button class="nav-item active" data-tab="profile" data-icon="home"><span class="icon"></span><span>Perfil</span></button>
         <button class="nav-item" data-tab="collection" data-icon="package"><span class="icon"></span><span>Colección</span></button>
         <button class="nav-item" data-tab="ranking" data-icon="trophy"><span class="icon"></span><span>Ranking</span></button>
-        <button class="nav-item" data-tab="chat" data-icon="message"><span class="icon"></span><span>Chat</span></button>
         <button class="nav-item" data-tab="minigames" data-icon="gamepad"><span class="icon"></span><span>Minijuegos</span></button>
         <button class="nav-item" data-tab="shop" data-icon="store"><span class="icon"></span><span>Tienda</span></button>
         <button class="nav-item" data-tab="auction" data-icon="star"><span class="icon"></span><span>Subasta</span></button>
@@ -963,7 +836,6 @@
         <div id="tab-profile" class="tab-content active"></div>
         <div id="tab-collection" class="tab-content"></div>
         <div id="tab-ranking" class="tab-content"></div>
-        <div id="tab-chat" class="tab-content"></div>
         <div id="tab-minigames" class="tab-content"></div>
         <div id="tab-shop" class="tab-content"></div>
         <div id="tab-auction" class="tab-content"></div>
@@ -992,7 +864,6 @@
   </div>
 </div>
 
-<!-- 🎴 MODAL CARTA 3D -->
 <div id="card-modal" class="modal">
   <div class="modal-overlay" data-close-card="1"></div>
   <div class="card-modal-wrap">
@@ -1001,13 +872,12 @@
     </button>
     <div id="card-modal-body"></div>
   </div>
-  <!-- ✅ Hint fuera del wrap, fijo abajo al centro -->
   <div class="card-modal-hint">◢ Arrastra para girar ◣</div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, remove, query, limitToLast, onChildAdded, push }
+import { getDatabase, ref, set, get, onValue, remove, query, limitToLast }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -1082,13 +952,8 @@ const I = {
   filter:'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
   award:'<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
   chevron:'<polyline points="9 18 15 12 9 6"/>',
-  message:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-  send:'<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>',
   gamepad:'<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="6"/>',
-  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
-  smiley:'<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
-  tag:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
-  refresh:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>'
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
 };
 function ico(name, size = 16) {
   return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ''}</svg>`;
@@ -1167,7 +1032,6 @@ let modalUserData = null;
 let modalRankInfo = null;
 let modalImageUnsubs = new Map();
 
-/* 🎴 CARTA 3D */
 let cardOpenName = null;
 let cardOpenRarity = null;
 let cardOpenCount = 0;
@@ -1182,16 +1046,6 @@ let lastUserDocSig = '';
 let lastRankingSig = '';
 let lastSalesSig = '';
 let lastCatalogSig = '';
-
-let chatUnsub = null;
-let chatInitialized = false;
-let chatSubscribed = false;
-let chatAutoScroll = true;
-let chatLastSentAt = 0;
-const CHAT_MAX_LEN = 500;
-const CHAT_COOLDOWN_MS = 2500;
-
-let stickerUnsub = null;
 
 let currentGame = 'ruleta';
 let currentBet = 250;
@@ -1586,9 +1440,7 @@ async function showBoxResult(r, tipo) {
   $('box-reveal-close')?.addEventListener('click', closeBoxModal);
 }
 
-/* ============================================================
-   🎴 CARTA 3D — solo la carta centrada, rotación libre
-   ============================================================ */
+/* CARTA 3D */
 function cardApplyRotation() {
   const inner = $('card-3d');
   if (inner) inner.style.transform = `rotateX(${cardRotX}deg) rotateY(${cardRotY}deg)`;
@@ -1728,9 +1580,7 @@ function renderCardModal() {
 $('card-modal-close')?.addEventListener('click', closeCardModal);
 $('card-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeCardModal);
 
-/* ============================================================
-   MINIJUEGOS
-   ============================================================ */
+/* MINIJUEGOS */
 async function requestGame(tipo, bet, choice) {
   const reqId = 'game_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   await set(ref(db, `gameRequests/${reqId}`), {
@@ -1752,7 +1602,7 @@ async function requestGame(tipo, bet, choice) {
 
 const TAB_TITLES = {
   profile: 'Perfil', collection: 'Colección', ranking: 'Ranking',
-  chat: 'Chat Global', minigames: 'Minijuegos', shop: 'Tienda', auction: 'Subasta'
+  minigames: 'Minijuegos', shop: 'Tienda', auction: 'Subasta'
 };
 
 function navigateTo(tab) {
@@ -1768,11 +1618,9 @@ function navigateTo(tab) {
   if (tab === 'profile')    renderProfile();
   if (tab === 'collection') renderCollection();
   if (tab === 'ranking')    renderRanking();
-  if (tab === 'chat')       renderChat();
   if (tab === 'minigames')  renderMinigames();
   if (tab === 'shop')       renderShop();
   if (tab === 'auction')    renderAuction();
-  if (tab !== 'chat') unsubscribeChat();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -1902,245 +1750,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* CHAT */
-function chatFormatTime(ts) {
-  if (!ts) return '';
-  const d = new Date(ts); const now = new Date();
-  const sameDay = d.toDateString() === now.toDateString();
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  if (sameDay) return `${hh}:${mm}`;
-  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${hh}:${mm}`;
-}
-function chatFormatText(text) {
-  const safe = esc(text);
-  return safe.replace(/(https?:\/\/[^\s<]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
-}
-function chatCreateMessageElement(msg, { grouped = false } = {}) {
-  const div = document.createElement('div');
-  const isSelf = String(msg.userId) === String(session.userId);
-  div.className = 'chat-msg' + (isSelf ? ' me' : '') + (grouped ? ' grouped' : '');
-  div.dataset.uid = msg.userId;
-  const name = msg.name || (msg.username ? '@' + msg.username : `Usuario ${msg.userId}`);
-  const initial = (name || '?').charAt(0).toUpperCase();
-  const avatarInner = msg.photoUrl ? `<img src="${esc(msg.photoUrl)}" alt="" loading="lazy">` : initial;
-  const isSticker = !!msg.sticker;
-  const bubbleContent = isSticker ? `<img src="${esc(msg.sticker)}" alt="" loading="lazy">` : chatFormatText(msg.text || '');
-  div.innerHTML = `
-    <div class="chat-avatar" title="Ver perfil">${avatarInner}</div>
-    <div class="chat-body">
-      <div class="chat-meta">
-        <span class="chat-name">${esc(name)}</span>
-        <span class="chat-time">${chatFormatTime(msg.timestamp)}</span>
-      </div>
-      <div class="chat-bubble${isSticker ? ' sticker' : ''}">${bubbleContent}</div>
-    </div>`;
-  if (isSticker) {
-    div.classList.add('chat-msg-sticker');
-    if (!isSelf) div.classList.add('chat-msg-sticker-left');
-  }
-  const openProfile = () => { const uid = parseInt(msg.userId, 10); if (!isNaN(uid)) openUserModal(uid); };
-  div.querySelector('.chat-avatar')?.addEventListener('click', openProfile);
-  div.querySelector('.chat-name')?.addEventListener('click', openProfile);
-  return div;
-}
-function chatScrollToBottom(smooth = false) {
-  const box = document.querySelector('.chat-messages');
-  if (!box) return;
-  box.scrollTo({ top: box.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-}
-function chatIsNearBottom() {
-  const box = document.querySelector('.chat-messages');
-  if (!box) return true;
-  return (box.scrollHeight - box.scrollTop - box.clientHeight) < 80;
-}
-function chatShowNewBtn(show) {
-  const btn = $('chat-new-btn');
-  if (!btn) return;
-  btn.classList.toggle('show', !!show);
-}
-function unsubscribeChat() {
-  if (chatUnsub) { try { chatUnsub(); } catch {} chatUnsub = null; }
-  chatSubscribed = false;
-  chatShowNewBtn(false);
-  closeStickers();
-}
-function renderChat() {
-  const c = $('tab-chat');
-  if (!c) return;
-  if (chatInitialized && c.querySelector('.chat-card')) {
-    if (!chatSubscribed) subscribeChat();
-    setTimeout(() => chatScrollToBottom(), 50);
-    return;
-  }
-  c.innerHTML = `
-    <div class="page-wrap">
-      <div class="chat-card" style="position:relative">
-        <div class="chat-head">
-          <div class="section-title">${ico('message',13)} Chat Global</div>
-          <div class="chat-badge"><span class="dot"></span>En vivo</div>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-          <div class="chat-empty"><span class="icon">${ico('message',40)}</span>Cargando mensajes…</div>
-        </div>
-        <div class="chat-new-btn" id="chat-new-btn">${ico('chevron',12)} Nuevos mensajes</div>
-        <div class="chat-stickers" id="chat-stickers" hidden>
-          <div class="chat-stickers-head"><span>Stickers del bot</span><button class="chat-stickers-close" id="chat-stickers-close" aria-label="Cerrar">×</button></div>
-          <div class="chat-stickers-grid" id="chat-stickers-grid"></div>
-        </div>
-        <div class="chat-input-row">
-          <button class="chat-sticker-btn" id="chat-sticker-btn" aria-label="Stickers">${ico('smiley',20)}</button>
-          <input id="chat-input" type="text" placeholder="Escribe un mensaje…" maxlength="${CHAT_MAX_LEN}" autocomplete="off">
-          <button class="chat-send" id="chat-send" aria-label="Enviar">${ico('send',20)}</button>
-          <div class="chat-char-counter" id="chat-counter">0/${CHAT_MAX_LEN}</div>
-        </div>
-      </div>
-    </div>`;
-  chatInitialized = true;
-  bindChatEvents();
-  subscribeChat();
-}
-function bindChatEvents() {
-  const input = $('chat-input'), sendBtn = $('chat-send'), counter = $('chat-counter'), newBtn = $('chat-new-btn'), box = $('chat-messages');
-  input.addEventListener('input', () => {
-    const len = input.value.length;
-    counter.textContent = `${len}/${CHAT_MAX_LEN}`;
-    counter.classList.toggle('show', len > 0);
-    counter.classList.toggle('warn', len > CHAT_MAX_LEN * 0.85);
-  });
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } });
-  sendBtn.addEventListener('click', sendChatMessage);
-  box.addEventListener('scroll', () => { chatAutoScroll = chatIsNearBottom(); if (chatAutoScroll) chatShowNewBtn(false); }, { passive: true });
-  newBtn.addEventListener('click', () => { chatAutoScroll = true; chatShowNewBtn(false); chatScrollToBottom(true); });
-  const stickerBtn = $('chat-sticker-btn');
-  const stickerClose = $('chat-stickers-close');
-  stickerBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const panel = $('chat-stickers');
-    if (panel && !panel.hidden) closeStickers(); else openStickers();
-  });
-  stickerClose?.addEventListener('click', closeStickers);
-  document.addEventListener('click', (e) => {
-    const panel = $('chat-stickers');
-    if (!panel || panel.hidden) return;
-    if (panel.contains(e.target)) return;
-    if (e.target === stickerBtn || stickerBtn?.contains(e.target)) return;
-    closeStickers();
-  });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeStickers(); });
-}
-async function sendChatMessage() {
-  const input = $('chat-input');
-  if (!input) return;
-  const text = input.value.trim();
-  if (!text) return;
-  if (Date.now() - chatLastSentAt < CHAT_COOLDOWN_MS) {
-    const wait = Math.ceil((CHAT_COOLDOWN_MS - (Date.now() - chatLastSentAt)) / 1000);
-    showToast(`Espera ${wait}s antes de enviar otro mensaje`, 'err', 2000, 'clock');
-    return;
-  }
-  if (text.length > CHAT_MAX_LEN) { showToast(`Máximo ${CHAT_MAX_LEN} caracteres`, 'err', 2500, 'x'); return; }
-  const sendBtn = $('chat-send');
-  sendBtn.disabled = true;
-  try {
-    const payload = {
-      userId: session.userId,
-      name: userDoc?.firstName ? [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') : (userDoc?.username || 'Usuario'),
-      username: userDoc?.username || null,
-      photoUrl: userDoc?.photoUrl || null,
-      text, timestamp: Date.now()
-    };
-    await push(ref(db, 'chat'), payload);
-    chatLastSentAt = Date.now();
-    input.value = '';
-    const counter = $('chat-counter');
-    counter.textContent = `0/${CHAT_MAX_LEN}`;
-    counter.classList.remove('show', 'warn');
-    chatAutoScroll = true;
-    chatShowNewBtn(false);
-    setTimeout(() => chatScrollToBottom(true), 80);
-  } catch (e) {
-    showToast('Error al enviar: ' + (e.message || e), 'err', 4000, 'x');
-  } finally { sendBtn.disabled = false; }
-}
-function subscribeChat() {
-  if (chatSubscribed) return;
-  chatSubscribed = true;
-  const messagesRef = query(ref(db, 'chat'), limitToLast(100));
-  const box = $('chat-messages');
-  if (!box) return;
-  chatUnsub = onChildAdded(messagesRef, (snap) => {
-    const msg = snap.val();
-    if (!msg || typeof msg !== 'object') return;
-    if (!msg.text && !msg.sticker) return;
-    const empty = box.querySelector('.chat-empty');
-    if (empty) empty.remove();
-    const wasAtBottom = chatAutoScroll || chatIsNearBottom();
-    const lastEl = box.lastElementChild;
-    const lastUid = lastEl?.dataset?.uid;
-    let grouped = false;
-    if (lastEl && lastUid && String(lastUid) === String(msg.userId)) grouped = true;
-    const el = chatCreateMessageElement(msg, { grouped });
-    box.appendChild(el);
-    if (wasAtBottom) { chatScrollToBottom(true); chatShowNewBtn(false); }
-    else { chatShowNewBtn(true); }
-  }, (err) => { console.warn('Chat listener error:', err); });
-}
-function openStickers() {
-  const panel = $('chat-stickers');
-  if (!panel) return;
-  panel.hidden = false;
-  subscribeStickers();
-}
-function closeStickers() {
-  const panel = $('chat-stickers');
-  if (panel) panel.hidden = true;
-  unsubscribeStickers();
-}
-function unsubscribeStickers() { if (stickerUnsub) { try { stickerUnsub(); } catch {} stickerUnsub = null; } }
-function subscribeStickers() {
-  if (stickerUnsub) return;
-  const grid = $('chat-stickers-grid');
-  if (!grid) return;
-  grid.innerHTML = `<div class="chat-stickers-empty">Cargando stickers…</div>`;
-  stickerUnsub = onValue(ref(db, 'stickers'), (snap) => {
-    const data = snap.val() || {};
-    const list = Object.values(data).filter(s => s && s.url).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    if (list.length === 0) {
-      grid.innerHTML = `<div class="chat-stickers-empty">Aún no hay stickers.<br><b>Envía un sticker al bot por DM</b> y aparecerá aquí.</div>`;
-      return;
-    }
-    grid.innerHTML = list.map(s => `<button class="chat-sticker-item" data-sticker="${esc(s.url)}" title="${esc(s.emoji || '')}"><img src="${esc(s.url)}" alt="" loading="lazy"></button>`).join('');
-    grid.querySelectorAll('.chat-sticker-item').forEach(btn => {
-      btn.addEventListener('click', () => { const url = btn.dataset.sticker; if (url) sendStickerMessage(url); });
-    });
-  });
-}
-async function sendStickerMessage(stickerUrl) {
-  if (!stickerUrl) return;
-  if (Date.now() - chatLastSentAt < CHAT_COOLDOWN_MS) {
-    const wait = Math.ceil((CHAT_COOLDOWN_MS - (Date.now() - chatLastSentAt)) / 1000);
-    showToast(`Espera ${wait}s antes de enviar`, 'err', 2000, 'clock');
-    return;
-  }
-  try {
-    const payload = {
-      userId: session.userId,
-      name: userDoc?.firstName ? [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') : (userDoc?.username || 'Usuario'),
-      username: userDoc?.username || null,
-      photoUrl: userDoc?.photoUrl || null,
-      sticker: stickerUrl, timestamp: Date.now()
-    };
-    await push(ref(db, 'chat'), payload);
-    chatLastSentAt = Date.now();
-    closeStickers();
-    chatAutoScroll = true;
-    chatShowNewBtn(false);
-    setTimeout(() => chatScrollToBottom(true), 80);
-  } catch (e) { showToast('Error: ' + (e.message || e), 'err', 3000, 'x'); }
-}
-
-/* MINIJUEGOS */
+/* MINIJUEGOS RENDER */
 function renderMinigames() {
   const c = $('tab-minigames');
   if (!c) return;
@@ -2813,8 +2423,6 @@ $('btn-logout').addEventListener('click', async () => {
   slotIntervals.forEach(i => { if (i) clearInterval(i); });
   slotIntervals = [];
   closeUserModal(); closeBoxModal(); closeCardModal();
-  unsubscribeChat(); unsubscribeStickers();
-  chatInitialized = false;
   if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
   localStorage.removeItem('jinx_session');
   session = userDoc = userData = null;
