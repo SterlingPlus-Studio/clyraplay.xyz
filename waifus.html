@@ -1018,6 +1018,7 @@ let catalog = null;
 let ranking = null;
 let sales = null;
 let auction = null;
+let skins = null;
 let collectionFilter = 'all';
 let currentTab = 'profile';
 let shopSubTab = 'waifus';
@@ -1046,6 +1047,7 @@ let lastUserDocSig = '';
 let lastRankingSig = '';
 let lastSalesSig = '';
 let lastCatalogSig = '';
+let lastSkinsSig = '';
 
 let currentGame = 'ruleta';
 let currentBet = 250;
@@ -1215,13 +1217,14 @@ async function startSession(token) {
 
 async function loadAll() {
   const uid = session.userId;
-  const [uSnap, dSnap, cSnap, rSnap, sSnap, aSnap] = await Promise.all([
+  const [uSnap, dSnap, cSnap, rSnap, sSnap, aSnap, skSnap] = await Promise.all([
     get(ref(db, `users/${uid}`)),
     get(ref(db, `users/${uid}/data`)),
     get(ref(db, `catalog`)),
     get(ref(db, `ranking`)),
     get(ref(db, `sales`)),
-    get(ref(db, `auction`))
+    get(ref(db, `auction`)),
+    get(ref(db, `skins`))
   ]);
   userDoc  = uSnap.val()  || {};
   userData = dSnap.val()  || {};
@@ -1229,6 +1232,7 @@ async function loadAll() {
   ranking  = rSnap.val()  || { top: [], totalUsers: 0, totalWaifus: 0 };
   sales    = sSnap.val()  || {};
   auction  = aSnap.val()  || { active: null };
+  skins    = skSnap.val() || {};
 }
 
 function subscribeRealtime() {
@@ -1238,6 +1242,7 @@ function subscribeRealtime() {
     const newData = s.val() || {};
     const sig = (newData.waifus?.length || 0) + '|' + (newData.coins || 0) + '|' +
                 ((newData.covers || []).join(',')) + '|' + ((newData.coversOff || []).join(',')) + '|' +
+                ((newData.skins || []).join(',')) + '|' + ((newData.skinsOff || []).join(',')) + '|' +
                 (newData.predeterminada || '') + '|' + (newData.plusExpiresAt || 0);
     if (sig === lastUserDataSig) return;
     lastUserDataSig = sig;
@@ -1274,6 +1279,15 @@ function subscribeRealtime() {
     if (sig === lastSalesSig) return;
     lastSalesSig = sig;
     sales = newSales;
+    if (currentTab === 'shop') renderShop();
+  }));
+
+  unsubs.push(onValue(ref(db, `skins`), (s) => {
+    const newSkins = s.val() || {};
+    const sig = Object.keys(newSkins).sort().map(k => k + ':' + (newSkins[k].sales || 0) + ':' + (newSkins[k].price || 0)).join(',');
+    if (sig === lastSkinsSig) return;
+    lastSkinsSig = sig;
+    skins = newSkins;
     if (currentTab === 'shop') renderShop();
   }));
 
@@ -1324,6 +1338,29 @@ async function requestBuy(saleId) {
     if (!r) return;
     if (r.status === 'done') {
       showToast(`Compraste a ${r.waifuName || 'la waifu'} por ${fmt(r.price)}`, 'ok', 4000, 'check');
+      unsub(); actionUnsubs.delete(reqId);
+    } else if (r.status === 'error') {
+      showToast(r.error || 'Error en la compra', 'err', 5000, 'x');
+      unsub(); actionUnsubs.delete(reqId);
+    }
+  });
+  actionUnsubs.set(reqId, unsub);
+  setTimeout(() => { const u = actionUnsubs.get(reqId); if (u) { u(); actionUnsubs.delete(reqId); } }, 30000);
+}
+
+async function requestSkinBuy(skinId) {
+  const reqId = 'skinbuy_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  await set(ref(db, `skinBuyRequests/${reqId}`), {
+    skinId, buyerId: session.userId, sessionToken: session.token,
+    status: 'pending', createdAt: Date.now()
+  });
+  showToast('Procesando compra...', 'ok', 2000, 'clock');
+
+  const unsub = onValue(ref(db, `skinBuyRequests/${reqId}`), (snap) => {
+    const r = snap.val();
+    if (!r) return;
+    if (r.status === 'done') {
+      showToast(`Compraste la skin de ${r.waifuName || 'waifu'} por ${fmt(r.price)}`, 'ok', 4000, 'check');
       unsub(); actionUnsubs.delete(reqId);
     } else if (r.status === 'error') {
       showToast(r.error || 'Error en la compra', 'err', 5000, 'x');
@@ -2252,13 +2289,17 @@ function renderRanking() {
 function renderShop() {
   const c = $('tab-shop');
   const myCoins = Number(userData?.coins) || 0;
+  const salesCount = Object.keys(sales || {}).length;
+  const skinsCount = Object.keys(skins || {}).length;
   let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">${ico('coin',12)} Tu saldo</div></div>
-      <div class="stat"><div class="num">${Object.keys(sales || {}).length}</div><div class="lbl">${ico('store',12)} En venta</div></div>
+      <div class="stat"><div class="num">${salesCount}</div><div class="lbl">${ico('store',12)} En venta</div></div>
+      <div class="stat"><div class="num">${skinsCount}</div><div class="lbl">${ico('card',12)} Skins</div></div>
     </div>
     <div class="subtabs" id="shop-subtabs">
       <button class="subtab ${shopSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">${ico('store',13)}Waifus</button>
+      <button class="subtab ${shopSubTab === 'skins' ? 'active' : ''}" data-sub="skins">${ico('card',13)}Skins</button>
       <button class="subtab ${shopSubTab === 'boxes' ? 'active' : ''}" data-sub="boxes">${ico('gift',13)}Cajas misteriosas</button>
     </div>
     <div id="shop-content"></div>
@@ -2269,6 +2310,7 @@ function renderShop() {
   });
   const content = $('shop-content');
   if (shopSubTab === 'waifus') renderShopWaifus(content);
+  if (shopSubTab === 'skins')  renderShopSkins(content);
   if (shopSubTab === 'boxes')  renderShopBoxes(content);
 }
 
@@ -2314,6 +2356,69 @@ function renderShopWaifus(container) {
       const original = btn.textContent;
       btn.innerHTML = '<span class="loading"></span>';
       try { await requestBuy(saleId); }
+      catch (err) { showToast(err.message || 'Error', 'err', 4000, 'x'); }
+      finally { setTimeout(() => { btn.disabled = false; btn.innerHTML = original; }, 5000); }
+    });
+  });
+}
+
+function renderShopSkins(container) {
+  const allSkins = Object.values(skins || {});
+  const myCoins  = Number(userData?.coins) || 0;
+  const myId     = session.userId;
+  const myOwned  = Array.isArray(userData?.skins) ? userData.skins : [];
+
+  if (allSkins.length === 0) {
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('card',44)}</span>No hay skins en la tienda ahora mismo.<br>Sube una con <b>/skin</b> en el bot.</div>`;
+    return;
+  }
+
+  allSkins.sort((a, b) => (a.price || 0) - (b.price || 0));
+
+  let html = `<div class="grid">`;
+  for (const sk of allSkins.slice(0, 90)) {
+    const wname    = sk.waifuName || '?';
+    const rarity   = sk.rarity || 'comun';
+    const url      = sk.imageUrl || '';
+    const initial  = (wname || '?').charAt(0).toUpperCase();
+    const seller   = sk.uploaderUsername ? '@' + esc(sk.uploaderUsername) : esc(sk.uploaderName || 'Anónimo');
+    const isMine   = String(sk.uploaderId) === String(myId);
+    const owned    = myOwned.includes(sk.id);
+    const canPay   = myCoins >= (sk.price || 0);
+    const disabled = isMine || owned || !canPay;
+
+    let btnText;
+    if (isMine)        btnText = 'Tu skin';
+    else if (owned)    btnText = 'Ya la tienes';
+    else if (!canPay)  btnText = `Faltan ${fmt((sk.price||0) - myCoins)}`;
+    else               btnText = `Comprar ${fmt(sk.price)}`;
+
+    html += `<div class="wcard" data-r="${rarity}">
+      <span class="cover-badge" title="Skin">${ico('card',10)}</span>
+      <div class="img">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}</div>
+      <div class="info">
+        <div class="name" title="${esc(wname)}">${esc(wname)}</div>
+        <div class="meta">
+          <span class="rarity">${RARITY_LABEL[rarity] || rarity}</span>
+          <span class="count">${fmt(sk.price)}${ico('coin',10)}</span>
+        </div>
+        <div class="seller-line">${ico('user',10)} ${seller}</div>
+        <button class="btn-buy-card" data-buy-skin="${esc(sk.id)}" ${disabled ? 'disabled' : ''}>${esc(btnText)}</button>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+
+  container.querySelectorAll('[data-buy-skin]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const skinId = btn.dataset.buySkin;
+      if (!skinId || btn.disabled) return;
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.innerHTML = '<span class="loading"></span>';
+      try { await requestSkinBuy(skinId); }
       catch (err) { showToast(err.message || 'Error', 'err', 4000, 'x'); }
       finally { setTimeout(() => { btn.disabled = false; btn.innerHTML = original; }, 5000); }
     });
@@ -2426,7 +2531,8 @@ $('btn-logout').addEventListener('click', async () => {
   if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
   localStorage.removeItem('jinx_session');
   session = userDoc = userData = null;
-  lastUserDataSig = ''; lastUserDocSig = ''; lastRankingSig = ''; lastSalesSig = ''; lastCatalogSig = '';
+  lastUserDataSig = ''; lastUserDocSig = ''; lastRankingSig = ''; lastSalesSig = ''; lastCatalogSig = ''; lastSkinsSig = '';
+  skins = null;
   if (unsubRequest) { unsubRequest(); unsubRequest = null; }
   $('sidebar').classList.remove('open');
   $('overlay').classList.remove('show');
