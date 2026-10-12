@@ -32,6 +32,7 @@
   @keyframes reelSymbol { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
   @keyframes winPulse { 0%,100% { box-shadow: 0 0 25px rgba(251,191,36,.6), inset 0 0 25px rgba(251,191,36,.25); } 50% { box-shadow: 0 0 55px rgba(251,191,36,1), inset 0 0 40px rgba(251,191,36,.5); } }
   @keyframes boxShake{ 0%,100%{ transform: rotate(-5deg) scale(1); } 50%{ transform: rotate(5deg) scale(1.07); } }
+  @keyframes pop { 0%{ transform: scale(.6); } 60%{ transform: scale(1.2); } 100%{ transform: scale(1); } }
 
   html { background: #07030f; width: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
   body {
@@ -161,6 +162,17 @@
     background: #0a0420; color: var(--text); font-size: 16px; outline: none; transition: .2s; font-family: inherit; -webkit-appearance: none; }
   input:focus{ border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,.25), 0 0 20px rgba(139,92,246,.3); }
 
+  /* ✅ Oculta las flechitas del input number */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   button{ padding: 14px 18px; border: none; border-radius: 10px; background: linear-gradient(90deg, var(--pink), var(--purple));
     color: white; font-size: 14px; font-weight: 800; cursor: pointer; transition: .2s;
     text-transform: uppercase; letter-spacing: 1px; font-family: inherit;
@@ -272,6 +284,18 @@
   .wcard .btn-buy-card:hover:not(:disabled){ box-shadow: 0 0 25px rgba(255,45,146,.55); transform: translateY(-1px); }
   .wcard .btn-buy-card:disabled{ opacity: .55; cursor: not-allowed; background: rgba(139,92,246,.18); box-shadow: none; color: var(--muted); }
 
+  .wcard .btn-sell-card{
+    width: 100%; margin-top: 8px; padding: 8px 6px; border-radius: 8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    border: none; color: white; cursor: pointer;
+    box-shadow: 0 0 12px rgba(34,197,94,.35), inset 0 1px 0 rgba(255,255,255,.15);
+    font-family: inherit; transition: .2s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .wcard .btn-sell-card:hover{ box-shadow: 0 0 22px rgba(34,197,94,.65); transform: translateY(-1px); }
+  .wcard .btn-sell-card:disabled{ opacity: .55; cursor: not-allowed; box-shadow: none; }
+
   .row{ display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 10px;
     background: linear-gradient(180deg, rgba(21,11,38,.7), rgba(10,4,32,.7)); border: 1px solid var(--border); margin-bottom: 8px;
     font-size: 13px; transition: .2s; gap: 8px; }
@@ -332,13 +356,15 @@
   .modal-overlay{ position: absolute; inset: 0; background: rgba(3,1,10,.92); }
   .modal-content{ position: relative; max-width: 780px; margin: 40px auto; width: calc(100% - 32px); max-height: calc(100vh - 80px);
     overflow-y: auto; overscroll-behavior: contain; background: #0d0620; border: 1px solid var(--border2);
-    border-radius: 18px; padding: 24px 22px; box-shadow: 0 8px 30px rgba(0,0,0,.6); -webkit-overflow-scrolling: touch; animation: modalFade .15s ease; }
+    border-radius: 18px; padding: 26px 24px 24px; box-shadow: 0 8px 30px rgba(0,0,0,.6); -webkit-overflow-scrolling: touch; animation: modalFade .15s ease; }
   .modal-content::before{ content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius: 18px 18px 0 0;
     background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent); pointer-events: none; }
-  .modal-close{ position: sticky; top: 0; float: right; width: 38px; height: 38px; padding: 0; border-radius: 10px;
+
+  /* ✅ Botón X: se eliminaron los márgenes negativos para que no esté pegado a los bordes */
+  .modal-close{ position: sticky; top: 0; float: right; width: 40px; height: 40px; padding: 0; border-radius: 10px;
     background: rgba(139,92,246,.18); border: 1px solid var(--border); color: var(--text);
     display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: none; z-index: 2;
-    margin: -8px -8px 0 0; font-family: inherit; line-height: 0; }
+    margin: 0 0 14px 14px; font-family: inherit; line-height: 0; }
   .modal-close svg{ display: block; width: 20px; height: 20px; }
   .modal-close:hover{ background: rgba(239,68,68,.2); border-color: rgba(239,68,68,.5); transform: none; }
   .mp-loading{ text-align: center; padding: 50px 20px; color: var(--muted); font-size: 13px; }
@@ -366,8 +392,8 @@
 
   .card-modal-close{
     position: absolute;
-    top: 14px; right: 14px;
-    width: 40px; height: 40px;
+    top: 20px; right: 20px;
+    width: 42px; height: 42px;
     padding: 0; border-radius: 50%;
     background: rgba(13,6,32,.85);
     border: 1px solid var(--border);
@@ -719,6 +745,36 @@
   .box-prize-coins .bp-sub{ color: var(--gold); }
   .box-empty{ width: 100%; padding: 30px 10px; color: var(--muted); font-size: 13px; }
 
+  /* ============== Modal Vender ============== */
+  #sell-modal.show{ display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #sell-modal .modal-overlay{ position: fixed; }
+  .sell-modal-content{ max-width: 480px; width: 100%; margin: 0; max-height: calc(100dvh - 40px);
+    overflow-y: auto; animation: resultIn .35s cubic-bezier(.2,.9,.3,1.3); }
+  .sell-header{ display: flex; gap: 14px; align-items: center; padding: 14px;
+    border-radius: 14px; background: rgba(10,4,32,.7); border: 1px solid var(--border); margin-bottom: 18px; }
+  .sell-img{ width: 74px; height: 98px; flex-shrink: 0; border-radius: 12px; overflow: hidden;
+    background: linear-gradient(135deg, #1a0a33, #0a0420); display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--border2); box-shadow: 0 0 20px rgba(139,92,246,.25); }
+  .sell-img img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sell-img span{ font-size: 34px; font-weight: 900;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sell-info{ min-width: 0; flex: 1; }
+  .sell-name{ font-size: 16px; font-weight: 900; letter-spacing: .3px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sell-rarity{ font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+  .sell-count{ font-size: 11px; color: var(--muted); margin-top: 6px; font-weight: 600; }
+  .sell-count b{ color: var(--cyan); font-weight: 900; font-size: 13px; }
+  .sell-quick{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; margin-bottom: 4px; }
+  .sell-quick button{ padding: 10px 4px; font-size: 11px; border-radius: 10px; background: rgba(139,92,246,.15);
+    border: 1px solid var(--border); color: var(--text); box-shadow: none; letter-spacing: .5px; font-weight: 800; }
+  .sell-quick button:hover{ background: rgba(139,92,246,.3); border-color: var(--purple); box-shadow: 0 0 15px rgba(139,92,246,.3); transform: none; }
+  .sell-estimate{ text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-top: 12px; }
+  .sell-estimate b{ color: var(--gold); font-size: 14px; text-shadow: 0 0 12px rgba(251,191,36,.5); font-weight: 900; }
+  .sell-status{ margin-top: 14px; padding: 12px; border-radius: 10px; font-size: 12px; display: none; text-align: center; font-weight: 700; letter-spacing: .5px; }
+  .sell-status.ok{ display: block; background: rgba(34,197,94,.15); color: #86efac; border: 1px solid rgba(34,197,94,.45); }
+  .sell-status.err{ display: block; background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid rgba(239,68,68,.45); }
+
   @media (max-width: 860px){
     .sidebar{ transform: translateX(-100%); box-shadow: 0 0 40px rgba(0,0,0,.8); width: 260px; max-width: 85vw; }
     .sidebar.open{ transform: translateX(0); }
@@ -728,7 +784,7 @@
     .layout { padding-top: 0; margin-top: 0; }
   }
   @media (max-width: 640px){
-    .modal-content{ margin: 16px auto; padding: 18px 14px; max-height: calc(100vh - 32px); }
+    .modal-content{ margin: 16px auto; padding: 22px 18px 20px; max-height: calc(100vh - 32px); }
     .rank-card{ padding: 12px; gap: 10px; }
     .rank-card .avatar-md{ width: 46px; height: 46px; font-size: 18px; border-radius: 12px; }
     .rank-card .place{ width: 38px; height: 38px; font-size: 15px; }
@@ -736,6 +792,8 @@
     #box-modal.show{ padding: 12px; }
     #card-modal.show{ padding: 8px; }
     .card-stage{ width: 240px; height: 336px; }
+    .modal-close{ width: 38px; height: 38px; margin: 0 0 12px 12px; }
+    .card-modal-close{ top: 16px; right: 16px; width: 38px; height: 38px; }
   }
   @media (max-width: 500px){
     .stat .num{ font-size: 18px; }
@@ -758,6 +816,7 @@
     .card-face{ border-radius: 15px; }
     .card-layer{ border-radius: 15px; }
     .card-modal-hint{ font-size: 10px; letter-spacing: 2px; }
+    .sell-quick{ grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -875,6 +934,17 @@
   <div class="card-modal-hint">◢ Arrastra para girar ◣</div>
 </div>
 
+<!-- Modal Vender -->
+<div id="sell-modal" class="modal">
+  <div class="modal-overlay" data-close-sell="1"></div>
+  <div class="modal-content sell-modal-content">
+    <button class="modal-close" id="sell-modal-close" aria-label="Cerrar">
+      <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div id="sell-modal-body"></div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get, onValue, remove, query, limitToLast }
@@ -920,6 +990,13 @@ function imageKey(name) {
 
 const RARITY_RANK = { exclusiva: 0, legendaria: 1, epica: 2, rara: 3, comun: 4 };
 const RARITY_LABEL = { comun:'Común', rara:'Rara', epica:'Épica', legendaria:'Legendaria', exclusiva:'Exclusiva' };
+const RARITY_COLOR = {
+  comun: 'rgba(255,182,193,.85)',
+  rara: 'rgba(255,131,131,.9)',
+  epica: 'rgba(167,139,250,.95)',
+  legendaria: 'rgba(251,191,36,1)',
+  exclusiva: 'rgba(34,211,238,1)'
+};
 
 const I = {
   home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
@@ -953,7 +1030,9 @@ const I = {
   award:'<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
   chevron:'<polyline points="9 18 15 12 9 6"/>',
   gamepad:'<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="6"/>',
-  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>'
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  tag:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+  dollar:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
 };
 function ico(name, size = 16) {
   return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ''}</svg>`;
@@ -974,6 +1053,9 @@ const CAJAS = {
   premium:    { name:'Caja Premium', price:2500, desc:'2 premios: 400-1200 monedas o waifu épica.', img:'https://i.ibb.co/CpkBPV6q/premium.png' },
   legendaria: { name:'Caja Legendaria', price:3500, desc:'3 premios: monedas, épica o legendaria.', img:'https://i.ibb.co/v6GMtHf4/legendaria.png' }
 };
+
+const SELL_MIN_PRICE = 100;
+const SELL_MAX_PRICE = 3500;
 
 function showToast(text, kind = 'ok', duration = 3500, iconName = null) {
   const el = document.createElement('div');
@@ -1070,6 +1152,10 @@ let rouletteAngle = 0;
 let slotIntervals = [];
 let coinRaf = null;
 let coinAngle = 0;
+
+/* Estado del modal de venta */
+let sellWaifuName = null;
+let sellSending = false;
 
 /* LOGIN */
 const inputEl = $('identifier');
@@ -1399,6 +1485,46 @@ async function requestBox(tipo) {
   setTimeout(() => { const u = actionUnsubs.get(reqId); if (u) { u(); actionUnsubs.delete(reqId); } }, 30000);
 }
 
+/* Petición para poner waifu a la venta */
+async function requestSell(waifuName, price) {
+  const reqId = 'sell_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  await set(ref(db, `sellRequests/${reqId}`), {
+    waifuName,
+    price,
+    userId: session.userId,
+    sessionToken: session.token,
+    status: 'pending',
+    createdAt: Date.now()
+  });
+
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const unsub = onValue(ref(db, `sellRequests/${reqId}`), (snap) => {
+      const r = snap.val();
+      if (!r || done) return;
+      if (r.status === 'done') {
+        done = true;
+        try { unsub(); } catch {}
+        actionUnsubs.delete(reqId);
+        resolve(r);
+      } else if (r.status === 'error') {
+        done = true;
+        try { unsub(); } catch {}
+        actionUnsubs.delete(reqId);
+        reject(new Error(r.error || 'No se pudo poner en venta.'));
+      }
+    });
+    actionUnsubs.set(reqId, unsub);
+    setTimeout(() => {
+      if (done) return;
+      done = true;
+      try { unsub(); } catch {}
+      actionUnsubs.delete(reqId);
+      reject(new Error('El servidor no respondió. Intenta de nuevo.'));
+    }, 20000);
+  });
+}
+
 async function fetchWaifuImage(name) {
   if (!name) return '';
   if (imageUrls[name]) return imageUrls[name];
@@ -1416,7 +1542,8 @@ function closeBoxModal() {
   m.classList.remove('show');
   $('box-modal-body').innerHTML = '';
   if (!document.getElementById('user-modal')?.classList.contains('show') &&
-      !document.getElementById('card-modal')?.classList.contains('show')) {
+      !document.getElementById('card-modal')?.classList.contains('show') &&
+      !document.getElementById('sell-modal')?.classList.contains('show')) {
     document.body.classList.remove('modal-open');
   }
 }
@@ -1557,7 +1684,8 @@ function closeCardModal() {
   if (cardInertiaRaf) { cancelAnimationFrame(cardInertiaRaf); cardInertiaRaf = null; }
   cardDragging = false;
   if (!document.getElementById('user-modal')?.classList.contains('show') &&
-      !document.getElementById('box-modal')?.classList.contains('show')) {
+      !document.getElementById('box-modal')?.classList.contains('show') &&
+      !document.getElementById('sell-modal')?.classList.contains('show')) {
     document.body.classList.remove('modal-open');
   }
 }
@@ -1571,13 +1699,7 @@ function renderCardModal() {
   const rarity = cardOpenRarity;
   const rl = RARITY_LABEL[rarity] || rarity;
 
-  const rColor = {
-    comun: 'rgba(255,182,193,.75)',
-    rara: 'rgba(255,131,131,.8)',
-    epica: 'rgba(167,139,250,.85)',
-    legendaria: 'rgba(251,191,36,.9)',
-    exclusiva: 'rgba(34,211,238,.9)'
-  }[rarity] || 'var(--border2)';
+  const rColor = RARITY_COLOR[rarity] || 'var(--border2)';
 
   let thickness = '';
   for (let i = 7; i >= 1; i--) {
@@ -1616,6 +1738,147 @@ function renderCardModal() {
 
 $('card-modal-close')?.addEventListener('click', closeCardModal);
 $('card-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeCardModal);
+
+/* ==================== MODAL VENDER ==================== */
+function openSellModal(waifuName) {
+  const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
+  const grouped = groupWaifusByRarity(waifus).find(g => g.name === waifuName);
+  if (!grouped) { showToast('No tienes esa waifu', 'err', 2500, 'x'); return; }
+
+  sellWaifuName = waifuName;
+  sellSending = false;
+
+  const modal = $('sell-modal');
+  if (!modal) return;
+  modal.classList.add('show');
+  document.body.classList.add('modal-open');
+  renderSellModal(grouped);
+}
+
+function closeSellModal() {
+  const modal = $('sell-modal');
+  if (!modal) return;
+  modal.classList.remove('show');
+  $('sell-modal-body').innerHTML = '';
+  sellWaifuName = null;
+  sellSending = false;
+  if (!document.getElementById('user-modal')?.classList.contains('show') &&
+      !document.getElementById('box-modal')?.classList.contains('show') &&
+      !document.getElementById('card-modal')?.classList.contains('show')) {
+    document.body.classList.remove('modal-open');
+  }
+}
+
+function renderSellModal(grouped) {
+  const body = $('sell-modal-body');
+  if (!body) return;
+
+  const url = imageUrls[grouped.name] || '';
+  const initial = (grouped.name || '?').charAt(0).toUpperCase();
+  const rarity = grouped.rarity;
+  const rl = RARITY_LABEL[rarity] || rarity;
+  const rColor = RARITY_COLOR[rarity] || 'var(--muted)';
+  const count = grouped.count;
+
+  body.innerHTML = `
+    <div class="sell-header">
+      <div class="sell-img">
+        ${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span>${initial}</span>`}
+      </div>
+      <div class="sell-info">
+        <div class="sell-name" title="${esc(grouped.name)}">${esc(grouped.name)}</div>
+        <div class="sell-rarity" style="color:${rColor}">${esc(rl)}</div>
+        <div class="sell-count">Tienes <b>${count}</b> ${count === 1 ? 'copia' : 'copias'}</div>
+      </div>
+    </div>
+
+    <label for="sell-price-input">Precio de venta (monedas)</label>
+    <input id="sell-price-input" type="number" inputmode="numeric" min="${SELL_MIN_PRICE}" max="${SELL_MAX_PRICE}" placeholder="${SELL_MIN_PRICE} - ${SELL_MAX_PRICE}" autocomplete="off">
+
+    <div class="sell-quick">
+      <button type="button" data-sell-quick="500">500</button>
+      <button type="button" data-sell-quick="1000">1,000</button>
+      <button type="button" data-sell-quick="2000">2,000</button>
+      <button type="button" data-sell-quick="3500">3,500</button>
+    </div>
+
+    <div class="sell-estimate" id="sell-estimate">Recibirás <b>—</b> monedas cuando alguien la compre.</div>
+
+    <button class="btn-full" id="sell-confirm">${ico('tag',15)} Poner en venta</button>
+
+    <div class="sell-status" id="sell-status"></div>
+
+    <p class="hint">Se venderá <b>1 copia</b>. Cuando alguien la compre (desde la web o el bot) recibirás las monedas.<br>Precio mínimo <b>${SELL_MIN_PRICE}</b> · máximo <b>${fmt(SELL_MAX_PRICE)}</b>.</p>
+  `;
+
+  const input = $('sell-price-input');
+  const estimate = $('sell-estimate');
+  const updateEstimate = () => {
+    const v = parseInt(input.value, 10);
+    if (Number.isFinite(v) && v >= SELL_MIN_PRICE && v <= SELL_MAX_PRICE) {
+      estimate.innerHTML = `Recibirás <b>${fmt(v)}</b> monedas cuando alguien la compre.`;
+    } else {
+      estimate.innerHTML = `Recibirás <b>—</b> monedas cuando alguien la compre.`;
+    }
+  };
+  input.addEventListener('input', updateEstimate);
+  setTimeout(() => input.focus(), 120);
+
+  body.querySelectorAll('[data-sell-quick]').forEach(b => {
+    b.addEventListener('click', () => {
+      input.value = b.dataset.sellQuick;
+      updateEstimate();
+      input.focus();
+    });
+  });
+
+  $('sell-confirm').addEventListener('click', () => submitSell(parseInt(input.value, 10)));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submitSell(parseInt(input.value, 10)); }
+  });
+}
+
+async function submitSell(price) {
+  if (sellSending) return;
+  if (!sellWaifuName) return;
+
+  const statusEl = $('sell-status');
+  const btn = $('sell-confirm');
+
+  const setStatus = (text, kind = 'err') => {
+    if (!statusEl) return;
+    if (!text) { statusEl.className = 'sell-status'; statusEl.textContent = ''; return; }
+    statusEl.className = 'sell-status ' + kind;
+    statusEl.textContent = text;
+  };
+
+  if (!Number.isFinite(price) || price < SELL_MIN_PRICE || price > SELL_MAX_PRICE) {
+    setStatus(`El precio debe estar entre ${SELL_MIN_PRICE} y ${fmt(SELL_MAX_PRICE)} monedas.`, 'err');
+    return;
+  }
+
+  sellSending = true;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading"></span>Poniendo en venta…'; }
+  setStatus('Procesando…', 'ok');
+
+  try {
+    const res = await requestSell(sellWaifuName, price);
+    setStatus(`✅ ¡Puesta en venta por ${fmt(res.price || price)} monedas!`, 'ok');
+    showToast(`${sellWaifuName} en venta por ${fmt(res.price || price)}`, 'ok', 4000, 'check');
+    setTimeout(() => {
+      closeSellModal();
+      if (currentTab === 'shop') renderShop();
+    }, 900);
+  } catch (e) {
+    setStatus(e.message || 'No se pudo poner en venta.', 'err');
+    if (btn) { btn.disabled = false; btn.innerHTML = ico('tag',15) + ' Poner en venta'; }
+  } finally {
+    sellSending = false;
+  }
+}
+
+$('sell-modal-close')?.addEventListener('click', closeSellModal);
+$('sell-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeSellModal);
 
 /* MINIJUEGOS */
 async function requestGame(tipo, bet, choice) {
@@ -1781,6 +2044,7 @@ $('box-modal')?.querySelector('.modal-overlay')?.addEventListener('click', close
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    if ($('sell-modal')?.classList.contains('show')) { closeSellModal(); return; }
     if (modalEl.classList.contains('show')) closeUserModal();
     if ($('box-modal')?.classList.contains('show')) closeBoxModal();
     if ($('card-modal')?.classList.contains('show')) closeCardModal();
@@ -2207,6 +2471,7 @@ function renderCollection() {
   if (list.length === 0) {
     html += `<div class="empty"><span class="icon">${ico('filter',40)}</span>Sin waifus en esta rareza.</div>`;
   } else {
+    html += `<p class="hint" style="text-align:left;margin:0 0 12px">${ico('tag',11)} Toca <b>Vender</b> en cualquier carta para ponerla en venta.</p>`;
     html += `<div class="grid">`;
     const covers = new Set(userData.covers || []);
     const coversOff = new Set(userData.coversOff || []);
@@ -2215,12 +2480,13 @@ function renderCollection() {
       const url = imageUrls[w.name] || '';
       const hasCover = covers.has(w.name) && !coversOff.has(w.name);
       const initial = (w.name || '?').charAt(0).toUpperCase();
-      html += `<div class="wcard" data-r="${w.rarity}" data-img="${esc(w.name)}" data-open-card="${esc(w.name)}">
+      html += `<div class="wcard" data-r="${w.rarity}" data-img="${esc(w.name)}">
         ${hasCover ? `<span class="cover-badge">${ico('star',10)}</span>` : ''}
-        <div class="img">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}</div>
+        <div class="img" data-open-card="${esc(w.name)}">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}</div>
         <div class="info">
           <div class="name" title="${esc(w.name)}">${esc(w.name)}</div>
           <div class="meta"><span class="rarity">${RARITY_LABEL[w.rarity] || w.rarity}</span><span class="count">x${w.count}</span></div>
+          <button class="btn-sell-card" data-sell="${esc(w.name)}" title="Poner en venta">${ico('tag',11)} Vender</button>
         </div>
       </div>`;
     }
@@ -2235,6 +2501,13 @@ function renderCollection() {
     el.addEventListener('click', () => {
       const name = el.getAttribute('data-open-card');
       if (name) openCardModal(name);
+    });
+  });
+  c.querySelectorAll('[data-sell]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const name = btn.getAttribute('data-sell');
+      if (name) openSellModal(name);
     });
   });
 }
@@ -2319,7 +2592,7 @@ function renderShopWaifus(container) {
   const myCoins = Number(userData?.coins) || 0;
   const myId = session.userId;
   if (allSales.length === 0) {
-    container.innerHTML = `<div class="empty"><span class="icon">${ico('store',44)}</span>No hay waifus en venta ahora mismo.</div>`;
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('store',44)}</span>No hay waifus en venta ahora mismo.<br>¡Pon una a la venta desde tu <b>Colección</b>!</div>`;
     return;
   }
   allSales.sort((a, b) => a.price - b.price);
@@ -2527,7 +2800,7 @@ $('btn-logout').addEventListener('click', async () => {
   if (cardInertiaRaf) { cancelAnimationFrame(cardInertiaRaf); cardInertiaRaf = null; }
   slotIntervals.forEach(i => { if (i) clearInterval(i); });
   slotIntervals = [];
-  closeUserModal(); closeBoxModal(); closeCardModal();
+  closeUserModal(); closeBoxModal(); closeCardModal(); closeSellModal();
   if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
   localStorage.removeItem('jinx_session');
   session = userDoc = userData = null;
