@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -162,7 +162,6 @@
     background: #0a0420; color: var(--text); font-size: 16px; outline: none; transition: .2s; font-family: inherit; -webkit-appearance: none; }
   input:focus{ border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,.25), 0 0 20px rgba(139,92,246,.3); }
 
-  /* ✅ Oculta las flechitas del input number */
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -296,6 +295,44 @@
   .wcard .btn-sell-card:hover{ box-shadow: 0 0 22px rgba(34,197,94,.65); transform: translateY(-1px); }
   .wcard .btn-sell-card:disabled{ opacity: .55; cursor: not-allowed; box-shadow: none; }
 
+  /* ====== Skins del usuario ====== */
+  .skin-card.skin-active{
+    border-color: rgba(34,197,94,.75) !important;
+    box-shadow: 0 0 25px rgba(34,197,94,.4) !important;
+  }
+  .skin-card .skin-active-tag{
+    position:absolute; top:6px; left:6px;
+    padding: 3px 8px; border-radius: 20px;
+    background: linear-gradient(90deg, rgba(34,197,94,.95), rgba(34,197,94,.75));
+    color: white; font-size: 9px; font-weight: 900;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    display:inline-flex; align-items:center; justify-content:center; gap:4px;
+    box-shadow: 0 0 15px rgba(34,197,94,.7); z-index: 2;
+  }
+  .btn-skin-toggle{
+    width: 100%; margin-top: 8px; padding: 9px 6px; border-radius: 8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    border: none; color: white; cursor: pointer; font-family: inherit; transition: .2s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .btn-skin-on{
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    box-shadow: 0 0 15px rgba(34,197,94,.35), inset 0 1px 0 rgba(255,255,255,.15);
+  }
+  .btn-skin-on:hover:not(:disabled){
+    box-shadow: 0 0 25px rgba(34,197,94,.65); transform: translateY(-1px);
+  }
+  .btn-skin-off{
+    background: rgba(139,92,246,.25);
+    border: 1px solid var(--border);
+    color: var(--text); box-shadow: none;
+  }
+  .btn-skin-off:hover:not(:disabled){
+    background: rgba(239,68,68,.25); border-color: rgba(239,68,68,.55);
+    box-shadow: 0 0 20px rgba(239,68,68,.4); transform: translateY(-1px);
+  }
+  .btn-skin-toggle:disabled{ opacity: .55; cursor: not-allowed; }
+
   .row{ display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 10px;
     background: linear-gradient(180deg, rgba(21,11,38,.7), rgba(10,4,32,.7)); border: 1px solid var(--border); margin-bottom: 8px;
     font-size: 13px; transition: .2s; gap: 8px; }
@@ -360,7 +397,6 @@
   .modal-content::before{ content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius: 18px 18px 0 0;
     background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent); pointer-events: none; }
 
-  /* ✅ Botón X: se eliminaron los márgenes negativos para que no esté pegado a los bordes */
   .modal-close{ position: sticky; top: 0; float: right; width: 40px; height: 40px; padding: 0; border-radius: 10px;
     background: rgba(139,92,246,.18); border: 1px solid var(--border); color: var(--text);
     display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: none; z-index: 2;
@@ -745,7 +781,6 @@
   .box-prize-coins .bp-sub{ color: var(--gold); }
   .box-empty{ width: 100%; padding: 30px 10px; color: var(--muted); font-size: 13px; }
 
-  /* ============== Modal Vender ============== */
   #sell-modal.show{ display: flex; align-items: center; justify-content: center; padding: 20px; }
   #sell-modal .modal-overlay{ position: fixed; }
   .sell-modal-content{ max-width: 480px; width: 100%; margin: 0; max-height: calc(100dvh - 40px);
@@ -934,7 +969,6 @@
   <div class="card-modal-hint">◢ Arrastra para girar ◣</div>
 </div>
 
-<!-- Modal Vender -->
 <div id="sell-modal" class="modal">
   <div class="modal-overlay" data-close-sell="1"></div>
   <div class="modal-content sell-modal-content">
@@ -1102,6 +1136,7 @@ let sales = null;
 let auction = null;
 let skins = null;
 let collectionFilter = 'all';
+let collectionSubTab = 'waifus';
 let currentTab = 'profile';
 let shopSubTab = 'waifus';
 let imageUrls = {};
@@ -1153,7 +1188,6 @@ let slotIntervals = [];
 let coinRaf = null;
 let coinAngle = 0;
 
-/* Estado del modal de venta */
 let sellWaifuName = null;
 let sellSending = false;
 
@@ -1375,6 +1409,7 @@ function subscribeRealtime() {
     lastSkinsSig = sig;
     skins = newSkins;
     if (currentTab === 'shop') renderShop();
+    if (currentTab === 'collection' && collectionSubTab === 'skins') renderCollection();
   }));
 
   unsubs.push(onValue(ref(db, `ranking`), (s) => {
@@ -1457,6 +1492,39 @@ async function requestSkinBuy(skinId) {
   setTimeout(() => { const u = actionUnsubs.get(reqId); if (u) { u(); actionUnsubs.delete(reqId); } }, 30000);
 }
 
+async function requestSkinToggle(skinId, active) {
+  const reqId = 'skintoggle_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  await set(ref(db, `skinToggleRequests/${reqId}`), {
+    skinId,
+    active: !!active,
+    userId: session.userId,
+    sessionToken: session.token,
+    status: 'pending',
+    createdAt: Date.now()
+  });
+
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const unsub = onValue(ref(db, `skinToggleRequests/${reqId}`), (snap) => {
+      const r = snap.val();
+      if (!r || done) return;
+      if (r.status === 'done') {
+        done = true; try { unsub(); } catch {} actionUnsubs.delete(reqId);
+        resolve(r);
+      } else if (r.status === 'error') {
+        done = true; try { unsub(); } catch {} actionUnsubs.delete(reqId);
+        reject(new Error(r.error || 'No se pudo cambiar la skin.'));
+      }
+    });
+    actionUnsubs.set(reqId, unsub);
+    setTimeout(() => {
+      if (done) return;
+      done = true; try { unsub(); } catch {} actionUnsubs.delete(reqId);
+      reject(new Error('El servidor no respondió. Intenta de nuevo.'));
+    }, 15000);
+  });
+}
+
 async function requestBox(tipo) {
   const reqId = 'box_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   await set(ref(db, `boxRequests/${reqId}`), {
@@ -1485,7 +1553,6 @@ async function requestBox(tipo) {
   setTimeout(() => { const u = actionUnsubs.get(reqId); if (u) { u(); actionUnsubs.delete(reqId); } }, 30000);
 }
 
-/* Petición para poner waifu a la venta */
 async function requestSell(waifuName, price) {
   const reqId = 'sell_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   await set(ref(db, `sellRequests/${reqId}`), {
@@ -2444,11 +2511,38 @@ function renderProfile() {
   c.innerHTML = html;
 }
 
+/* ==================== COLECCIÓN ==================== */
 function renderCollection() {
   const c = $('tab-collection');
+  if (!c) return;
+
+  const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
+  const ownedSkinIds = Array.isArray(userData?.skins) ? userData.skins : [];
+
+  c.innerHTML = `<div class="page-wrap">
+    <div class="subtabs" id="coll-subtabs">
+      <button class="subtab ${collectionSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">${ico('package',13)}Waifus (${waifus.length})</button>
+      <button class="subtab ${collectionSubTab === 'skins' ? 'active' : ''}" data-sub="skins">${ico('card',13)}Skins (${ownedSkinIds.length})</button>
+    </div>
+    <div id="coll-content"></div>
+  </div>`;
+
+  c.querySelectorAll('#coll-subtabs .subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      collectionSubTab = btn.dataset.sub;
+      renderCollection();
+    });
+  });
+
+  const content = $('coll-content');
+  if (collectionSubTab === 'skins') renderCollectionSkins(content);
+  else renderCollectionWaifus(content);
+}
+
+function renderCollectionWaifus(container) {
   const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
   if (waifus.length === 0) {
-    c.innerHTML = `<div class="page-wrap"><div class="empty"><span class="icon">${ico('package',44)}</span>Aún no tienes waifus.<br>¡Captura salvajes cada hora en el bot!</div></div>`;
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('package',44)}</span>Aún no tienes waifus.<br>¡Captura salvajes cada hora en el bot!</div>`;
     return;
   }
   const all = groupWaifusByRarity(waifus);
@@ -2460,7 +2554,7 @@ function renderCollection() {
     { k: 'comun', label: 'Común', ic: 'circle' },
     { k: 'exclusiva', label: 'Exclusiva', ic: 'star' }
   ];
-  let html = `<div class="page-wrap"><div class="filters">`;
+  let html = `<div class="filters">`;
   for (const f of filters) {
     const count = f.k === 'all' ? all.length : all.filter(x => x.rarity === f.k).length;
     if (f.k !== 'all' && count === 0) continue;
@@ -2492,22 +2586,114 @@ function renderCollection() {
     }
     html += `</div>`;
   }
-  html += `</div>`;
-  c.innerHTML = html;
-  c.querySelectorAll('.filters button').forEach(b => {
+  container.innerHTML = html;
+
+  container.querySelectorAll('.filters button').forEach(b => {
     b.addEventListener('click', () => { collectionFilter = b.dataset.f; renderCollection(); });
   });
-  c.querySelectorAll('[data-open-card]').forEach(el => {
+  container.querySelectorAll('[data-open-card]').forEach(el => {
     el.addEventListener('click', () => {
       const name = el.getAttribute('data-open-card');
       if (name) openCardModal(name);
     });
   });
-  c.querySelectorAll('[data-sell]').forEach(btn => {
+  container.querySelectorAll('[data-sell]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const name = btn.getAttribute('data-sell');
       if (name) openSellModal(name);
+    });
+  });
+}
+
+function renderCollectionSkins(container) {
+  const ownedIds = Array.isArray(userData?.skins) ? userData.skins : [];
+  const skinsOffSet = new Set(Array.isArray(userData?.skinsOff) ? userData.skinsOff : []);
+
+  const owned = ownedIds
+    .map(id => ({ id, ...(skins && skins[id] ? skins[id] : {}) }))
+    .filter(s => s && s.waifuName);
+
+  if (owned.length === 0) {
+    container.innerHTML = `<div class="empty">
+      <span class="icon">${ico('card',44)}</span>
+      No tienes skins todavía.<br>
+      Compra alguna en <b>Tienda → Skins</b><br>
+      o sube la tuya con <b>/skin</b> en el bot.
+    </div>`;
+    return;
+  }
+
+  const byWaifu = new Map();
+  for (const s of owned) {
+    if (!byWaifu.has(s.waifuName)) byWaifu.set(s.waifuName, []);
+    byWaifu.get(s.waifuName).push(s);
+  }
+  const activeByWaifu = new Map();
+  for (const [waifu, list] of byWaifu) {
+    for (const s of list) {
+      if (!skinsOffSet.has(s.id)) { activeByWaifu.set(waifu, s.id); break; }
+    }
+  }
+
+  owned.sort((a, b) => {
+    const aAct = activeByWaifu.get(a.waifuName) === a.id;
+    const bAct = activeByWaifu.get(b.waifuName) === b.id;
+    if (aAct !== bAct) return aAct ? -1 : 1;
+    const d = (RARITY_RANK[a.rarity] ?? 9) - (RARITY_RANK[b.rarity] ?? 9);
+    return d !== 0 ? d : a.waifuName.localeCompare(b.waifuName);
+  });
+
+  let html = `<p class="hint" style="text-align:left;margin:0 0 12px">
+    ${ico('tag',11)} Solo <b>una skin puede estar activa por waifu</b>. Al activar una, se desactivan las demás de la misma waifu.
+  </p><div class="grid">`;
+
+  for (const s of owned) {
+    const isActive = activeByWaifu.get(s.waifuName) === s.id;
+    const url = s.imageUrl || '';
+    const initial = (s.waifuName || '?').charAt(0).toUpperCase();
+    const rarity = s.rarity || 'comun';
+    const rl = RARITY_LABEL[rarity] || rarity;
+
+    html += `<div class="wcard skin-card ${isActive ? 'skin-active' : ''}" data-r="${rarity}">
+      ${isActive ? `<span class="cover-badge">${ico('check',10)}</span>` : ''}
+      <div class="img">
+        ${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}
+        ${isActive ? `<div class="skin-active-tag">${ico('check',10)} ACTIVA</div>` : ''}
+      </div>
+      <div class="info">
+        <div class="name" title="${esc(s.waifuName)}">${esc(s.waifuName)}</div>
+        <div class="meta">
+          <span class="rarity">${esc(rl)}</span>
+          <span class="count" style="color:${isActive ? 'var(--ok)' : 'var(--muted)'}">${isActive ? 'Activa' : 'Inactiva'}</span>
+        </div>
+        <button class="btn-skin-toggle ${isActive ? 'btn-skin-off' : 'btn-skin-on'}"
+                data-skin-toggle="${esc(s.id)}" data-skin-target="${isActive ? '0' : '1'}">
+          ${isActive ? ico('x',11) + ' Desactivar' : ico('check',11) + ' Activar'}
+        </button>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+
+  container.querySelectorAll('[data-skin-toggle]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const skinId = btn.dataset.skinToggle;
+      const activate = btn.dataset.skinTarget === '1';
+      if (!skinId || btn.disabled) return;
+      btn.disabled = true;
+      const original = btn.innerHTML;
+      btn.innerHTML = '<span class="loading"></span>';
+      try {
+        await requestSkinToggle(skinId, activate);
+        showToast(activate ? 'Skin activada' : 'Skin desactivada', 'ok', 2500, activate ? 'check' : 'x');
+      } catch (err) {
+        showToast(err.message || 'Error', 'err', 4000, 'x');
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
     });
   });
 }
