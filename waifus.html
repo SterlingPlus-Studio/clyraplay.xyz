@@ -295,7 +295,6 @@
   .wcard .btn-sell-card:hover{ box-shadow: 0 0 22px rgba(34,197,94,.65); transform: translateY(-1px); }
   .wcard .btn-sell-card:disabled{ opacity: .55; cursor: not-allowed; box-shadow: none; }
 
-  /* ====== Skins del usuario ====== */
   .skin-card.skin-active{
     border-color: rgba(34,197,94,.75) !important;
     box-shadow: 0 0 25px rgba(34,197,94,.4) !important;
@@ -2641,10 +2640,6 @@ function renderCollectionSkins(container) {
     const aAct = activeByWaifu.get(a.waifuName) === a.id;
     const bAct = activeByWaifu.get(b.waifuName) === b.id;
     if (aAct !== bAct) return aAct ? -1 : 1;
-    // 🆕 Skins de evento primero
-    const aEv = a.esEvento ? 0 : 1;
-    const bEv = b.esEvento ? 0 : 1;
-    if (aEv !== bEv) return aEv - bEv;
     const d = (RARITY_RANK[a.rarity] ?? 9) - (RARITY_RANK[b.rarity] ?? 9);
     return d !== 0 ? d : a.waifuName.localeCompare(b.waifuName);
   });
@@ -2659,13 +2654,9 @@ function renderCollectionSkins(container) {
     const initial = (s.waifuName || '?').charAt(0).toUpperCase();
     const rarity = s.rarity || 'comun';
     const rl = RARITY_LABEL[rarity] || rarity;
-    // 🆕 Detectar skin de evento
-    const esEvento = !!s.esEvento;
-    const evTag = esEvento ? `<span class="cover-badge" style="right:auto;left:6px;background:linear-gradient(135deg,#fbbf24,#ec4899)" title="Skin de evento">🎟️</span>` : '';
 
     html += `<div class="wcard skin-card ${isActive ? 'skin-active' : ''}" data-r="${rarity}">
       ${isActive ? `<span class="cover-badge">${ico('check',10)}</span>` : ''}
-      ${evTag}
       <div class="img">
         ${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}
         ${isActive ? `<div class="skin-active-tag">${ico('check',10)} ACTIVA</div>` : ''}
@@ -2758,8 +2749,7 @@ function renderShop() {
   const c = $('tab-shop');
   const myCoins = Number(userData?.coins) || 0;
   const salesCount = Object.keys(sales || {}).length;
-  // 🆕 Solo contar skins NORMALES para el badge del contador
-  const skinsCount = Object.values(skins || {}).filter(sk => sk && !sk.esEvento).length;
+  const skinsCount = Object.values(skins || {}).length;
   let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(myCoins)}</div><div class="lbl">${ico('coin',12)} Tu saldo</div></div>
@@ -2831,9 +2821,8 @@ function renderShopWaifus(container) {
   });
 }
 
-// 🆕 Filtra las skins de evento (esEvento:true) para que NO se muestren en la tienda pública
 function renderShopSkins(container) {
-  const allSkins = Object.values(skins || {}).filter(sk => sk && !sk.esEvento);
+  const allSkins = Object.values(skins || {});
   const myCoins  = Number(userData?.coins) || 0;
   const myId     = session.userId;
   const myOwned  = Array.isArray(userData?.skins) ? userData.skins : [];
