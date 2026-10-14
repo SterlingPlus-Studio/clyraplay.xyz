@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -2704,14 +2704,15 @@ function renderRanking() {
   if (!top.length) { c.innerHTML = `<div class="page-wrap"><div class="empty"><span class="icon">${ico('trophy',44)}</span>Sin datos de ranking aún.</div></div>`; return; }
   const myId = session.userId;
   const totalUsers = ranking.totalUsers || top.length;
+  // CAMBIO: ahora se muestran TODOS los jugadores, no solo 50
   let html = `<div class="page-wrap">
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(totalUsers)}</div><div class="lbl">${ico('users',12)} Jugadores</div></div>
       <div class="stat"><div class="num">${fmt(ranking.totalWaifus || 0)}</div><div class="lbl">${ico('layers',12)} Waifus totales</div></div>
     </div>
-    <div class="section-title">${ico('trophy',11)} Top ${Math.min(top.length, 50)}</div>
+    <div class="section-title">${ico('trophy',11)} Top ${top.length}</div>
     <div class="rank-list">`;
-  for (let i = 0; i < Math.min(top.length, 50); i++) {
+  for (let i = 0; i < top.length; i++) {
     const u = top[i];
     const isMe = String(u.userId) === String(myId);
     const placeClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
@@ -2782,8 +2783,9 @@ function renderShopWaifus(container) {
     return;
   }
   allSales.sort((a, b) => a.price - b.price);
+  // CAMBIO: ahora se muestran TODAS las ventas, sin límite de 90
   let html = `<div class="grid">`;
-  for (const s of allSales.slice(0, 90)) {
+  for (const s of allSales) {
     const wname = s.waifu?.name || '?';
     const rarity = s.waifu?.rarity || 'comun';
     watchImage(wname);
@@ -2834,8 +2836,9 @@ function renderShopSkins(container) {
 
   allSkins.sort((a, b) => (a.price || 0) - (b.price || 0));
 
+  // CAMBIO: ahora se muestran TODAS las skins, sin límite de 90
   let html = `<div class="grid">`;
-  for (const sk of allSkins.slice(0, 90)) {
+  for (const sk of allSkins) {
     const wname    = sk.waifuName || '?';
     const rarity   = sk.rarity || 'comun';
     const url      = sk.imageUrl || '';
