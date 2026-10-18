@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -58,6 +58,7 @@
   @keyframes toastOut { from{opacity:1} to{opacity:0;transform:translateY(-10px)} }
   @keyframes resultIn{ 0%{opacity:0;transform:scale(.7) translateY(15px)} 60%{opacity:1;transform:scale(1.05) translateY(0)} 100%{transform:scale(1)} }
   @keyframes boxShake{ 0%,100%{ transform: rotate(-5deg) scale(1); } 50%{ transform: rotate(5deg) scale(1.07); } }
+  @keyframes navIn { from{opacity:0;transform:translate(-50%,20px)} to{opacity:1;transform:translate(-50%,0)} }
 
   html { 
     background: var(--bg); 
@@ -180,11 +181,69 @@
     color: var(--text); font-size: 18px; display: flex; align-items: center; justify-content: center;
     cursor: pointer; padding: 0; box-shadow: none; flex-shrink: 0; transition: all .18s; }
   .hamburger:hover{ background: rgba(255,255,255,.09); transform: none; }
-  .topbar-title{ font-size: 14px; font-weight: 700; color: var(--text); text-align: left; }
+  .topbar-title{ font-size: 14px; font-weight: 700; color: var(--text); text-align: left; flex: 1; }
+  .topbar-logout{ display: none; }
 
   .overlay{ display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
     -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); z-index: 95; }
   .overlay.show{ display: block; animation: modalFade .2s; }
+
+  /* Bottom Nav (mobile) */
+  .bottom-nav{
+    display: none;
+    position: fixed;
+    bottom: max(14px, env(safe-area-inset-bottom, 14px));
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,20,30,.85);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--border-2);
+    border-radius: 22px;
+    padding: 6px;
+    gap: 2px;
+    z-index: 100;
+    box-shadow: 0 12px 40px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.35);
+    width: calc(100% - 24px);
+    max-width: 440px;
+    justify-content: space-around;
+    align-items: stretch;
+    animation: navIn .35s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .bottom-nav-item{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 4px;
+    border-radius: 16px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all .2s cubic-bezier(.2,.9,.3,1.2);
+    box-shadow: none;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-family: inherit;
+    min-width: 0;
+  }
+  .bottom-nav-item::after{ display: none; }
+  .bottom-nav-item:hover{ transform: none; box-shadow: none; background: rgba(255,255,255,.04); }
+  .bottom-nav-item .icon{ display: flex; align-items: center; justify-content: center; height: 20px; }
+  .bottom-nav-item .icon svg{ width: 18px; height: 18px; }
+  .bottom-nav-item span:last-child{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .bottom-nav-item.active{
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(236,72,153,.35);
+    transform: translateY(-1px);
+  }
+  .bottom-nav-item.active .icon{ color: #fff; }
 
   .card{ background: var(--surface);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -750,12 +809,126 @@
   .shop-search-empty{ text-align: center; padding: 46px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; font-weight: 500; }
   .shop-search-empty .icon{ font-size: 42px; margin-bottom: 12px; display: flex; justify-content: center; opacity: .5; color: var(--purple); }
 
+  /* Support Page */
+  .support-group-card {
+    display: flex; flex-direction: row;
+    border-radius: var(--radius-lg); overflow: hidden;
+    background: var(--surface); border: 1px solid var(--border);
+    text-decoration: none; color: var(--text);
+    transition: all .25s cubic-bezier(.2,.9,.3,1.2);
+    box-shadow: var(--shadow); margin-bottom: 8px;
+    min-height: 0;
+  }
+  .support-group-card:hover {
+    transform: translateY(-3px); border-color: var(--border-2);
+    box-shadow: var(--shadow-lg);
+  }
+  .support-group-img {
+    width: 120px; flex-shrink: 0; overflow: hidden;
+    background: linear-gradient(135deg, #1a1a26, #0f0f17);
+    align-self: stretch;
+  }
+  .support-group-img img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transition: transform .4s ease;
+  }
+  .support-group-card:hover .support-group-img img { transform: scale(1.04); }
+  .support-group-body {
+    padding: 14px 18px 14px;
+    display: flex; flex-direction: column; justify-content: center;
+    min-width: 0; flex: 1;
+  }
+  .support-group-title {
+    font-size: 15px; font-weight: 800; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .support-group-title .ic { color: var(--cyan); flex-shrink: 0; }
+  .support-group-desc {
+    font-size: 12px; color: var(--muted); line-height: 1.5;
+    margin-bottom: 10px; font-weight: 500;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .support-group-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: #fff; font-size: 12px; font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    align-self: flex-start;
+  }
+
+  .support-dev-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  }
+  .support-dev-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border-radius: var(--radius);
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    text-decoration: none; color: var(--text);
+    transition: all .2s cubic-bezier(.2,.9,.3,1.2);
+    min-width: 0;
+  }
+  .support-dev-card:hover {
+    transform: translateY(-2px); border-color: var(--border-2);
+    background: rgba(255,255,255,.05); box-shadow: var(--shadow);
+  }
+  .support-dev-img {
+    width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    border: 2px solid rgba(255,255,255,.12);
+    box-shadow: var(--shadow-sm);
+  }
+  .support-dev-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .support-dev-info { min-width: 0; flex: 1; }
+  .support-dev-name {
+    font-size: 13px; font-weight: 700;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-bottom: 3px;
+  }
+  .support-dev-link {
+    font-size: 11px; color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-weight: 500;
+  }
+  .support-dev-link .ic { color: var(--muted-2); }
+
   @media (max-width: 860px){
-    .sidebar{ transform: translateX(-100%); box-shadow: var(--shadow-lg); width: 260px; max-width: 85vw; }
-    .sidebar.open{ transform: translateX(0); }
-    .main{ margin-left: 0; padding: 0; width: 100%; max-width: 100%; padding-top: 0; margin-top: 0; }
-    .main-inner{ padding: 76px 14px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); max-width: 100%; margin: 0 auto; }
+    .sidebar{ display: none; }
+    .hamburger{ display: none; }
+    .overlay{ display: none !important; }
     .topbar{ display: flex; }
+    .topbar-logout{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: 10px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      box-shadow: none;
+      flex-shrink: 0;
+      margin-left: auto;
+      transition: all .18s;
+    }
+    .topbar-logout:hover{
+      background: rgba(239,68,68,.15);
+      border-color: rgba(239,68,68,.4);
+      color: #fca5a5;
+      transform: none;
+      box-shadow: none;
+    }
+    .topbar-logout::after{ display: none; }
+    .bottom-nav{ display: flex; }
+    .main{ margin-left: 0; padding: 0; width: 100%; max-width: 100%; }
+    .main-inner{ padding: 76px 14px calc(104px + env(safe-area-inset-bottom, 0px)); max-width: 100%; margin: 0 auto; }
     .layout { padding-top: 0; margin-top: 0; }
   }
   @media (max-width: 640px){
@@ -780,7 +953,7 @@
     .code-inputs{ gap: 4px; }
     .code-inputs input{ width: 42px; height: 54px; font-size: 20px; }
     .boxes-grid{ grid-template-columns: 1fr; }
-    .main-inner{ padding: 76px 12px 40px; padding-bottom: max(40px, env(safe-area-inset-bottom, 40px)); }
+    .main-inner{ padding: 76px 12px calc(104px + env(safe-area-inset-bottom, 0px)); }
     .box-prize{ width: 104px; padding: 8px; }
     .card-stage{ width: 220px; height: 308px; }
     .card-modal-hint{ font-size: 10px; letter-spacing: .15em; }
@@ -807,6 +980,27 @@
     .dup-price-card .dpc-head{ font-size: 10px; letter-spacing: .06em; }
     .dup-price-card .dpc-qty{ font-size: 10px; }
     .dup-price-card .dpc-qty b{ font-size: 12px; }
+
+    .support-group-img { width: 88px; }
+    .support-group-body { padding: 12px 14px; }
+    .support-group-title { font-size: 14px; }
+    .support-group-desc { font-size: 11px; -webkit-line-clamp: 2; margin-bottom: 8px; }
+    .support-group-btn { font-size: 11px; padding: 7px 12px; }
+    .support-dev-grid { gap: 8px; }
+    .support-dev-card { padding: 10px 8px; gap: 8px; }
+    .support-dev-img { width: 42px; height: 42px; border-width: 1.5px; }
+    .support-dev-name { font-size: 11px; }
+    .support-dev-link { font-size: 9px; }
+    .support-dev-link .ic { width: 9px; height: 9px; }
+
+    .bottom-nav{ max-width: calc(100% - 16px); padding: 5px; border-radius: 20px; }
+    .bottom-nav-item{ padding: 7px 2px; font-size: 8.5px; gap: 2px; }
+    .bottom-nav-item .icon svg{ width: 17px; height: 17px; }
+  }
+  @media (max-width: 360px){
+    .bottom-nav-item{ font-size: 8px; padding: 6px 1px; }
+    .bottom-nav-item .icon svg{ width: 16px; height: 16px; }
+    .bottom-nav-item span:last-child{ letter-spacing: 0; }
   }
 </style>
 </head>
@@ -867,6 +1061,7 @@
         <button class="nav-item" data-tab="collection" data-icon="grid"><span class="icon"></span><span>Colección</span></button>
         <button class="nav-item" data-tab="ranking" data-icon="crown"><span class="icon"></span><span>Ranking</span></button>
         <button class="nav-item" data-tab="shop" data-icon="store"><span class="icon"></span><span>Tienda</span></button>
+        <button class="nav-item" data-tab="support" data-icon="shield"><span class="icon"></span><span>Soporte</span></button>
       </nav>
       <div class="sidebar-footer">
         <button class="btn-logout" id="btn-logout" data-icon="logout"><span class="icon"></span><span>Cerrar sesión</span></button>
@@ -876,16 +1071,26 @@
       <div class="topbar">
         <button class="hamburger" id="hamburger" data-icon="menu" data-icon-size="18"></button>
         <div class="topbar-title" id="topbar-title">Perfil</div>
+        <button class="topbar-logout" id="btn-logout-mobile" data-icon="logout" data-icon-size="16"></button>
       </div>
       <div class="main-inner">
         <div id="tab-profile" class="tab-content active"></div>
         <div id="tab-collection" class="tab-content"></div>
         <div id="tab-ranking" class="tab-content"></div>
         <div id="tab-shop" class="tab-content"></div>
+        <div id="tab-support" class="tab-content"></div>
       </div>
     </div>
   </div>
 </div>
+
+<nav class="bottom-nav" id="bottom-nav" aria-label="Navegación">
+  <button class="bottom-nav-item active" data-tab="profile" data-icon="user"><span class="icon"></span><span>Perfil</span></button>
+  <button class="bottom-nav-item" data-tab="collection" data-icon="grid"><span class="icon"></span><span>Colección</span></button>
+  <button class="bottom-nav-item" data-tab="ranking" data-icon="crown"><span class="icon"></span><span>Ranking</span></button>
+  <button class="bottom-nav-item" data-tab="shop" data-icon="store"><span class="icon"></span><span>Tienda</span></button>
+  <button class="bottom-nav-item" data-tab="support" data-icon="shield"><span class="icon"></span><span>Soporte</span></button>
+</nav>
 
 <div id="user-modal" class="modal">
   <div class="modal-overlay" data-close="1"></div>
@@ -972,6 +1177,15 @@ function imageKey(name) {
   return String(name).replace(/[.#$\[\]\/]/g, '_');
 }
 
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 const RARITY_RANK = { exclusiva: 0, legendaria: 1, epica: 2, rara: 3, comun: 4 };
 const RARITY_LABEL = { comun:'Común', rara:'Rara', epica:'Épica', legendaria:'Legendaria', exclusiva:'Exclusiva' };
 const RARITY_COLOR = {
@@ -1014,6 +1228,20 @@ const DEFAULT_STORE_PRICES = {
 
 const STORE_MIN_PRICE = 100;
 const STORE_MAX_PRICE = 3500;
+
+const SUPPORT_GROUP = {
+  name: 'Grupo de Soporte',
+  url: 'https://t.me/WaifusJinx',
+  image: 'https://i.ibb.co/CpknsVPT/photo-2026-10-18-10-38-50.jpg'
+};
+
+const DEVELOPERS = [
+  { name: '🪦 ×͜𝘖𝘱𝄢 𝘖𝘯𝘪𝘮𝘢𝘳𝘶 × 🎃', url: 'https://t.me/OnimaruDev', image: 'https://i.ibb.co/p621jpy8/photo-2026-09-08-21-06-07.jpg' },
+  { name: 'ꉂNeco ˗ˏˋ🎭ˎˊ˗', url: 'https://t.me/TheAhaFool', image: 'https://i.ibb.co/spxTPTzN/photo-2026-10-18-10-43-16.jpg' },
+  { name: 'Vardian', url: 'https://t.me/VardiaNn', image: 'https://i.ibb.co/rGBT0s9z/photo-2026-10-18-10-45-32.jpg' },
+  { name: 'Crack', url: 'https://t.me/moon1w1', image: 'https://i.ibb.co/kgDbJ2Xd/photo-2026-10-18-10-46-49.jpg' },
+  { name: 'Shin', url: 'https://t.me/Krlos2k', image: 'https://i.ibb.co/0jhPFxPY/photo-2026-10-18-10-48-14.jpg' }
+];
 
 const I = {
   home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
@@ -2062,12 +2290,13 @@ $('sell-modal-close')?.addEventListener('click', closeSellModal);
 $('sell-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeSellModal);
 
 const TAB_TITLES = {
-  profile: 'Perfil', collection: 'Colección', ranking: 'Ranking', shop: 'Tienda'
+  profile: 'Perfil', collection: 'Colección', ranking: 'Ranking', shop: 'Tienda', support: 'Soporte'
 };
 
 function navigateTo(tab) {
   currentTab = tab;
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   $('tab-' + tab)?.classList.add('active');
   $('topbar-title').textContent = TAB_TITLES[tab] || tab;
@@ -2079,10 +2308,14 @@ function navigateTo(tab) {
   if (tab === 'collection') renderCollection();
   if (tab === 'ranking')    renderRanking();
   if (tab === 'shop')       renderShop();
+  if (tab === 'support')    renderSupport();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.querySelectorAll('.nav-item').forEach(b => {
+  b.addEventListener('click', () => navigateTo(b.dataset.tab));
+});
+document.querySelectorAll('.bottom-nav-item').forEach(b => {
   b.addEventListener('click', () => navigateTo(b.dataset.tab));
 });
 
@@ -2764,6 +2997,46 @@ function renderRanking() {
   });
 }
 
+function renderSupport() {
+  const c = $('tab-support');
+  if (!c) return;
+
+  const shuffled = shuffleArray(DEVELOPERS);
+
+  let devCardsHtml = '';
+  for (const dev of shuffled) {
+    devCardsHtml += `<a class="support-dev-card" href="${esc(dev.url)}" target="_blank" rel="noopener noreferrer">
+      <div class="support-dev-img">
+        <img src="${esc(dev.image)}" alt="${esc(dev.name)}" loading="lazy">
+      </div>
+      <div class="support-dev-info">
+        <div class="support-dev-name" title="${esc(dev.name)}">${esc(dev.name)}</div>
+        <div class="support-dev-link">${ico('globe',11)} ${esc(dev.url.replace('https://', ''))}</div>
+      </div>
+    </a>`;
+  }
+
+  c.innerHTML = `<div class="page-wrap">
+    <div class="section-title">${ico('shield',11)} Soporte</div>
+    <a class="support-group-card" href="${esc(SUPPORT_GROUP.url)}" target="_blank" rel="noopener noreferrer">
+      <div class="support-group-img">
+        <img src="${esc(SUPPORT_GROUP.image)}" alt="${esc(SUPPORT_GROUP.name)}" loading="lazy">
+      </div>
+      <div class="support-group-body">
+        <div class="support-group-title">${ico('users',16)} ${esc(SUPPORT_GROUP.name)}</div>
+        <div class="support-group-desc">Únete al grupo oficial para recibir ayuda, reportar problemas o hablar con otros jugadores.</div>
+        <div class="support-group-btn">${ico('globe',13)} Abrir grupo de soporte</div>
+      </div>
+    </a>
+
+    <div class="section-title" style="margin-top:22px">${ico('users',11)} Desarrolladores</div>
+    <div class="support-dev-grid">
+      ${devCardsHtml}
+    </div>
+    <p class="hint" style="text-align:left;margin-top:18px">${ico('globe',11)} Toca cualquier tarjeta para abrir el perfil de Telegram del desarrollador.</p>
+  </div>`;
+}
+
 function renderShop() {
   const c = $('tab-shop');
   const myCoins = Number(userData?.coins) || 0;
@@ -3160,13 +3433,14 @@ function renderShopBoxes(container) {
   });
 }
 
-$('btn-logout').addEventListener('click', async () => {
+/* LOGOUT */
+function doLogout() {
   unsubs.forEach(u => { try { u(); } catch {} }); unsubs.length = 0;
   imageUnsubs.forEach(u => { try { u(); } catch {} }); imageUnsubs.clear();
   actionUnsubs.forEach(u => { try { u(); } catch {} }); actionUnsubs.clear();
   if (cardInertiaRaf) { cancelAnimationFrame(cardInertiaRaf); cardInertiaRaf = null; }
   closeUserModal(); closeBoxModal(); closeCardModal(); closeSellModal();
-  if (session?.token) { try { await remove(ref(db, `sessions/${session.token}`)); } catch {} }
+  if (session?.token) { remove(ref(db, `sessions/${session.token}`)).catch(() => {}); }
   localStorage.removeItem('jinx_session');
   session = userDoc = userData = null;
   lastUserDataSig = ''; lastUserDocSig = ''; lastRankingSig = ''; lastSalesSig = ''; lastCatalogSig = ''; lastSkinsSig = '';
@@ -3184,7 +3458,10 @@ $('btn-logout').addEventListener('click', async () => {
   $('btn-request').disabled = false;
   $('btn-request').innerHTML = ico('play',15) + 'Enviar código';
   codeInputs.forEach(i => i.value = '');
-});
+}
+
+$('btn-logout').addEventListener('click', doLogout);
+$('btn-logout-mobile')?.addEventListener('click', doLogout);
 
 hydrateIcons();
 
