@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -126,7 +126,7 @@
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
     position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; transition: transform .35s cubic-bezier(.2,.9,.3,1.2); }
-  .sidebar-brand{ padding: 22px 20px 18px; border-bottom: 1px solid var(--border); position: relative; }
+  .sidebar-brand{ padding: 18px 20px 14px; border-bottom: 1px solid var(--border); position: relative; }
 
   .sidebar-brand .logo{ font-size: 22px; font-weight: 900; letter-spacing: 1.5px;
     background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink));
@@ -137,7 +137,7 @@
   .sidebar-brand .logo::before{ display: none; }
   .sidebar-brand .sub{ font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; font-weight: 600; }
   .sidebar-brand .badge-dot{ display: none; }
-  .sidebar-user{ padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 12px; }
+  .sidebar-user{ padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 12px; }
   .sidebar-user .avatar-sm{ width: 38px; height: 38px; border-radius: 50%;
     background: linear-gradient(135deg, var(--pink), var(--purple));
     display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff;
@@ -146,7 +146,7 @@
   .sidebar-user .uinfo{ min-width: 0; flex: 1; }
   .sidebar-user .uname{ font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
   .sidebar-user .utag{ color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-  .sidebar-nav{ flex: 1; padding: 12px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; -webkit-overflow-scrolling: touch; }
+  .sidebar-nav{ flex: 1; padding: 8px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; -webkit-overflow-scrolling: touch; }
   .nav-item{ display: flex; align-items: center; justify-content: flex-start; gap: 12px;
     padding: 11px 14px; border-radius: var(--radius-sm); color: var(--text-2); font-size: 13px; font-weight: 600;
     cursor: pointer; border: 1px solid transparent;
@@ -168,10 +168,10 @@
   .btn-logout:hover{ background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.25); color: #fca5a5; }
   .btn-logout .icon{ font-size: 15px; display:flex; align-items:center; width: 20px; min-width: 20px; justify-content: center; }
 
-  .main{ flex: 1; margin-left: var(--sidebar-w); padding: 28px 28px 60px; min-width: 0; width: 100%; max-width: 100%; }
+  .main{ flex: 1; margin-left: var(--sidebar-w); padding: 14px 28px 60px; min-width: 0; width: 100%; max-width: 100%; }
   .main-inner{ max-width: 1120px; margin: 0 auto; width: 100%; }
 
-  .topbar{ display: none; align-items: center; gap: 10px; padding: 12px 16px;
+  .topbar{ display: none; align-items: center; gap: 10px; padding: 10px 16px;
     background: rgba(15,15,23,.8);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
@@ -665,6 +665,8 @@
     padding: 8px 16px; border-radius: 100px; background: rgba(255,255,255,.05); border: 1px solid var(--border); }
   .box-card[data-box="comun"]{ border-color: rgba(255,182,193,.25); }
   .box-card[data-box="comun"] .bprice{ color: var(--comun); border-color: rgba(255,182,193,.3); }
+  .box-card[data-box="rara"]{ border-color: rgba(251,113,133,.3); }
+  .box-card[data-box="rara"] .bprice{ color: var(--rara); border-color: rgba(251,113,133,.3); }
   .box-card[data-box="premium"]{ border-color: rgba(167,139,250,.3); }
   .box-card[data-box="premium"] .bprice{ color: var(--epica); border-color: rgba(167,139,250,.3); }
   .box-card[data-box="legendaria"]{ border-color: rgba(251,191,36,.35); }
@@ -928,7 +930,7 @@
     .topbar-logout::after{ display: none; }
     .bottom-nav{ display: flex; }
     .main{ margin-left: 0; padding: 0; width: 100%; max-width: 100%; }
-    .main-inner{ padding: 76px 14px calc(104px + env(safe-area-inset-bottom, 0px)); max-width: 100%; margin: 0 auto; }
+    .main-inner{ padding: 64px 14px calc(104px + env(safe-area-inset-bottom, 0px)); max-width: 100%; margin: 0 auto; }
     .layout { padding-top: 0; margin-top: 0; }
   }
   @media (max-width: 640px){
@@ -953,7 +955,7 @@
     .code-inputs{ gap: 4px; }
     .code-inputs input{ width: 42px; height: 54px; font-size: 20px; }
     .boxes-grid{ grid-template-columns: 1fr; }
-    .main-inner{ padding: 76px 12px calc(104px + env(safe-area-inset-bottom, 0px)); }
+    .main-inner{ padding: 64px 12px calc(104px + env(safe-area-inset-bottom, 0px)); }
     .box-prize{ width: 104px; padding: 8px; }
     .card-stage{ width: 220px; height: 308px; }
     .card-modal-hint{ font-size: 10px; letter-spacing: .15em; }
@@ -1297,6 +1299,7 @@ function hydrateIcons(root = document) {
 
 const CAJAS = {
   comun:      { name:'Caja Común', price:1500, desc:'1 premio: 150-700 monedas o waifu común.', img:'https://i.ibb.co/gbZW5jDq/comun.png' },
+  rara:       { name:'Caja Rara', price:2000, desc:'2 premios: 300-900 monedas o waifu rara.', img:'https://i.ibb.co/0SwXnxt/rara.png' },
   premium:    { name:'Caja Premium', price:2500, desc:'2 premios: 400-1200 monedas o waifu épica.', img:'https://i.ibb.co/CpkBPV6q/premium.png' },
   legendaria: { name:'Caja Legendaria', price:3500, desc:'3 premios: monedas, épica o legendaria.', img:'https://i.ibb.co/v6GMtHf4/legendaria.png' }
 };
@@ -3396,7 +3399,7 @@ function renderShopSkins(container) {
 function renderShopBoxes(container) {
   const myCoins = Number(userData?.coins) || 0;
   let html = `<div class="section-title">${ico('gift',13)} Cajas misteriosas</div><div class="boxes-grid">`;
-  for (const key of ['comun', 'premium', 'legendaria']) {
+  for (const key of ['comun', 'rara', 'premium', 'legendaria']) {
     const box = CAJAS[key];
     const canAfford = myCoins >= box.price;
     const disabled = !canAfford;
