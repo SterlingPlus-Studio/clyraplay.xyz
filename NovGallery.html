@@ -53,7 +53,6 @@
     font-family: 'ClyraFont', ui-sans-serif, system-ui, sans-serif;
   }
 
-  /* ─── SPLASH ─── */
   .loading-screen{
     position:fixed;
     inset:0;
@@ -91,7 +90,6 @@
   .loading-text{ margin:0; font-size:14px; color:var(--muted); letter-spacing:.5px; }
   .loading-brand{ font-size:18px; font-weight:600; color:var(--text); margin:0; letter-spacing:.4px; }
 
-  /* ─── LAYOUT ─── */
   .app{ display:flex; min-height:100vh; }
 
   .sidebar{
@@ -255,7 +253,6 @@
     font-family:inherit;
   }
 
-  /* ─── MASONRY CONTAINER ─── */
   #galeria{
     position: relative;
     padding: 22px 28px 120px;
@@ -326,7 +323,6 @@
     to  { opacity:1; transform:none; }
   }
 
-  /* ─── EMPTY ─── */
   .empty{
     display:none;
     max-width:480px;
@@ -351,7 +347,6 @@
   .empty h2{ margin:0 0 8px; font-size:16px; color:var(--text); font-weight:600; }
   .empty p{ margin:0; font-size:13.5px; line-height:1.6; }
 
-  /* ─── FAB ─── */
   .fab-upload{
     position:fixed;
     right:24px; bottom:24px;
@@ -374,7 +369,6 @@
   .fab-upload.subiendo{ pointer-events:none; background:var(--surface-2); color:var(--text); }
   .fab-upload.subiendo svg{ animation:spin 1s linear infinite; }
 
-  /* ─── DRAG OVERLAY ─── */
   .drop-overlay{
     position:fixed;
     inset:0;
@@ -399,7 +393,6 @@
   .drop-inner h3{ margin:0 0 4px; font-size:18px; font-weight:600; }
   .drop-inner p{ margin:0; font-size:13px; color:var(--muted); }
 
-  /* ─── TOAST ─── */
   .toast{
     position:fixed;
     left:50%;
@@ -422,7 +415,6 @@
   .toast.ok{ border-color:rgba(52,211,153,.4); }
   .toast.err{ border-color:rgba(248,113,113,.5); color:#fca5a5; }
 
-  /* ─── MODAL ─── */
   .modal{
     position:fixed;
     inset:0;
@@ -491,7 +483,6 @@
   }
   .btn.primary:hover{ filter:brightness(1.08); }
 
-  /* ─── LIGHTBOX ─── */
   .lightbox{
     position:fixed;
     inset:0;
@@ -573,7 +564,6 @@
 </head>
 <body>
 
-<!-- SPLASH -->
 <div class="loading-screen" id="loadingScreen">
   <div class="loading-inner">
     <img class="loading-logo" src="https://i.ibb.co/FkBMByHC/Gemini-Generated-Image-n0afitn0afitn0af.jpg" alt="Nov Gallery">
@@ -675,7 +665,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  // Desactivar restauración automática de scroll del navegador
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
   const firebaseConfig = {
@@ -693,9 +682,18 @@
   const db  = getDatabase(app);
   const galeriaRef = ref(db, 'galeria_imagenes');
 
-  const API_URL = 'http://localhost:3000';
+  // ── API_URL: relativa por defecto (mismo origen que el HTML) ──
+  // Si se abre desde file:// o quieres forzar otra URL, añade ?api=http://IP:3000
+  const API_URL = (() => {
+    const params = new URLSearchParams(location.search);
+    if (params.has('api')) return params.get('api').replace(/\/+$/, '');
+    if (location.protocol === 'file:') return 'http://localhost:3000';
+    return ''; // rutas relativas → /api/...
+  })();
+
   const CATEGORIA_RAIZ = 'Sin categoría';
   const POLL_MS = 8000;
+  const MAX_UPLOAD_MB = 15;
 
   /* ── DOM ── */
   const $ = (id) => document.getElementById(id);
@@ -732,16 +730,13 @@
   const loadingScreen = $('loadingScreen');
   const loadingText   = loadingScreen?.querySelector('.loading-text');
 
-  /* ── Estado ── */
   let todasLasImagenes = [];
   let carpetasAPI = [];
   let categoriaActiva = '__all__';
   let subiendo = false;
   let ultimaCategoria = null;
 
-  /* ─────────────────────────────────────
-     SPLASH
-  ───────────────────────────────────── */
+  /* ── SPLASH ── */
   let loaderOculto = false;
   function ocultarLoader() {
     if (loaderOculto) return;
@@ -756,9 +751,7 @@
     loadingText.style.color = esError ? '#f87171' : '';
   }
 
-  /* ─────────────────────────────────────
-     CACHÉ DE DIMENSIONES
-  ───────────────────────────────────── */
+  /* ── CACHÉ DE DIMENSIONES ── */
   const DIM_CACHE_KEY = 'nov_gallery_dims_v1';
   let dimCache = {};
   try { dimCache = JSON.parse(localStorage.getItem(DIM_CACHE_KEY) || '{}'); } catch { dimCache = {}; }
@@ -781,14 +774,12 @@
 
   async function asegurarDimensiones(img) {
     if (img.width && img.height) return true;
-
     const cached = dimCache[img.key];
     if (cached && cached.width && cached.height) {
       img.width  = cached.width;
       img.height = cached.height;
       return true;
     }
-
     const dims = await preloadDimensions(img.imagenData);
     if (dims && dims.width > 0 && dims.height > 0) {
       img.width  = dims.width;
@@ -805,12 +796,9 @@
     if (document.visibilityState === 'hidden') persistDimCache();
   });
 
-  /* ─────────────────────────────────────
-     MASONRY
-  ───────────────────────────────────── */
+  /* ── MASONRY ── */
   const MASONRY_GAP = 18;
   const MIN_COL_DESKTOP = 280;
-  const MIN_COL_MOBILE  = 200;
 
   const cardMap = new Map();
   let masonryCols = 1;
@@ -830,8 +818,15 @@
     leerPadding();
     const contenido = galeriaDiv.clientWidth - padLeft - padRight;
     if (contenido <= 0) return { cols: 1, colWidth: 280 };
-    const minCol = window.innerWidth < 640 ? MIN_COL_MOBILE : MIN_COL_DESKTOP;
-    const cols = Math.max(1, Math.floor((contenido + MASONRY_GAP) / (minCol + MASONRY_GAP)));
+
+    // 📱 Móvil: SIEMPRE 2 columnas
+    if (window.innerWidth < 640) {
+      const colWidth = (contenido - MASONRY_GAP) / 2;
+      return { cols: 2, colWidth };
+    }
+
+    // 🖥️ Desktop: auto
+    const cols = Math.max(1, Math.floor((contenido + MASONRY_GAP) / (MIN_COL_DESKTOP + MASONRY_GAP)));
     const colWidth = (contenido - MASONRY_GAP * (cols - 1)) / cols;
     return { cols, colWidth };
   }
@@ -884,12 +879,10 @@
 
   function agregarItem(img) {
     if (cardMap.has(img.key)) return;
-
     const eager = cardMap.size < 6;
     const card = crearCard(img);
     const imagenEl = card.querySelector('img');
     imagenEl.loading = eager ? 'eager' : 'lazy';
-
     const h = alturaDeImagen(img);
     colocarItem(card, h);
     galeriaDiv.appendChild(card);
@@ -911,9 +904,6 @@
     actualizarAlturaContenedor();
   }
 
-  /* ─────────────────────────────────────
-     RENDER GALERÍA
-  ───────────────────────────────────── */
   let renderToken = 0;
 
   async function renderGaleria() {
@@ -923,7 +913,6 @@
       ? todasLasImagenes
       : todasLasImagenes.filter(img => (img.categoria || CATEGORIA_RAIZ) === categoriaActiva);
 
-    // ASC: antiguas arriba, nuevas abajo
     filtradas.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
 
     const categoriaCambio = ultimaCategoria !== categoriaActiva;
@@ -938,9 +927,7 @@
       }
     }
 
-    if (categoriaCambio || huboEliminaciones) {
-      limpiarGaleria();
-    }
+    if (categoriaCambio || huboEliminaciones) limpiarGaleria();
 
     const nuevas = filtradas.filter(img => !cardMap.has(img.key));
     if (nuevas.length > 0) {
@@ -971,25 +958,20 @@
     tituloEl.textContent = categoriaActiva === '__all__' ? 'Todas las imágenes' : categoriaActiva;
   }
 
-  /* ─────────────────────────────────────
-     RESIZE
-  ───────────────────────────────────── */
+  /* ── RESIZE ── */
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       if (cardMap.size === 0) return;
       galeriaDiv.classList.add('resizing');
-
       const items = Array.from(cardMap.values());
       resetLayout();
-
       items.forEach(item => {
         item.height = alturaDeImagen(item.imagen);
         colocarItem(item.element, item.height);
       });
       actualizarAlturaContenedor();
-
       setTimeout(() => galeriaDiv.classList.remove('resizing'), 350);
     }, 200);
   });
@@ -1000,7 +982,7 @@
     toastEl.textContent = msg;
     toastEl.className = 'toast visible ' + tipo;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 3000);
+    toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 3500);
   }
 
   /* ── Sidebar móvil ── */
@@ -1071,9 +1053,11 @@
   async function cargarCarpetas() {
     try {
       const res = await fetch(`${API_URL}/api/carpetas`);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       carpetasAPI = data.carpetas || [];
-    } catch {
+    } catch (e) {
+      console.error('cargarCarpetas:', e);
       carpetasAPI = [];
     }
   }
@@ -1097,25 +1081,55 @@
     fileInput.value = '';
   });
 
+  function esImagen(file) {
+    if (file.type && file.type.startsWith('image/')) return true;
+    return /\.(jpe?g|png|webp|gif|avif|bmp)$/i.test(file.name);
+  }
+
   async function subirArchivos(files) {
     const cat = categoriaActiva;
     if (!cat || cat === '__all__' || cat === CATEGORIA_RAIZ) return;
 
-    const lista = Array.from(files).filter(f => f.type.startsWith('image/'));
-    if (!lista.length) return;
+    const validos = Array.from(files).filter(f => {
+      if (!esImagen(f)) return false;
+      if (f.size > MAX_UPLOAD_MB * 1024 * 1024) {
+        toast(`"${f.name}" supera ${MAX_UPLOAD_MB}MB`, 'err');
+        return false;
+      }
+      return true;
+    });
+
+    if (!validos.length) return;
 
     subiendo = true;
     fabUpload.classList.add('subiendo');
     fabUpload.classList.remove('visible');
 
     let ok = 0, fail = 0;
-    for (const file of lista) {
+    let ultimoError = '';
+
+    for (const file of validos) {
       try {
         const form = new FormData();
         form.append('imagen', file);
-        const res = await fetch(`${API_URL}/api/subir/${encodeURIComponent(cat)}`, { method: 'POST', body: form });
-        if (res.ok) ok++; else fail++;
-      } catch { fail++; }
+        const res = await fetch(`${API_URL}/api/subir/${encodeURIComponent(cat)}`, {
+          method: 'POST',
+          body: form
+        });
+        if (res.ok) {
+          ok++;
+        } else {
+          let msg = `HTTP ${res.status}`;
+          try { const j = await res.json(); msg = j.error || msg; } catch {}
+          ultimoError = msg;
+          console.error('Upload error:', msg);
+          fail++;
+        }
+      } catch (e) {
+        ultimoError = e.message || 'Error de red';
+        console.error('Upload network error:', e);
+        fail++;
+      }
     }
 
     subiendo = false;
@@ -1123,7 +1137,11 @@
     actualizarFab();
 
     if (ok > 0) toast(`${ok} imagen${ok === 1 ? '' : 'es'} subida${ok === 1 ? '' : 's'} a "${cat}"`, 'ok');
-    if (fail > 0) toast(`${fail} fallaron al subir`, 'err');
+    if (fail > 0) {
+      toast(`${fail} fallaron. ${ultimoError || '¿El servidor está encendido?'}`, 'err');
+      console.warn('API_URL actual:', API_URL || '(relativa al origen)');
+      console.warn('Origen actual:', location.href);
+    }
   }
 
   /* Drag & drop */
@@ -1170,7 +1188,6 @@
     const listado = Array.from(cats).sort((a, b) => a.localeCompare(b, 'es'));
 
     countAllEl.textContent = todasLasImagenes.length;
-
     navGeneros.innerHTML = '';
 
     listado.forEach(cat => {
@@ -1245,7 +1262,6 @@
 
     renderTodo();
 
-    // Siempre iniciar la vista desde el tope en la primera carga
     if (!loaderOculto) {
       setLoaderEstado('Cargando galería…');
       window.scrollTo(0, 0);
