@@ -569,7 +569,7 @@
     <img class="loading-logo" src="https://i.ibb.co/FkBMByHC/Gemini-Generated-Image-n0afitn0afitn0af.jpg" alt="Nov Gallery">
     <p class="loading-brand">Nov Gallery</p>
     <div class="loading-spinner"></div>
-    <p class="loading-text">Cargando galería…</p>
+    <p class="loading-text">Conectando…</p>
   </div>
 </div>
 
@@ -682,13 +682,11 @@
   const db  = getDatabase(app);
   const galeriaRef = ref(db, 'galeria_imagenes');
 
-  // ── API_URL: relativa por defecto (mismo origen que el HTML) ──
-  // Si se abre desde file:// o quieres forzar otra URL, añade ?api=http://IP:3000
   const API_URL = (() => {
     const params = new URLSearchParams(location.search);
     if (params.has('api')) return params.get('api').replace(/\/+$/, '');
     if (location.protocol === 'file:') return 'http://localhost:3000';
-    return ''; // rutas relativas → /api/...
+    return '';
   })();
 
   const CATEGORIA_RAIZ = 'Sin categoría';
@@ -728,7 +726,6 @@
   const toastEl     = $('toast');
 
   const loadingScreen = $('loadingScreen');
-  const loadingText   = loadingScreen?.querySelector('.loading-text');
 
   let todasLasImagenes = [];
   let carpetasAPI = [];
@@ -744,11 +741,6 @@
     if (!loadingScreen) return;
     loadingScreen.classList.add('oculto');
     setTimeout(() => loadingScreen.remove(), 700);
-  }
-  function setLoaderEstado(msg, esError = false) {
-    if (!loadingText) return;
-    loadingText.textContent = msg;
-    loadingText.style.color = esError ? '#f87171' : '';
   }
 
   /* ── CACHÉ DE DIMENSIONES ── */
@@ -1122,12 +1114,10 @@
           let msg = `HTTP ${res.status}`;
           try { const j = await res.json(); msg = j.error || msg; } catch {}
           ultimoError = msg;
-          console.error('Upload error:', msg);
           fail++;
         }
       } catch (e) {
         ultimoError = e.message || 'Error de red';
-        console.error('Upload network error:', e);
         fail++;
       }
     }
@@ -1137,11 +1127,7 @@
     actualizarFab();
 
     if (ok > 0) toast(`${ok} imagen${ok === 1 ? '' : 'es'} subida${ok === 1 ? '' : 's'} a "${cat}"`, 'ok');
-    if (fail > 0) {
-      toast(`${fail} fallaron. ${ultimoError || '¿El servidor está encendido?'}`, 'err');
-      console.warn('API_URL actual:', API_URL || '(relativa al origen)');
-      console.warn('Origen actual:', location.href);
-    }
+    if (fail > 0) toast(`${fail} fallaron. ${ultimoError || '¿Servidor encendido?'}`, 'err');
   }
 
   /* Drag & drop */
@@ -1245,34 +1231,39 @@
   /* ── Firebase ── */
   let primeraCarga = true;
 
-  onValue(galeriaRef, async (snapshot) => {
+  onValue(galeriaRef, (snapshot) => {
     const data = snapshot.val();
     todasLasImagenes = data
       ? Object.keys(data).map(key => ({ key, ...data[key] }))
       : [];
 
+    // ✅ Conectado con Firebase → estado "En línea"
     statusPill.classList.remove('error');
     statusPill.classList.add('online');
     estadoEl.textContent = 'En línea';
 
-    if (primeraCarga) {
-      primeraCarga = false;
-      await cargarCarpetas();
+    // 🎬 Ocultar splash INMEDIATAMENTE. No esperamos a nada más.
+    if (!loaderOculto) {
+      window.scrollTo(0, 0);
+      ocultarLoader();
     }
 
-    renderTodo();
+    // Galería: se renderiza ya, en segundo plano
+    renderGaleria();
 
-    if (!loaderOculto) {
-      setLoaderEstado('Cargando galería…');
-      window.scrollTo(0, 0);
-      setTimeout(ocultarLoader, 400);
+    // Menú: primera vez espera a /api/carpetas, las siguientes ya tiene datos
+    if (primeraCarga) {
+      primeraCarga = false;
+      cargarCarpetas().then(() => renderMenu());
+    } else {
+      renderMenu();
     }
   }, (error) => {
     console.error('Firebase error:', error);
     statusPill.classList.remove('online');
     statusPill.classList.add('error');
     estadoEl.textContent = 'Sin conexión';
-    if (!loaderOculto) setLoaderEstado('Sin conexión. Reintentando…', true);
+    // La splash sigue visible mostrando el error
   });
 
   /* ── Poll carpetas ── */
