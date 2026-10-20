@@ -189,6 +189,9 @@
     margin-top:auto;
     padding-top:12px;
     border-top:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
   }
   .status{
     display:flex;
@@ -212,6 +215,20 @@
     0%,100%{ opacity:1; transform:scale(1); }
     50%    { opacity:.4; transform:scale(.78); }
   }
+
+  .api-status{
+    padding:6px 10px;
+    font-size:11px;
+    color:var(--muted);
+    border-radius:8px;
+    background:rgba(255,255,255,.03);
+    border:1px solid var(--border);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .api-status.ok{ color:#a7f3d0; border-color:rgba(52,211,153,.28); background:rgba(52,211,153,.06); }
+  .api-status.err{ color:#fca5a5; border-color:rgba(248,113,113,.28); background:rgba(248,113,113,.06); }
 
   .content{ flex:1; min-width:0; display:flex; flex-direction:column; }
 
@@ -601,6 +618,7 @@
         <span class="dot"></span>
         <span id="estado">Conectando…</span>
       </div>
+      <div class="api-status" id="apiStatus" title="Servidor de subidas">API: detectando…</div>
     </div>
   </aside>
 
@@ -682,16 +700,62 @@
   const db  = getDatabase(app);
   const galeriaRef = ref(db, 'galeria_imagenes');
 
-  const API_URL = (() => {
-    const params = new URLSearchParams(location.search);
-    if (params.has('api')) return params.get('api').replace(/\/+$/, '');
-    if (location.protocol === 'file:') return 'http://localhost:3000';
-    return '';
-  })();
-
   const CATEGORIA_RAIZ = 'Sin categoría';
   const POLL_MS = 8000;
   const MAX_UPLOAD_MB = 15;
+
+  /* ═══════════════════════════════════════════════════
+     AUTODESCUBRIMIENTO DE LA API
+     Prueba /api/ping en este orden:
+       1. mismo origen
+       2. http://<hostname>:3000
+       3. http://localhost:3000
+     La primera que responda se usa para TODAS las peticiones.
+     Así aunque abras el HTML desde Live Server (:5500) o
+     desde file://, el cliente encuentra Express en :3000.
+  ═══════════════════════════════════════════════════ */
+  let API_URL = '';
+
+  async function ping(base) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 2000);
+      const res = await fetch(`${base}/api/ping`, {
+        cache: 'no-store',
+        signal: ctrl.signal
+      });
+      clearTimeout(t);
+      if (!res.ok) return false;
+      const data = await res.json().catch(() => ({}));
+      return data && data.ok === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function descubrirAPI() {
+    const candidatos = [];
+
+    // 1) Mismo origen (si el HTML lo sirve Express, esto funciona)
+    if (location.protocol.startsWith('http')) {
+      candidatos.push(location.origin);
+    }
+
+    // 2) Mismo hostname, puerto 3000 (Live Server :5500 → Express :3000)
+    if (location.hostname && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      candidatos.push(`${location.protocol}//${location.hostname}:3000`);
+    }
+
+    // 3) localhost:3000 (por si abres desde PC)
+    candidatos.push('http://localhost:3000');
+
+    const unicos = [...new Set(candidatos)];
+
+    for (const base of unicos) {
+      if (await ping(base)) return base;
+    }
+    return '';
+  }
 
   /* ── DOM ── */
   const $ = (id) => document.getElementById(id);
@@ -706,6 +770,7 @@
   const navGeneros  = $('navGeneros');
   const countAllEl  = $('countAll');
   const navList     = $('navList');
+  const apiStatusEl = $('apiStatus');
 
   const lightbox    = $('lightbox');
   const lightboxImg = $('lightboxImg');
@@ -732,6 +797,12 @@
   let categoriaActiva = '__all__';
   let subiendo = false;
   let ultimaCategoria = null;
+
+  function setApiStatus(texto, tipo = '') {
+    if (!apiStatusEl) return;
+    apiStatusEl.textContent = 'API: ' + texto;
+    apiStatusEl.className = 'api-status ' + tipo;
+  }
 
   /* ── SPLASH ── */
   let loaderOculto = false;
@@ -811,13 +882,11 @@
     const contenido = galeriaDiv.clientWidth - padLeft - padRight;
     if (contenido <= 0) return { cols: 1, colWidth: 280 };
 
-    // 📱 Móvil: SIEMPRE 2 columnas
     if (window.innerWidth < 640) {
       const colWidth = (contenido - MASONRY_GAP) / 2;
       return { cols: 2, colWidth };
     }
 
-    // 🖥️ Desktop: auto
     const cols = Math.max(1, Math.floor((contenido + MASONRY_GAP) / (MIN_COL_DESKTOP + MASONRY_GAP)));
     const colWidth = (contenido - MASONRY_GAP * (cols - 1)) / cols;
     return { cols, colWidth };
@@ -950,7 +1019,6 @@
     tituloEl.textContent = categoriaActiva === '__all__' ? 'Todas las imágenes' : categoriaActiva;
   }
 
-  /* ── RESIZE ── */
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -974,7 +1042,7 @@
     toastEl.textContent = msg;
     toastEl.className = 'toast visible ' + tipo;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 3500);
+    toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 4000);
   }
 
   /* ── Sidebar móvil ── */
@@ -1020,6 +1088,7 @@
   crearCarpetaBtn.addEventListener('click', async () => {
     const nombre = inputCarpeta.value.trim();
     if (!nombre) { inputCarpeta.focus(); return; }
+    if (!API_URL) { toast('Servidor no disponible. ¿Está encendido node server.js?', 'err'); return; }
     crearCarpetaBtn.disabled = true;
     try {
       const res = await fetch(`${API_URL}/api/carpetas`, {
@@ -1043,8 +1112,9 @@
 
   /* ── API carpetas ── */
   async function cargarCarpetas() {
+    if (!API_URL) { carpetasAPI = []; return; }
     try {
-      const res = await fetch(`${API_URL}/api/carpetas`);
+      const res = await fetch(`${API_URL}/api/carpetas`, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       carpetasAPI = data.carpetas || [];
@@ -1061,6 +1131,10 @@
   }
 
   fabUpload.addEventListener('click', () => {
+    if (!API_URL) {
+      toast('Servidor no disponible. ¿Está encendido node server.js?', 'err');
+      return;
+    }
     if (categoriaActiva === '__all__' || categoriaActiva === CATEGORIA_RAIZ) {
       toast('Selecciona un género primero', 'err');
       return;
@@ -1081,6 +1155,7 @@
   async function subirArchivos(files) {
     const cat = categoriaActiva;
     if (!cat || cat === '__all__' || cat === CATEGORIA_RAIZ) return;
+    if (!API_URL) { toast('Servidor no disponible', 'err'); return; }
 
     const validos = Array.from(files).filter(f => {
       if (!esImagen(f)) return false;
@@ -1113,11 +1188,23 @@
         } else {
           let msg = `HTTP ${res.status}`;
           try { const j = await res.json(); msg = j.error || msg; } catch {}
+
+          // Mensajes claros según el código
+          if (res.status === 405) {
+            msg = `405 (el servidor en ${API_URL} no acepta POST — no es Express)`;
+          } else if (res.status === 404) {
+            msg = `404 (la ruta /api/subir no existe en ${API_URL})`;
+          } else if (res.status === 413) {
+            msg = `413 (archivo demasiado grande para el servidor)`;
+          }
+
           ultimoError = msg;
+          console.error('Upload error:', res.status, msg, 'API_URL=', API_URL);
           fail++;
         }
       } catch (e) {
         ultimoError = e.message || 'Error de red';
+        console.error('Upload network error:', e, 'API_URL=', API_URL);
         fail++;
       }
     }
@@ -1127,7 +1214,7 @@
     actualizarFab();
 
     if (ok > 0) toast(`${ok} imagen${ok === 1 ? '' : 'es'} subida${ok === 1 ? '' : 's'} a "${cat}"`, 'ok');
-    if (fail > 0) toast(`${fail} fallaron. ${ultimoError || '¿Servidor encendido?'}`, 'err');
+    if (fail > 0) toast(`Error al subir: ${ultimoError}`, 'err');
   }
 
   /* Drag & drop */
@@ -1237,24 +1324,24 @@
       ? Object.keys(data).map(key => ({ key, ...data[key] }))
       : [];
 
-    // ✅ Conectado con Firebase → estado "En línea"
     statusPill.classList.remove('error');
     statusPill.classList.add('online');
     estadoEl.textContent = 'En línea';
 
-    // 🎬 Ocultar splash INMEDIATAMENTE. No esperamos a nada más.
     if (!loaderOculto) {
       window.scrollTo(0, 0);
       ocultarLoader();
     }
 
-    // Galería: se renderiza ya, en segundo plano
     renderGaleria();
 
-    // Menú: primera vez espera a /api/carpetas, las siguientes ya tiene datos
     if (primeraCarga) {
       primeraCarga = false;
-      cargarCarpetas().then(() => renderMenu());
+      if (API_URL) {
+        cargarCarpetas().then(() => renderMenu());
+      } else {
+        renderMenu();
+      }
     } else {
       renderMenu();
     }
@@ -1263,15 +1350,35 @@
     statusPill.classList.remove('online');
     statusPill.classList.add('error');
     estadoEl.textContent = 'Sin conexión';
-    // La splash sigue visible mostrando el error
   });
 
   /* ── Poll carpetas ── */
   setInterval(async () => {
+    if (!API_URL) return;
     const antes = JSON.stringify(carpetasAPI);
     await cargarCarpetas();
     if (JSON.stringify(carpetasAPI) !== antes) renderMenu();
   }, POLL_MS);
+
+  /* ═══════════════════════════════════════════════════
+     ARRANQUE: descubrir API y luego enganchar Firebase
+  ═══════════════════════════════════════════════════ */
+  (async () => {
+    setApiStatus('detectando…');
+    API_URL = await descubrirAPI();
+
+    if (API_URL) {
+      setApiStatus(API_URL.replace(/^https?:\/\//, ''), 'ok');
+      console.log('[NovGallery] API detectada:', API_URL);
+      // Cargar carpetas la primera vez
+      await cargarCarpetas();
+      renderMenu();
+    } else {
+      setApiStatus('no encontrada', 'err');
+      console.warn('[NovGallery] No se encontró servidor Express. ¿Está corriendo node server.js?');
+      toast('Servidor de subidas no encontrado. Enciende node server.js en tu PC.', 'err');
+    }
+  })();
 </script>
 </body>
 </html>
