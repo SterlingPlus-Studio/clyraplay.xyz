@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -10,10 +10,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Jinx Waifus Web</title>
 <link rel="icon" href="data:,">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+  /* ===== FUENTE PERSONALIZADA ===== */
+  @font-face {
+    font-family: 'ClyraPlay';
+    src: url('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  /* ================================= */
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root{
     --pink:#ec4899; --purple:#8b5cf6; --cyan:#06b6d4; --gold:#f59e0b;
@@ -68,7 +75,7 @@
     color-scheme: dark;
   }
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-family: 'ClyraPlay', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     color: var(--text); background: var(--bg); min-height: 100vh; width: 100%;
     max-width: 100vw; overflow-x: hidden; -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none; position: relative; margin: 0; padding: 0;
@@ -760,6 +767,58 @@
   .sell-status.ok{ display: block; background: rgba(16,185,129,.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,.3); }
   .sell-status.err{ display: block; background: rgba(239,68,68,.1); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
 
+  /* CONFIRM MODAL (reemplazo de confirm()) */
+  #confirm-modal{ z-index: 10000; }
+  #confirm-modal.show{ display: flex; align-items: center; justify-content: center; padding: 20px; }
+  #confirm-modal .modal-overlay{ position: fixed; }
+  .confirm-modal-content{
+    max-width: 440px; width: 100%; margin: 0; max-height: calc(100dvh - 40px);
+    overflow-y: auto; animation: modalIn .35s cubic-bezier(.2,.9,.3,1.2);
+    padding: 26px 22px 22px;
+  }
+  .confirm-icon{
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3);
+    color: var(--gold); display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .confirm-title{
+    font-size: 18px; font-weight: 800; text-align: center; margin-bottom: 12px;
+    color: var(--text); letter-spacing: -0.01em;
+  }
+  .confirm-message{
+    font-size: 13px; color: var(--text-2); line-height: 1.7;
+    text-align: center; margin-bottom: 22px; white-space: pre-line;
+    font-weight: 500; word-break: break-word;
+  }
+  .confirm-actions{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-confirm-cancel{
+    background: rgba(255,255,255,.05); border: 1px solid var(--border-2);
+    color: var(--text-2); box-shadow: none; width: 100%; padding: 13px 16px; font-size: 14px;
+    font-weight: 700; font-family: inherit; border-radius: var(--radius-sm); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    transition: all .18s;
+  }
+  .btn-confirm-cancel::after{ display: none; }
+  .btn-confirm-cancel:hover{ background: rgba(255,255,255,.09); color: var(--text); transform: none; box-shadow: none; }
+  .btn-confirm-accept{
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: white; width: 100%; padding: 13px 16px; font-size: 14px; font-weight: 700;
+    font-family: inherit; border: none; border-radius: var(--radius-sm); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    transition: all .18s cubic-bezier(.2,.9,.3,1.2); box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  }
+  .btn-confirm-accept::after{ display: none; }
+  .btn-confirm-accept:hover{ transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.35); }
+  @media (max-width: 500px){
+    #confirm-modal.show{ padding: 14px; }
+    .confirm-modal-content{ padding: 22px 18px 18px; }
+    .confirm-title{ font-size: 16px; }
+    .confirm-message{ font-size: 12px; margin-bottom: 18px; }
+    .confirm-actions{ gap: 8px; }
+    .btn-confirm-cancel, .btn-confirm-accept{ padding: 12px 12px; font-size: 13px; }
+  }
+
   .shop-search{ margin-bottom: 18px; }
   .shop-search-input-wrap{ position: relative; display: flex; align-items: center; margin-bottom: 10px; }
   .shop-search-input-wrap > .ic{ position: absolute; left: 14px; color: var(--muted-2); pointer-events: none; }
@@ -1132,6 +1191,14 @@
       <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
     <div id="sell-modal-body"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL (reemplazo de confirm() nativo) -->
+<div id="confirm-modal" class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-content confirm-modal-content">
+    <div id="confirm-modal-body"></div>
   </div>
 </div>
 
@@ -1958,7 +2025,8 @@ function closeBoxModal() {
   $('box-modal-body').innerHTML = '';
   if (!document.getElementById('user-modal')?.classList.contains('show') &&
       !document.getElementById('card-modal')?.classList.contains('show') &&
-      !document.getElementById('sell-modal')?.classList.contains('show')) {
+      !document.getElementById('sell-modal')?.classList.contains('show') &&
+      !document.getElementById('confirm-modal')?.classList.contains('show')) {
     document.body.classList.remove('modal-open');
   }
 }
@@ -2099,7 +2167,8 @@ function closeCardModal() {
   cardDragging = false;
   if (!document.getElementById('user-modal')?.classList.contains('show') &&
       !document.getElementById('box-modal')?.classList.contains('show') &&
-      !document.getElementById('sell-modal')?.classList.contains('show')) {
+      !document.getElementById('sell-modal')?.classList.contains('show') &&
+      !document.getElementById('confirm-modal')?.classList.contains('show')) {
     document.body.classList.remove('modal-open');
   }
 }
@@ -2176,7 +2245,8 @@ function closeSellModal() {
   sellSending = false;
   if (!document.getElementById('user-modal')?.classList.contains('show') &&
       !document.getElementById('box-modal')?.classList.contains('show') &&
-      !document.getElementById('card-modal')?.classList.contains('show')) {
+      !document.getElementById('card-modal')?.classList.contains('show') &&
+      !document.getElementById('confirm-modal')?.classList.contains('show')) {
     document.body.classList.remove('modal-open');
   }
 }
@@ -2291,6 +2361,64 @@ async function submitSell(price) {
 
 $('sell-modal-close')?.addEventListener('click', closeSellModal);
 $('sell-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeSellModal);
+
+/* ============ CONFIRM MODAL CUSTOM (reemplazo de confirm()) ============ */
+let confirmResolver = null;
+
+function resolveConfirm(value) {
+  if (!confirmResolver) return;
+  const resolver = confirmResolver;
+  confirmResolver = null;
+  const modal = $('confirm-modal');
+  const body  = $('confirm-modal-body');
+  if (modal) modal.classList.remove('show');
+  if (body)  body.innerHTML = '';
+  if (!document.getElementById('user-modal')?.classList.contains('show') &&
+      !document.getElementById('box-modal')?.classList.contains('show') &&
+      !document.getElementById('card-modal')?.classList.contains('show') &&
+      !document.getElementById('sell-modal')?.classList.contains('show')) {
+    document.body.classList.remove('modal-open');
+  }
+  try { resolver(value); } catch {}
+}
+
+function showConfirm({ title = '¿Confirmar?', message = '', confirmText = 'Aceptar', cancelText = 'Cancelar', icon = 'tag' } = {}) {
+  return new Promise((resolve) => {
+    if (confirmResolver) {
+      const prev = confirmResolver;
+      confirmResolver = null;
+      try { prev(false); } catch {}
+    }
+    confirmResolver = resolve;
+
+    const modal = $('confirm-modal');
+    const body  = $('confirm-modal-body');
+    if (!modal || !body) { confirmResolver = null; resolve(false); return; }
+
+    body.innerHTML = `
+      <div class="confirm-icon">${ico(icon, 24)}</div>
+      <div class="confirm-title">${esc(title)}</div>
+      <div class="confirm-message">${esc(message)}</div>
+      <div class="confirm-actions">
+        <button type="button" class="btn-confirm-cancel" id="confirm-cancel-btn">
+          ${ico('x', 14)}<span>${esc(cancelText)}</span>
+        </button>
+        <button type="button" class="btn-confirm-accept" id="confirm-accept-btn">
+          ${ico('check', 14)}<span>${esc(confirmText)}</span>
+        </button>
+      </div>
+    `;
+
+    modal.querySelector('.modal-overlay').onclick = () => resolveConfirm(false);
+
+    $('confirm-accept-btn')?.addEventListener('click', () => resolveConfirm(true));
+    $('confirm-cancel-btn')?.addEventListener('click', () => resolveConfirm(false));
+
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+  });
+}
+/* ======================================================================= */
 
 const TAB_TITLES = {
   profile: 'Perfil', collection: 'Colección', ranking: 'Ranking', shop: 'Tienda', support: 'Soporte'
@@ -2438,6 +2566,7 @@ $('box-modal')?.querySelector('.modal-overlay')?.addEventListener('click', close
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    if ($('confirm-modal')?.classList.contains('show')) { resolveConfirm(false); return; }
     if ($('sell-modal')?.classList.contains('show')) { closeSellModal(); return; }
     if (modalEl.classList.contains('show')) closeUserModal();
     if ($('box-modal')?.classList.contains('show')) closeBoxModal();
@@ -2745,13 +2874,22 @@ function renderDuplicatesToStore(container, info) {
       finalPrices[r] = v;
     }
 
-    const confirmMsg = `¿Poner ${totalDup} duplicada${totalDup === 1 ? '' : 's'} en venta?\n\n` +
+    const confirmMsg =
+      `¿Poner ${totalDup} duplicada${totalDup === 1 ? '' : 's'} en venta?\n\n` +
       `• Común: ${fmt(finalPrices.comun)}\n` +
       `• Rara: ${fmt(finalPrices.rara)}\n` +
       `• Épica: ${fmt(finalPrices.epica)}\n` +
       `• Legendaria: ${fmt(finalPrices.legendaria)}\n\n` +
       `Se conservará 1 copia de cada waifu.`;
-    if (!confirm(confirmMsg)) return;
+
+    const ok = await showConfirm({
+      title: 'Poner duplicadas en venta',
+      message: confirmMsg,
+      confirmText: 'Poner en venta',
+      cancelText: 'Cancelar',
+      icon: 'store'
+    });
+    if (!ok) return;
 
     btn.disabled = true;
     const original = btn.innerHTML;
@@ -2839,8 +2977,19 @@ function renderDuplicatesToAgent(container, info) {
   const btn = $('btn-agent-sell');
   btn?.addEventListener('click', async () => {
     if (btn.disabled) return;
-    const confirmMsg = `¿Vender ${totalDup} duplicada${totalDup === 1 ? '' : 's'} al agente por ${fmt(totalAgent)} monedas?\n\nSe conservará 1 copia de cada waifu.`;
-    if (!confirm(confirmMsg)) return;
+
+    const confirmMsg =
+      `¿Vender ${totalDup} duplicada${totalDup === 1 ? '' : 's'} al agente por ${fmt(totalAgent)} monedas?\n\n` +
+      `Se conservará 1 copia de cada waifu.`;
+
+    const ok = await showConfirm({
+      title: 'Vender duplicadas al agente',
+      message: confirmMsg,
+      confirmText: 'Vender',
+      cancelText: 'Cancelar',
+      icon: 'tag'
+    });
+    if (!ok) return;
 
     btn.disabled = true;
     const original = btn.innerHTML;
@@ -3442,6 +3591,7 @@ function doLogout() {
   imageUnsubs.forEach(u => { try { u(); } catch {} }); imageUnsubs.clear();
   actionUnsubs.forEach(u => { try { u(); } catch {} }); actionUnsubs.clear();
   if (cardInertiaRaf) { cancelAnimationFrame(cardInertiaRaf); cardInertiaRaf = null; }
+  resolveConfirm(false);
   closeUserModal(); closeBoxModal(); closeCardModal(); closeSellModal();
   if (session?.token) { remove(ref(db, `sessions/${session.token}`)).catch(() => {}); }
   localStorage.removeItem('jinx_session');
