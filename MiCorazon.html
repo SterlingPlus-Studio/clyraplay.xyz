@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -289,7 +289,7 @@
     position: relative;
     backdrop-filter: blur(3px);
   }
-  #gameCanvas {
+  #gameCanvas, #game2Canvas {
     display: block; width: 100%; height: 100%;
     touch-action: none;
     -webkit-user-select: none;
@@ -310,7 +310,6 @@
   .game-hud .score { color: #ff9fd8; text-shadow: 0 0 10px rgba(255,60,160,1); }
   .game-hud .time  { color: #ffd166; text-shadow: 0 0 10px rgba(255,210,80,0.95); }
 
-  /* Leyenda de ítems */
   .game-legend {
     display: flex;
     justify-content: center;
@@ -387,6 +386,7 @@
   .poem p:nth-child(3) { animation-delay: .55s; }
   .poem p:nth-child(4) { animation-delay: .75s; }
   .poem p:nth-child(5) { animation-delay: .95s; }
+  .poem p:nth-child(6) { animation-delay: 1.15s; }
   .poem .firma {
     font-style: normal;
     font-weight: 400;
@@ -403,7 +403,7 @@
   }
 
   @media (max-width: 560px) {
-    .hud { top: 14px; left: 16px; max-width: calc(100vw - 108px); }
+    .hud { top: 14px; left: 16px; max-width: calc(100vw - 130px); }
     .hud .line1 { font-size: 11px; letter-spacing: 3px; }
     .hud .line2 { font-size: 8px;  letter-spacing: 4px; padding-left: 15px; }
     .hud .dot   { width: 7px; height: 7px; margin-right: 8px; }
@@ -411,10 +411,10 @@
     .controls { top: 14px; right: 12px; gap: 8px; }
 
     .holo-btn {
-      width: 40px; height: 40px;
+      width: 36px; height: 36px;
       padding: 0; border-radius: 50%; gap: 0;
     }
-    .holo-btn .btn-icon { width: 17px; height: 17px; }
+    .holo-btn .btn-icon { width: 16px; height: 16px; }
     .holo-btn .btn-text { display: none; }
 
     .modal { padding: max(12px, env(safe-area-inset-top)) 12px
@@ -427,9 +427,9 @@
 
   @media (max-width: 360px) {
     .hud .line1 { font-size: 10px; letter-spacing: 2.5px; }
-    .hud .line2 { font-size: 7.5px; letter-spacing: 3.5px; }
-    .holo-btn { width: 36px; height: 36px; }
-    .holo-btn .btn-icon { width: 15px; height: 15px; }
+    .hud .line2 { font-size: 7px; letter-spacing: 2.5px; }
+    .holo-btn { width: 32px; height: 32px; }
+    .holo-btn .btn-icon { width: 14px; height: 14px; }
   }
 </style>
 </head>
@@ -442,7 +442,7 @@
 
 <div class="hud">
   <div class="line1"><span class="dot"></span>Neco, te amo mucho</div>
-  <div class="line2">Feliz primer aniversario</div>
+  <div class="line2">Tres meses juntos</div>
 </div>
 
 <div class="controls">
@@ -454,6 +454,16 @@
       </svg>
     </span>
     <span class="btn-text">Mini Juego</span>
+  </button>
+
+  <button id="btnGame2" class="holo-btn" aria-label="Corazones fugaces">
+    <span class="btn-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </span>
+    <span class="btn-text">Corazones</span>
   </button>
 
   <button id="btnPoem" class="holo-btn" aria-label="Poema">
@@ -497,7 +507,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000, 0);
 
 const scene  = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 700);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 900);
 
 let camTheta  = 0.35;
 let camPhi    = 0.10;
@@ -668,15 +678,212 @@ const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({
 scene.add(stars);
 
 /* ============================================================
+   8.5 ESTRELLAS DE FONDO Y PLANETAS LEJANOS
+   ============================================================ */
+function makeStarTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0.00, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.15, 'rgba(220,240,255,0.9)');
+  grd.addColorStop(0.45, 'rgba(120,180,255,0.35)');
+  grd.addColorStop(1.00, 'rgba(0,0,0,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+const bgStarTex = makeStarTexture();
+
+function buildStarLayer(count, rMin, rMax, color, size, opacity) {
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const r  = rMin + Math.random() * (rMax - rMin);
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i*3]     = r * Math.sin(ph) * Math.cos(th);
+    pos[i*3 + 1] = r * Math.cos(ph);
+    pos[i*3 + 2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    map: bgStarTex, color, size, transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    sizeAttenuation: true
+  });
+  const pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+  return pts;
+}
+
+const starLayer1 = buildStarLayer(600, 220, 320, 0xffffff, 2.0, 0.9);
+const starLayer2 = buildStarLayer(420, 300, 420, 0xa0d8ff, 2.8, 0.7);
+const starLayer3 = buildStarLayer(260, 380, 520, 0xffc8ff, 3.6, 0.55);
+
+// --- HALO NEUTRO PARA PLANETAS ---
+function neutralGlowTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  grd.addColorStop(0.00, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.20, 'rgba(255,255,255,0.55)');
+  grd.addColorStop(0.55, 'rgba(255,255,255,0.15)');
+  grd.addColorStop(1.00, 'rgba(0,0,0,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+const planetGlowTex = neutralGlowTexture();
+
+// --- PLANETAS ---
+function makePlanet(radius, bodyColor, glowColor, position, haloOpacity = 0.32) {
+  const grp = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 24, 24),
+    new THREE.MeshBasicMaterial({
+      color: bodyColor, transparent: true, opacity: 0.85
+    })
+  );
+  grp.add(body);
+
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: planetGlowTex,
+    color: glowColor,
+    transparent: true, opacity: haloOpacity,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  halo.scale.set(radius * 9, radius * 9, 1);
+  grp.add(halo);
+
+  const core = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: planetGlowTex,
+    color: 0xffffff,
+    transparent: true, opacity: 0.75,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  core.scale.set(radius * 2.2, radius * 2.2, 1);
+  grp.add(core);
+
+  grp.position.copy(position);
+  grp.userData.spin = 0.015 + Math.random() * 0.04;
+  grp.userData.halo = halo;
+  scene.add(grp);
+  return grp;
+}
+
+const PLANET_COLORS = [
+  [0x5a4fbf, 0x7f6fff],
+  [0xd0407a, 0xff70a8],
+  [0x2fa8b8, 0x66f2ff],
+  [0xd0a040, 0xffd166],
+  [0x8a3fa0, 0xc060ff],
+  [0x3a8a50, 0x60e090],
+];
+
+const planets = [];
+for (let i = 0; i < 8; i++) {
+  const r  = 260 + Math.random() * 160;
+  const th = (i / 8) * Math.PI * 2 + Math.random() * 0.6;
+  const ph = (Math.random() - 0.5) * Math.PI * 0.7;
+  const pos = new THREE.Vector3(
+    r * Math.cos(ph) * Math.cos(th),
+    r * Math.sin(ph),
+    r * Math.cos(ph) * Math.sin(th)
+  );
+  const [bc, gc] = PLANET_COLORS[i % PLANET_COLORS.length];
+  const radius = 3 + Math.random() * 3.5;
+  planets.push(makePlanet(radius, bc, gc, pos, 0.28 + Math.random() * 0.15));
+}
+
+/* ============================================================
+   8.6 METEORITOS DE FUEGO CRUZANDO
+   ============================================================ */
+function makeFireTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0.00, 'rgba(255,255,235,1)');
+  grd.addColorStop(0.15, 'rgba(255,240,180,0.95)');
+  grd.addColorStop(0.35, 'rgba(255,180,60,0.85)');
+  grd.addColorStop(0.60, 'rgba(255,90,30,0.55)');
+  grd.addColorStop(0.85, 'rgba(180,30,10,0.20)');
+  grd.addColorStop(1.00, 'rgba(80,0,0,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const fireTex = makeFireTexture();
+
+const meteors = [];
+const METEOR_TRAIL = 14;
+const _tmpVec = new THREE.Vector3();
+
+function spawnMeteor() {
+  const side = Math.random() < 0.5 ? 1 : -1;
+  const startX =  side * (60 + Math.random() * 50);
+  const startY =  45 + Math.random() * 45;
+  const startZ = -35 + Math.random() * 70;
+
+  const endX = -side * (55 + Math.random() * 60);
+  const endY = -45 - Math.random() * 35;
+  const endZ = -35 + Math.random() * 70;
+
+  const m = {
+    start: new THREE.Vector3(startX, startY, startZ),
+    end:   new THREE.Vector3(endX,   endY,   endZ),
+    duration: 2.2 + Math.random() * 1.8,
+    age: 0,
+    head: null,
+    trail: []
+  };
+
+  // cabeza brillante
+  m.head = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: fireTex, transparent: true, opacity: 1,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    color: 0xfff2c8
+  }));
+  m.head.scale.set(6, 6, 1);
+  m.head.position.copy(m.start);
+  scene.add(m.head);
+
+  // cola de fuego
+  for (let i = 0; i < METEOR_TRAIL; i++) {
+    const t = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: fireTex, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+      color: new THREE.Color().setHSL(
+        0.03 + Math.random() * 0.06,
+        1,
+        0.55 + Math.random() * 0.15
+      )
+    }));
+    const s = 5 - i * 0.28;
+    t.scale.set(Math.max(0.4, s), Math.max(0.4, s), 1);
+    t.position.copy(m.start);
+    scene.add(t);
+    m.trail.push(t);
+  }
+
+  meteors.push(m);
+}
+
+let meteorTimer = 0.8;
+
+/* ============================================================
    9. FRASES FLOTANTES
    ============================================================ */
 const FRASES_INNER = [
-  'Eres mi todo', 'Te amo infinito', 'Mi corazón es tuyo', 'Contigo soy feliz',
-  'Eres mi sueño', 'Siempre tú y yo', 'Latido eterno', 'Mi media mitad'
+  'Seguimos aquí', 'A pesar de todo', 'Juntos y tercos', 'Peleamos y volvemos',
+  'Mi caos favorito', 'Nada nos separa', 'Dos perros raros', 'Mi lugar seguro'
 ];
 const FRASES_OUTER = [
-  'Neco te amo', 'Feliz aniversario', 'Mi amor eterno', 'Eres mi universo',
-  'Te elijo siempre', 'Amor de mi vida', 'Juntos por siempre', 'Tú y yo, siempre'
+  'Neco te amo', 'Tres meses juntos', 'Tercer mes', 'Amor de perros',
+  'Te elijo otra vez', 'Siempre tú y yo', 'Aguantamos todo', 'Mi persona favorita'
 ];
 
 const HUD_FONT = `'Montserrat', 'Inter', 'Helvetica Neue', Arial, sans-serif`;
@@ -877,17 +1084,17 @@ resize();
    13. SUBTÍTULO
    ============================================================ */
 const FRASES_LARGAS = [
-  'Neco, te amo mucho… feliz primer aniversario.',
-  'Un año a tu lado y sigo sin creer la suerte que tengo.',
+  'Neco, te amo mucho… feliz tercer mes juntos.',
+  'Tres meses, mil peleas, y aquí seguimos, mi amor.',
+  'Hemos discutido, hemos vuelto, y aquí seguimos los dos.',
+  'Como dos perros enamorados: tercos, raros, inseparables.',
+  'A pesar de todo, sigo eligiéndote cada día.',
   'Te amo más de lo que las palabras pueden expresar.',
+  'Peleamos, nos enojamos, y aun así: tú y yo.',
   'Eres la casualidad más bonita que me ha pasado.',
   'Mi corazón late al ritmo de tu nombre.',
-  'A tu lado, cualquier lugar es mi hogar.',
-  'Eres el sueño del que nunca quiero despertar.',
   'Si volviera a nacer, te volvería a elegir.',
   'Contigo el tiempo siempre sabe a poco.',
-  'Eres mi persona favorita en todo el universo.',
-  'Gracias por este primer año, y por todos los que vienen.',
   'Mi lugar favorito en el mundo eres tú.'
 ];
 const subEl = document.getElementById('sub');
@@ -982,6 +1189,69 @@ function animate() {
     if (sp.position.y > FH_RANGE.maxY) resetFloatingHeart(sp, false);
   }
 
+  // ---- Estrellas de fondo girando y titilando ----
+  starLayer1.rotation.y += dt * 0.008;
+  starLayer2.rotation.y -= dt * 0.005;
+  starLayer3.rotation.y += dt * 0.003;
+  starLayer2.rotation.x  = Math.sin(t * 0.05) * 0.1;
+
+  starLayer1.material.opacity = 0.82 + Math.sin(t * 1.5)        * 0.10;
+  starLayer2.material.opacity = 0.62 + Math.sin(t * 1.1 + 1.0)  * 0.10;
+  starLayer3.material.opacity = 0.46 + Math.sin(t * 0.9 + 2.0)  * 0.08;
+
+  // ---- Planetas: rotación + halo pulsante ----
+  for (let i = 0; i < planets.length; i++) {
+    const p = planets[i];
+    p.rotation.y += dt * p.userData.spin;
+    p.userData.halo.material.opacity =
+      0.26 + Math.sin(t * 0.7 + i * 1.3) * 0.08;
+  }
+
+  // ---- Meteoritos ----
+  meteorTimer -= dt;
+  if (meteorTimer <= 0) {
+    spawnMeteor();
+    meteorTimer = 1.5 + Math.random() * 2.8;
+  }
+
+  for (let i = meteors.length - 1; i >= 0; i--) {
+    const m = meteors[i];
+    m.age += dt;
+    const prog = Math.min(1, m.age / m.duration);
+
+    if (prog >= 1) {
+      scene.remove(m.head);
+      m.head.material.dispose();
+      for (const tr of m.trail) {
+        scene.remove(tr);
+        tr.material.dispose();
+      }
+      meteors.splice(i, 1);
+      continue;
+    }
+
+    // cabeza
+    m.head.position.lerpVectors(m.start, m.end, prog);
+    const headAlpha = Math.min(1, prog * 5) * Math.min(1, (1 - prog) * 4);
+    m.head.material.opacity = headAlpha;
+
+    // cola
+    const trailStep = 0.024;
+    for (let j = 0; j < m.trail.length; j++) {
+      const tp = Math.max(0, prog - (j + 1) * trailStep);
+      _tmpVec.lerpVectors(m.start, m.end, tp);
+      m.trail[j].position.copy(_tmpVec);
+
+      const lifeFade   = 1 - (j / m.trail.length);
+      const globalFade = Math.min(1, prog * 4) * Math.min(1, (1 - prog) * 3);
+      m.trail[j].material.opacity = lifeFade * globalFade * 0.85;
+
+      const flicker = 0.85 + Math.sin(t * 12 + j * 0.7) * 0.15;
+      const s = (5 - j * 0.28) * flicker;
+      m.trail[j].scale.set(Math.max(0.3, s), Math.max(0.3, s), 1);
+    }
+  }
+
   wireMat.opacity  = 0.16 + Math.sin(t * 12.0) * 0.05;
   edgeMat.opacity  = 0.62 + Math.sin(t * 9.0)  * 0.16;
   coreMat.opacity  = 0.18 + Math.sin(t * 5.0)  * 0.04 + hb * 0.06;
@@ -1008,6 +1278,7 @@ animate();
 const modal     = document.getElementById('modal');
 const modalBody = document.getElementById('modalBody');
 const btnGame   = document.getElementById('btnGame');
+const btnGame2  = document.getElementById('btnGame2');
 const btnPoem   = document.getElementById('btnPoem');
 const modalClose= document.getElementById('modalClose');
 
@@ -1040,12 +1311,13 @@ document.addEventListener('keydown', e => {
    ============================================================ */
 const POEMA = `
   <h2 class="modal-title">Para Neco</h2>
-  <p class="modal-subtitle">Feliz primer aniversario</p>
+  <p class="modal-subtitle">Feliz tercer mes juntos</p>
   <div class="poem">
-    <p>En el jardín secreto de mis días,<br>donde florecen sueños y alegrías,<br>tu nombre es la luz que me ilumina<br>y el latido que mi pecho encamina.</p>
-    <p>Un año ha florecido a tu lado,<br>cada instante contigo es un regalo,<br>y en este holograma de amor sincero<br>te entrego el corazón, mi mundo entero.</p>
-    <p>Si el tiempo preguntara por mi vida,<br>diría que es tu risa compartida,<br>que es tu mirada, Neco, mi destino,<br>el verso más bonito que he vivido.</p>
-    <p>Y si el universo entero se apagara,<br>mi amor por ti jamás se apagaría,<br>porque eres tú, mi amor, mi poesía,<br>la razón por la que el alma mía late.</p>
+    <p>Hemos cruzado tormentas y enojos,<br>palabras que a veces dolían de más,<br>pero aquí seguimos, tercos y necios,<br>sin poder soltarnos jamás.</p>
+    <p>Tres meses de portazos y abrazos,<br>de decir "ya no puedo" y volver,<br>de discutir hasta quedarnos sin aire<br>y al rato buscarte otra vez.</p>
+    <p>Nos hemos dado la espalda un rato,<br>nos hemos dicho cosas que pesan,<br>pero siempre vuelve el mismo latido,<br>la misma locura que nos ata.</p>
+    <p>Y si el mundo se pone difícil,<br>si volvemos a chocar tú y yo,<br>recuerda esto, mi Neco hermosa:<br>siempre te elijo, sin condición.</p>
+    <p>Porque somos dos perros enamorados,<br>mordiéndonos la cola, dando vueltas,<br>pero siempre, siempre, siempre<br>encontrándonos en la misma puerta.</p>
     <p class="firma">Te amo · Siempre tuyo</p>
   </div>
 `;
@@ -1053,7 +1325,7 @@ const POEMA = `
 btnPoem.addEventListener('click', () => openModal(POEMA));
 
 /* ============================================================
-   JUEGO — 60 seg, rotos -5s, estrellas +5s
+   JUEGO 1 — Atrapa corazones (60s, roto -5s, estrella +5s)
    ============================================================ */
 const GAME_HTML = `
   <h2 class="modal-title">Atrapa corazones</h2>
@@ -1078,7 +1350,7 @@ btnGame.addEventListener('click', () => {
   setTimeout(() => startGame(), 60);
 });
 
-const GAME_DURATION = 60000;   // 60 segundos
+const GAME_DURATION = 60000;
 
 function startGame() {
   const canvas = document.getElementById('gameCanvas');
@@ -1142,13 +1414,12 @@ function startGame() {
     canvas.removeEventListener('touchstart', tm);
   };
 
-  // Tipos de ítem: 'good' (rosa +1), 'time' (oro +5s), 'broken' (azul -5s)
   function spawnItem() {
     const r = Math.random();
     let type;
-    if (r < 0.16)       type = 'time';      // 16%  estrella dorada
-    else if (r < 0.42)  type = 'broken';    // 26%  corazón roto
-    else                type = 'good';      // 58%  corazón rosa
+    if (r < 0.16)       type = 'time';
+    else if (r < 0.42)  type = 'broken';
+    else                type = 'good';
 
     state.items.push({
       x: 30 + Math.random() * (W - 60),
@@ -1198,7 +1469,6 @@ function startGame() {
     ctx.restore();
   }
 
-  // Estrella dorada para el bono de tiempo
   function drawStar(x, y, size, color, alpha = 1) {
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -1221,7 +1491,6 @@ function startGame() {
     ctx.shadowBlur = 22;
     ctx.fill();
 
-    // núcleo blanco
     ctx.shadowBlur = 8;
     ctx.globalAlpha = alpha * 0.65;
     ctx.fillStyle = '#ffffff';
@@ -1262,7 +1531,6 @@ function startGame() {
       spawnItem();
     }
 
-    // Colisiones
     for (let i = state.items.length - 1; i >= 0; i--) {
       const it = state.items[i];
       it.y += it.vy * dt;
@@ -1277,17 +1545,14 @@ function startGame() {
 
       if (dx*dx + dy*dy < limit * limit) {
         if (it.type === 'broken') {
-          // -5 segundos + flash rojo
           state.endAt -= 5000;
           state.hurtFlash = 1;
           burst(it.x, it.y, 'rgba(255,80,120,0.95)', 14);
         } else if (it.type === 'time') {
-          // +5 segundos + flash dorado
           state.endAt += 5000;
           state.bonusFlash = 1;
           burst(it.x, it.y, 'rgba(255,210,80,0.98)', 18);
         } else {
-          // +1 punto
           state.score += 1;
           scoreEl.textContent = state.score;
           burst(it.x, it.y, 'rgba(255,143,208,0.95)', 12);
@@ -1299,7 +1564,6 @@ function startGame() {
       if (it.y > H + 40) state.items.splice(i, 1);
     }
 
-    // Partículas
     for (let i = state.particles.length - 1; i >= 0; i--) {
       const p = state.particles[i];
       p.x += p.vx * dt; p.y += p.vy * dt;
@@ -1307,10 +1571,8 @@ function startGame() {
       if (p.life <= 0) state.particles.splice(i, 1);
     }
 
-    // ---- Render ----
     ctx.clearRect(0, 0, W, H);
 
-    // estrellas de fondo
     ctx.save();
     ctx.globalAlpha = 0.45;
     for (let i = 0; i < 22; i++) {
@@ -1321,7 +1583,6 @@ function startGame() {
     }
     ctx.restore();
 
-    // ítems
     for (const it of state.items) {
       ctx.save();
       ctx.translate(it.x, it.y);
@@ -1336,7 +1597,6 @@ function startGame() {
       ctx.restore();
     }
 
-    // partículas
     for (const p of state.particles) {
       ctx.save();
       ctx.globalAlpha = p.life;
@@ -1349,10 +1609,8 @@ function startGame() {
       ctx.restore();
     }
 
-    // cesta
     drawHeart(state.player.x, state.player.y, 62, '#00e5ff', false, 0.95);
 
-    // aura cesta
     ctx.save();
     ctx.globalAlpha = 0.5;
     const grad = ctx.createRadialGradient(
@@ -1364,7 +1622,6 @@ function startGame() {
     ctx.fillRect(state.player.x - 50, state.player.y - 6, 100, 60);
     ctx.restore();
 
-    // Flashes de feedback
     if (state.hurtFlash > 0) {
       ctx.fillStyle = `rgba(255,60,100,${state.hurtFlash * 0.38})`;
       ctx.fillRect(0, 0, W, H);
@@ -1376,7 +1633,6 @@ function startGame() {
       state.bonusFlash = Math.max(0, state.bonusFlash - 0.028 * dt);
     }
 
-    // Fin de partida
     if (remain <= 0) {
       state.running = false;
       let mensaje;
@@ -1404,6 +1660,266 @@ function startGame() {
         scoreEl.textContent = 0;
         timeEl.textContent  = 60;
         msgEl.textContent = 'Mueve la cesta con el dedo, mouse o ← →';
+        loop(performance.now());
+      };
+      setTimeout(() => {
+        canvas.addEventListener('pointerdown', restart, { passive: false });
+        canvas.addEventListener('touchstart', restart, { passive: false });
+      }, 400);
+      return;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+   JUEGO 2 — Corazones fugaces (45s, toca los corazones)
+   ============================================================ */
+const GAME2_HTML = `
+  <h2 class="modal-title">Corazones fugaces</h2>
+  <p class="modal-subtitle">45 segundos · toca los corazones</p>
+  <div class="game-hud">
+    <span>Puntos: <span class="score" id="g2Score">0</span></span>
+    <span>Tiempo: <span class="time" id="g2Time">45</span>s</span>
+  </div>
+  <div class="game-wrap">
+    <canvas id="game2Canvas"></canvas>
+  </div>
+  <div class="game-legend">
+    <div class="legend-item"><span class="legend-dot pink"></span>+1 punto</div>
+    <div class="legend-item"><span class="legend-dot blue"></span>−3 seg</div>
+  </div>
+  <div class="game-msg" id="g2Msg">Toca los corazones rosas antes de que desaparezcan</div>
+`;
+
+btnGame2.addEventListener('click', () => {
+  openModal(GAME2_HTML);
+  setTimeout(() => startGame2(), 60);
+});
+
+const GAME2_DURATION = 45000;
+
+function startGame2() {
+  const canvas = document.getElementById('game2Canvas');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('g2Score');
+  const timeEl  = document.getElementById('g2Time');
+  const msgEl   = document.getElementById('g2Msg');
+
+  const W = 400, H = 400;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width  = W * DPR;
+  canvas.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  const state = {
+    running: true,
+    score: 0,
+    hearts: [],
+    particles: [],
+    spawnAcc: 0,
+    spawnEvery: 520,
+    lastT: performance.now(),
+    endAt: performance.now() + GAME2_DURATION,
+    hurtFlash: 0,
+    catchFlash: 0
+  };
+
+  function spawnHeart() {
+    const isBad = Math.random() < 0.22;
+    const size = 26 + Math.random() * 14;
+    const x = size * 0.7 + 10 + Math.random() * (W - size * 1.4 - 20);
+    const y = size * 0.7 + 10 + Math.random() * (H - size * 1.4 - 20);
+    state.hearts.push({
+      x, y, size,
+      type: isBad ? 'bad' : 'good',
+      life: 1.4,
+      age: 0
+    });
+  }
+
+  function burst(x, y, color, count = 10) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = 1 + Math.random() * 3;
+      state.particles.push({
+        x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 0.5,
+        life: 1, color
+      });
+    }
+  }
+
+  function drawHeart(x, y, size, color, broken, alpha = 1) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    const s = size / 100;
+    ctx.scale(s, s);
+    ctx.beginPath();
+    ctx.moveTo(0, -30);
+    ctx.bezierCurveTo(-50, -80, -100, -20, 0, 50);
+    ctx.bezierCurveTo(100, -20, 50, -80, 0, -30);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 20;
+    ctx.fill();
+    if (broken) {
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(0,0,0,0.65)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-6, -55); ctx.lineTo(4, -20);
+      ctx.lineTo(-8, 6);   ctx.lineTo(6, 32);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function handleClick(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * W;
+    const y = ((clientY - rect.top) / rect.height) * H;
+
+    for (let i = state.hearts.length - 1; i >= 0; i--) {
+      const h = state.hearts[i];
+      const dx = x - h.x, dy = y - h.y;
+      const r = h.size * 0.7;
+      if (dx * dx + dy * dy < r * r) {
+        if (h.type === 'good') {
+          state.score++;
+          scoreEl.textContent = state.score;
+          state.catchFlash = 1;
+          burst(h.x, h.y, 'rgba(255,143,208,0.95)', 10);
+        } else {
+          state.endAt -= 3000;
+          state.hurtFlash = 1;
+          burst(h.x, h.y, 'rgba(95,143,255,0.95)', 12);
+        }
+        state.hearts.splice(i, 1);
+        return;
+      }
+    }
+  }
+
+  const pm = e => { e.preventDefault(); handleClick(e.clientX, e.clientY); };
+  const tm = e => {
+    if (e.touches[0]) { e.preventDefault(); handleClick(e.touches[0].clientX, e.touches[0].clientY); }
+  };
+  canvas.addEventListener('pointerdown', pm, { passive: false });
+  canvas.addEventListener('touchstart', tm, { passive: false });
+
+  gameCleanup = () => {
+    state.running = false;
+    canvas.removeEventListener('pointerdown', pm);
+    canvas.removeEventListener('touchstart', tm);
+  };
+
+  function loop(now) {
+    if (!state.running) return;
+
+    const dt = Math.min((now - state.lastT) / 16.67, 3);
+    state.lastT = now;
+
+    const remain = Math.max(0, state.endAt - now);
+    timeEl.textContent = Math.ceil(remain / 1000);
+
+    state.spawnAcc += dt * 16.67;
+    if (state.spawnAcc > state.spawnEvery) {
+      state.spawnAcc = 0;
+      spawnHeart();
+    }
+
+    for (let i = state.hearts.length - 1; i >= 0; i--) {
+      const h = state.hearts[i];
+      h.age += dt * 16.67 / 1000;
+      if (h.age > h.life) state.hearts.splice(i, 1);
+    }
+
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+      const p = state.particles[i];
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vy += 0.08 * dt; p.life -= 0.025 * dt;
+      if (p.life <= 0) state.particles.splice(i, 1);
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.globalAlpha = 0.4;
+    for (let i = 0; i < 22; i++) {
+      const sx = (i * 73) % W;
+      const sy = (i * 131 + now * 0.02) % H;
+      ctx.fillStyle = 'rgba(120,240,255,0.35)';
+      ctx.fillRect(sx, sy, 1.4, 1.4);
+    }
+    ctx.restore();
+
+    for (const h of state.hearts) {
+      const p = h.age / h.life;
+      const alpha = p < 0.15 ? p / 0.15 : (p > 0.75 ? (1 - p) / 0.25 : 1);
+      ctx.save();
+      ctx.translate(h.x, h.y);
+      ctx.rotate(Math.sin(h.age * 4) * 0.1);
+      if (h.type === 'good') {
+        drawHeart(0, 0, h.size, '#ff4fa3', false, alpha);
+      } else {
+        drawHeart(0, 0, h.size, '#5f8fff', true, alpha);
+      }
+      ctx.restore();
+    }
+
+    for (const p of state.particles) {
+      ctx.save();
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    if (state.hurtFlash > 0) {
+      ctx.fillStyle = `rgba(255,60,100,${state.hurtFlash * 0.35})`;
+      ctx.fillRect(0, 0, W, H);
+      state.hurtFlash = Math.max(0, state.hurtFlash - 0.028 * dt);
+    }
+    if (state.catchFlash > 0) {
+      ctx.fillStyle = `rgba(255,143,208,${state.catchFlash * 0.15})`;
+      ctx.fillRect(0, 0, W, H);
+      state.catchFlash = Math.max(0, state.catchFlash - 0.028 * dt);
+    }
+
+    if (remain <= 0) {
+      state.running = false;
+      let mensaje;
+      if (state.score >= 40)      mensaje = `¡${state.score} corazones! Eres mi todo, Neco`;
+      else if (state.score >= 25) mensaje = `¡${state.score} corazones! Increíble, te amo`;
+      else if (state.score >= 12) mensaje = `${state.score} corazones. ¡Bien! Mi amor`;
+      else                        mensaje = `${state.score} corazones. Igual te amo muchísimo`;
+
+      msgEl.innerHTML = `${mensaje}<br><span style="opacity:.75;font-size:11px;letter-spacing:2px;">Toca la pantalla para volver a jugar</span>`;
+
+      const restart = (e) => {
+        if (e) e.preventDefault();
+        canvas.removeEventListener('pointerdown', restart);
+        canvas.removeEventListener('touchstart', restart);
+        state.running = true;
+        state.score = 0;
+        state.hearts = [];
+        state.particles = [];
+        state.spawnAcc = 0;
+        state.hurtFlash = 0;
+        state.catchFlash = 0;
+        state.endAt = performance.now() + GAME2_DURATION;
+        state.lastT = performance.now();
+        scoreEl.textContent = 0;
+        timeEl.textContent  = 45;
+        msgEl.textContent = 'Toca los corazones rosas antes de que desaparezcan';
         loop(performance.now());
       };
       setTimeout(() => {
