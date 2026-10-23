@@ -4026,8 +4026,28 @@
             }
         }
 
+        /* --- ESTADO ACTIVO DE LA NAVEGACIÓN --- */
+        function setActiveNavigation(destination) {
+            var homeButton = document.getElementById('nav-home-btn');
+            var searchButton = document.getElementById('nav-search-btn');
+            var homeActive = destination === 'home';
+            var searchActive = destination === 'search';
+
+            if (homeButton) {
+                homeButton.classList.toggle('is-active', homeActive);
+                if (homeActive) homeButton.setAttribute('aria-current', 'page');
+                else homeButton.removeAttribute('aria-current');
+            }
+            if (searchButton) {
+                searchButton.classList.toggle('is-active', searchActive);
+                if (searchActive) searchButton.setAttribute('aria-current', 'page');
+                else searchButton.removeAttribute('aria-current');
+            }
+        }
+
         /* --- CONTROL DE VISTAS CÓMICS --- */
         function showAllComicsView() {
+            setActiveNavigation('search');
             document.getElementById('main-view').style.display = 'none';
             document.getElementById('all-comics-view').style.display = 'block';
             window.scrollTo(0, 0);
@@ -4038,6 +4058,7 @@
         }
 
         function hideAllComicsView() {
+            setActiveNavigation('home');
             document.getElementById('all-comics-view').style.display = 'none';
             document.getElementById('main-view').style.display = 'block';
             document.getElementById('comic-search-input').value = '';
