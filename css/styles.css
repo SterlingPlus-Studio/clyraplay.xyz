@@ -87,3 +87,55 @@
   overflow-x: auto;
   overflow-y: hidden;
 }
+
+
+/* Línea vertical de acento junto al título de cada género. */
+#genre-sections > .catalog-section > h2 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.25em;
+  padding-left: 14px;
+  margin-bottom: 0;
+}
+#genre-sections > .catalog-section > h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent2) 0%, var(--accent) 100%);
+  box-shadow: 0 0 12px rgba(239, 35, 60, .26);
+  pointer-events: none;
+}
+
+
+/* Portadas reales en las tarjetas de "Tu próxima obsesión" del hero. */
+.hero-visual-card.has-comic-cover {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  border-color: rgba(255,255,255,.2);
+  box-shadow: 0 32px 65px rgba(0,0,0,.48), 0 0 0 1px rgba(255,255,255,.035);
+}
+.visual-card-back.has-comic-cover,
+.visual-card-mid.has-comic-cover {
+  filter: saturate(.92);
+}
+.visual-card-front.has-comic-cover {
+  isolation: isolate;
+}
+.visual-card-front.has-comic-cover .visual-spark,
+.visual-card-front.has-comic-cover .visual-caption {
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+.visual-card-front.has-comic-cover:before,
+.visual-card-front.has-comic-cover:after {
+  z-index: 1;
+  pointer-events: none;
+}

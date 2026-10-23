@@ -3930,6 +3930,37 @@
             return array;
         }
 
+        function initHeroObsessionCards() {
+            // Usa portadas reales del catálogo en las tres tarjetas decorativas del hero.
+            var heroCards = [
+                document.querySelector('.visual-card-back'),
+                document.querySelector('.visual-card-mid'),
+                document.querySelector('.visual-card-front')
+            ];
+            // Elige portadas aleatorias de todo el catálogo cada vez que se carga la página.
+            // La copia evita modificar el orden original de comicsData y shuffleArray evita repetir una portada en las tres tarjetas.
+            var availableCovers = [...comicsData].filter(function(comic) {
+                return comic && typeof comic.src === 'string' && comic.src.trim() !== '';
+            });
+            var featured = shuffleArray(availableCovers).slice(0, heroCards.length);
+
+            heroCards.forEach(function(card, index) {
+                var comic = featured[index];
+                if (!card || !comic || !comic.src) return;
+
+                // Gradientes suaves mantienen el contraste y permiten reconocer cada portada.
+                var overlay = index === 2
+                    ? 'linear-gradient(0deg, rgba(8,9,12,.94) 0%, rgba(8,9,12,.34) 48%, rgba(8,9,12,.06) 100%), '
+                    : 'linear-gradient(0deg, rgba(8,9,12,.55) 0%, rgba(8,9,12,.12) 70%), ';
+                card.style.backgroundImage = overlay + 'url("' + comic.src.replace(/"/g, '%22') + '")';
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+                card.style.backgroundRepeat = 'no-repeat';
+                card.setAttribute('title', comic.text || 'Portada de cómic');
+                card.classList.add('has-comic-cover');
+            });
+        }
+
         function initMainComics() {
             const container = document.getElementById('comics-container');
             container.innerHTML = '';
@@ -4191,6 +4222,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             initMainComics();
+            initHeroObsessionCards();
             setTimeout(function() {
                 openDeepLinkFromUrl();
             }, 0);
