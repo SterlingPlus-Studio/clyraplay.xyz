@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#08090c">
-  <meta name="description" content="Descubre y lee cómics en ClyraPlay, una biblioteca digital organizada por géneros.">
-  <title>ClyraPlay — Tu biblioteca de cómics</title>
+  <meta name="description" content="ClyraPlay: descubre historias para público adulto, explora géneros y encuentra tu próxima lectura.">
+  <title>ClyraPlay — Historias para adultos</title>
   <link rel="icon" href="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" type="image/png">
   <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -30,7 +30,7 @@
         <div class="hero-copy">
           <div class="hero-badge"><span class="status-dot"></span> TU PRÓXIMA HISTORIA EMPIEZA AQUÍ</div>
           <h1 class="hero-title">Un universo de historias.<br><span>Todo en un solo lugar.</span></h1>
-          <p class="hero-text">Descubre, explora y lee tu próximo cómic favorito en una biblioteca creada para ti.</p>
+          <p class="hero-text">Explora historias para adultos, descubre nuevos géneros y encuentra tu próxima lectura.</p>
           <div class="hero-actions">
             <button class="hero-primary" onclick="showAllComicsView()" type="button"><i class="fa-solid fa-compass"></i> Explorar biblioteca</button>
             <a class="hero-secondary" href="#top10-section"><i class="fa-solid fa-arrow-trend-up"></i> Ver Top 10</a>
@@ -39,7 +39,7 @@
         </div>
         <div class="hero-visual" aria-hidden="true">
           <div class="hero-visual-card visual-card-back"></div><div class="hero-visual-card visual-card-mid"></div>
-          <div class="hero-visual-card visual-card-front"><span class="visual-spark"><i class="fa-solid fa-sparkles"></i></span><span class="visual-caption">TU PRÓXIMA<br>OBSESIÓN</span></div>
+          <div class="hero-visual-card visual-card-front"><span class="visual-spark"><i class="fa-solid fa-sparkles"></i></span><span class="visual-caption">TU PRÓXIMA<br>LECTURA</span></div>
           <div class="hero-visual-glow"></div>
         </div>
       </div>
@@ -48,7 +48,7 @@
 
     <section class="section-container" aria-labelledby="new-comics-title">
       <div class="section-header">
-        <div><p class="eyebrow">LO MÁS RECIENTE</p><h2 class="section-title" id="new-comics-title">Recién llegados</h2></div>
+        <div><p class="eyebrow">NOVEDADES PARA ADULTOS</p><h2 class="section-title" id="new-comics-title">Nuevas historias</h2></div>
         <button class="see-all-btn" onclick="showAllComicsView()" type="button">Ver biblioteca <i class="fa-solid fa-arrow-right"></i></button>
       </div>
       <div class="horizontal-scroll" id="comics-container" aria-label="Cómics recientes"></div>
@@ -66,28 +66,28 @@
 
     <section class="platform-note" aria-label="Acerca de ClyraPlay">
       <div class="platform-note-icon"><i class="fa-solid fa-book-open-reader"></i></div>
-      <div><p class="eyebrow">CLYRAPLAY</p><h2>Tu biblioteca, a tu manera.</h2><p>Explora por género, encuentra nuevas historias y vuelve a tus favoritos cuando quieras.</p></div>
-      <button onclick="showAllComicsView()" type="button">Explorar cómics <i class="fa-solid fa-arrow-right"></i></button>
+      <div><p class="eyebrow">CLYRAPLAY</p><h2>Historias a tu manera.</h2><p>Explora géneros, descubre nuevas historias y vuelve a tus favoritos cuando quieras.</p></div>
+      <button onclick="showAllComicsView()" type="button">Explorar historias <i class="fa-solid fa-arrow-right"></i></button>
     </section>
   </main>
 
   <main id="all-comics-view" aria-label="Catálogo de cómics">
     <div class="catalog-page-heading">
       <button class="back-btn" onclick="hideAllComicsView()" aria-label="Volver al inicio" type="button"><i class="fa-solid fa-arrow-left"></i></button>
-      <div><p class="eyebrow">CATÁLOGO COMPLETO</p><h1 class="view-title">Explora los cómics</h1><p class="catalog-page-subtitle">Busca por título o descubre una nueva historia.</p></div>
+      <div><p class="eyebrow">BIBLIOTECA COMPLETA</p><h1 class="view-title">Explora las historias</h1><p class="catalog-page-subtitle">Busca por título o encuentra tu próxima lectura.</p></div>
     </div>
     <div class="search-container">
       <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
       <input autocomplete="off" class="search-input" id="comic-search-input" placeholder="Buscar por título o género..." type="search" aria-label="Buscar cómics">
       <div class="suggestions-box" id="search-suggestions"></div>
     </div>
-    <div class="catalog-results-heading"><h2>Todos los títulos</h2><span>Biblioteca ClyraPlay</span></div>
+    <div class="catalog-results-heading"><h2>Todas las historias</h2><span>Biblioteca ClyraPlay</span></div>
     <div class="comics-grid" id="all-comics-grid"></div>
   </main>
 
   <footer class="site-footer">
     <a class="footer-brand" href="#inicio" onclick="hideAllComicsView()"><img src="https://i.ibb.co/fYFxpqQ5/1783988546734.png" alt="ClyraPlay"></a>
-    <p>Una biblioteca digital para descubrir tu próxima historia.</p>
+    <p>Una biblioteca digital de historias para público adulto.</p>
     <div class="footer-bottom"><span>© 2026 Sterling Plus Studio. Todos los derechos reservados.</span><a href="https://t.me/SterlingPlus" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-telegram"></i> Telegram</a></div>
   </footer>
 
