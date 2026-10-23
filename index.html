@@ -1,311 +1,131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>ClyraPlay — Cómics en Streaming</title>
-<link href="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" rel="icon" type="image/png"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-<link href="https://cdn-uicons.flaticon.com/uicons-regular-straight/css/uicons-regular-straight.css" rel="stylesheet"/>
-<link href="https://cdn-uicons.flaticon.com/uicons-thin-straight/css/uicons-thin-straight.css" rel="stylesheet"/>
-<link href="css/styles.css" rel="stylesheet"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08090c">
+  <meta name="description" content="Descubre y lee cómics en ClyraPlay, una biblioteca digital organizada por géneros.">
+  <title>ClyraPlay — Tu biblioteca de cómics</title>
+  <link rel="icon" href="https://i.ibb.co/wh1LT1Zb/IMG-20260626-174534.png" type="image/png">
+  <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
-<nav class="navbar">
-<div class="logo">
-<img alt="ClyraPlay Logo" class="logo-img" src="https://i.ibb.co/fYFxpqQ5/1783988546734.png"/>
-</div>
-<div class="nav-links">
-<button class="nav-btn" onclick="showAllComicsView()">
-<img alt="Cómics" class="bookmark-icon" src="https://i.ibb.co/TBJkZbLV/copia-del-libro.png"/>
-                Cómics
-            </button>
-<button class="nav-btn" onclick="scrollToTopTen()" type="button">
-<svg viewbox="0 0 24 24">
-<polyline points="8 21 12 17 16 21"></polyline>
-<line x1="12" x2="12" y1="17" y2="3"></line>
-</svg>
-                Top 10
-            </button>
-<button class="nav-btn" onclick="openSearchPage()" type="button">
-<svg viewbox="0 0 24 24">
-<circle cx="11" cy="11" r="8"></circle>
-<line x1="21" x2="16.65" y1="21" y2="16.65"></line>
-</svg>
-                Buscador
-            </button>
-</div>
-<button aria-label="Descargar" class="nav-btn download-btn-header" onclick="openDownloadModal()" type="button">
-<svg viewbox="0 0 24 24">
-<path d="M12 3v10"></path>
-<path d="m8 9 4 4 4-4"></path>
-<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
-</svg>
-<span class="btn-text">Descargar</span>
-</button>
-</nav>
+  <nav class="navbar" aria-label="Navegación principal">
+    <a class="logo" href="#inicio" aria-label="ClyraPlay inicio" onclick="hideAllComicsView()">
+      <img alt="ClyraPlay" class="logo-img" src="https://i.ibb.co/fYFxpqQ5/1783988546734.png">
+    </a>
+    <div class="nav-links">
+      <button class="nav-btn is-active" onclick="hideAllComicsView()" type="button"><i class="fa-solid fa-house"></i><span>Inicio</span></button>
+      <button class="nav-btn" onclick="showAllComicsView()" type="button"><i class="fa-solid fa-book-open"></i><span>Cómics</span></button>
+      <button class="nav-btn" onclick="openSearchPage()" type="button"><i class="fa-solid fa-magnifying-glass"></i><span>Buscar</span></button>
+    </div>
+    <button aria-label="Descargar ClyraPlay" class="download-btn-header" onclick="openDownloadModal()" type="button"><i class="fa-solid fa-download"></i><span>Descargar</span></button>
+  </nav>
 
-<div id="main-view">
-<div class="hero-banner">
-<div class="hero-badge">✦ Nuevos lanzamientos cada semana</div>
-<h1 class="hero-title">
-<span class="hero-brand">Bienvenido a ClyraPlay</span>
-</h1>
-<p class="hero-text">Tu universo de cómics en un solo lugar. Explora, descubre y disfruta.</p>
-</div>
+  <main id="main-view">
+    <section class="hero-banner" id="inicio">
+      <div class="hero-orb hero-orb-one"></div><div class="hero-orb hero-orb-two"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="hero-badge"><span class="status-dot"></span> TU PRÓXIMA HISTORIA EMPIEZA AQUÍ</div>
+          <h1 class="hero-title">Un universo de historias.<br><span>Todo en un solo lugar.</span></h1>
+          <p class="hero-text">Descubre, explora y lee tu próximo cómic favorito en una biblioteca creada para ti.</p>
+          <div class="hero-actions">
+            <button class="hero-primary" onclick="showAllComicsView()" type="button"><i class="fa-solid fa-compass"></i> Explorar biblioteca</button>
+            <a class="hero-secondary" href="#top10-section"><i class="fa-solid fa-arrow-trend-up"></i> Ver Top 10</a>
+          </div>
+          <div class="hero-note"><i class="fa-solid fa-layer-group"></i> Géneros para cada estado de ánimo</div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-visual-card visual-card-back"></div><div class="hero-visual-card visual-card-mid"></div>
+          <div class="hero-visual-card visual-card-front"><span class="visual-spark"><i class="fa-solid fa-sparkles"></i></span><span class="visual-caption">TU PRÓXIMA<br>OBSESIÓN</span></div>
+          <div class="hero-visual-glow"></div>
+        </div>
+      </div>
+      <div class="hero-bottom-fade"></div>
+    </section>
 
-<!-- ============ TOP 10 ============ -->
-<div class="section-container top-ten-section" id="top-ten-section">
-<div class="section-header">
-<h2 class="section-title">
-<svg viewbox="0 0 24 24">
-<polyline points="8 21 12 17 16 21"></polyline>
-<line x1="12" x2="12" y1="17" y2="3"></line>
-</svg>
-                    Top 10 de la Semana
-                </h2>
-</div>
-<div class="top-ten-scroll" id="top-ten-container"></div>
-</div>
+    <section class="section-container" aria-labelledby="new-comics-title">
+      <div class="section-header">
+        <div><p class="eyebrow">LO MÁS RECIENTE</p><h2 class="section-title" id="new-comics-title">Recién llegados</h2></div>
+        <button class="see-all-btn" onclick="showAllComicsView()" type="button">Ver biblioteca <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <div class="horizontal-scroll" id="comics-container" aria-label="Cómics recientes"></div>
+    </section>
 
-<!-- ============ NUEVOS CÓMICS ============ -->
-<div class="section-container">
-<div class="section-header">
-<h2 class="section-title">
-<img alt="Cómics" class="bookmark-icon" src="https://i.ibb.co/TBJkZbLV/copia-del-libro.png"/>
-                    Nuevos Cómics
-                </h2>
-<button class="see-all-btn" onclick="showAllComicsView()">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="comics-container"></div>
-</div>
+    <section class="catalog-section top10-section" id="top10-section" aria-labelledby="top10-title">
+      <div class="section-header">
+        <div><p class="eyebrow">PARA EMPEZAR</p><h2 id="top10-title" class="section-title">Top 10 de ClyraPlay</h2></div>
+        <span class="section-caption">Selección destacada</span>
+      </div>
+      <div id="top10-container" class="top10-row" aria-label="Top 10 de cómics"></div>
+    </section>
 
-<!-- ============ GÉNEROS (estilo Disney+) ============ -->
-<div class="section-container genre-section" id="genre-accion-section">
-<div class="section-header">
-<h2 class="section-title">Acción</h2>
-<button class="see-all-btn" onclick="showAllComicsView('accion')">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="genre-accion-container"></div>
-</div>
+    <div id="genre-sections"></div>
 
-<div class="section-container genre-section" id="genre-aventura-section">
-<div class="section-header">
-<h2 class="section-title">Aventura</h2>
-<button class="see-all-btn" onclick="showAllComicsView('aventura')">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="genre-aventura-container"></div>
-</div>
+    <section class="platform-note" aria-label="Acerca de ClyraPlay">
+      <div class="platform-note-icon"><i class="fa-solid fa-book-open-reader"></i></div>
+      <div><p class="eyebrow">CLYRAPLAY</p><h2>Tu biblioteca, a tu manera.</h2><p>Explora por género, encuentra nuevas historias y vuelve a tus favoritos cuando quieras.</p></div>
+      <button onclick="showAllComicsView()" type="button">Explorar cómics <i class="fa-solid fa-arrow-right"></i></button>
+    </section>
+  </main>
 
-<div class="section-container genre-section" id="genre-superheroes-section">
-<div class="section-header">
-<h2 class="section-title">Superhéroes</h2>
-<button class="see-all-btn" onclick="showAllComicsView('superheroes')">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="genre-superheroes-container"></div>
-</div>
+  <main id="all-comics-view" aria-label="Catálogo de cómics">
+    <div class="catalog-page-heading">
+      <button class="back-btn" onclick="hideAllComicsView()" aria-label="Volver al inicio" type="button"><i class="fa-solid fa-arrow-left"></i></button>
+      <div><p class="eyebrow">CATÁLOGO COMPLETO</p><h1 class="view-title">Explora los cómics</h1><p class="catalog-page-subtitle">Busca por título o descubre una nueva historia.</p></div>
+    </div>
+    <div class="search-container">
+      <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+      <input autocomplete="off" class="search-input" id="comic-search-input" placeholder="Buscar por título o género..." type="search" aria-label="Buscar cómics">
+      <div class="suggestions-box" id="search-suggestions"></div>
+    </div>
+    <div class="catalog-results-heading"><h2>Todos los títulos</h2><span>Biblioteca ClyraPlay</span></div>
+    <div class="comics-grid" id="all-comics-grid"></div>
+  </main>
 
-<div class="section-container genre-section" id="genre-manga-section">
-<div class="section-header">
-<h2 class="section-title">Manga</h2>
-<button class="see-all-btn" onclick="showAllComicsView('manga')">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="genre-manga-container"></div>
-</div>
+  <footer class="site-footer">
+    <a class="footer-brand" href="#inicio" onclick="hideAllComicsView()"><img src="https://i.ibb.co/fYFxpqQ5/1783988546734.png" alt="ClyraPlay"></a>
+    <p>Una biblioteca digital para descubrir tu próxima historia.</p>
+    <div class="footer-bottom"><span>© 2026 Sterling Plus Studio. Todos los derechos reservados.</span><a href="https://t.me/SterlingPlus" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-telegram"></i> Telegram</a></div>
+  </footer>
 
-<div class="section-container genre-section" id="genre-fantasia-section">
-<div class="section-header">
-<h2 class="section-title">Fantasía</h2>
-<button class="see-all-btn" onclick="showAllComicsView('fantasia')">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="genre-fantasia-container"></div>
-</div>
+  <section class="comic-modal" id="comic-reader-modal" role="dialog" aria-modal="true" aria-labelledby="modal-comic-title">
+    <div class="comic-modal-header">
+      <div class="reader-brand"><span class="reader-brand-mark"><i class="fa-solid fa-book-open"></i></span><div><span class="reader-eyebrow">LEYENDO AHORA</span><div class="comic-modal-title" id="modal-comic-title">Título del cómic</div></div></div>
+      <button class="comic-modal-close" onclick="closeComicModal()" type="button" aria-label="Cerrar lector"><i class="fa-solid fa-xmark"></i><span>Cerrar</span></button>
+    </div>
+    <div class="comic-modal-body" id="modal-comic-body"></div>
+  </section>
 
-<div class="section-container genre-section" id="genre-terror-section">
-<div class="section-header">
-<h2 class="section-title">Terror</h2>
-<button class="see-all-btn" onclick="showAllComicsView('terror')">
-<span class="see-all-text">Ver todo</span>
-<svg viewbox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-</button>
-</div>
-<div class="horizontal-scroll" id="genre-terror-container"></div>
-</div>
+  <div class="download-overlay" id="downloadModal" aria-hidden="true">
+    <div class="download-box" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
+      <button class="dialog-x" onclick="closeDownloadModal()" type="button" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      <div class="dialog-icon"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+      <p class="eyebrow">LLEVA CLYRAPLAY CONTIGO</p><h2 class="download-title" id="downloadModalTitle">Descargar ClyraPlay</h2>
+      <p class="download-text">Elige la versión compatible con tu dispositivo.</p>
+      <div class="download-actions">
+        <button class="download-link-btn android" onclick="startDirectDownload('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Descargar/Clyra.apk')" type="button"><i class="fa-brands fa-android"></i><span><strong>Android</strong><small>Aplicación móvil</small></span><i class="fa-solid fa-arrow-down"></i></button>
+        <button class="download-link-btn pc" onclick="startDirectDownload('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Descargar/ClyraPlay%20PC.zip')" type="button"><i class="fa-solid fa-desktop"></i><span><strong>PC</strong><small>Versión de escritorio</small></span><i class="fa-solid fa-arrow-down"></i></button>
+      </div>
+      <button class="download-close" onclick="closeDownloadModal()" type="button">Cancelar</button>
+    </div>
+  </div>
 
-</div>
+  <div class="modal" id="adblockModal" aria-hidden="true">
+    <div class="adblock-box" role="dialog" aria-modal="true">
+      <div class="adblock-brand"><img alt="ClyraPlay" class="adblock-logo" src="https://i.ibb.co/ymrW83St/8457afee-0265-467f-9e22-eb2fca5d02e0-profile.jpg"><h2>Bloqueador detectado</h2></div>
+      <p class="adblock-sub">ClyraPlay se mantiene gracias a la publicidad.</p>
+      <div class="adblock-text">Hemos detectado un bloqueador de anuncios o un DNS privado activo. Desactívalo para seguir navegando con normalidad y ayudar a mantener la página activa.<br><br><strong>Nota:</strong> si usas Brave u otro navegador con bloqueo interno, puede seguir apareciendo este aviso.</div>
+      <button class="adblock-btn" onclick="location.reload()" type="button">Ya lo desactivé</button>
+    </div>
+  </div>
 
-<!-- ============ VISTA TODOS LOS CÓMICS ============ -->
-<div id="all-comics-view">
-<div class="view-header">
-<div class="view-title-container">
-<button class="back-btn" onclick="hideAllComicsView()">
-<svg viewbox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-</button>
-<h2 class="view-title">Todos Los Cómics</h2>
-</div>
-<div class="search-container">
-<input autocomplete="off" class="search-input" id="comic-search-input" placeholder="Buscar por título o etiqueta..." type="text"/>
-<div class="suggestions-box" id="search-suggestions"></div>
-</div>
-</div>
-<div class="comics-grid" id="all-comics-grid"></div>
-</div>
-
-<footer>
-        © 2026 Sterling Plus Studio. Todos los derechos reservados.
-        <div class="footer-social">
-<a class="social-btn telegram" href="https://t.me/SterlingPlus" rel="noopener noreferrer" target="_blank">
-<i class="fa-brands fa-telegram"></i>
-                Telegram
-            </a>
-</div>
-</footer>
-
-<!-- ============ MODAL LECTOR DE CÓMICS ============ -->
-<div class="comic-modal" id="comic-reader-modal">
-<div class="comic-modal-header">
-<div class="comic-modal-title" id="modal-comic-title">Título del Cómic</div>
-<button class="comic-modal-close" onclick="closeComicModal()">
-<svg viewbox="0 0 24 24">
-<line x1="18" x2="6" y1="6" y2="18"></line>
-<line x1="6" x2="18" y1="6" y2="18"></line>
-</svg>
-</button>
-</div>
-<div class="comic-modal-body" id="modal-comic-body"></div>
-</div>
-
-<!-- ============ MODAL DE DESCARGA ============ -->
-<div aria-hidden="true" class="download-overlay" id="downloadModal">
-<div aria-labelledby="downloadModalTitle" aria-modal="true" class="download-box" role="dialog">
-<h3 class="download-title" id="downloadModalTitle">Descargar ClyraPlay</h3>
-<p class="download-text">Elige la versión que quieres bajar. Al tocar una opción, la descarga comienza automáticamente.</p>
-<div class="download-actions">
-<button class="download-link-btn android" onclick="startDirectDownload('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Descargar/Clyra.apk')" type="button">
-<i class="fa-solid fa-download"></i> Versión Android
-                </button>
-<button class="download-link-btn pc" onclick="startDirectDownload('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Descargar/ClyraPlay%20PC.zip')" type="button">
-<i class="fa-solid fa-desktop"></i> Versión de PC
-                </button>
-</div>
-<button class="download-close" onclick="closeDownloadModal()" type="button">Cerrar</button>
-</div>
-</div>
-
-<!-- ============ MODAL DE ANUNCIOS ============ -->
-<div aria-hidden="true" class="modal-overlay" id="adModal">
-<div aria-labelledby="adModalTitle" aria-modal="true" class="modal-box" role="dialog">
-<h3 class="modal-title" id="adModalTitle">Ver 2 anuncios para continuar</h3>
-<p class="modal-text">Cuando toques Ver anuncio se abrirá el anuncio en otra pestaña. Después vuelve a la aplicación y repite el proceso dos veces para desbloquear el enlace de MediaFire.</p>
-<div class="modal-actions">
-<button class="modal-btn ad" id="watchAdBtn" type="button"><i class="fa-solid fa-play"></i> Ver anuncio</button>
-<button class="modal-btn link" disabled="" id="linkBtn" type="button"><i class="fa-solid fa-lock"></i> Botón de enlace bloqueado</button>
-</div>
-<div class="ad-status" id="adStatus">Toca Ver anuncio dos veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.</div>
-</div>
-</div>
-
-<!-- ============ LIGHTBOX ============ -->
-<div id="lightbox-overlay" onclick="closeLightbox()">
-<img alt="Ampliación" id="lightbox-img" src=""/>
-</div>
-
-<!-- ============ BLOQUEADOR ============ -->
-<div aria-hidden="true" class="modal" id="adblockModal">
-<div class="adblock-box">
-<div class="adblock-brand">
-<img alt="ClyraPlay" class="adblock-logo" src="https://i.ibb.co/ymrW83St/8457afee-0265-467f-9e22-eb2fca5d02e0-profile.jpg"/>
-<h2>Bloqueador detectado</h2>
-</div>
-<p class="adblock-sub">ClyraPlay se mantiene gracias a la publicidad.</p>
-<div class="adblock-text">
-                Hemos detectado un bloqueador de anuncios o un DNS privado activo.
-                Desactívalo para seguir navegando con normalidad y ayudar a mantener la página activa.<br/><br/>
-<strong>Nota:</strong> si usas Brave u otro navegador con bloqueo interno, puede seguir apareciendo este aviso.
-            </div>
-<button class="adblock-btn" onclick="location.reload()">Ya lo desactivé</button>
-</div>
-</div>
-
-<script src="js/main.js"></script>
-<script src="js/adblock.js"></script>
-<script src="js/firebase.js" type="module"></script>
-
-<!-- ============ FALLBACK TOP 10 & GÉNEROS ============ -->
-<script>
-/* ============================================================
-   FALLBACK: pobla Top 10 y secciones de género automáticamente
-   a partir de los cómics existentes, para que la home se vea
-   completa incluso si main.js aún no lo hace.
-   Si tu main.js ya los popula, este script no hace nada.
-   ============================================================ */
-function scrollToTopTen() {
-    const s = document.getElementById('top-ten-section');
-    if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const comicCards = document.querySelectorAll('#comics-container .card');
-        if (!comicCards.length) return;
-        const allCards = Array.from(comicCards);
-
-        /* --- TOP 10 --- */
-        const topTen = document.getElementById('top-ten-container');
-        if (topTen && !topTen.children.length) {
-            allCards.slice(0, 10).forEach((card, i) => {
-                const item = document.createElement('div');
-                item.className = 'top-ten-item';
-                const num = document.createElement('span');
-                num.className = 'top-ten-number';
-                num.textContent = i + 1;
-                const clone = card.cloneNode(true);
-                item.appendChild(num);
-                item.appendChild(clone);
-                topTen.appendChild(item);
-            });
-        }
-
-        /* --- GÉNEROS ---
-           Distribución de demo. Reemplaza esto en main.js por filtro
-           real usando las etiquetas/géneros de cada cómic. */
-        const genres = ['accion', 'aventura', 'superheroes', 'manga', 'fantasia', 'terror'];
-        genres.forEach((genre, gi) => {
-            const container = document.getElementById(`genre-${genre}-container`);
-            if (!container || container.children.length) return;
-
-            /* Rotamos el array para que cada género muestre un set distinto */
-            const rotated = allCards.slice(gi).concat(allCards.slice(0, gi));
-            const slice = rotated.slice(0, 8);
-
-            slice.forEach(card => {
-                container.appendChild(card.cloneNode(true));
-            });
-
-            /* Si no hay suficientes cómics, oculta la sección vacía */
-            const section = document.getElementById(`genre-${genre}-section`);
-            if (!slice.length && section) section.style.display = 'none';
-        });
-    }, 900);
-});
-</script>
+  <div id="lightbox-overlay" role="button" aria-label="Cerrar imagen ampliada" onclick="closeLightbox()"><img alt="Ampliación" id="lightbox-img" src=""></div>
+  <script src="js/main.js"></script>
+  <script src="js/adblock.js"></script>
+  <script src="js/firebase.js" type="module"></script>
 </body>
 </html>

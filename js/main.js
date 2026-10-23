@@ -3724,508 +3724,6 @@
 
 ];
 
-        const gamesData = [
-{
-        id: "poppy-playtime-4",
-        name: "Poppy Playtime 4",
-        desc: "Adéntrate aún más profundo en los niveles inferiores y jamás vistos de la fábrica de Playtime Co. En este nuevo capítulo, los peligros son más oscuros, la atmósfera es más opresiva y las respuestas a los grandes misterios finalmente comienzan a revelarse. ¿Podrás sobrevivir a las nuevas entidades que acechan en las sombras?",
-        image: "https://i.ibb.co/1t31HRTd/e4a283c588469fa52f058b0695b2c9ead24ed1f484e8f08ee29337210e7ef976.jpg",
-        screenshots: [
-          "https://i.ibb.co/9kJYXGcQ/unnamed.webp",
-          "https://i.ibb.co/Xf781QGd/unnamed-1.webp",
-          "https://i.ibb.co/prMp3JxG/41411588-znrtiych-v4.webp"
-        ],
-        directLink: "https://www.mediafire.com/file/cyp1buoresh94v6/ClyraPlay.xyz_Poppy_Playtime_Chapter_4_v1.0.5.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> V1.0.5",
-        weight: "<i class=\"fa-solid fa-box\"></i> 1.75 GB",
-        tags: ["Android"]
-      },
-{
-        id: "poppy-playtime-3",
-        name: "Poppy Playtime 3",
-        desc: "Adéntrate en el capítulo más oscuro y aterrador hasta la fecha. Explora Playcare, el orfanato decrepito escondido bajo la fábrica de juguetes, y enfréntate a nuevas pesadillas que acechan en las sombras, incluyendo al temible CatNap.",
-        image: "https://i.ibb.co/zhKHc0xP/84d905b10cdc77d6c0e034b2047c0cadbd58c7dd5c6b3661057ea71b225aad20.jpg",
-        screenshots: [
-          "https://i.ibb.co/27PsHCvw/hq720.jpg",
-          "https://i.ibb.co/Q7gm1x1k/hq720-1.jpg",
-          "https://i.ibb.co/WNKxJYMH/hq720-2.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file/ra7jggvpn0f6cta/ClyraPlay.xyz_-_Poppy_Playtime_Chapter_3_v1.0.25.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> V1.0.25",
-        weight: "<i class=\"fa-solid fa-box\"></i> 2 GB",
-        tags: ["Android"]
-      },
-{
-        id: "red-dead-redemption",
-        name: "Red Dead Redemption",
-        desc: "Cuando unos agentes federales amenazan a su familia, el exforajido John Marston se ve obligado a colaborar con la ley para dar caza a los miembros de la banda de criminales que en su día fueron sus hermanos de armas. Sumérgete en un viaje inolvidable a través de las vastas y peligrosas tierras del sudoeste americano y México mientras Marston lucha por enterrar su sangriento pasado, un disparo a la vez.",
-        image: "https://i.ibb.co/zHQ4xBbq/nuevo-logo-de-red-dead-redemption-podria-indicar-un-anuncio-del-remaster-pronto-cover64c2b604df6df.jpg",
-        screenshots: [
-          "https://i.ibb.co/Kpj4JDDh/hq720.jpg",
-          "https://i.ibb.co/TxcFF9Zp/f6e9c8d211ce11ebd4695e22ac5026cd8895e20da0e226bf5cdd551e96de591f-600.jpg",
-          "https://i.ibb.co/JRSyqCjG/52b577c36c5f1f73a6ab3c584364a76f1c2458166935f39e935c12236717f8a9-600.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file/h4vntuh8wzdzifa/ClyraPlay.xyz_-_Red_dead_redemption_mod_v1.58.63226194.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> V1.58.63226194",
-        weight: "<i class=\"fa-solid fa-box\"></i> 2.69 GB",
-        tags: ["Android"]
-      },
-{
-        id: "poppy-playtime-2",
-        name: "Poppy Playtime 2",
-        desc: "Desciende más profundo en la aterradora fábrica de juguetes Playtime Co. en esta esperada secuela. Tres veces más grande que el primer capítulo, nuevos horrores te aguardan en la oscuridad. ¿Estás listo para seguir jugando?",
-        image: "https://i.ibb.co/W4zfpSpm/2x1-Poppy-Playtime-Chapter2-image1600w.jpg",
-        screenshots: [
-          "https://i.ibb.co/DDX60qMF/page-bg-raw.jpg",
-          "https://i.ibb.co/4Rh1mNW5/maxresdefault.jpg",
-          "https://i.ibb.co/XrR46ssc/95b685a9a66b38ad13c17e3cb4df5222.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file/wushhpbotr8b15j/ClyraPlay.xyz_-_Poppy_playtime_chapter_2_v1.42.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.42",
-        weight: "<i class=\"fa-solid fa-box\"></i> 1.13 GB",
-        tags: ["Android"]
-      },
-{
-        id: "poppy-playtime-1",
-        name: "Poppy Playtime 1",
-        desc: "Debes sobrevivir a la fábrica de juguetes abandonada de Playtime Co., una compañía que alguna vez fue la reina de la industria... hasta que todos en su interior desaparecieron sin dejar rastro.",
-        image: "https://i.ibb.co/60fVcXK0/266a2c89eff8ee813d172a684eae776c00d950d69bc99926064ed2cb5b527bdd.jpg",
-        screenshots: [
-          "https://i.ibb.co/gFyHQG6y/unnamed.webp",
-          "https://i.ibb.co/hRX3XB5D/hq720.jpg",
-          "https://i.ibb.co/DfgtvQJs/maxresdefault.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file/zri149ive4n42px/ClyraPlay.xyz_Poppy_Playtime_v1.0.18.apk/file?dkey=zri149ive4n42px",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1. 0.18",
-        weight: "<i class=\"fa-solid fa-box\"></i> 656 MB",
-        tags: ["Android"]
-      },
-{
-        id: "little-nightmare",
-        name: "Little Nightmare",
-        desc: "Enfréntate a tus miedos de la infancia en este oscuro y cautivador cuento de suspense. Ayuda a Six a escapar de Las Fauces, un gigantesco y misterioso navío sumergido habitado por almas corrompidas que buscan su próxima comida.",
-        image: "https://i.ibb.co/9m7tvkVg/little-nightmares-z4q2p.png",
-        screenshots: [
-          "https://i.ibb.co/BVtgbjSb/little-nightmares-9m2fk.jpg",
-          "https://i.ibb.co/S7c6TPVS/images.jpg",
-          "https://i.ibb.co/HLQj7fSS/unnamed.webp"
-        ],
-        directLink: "https://www.mediafire.com/file/9jsx2heppzkb8qx/Little+Nightmares+VIO4+-+APK+World.apk/file?fbclid=IwY2xjawTTTj5leHRuA2FlbQIxMQBzcnRjBmFwcF9pZA80MDk5NjI2MjMwODU2MDkAAR4ps6e7m7HHumaL8pYqAgHGfU_mhY5ieU6YoKn9cajANZIcp8lAkOPxfFwm1w_aem_onZhqw5yO68R5JhsjaepPA",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v104",
-        weight: "<i class=\"fa-solid fa-box\"></i> 1 GB",
-        tags: ["Android"]
-      },
-{
-        id: "gta-san-andreas-definitiva",
-        name: "GTA San Andreas definitiva",
-        desc: "¡Vuelve al estado de San Andreas con un nivel de detalle increíble! Vive o revive la legendaria historia de CJ en una versión remasterizada que adapta un clásico atemporal a las consolas y plataformas modernas.",
-        image: "https://i.ibb.co/N6qffDLx/GTA-Trilogy-GTA-San-Andreas-Definitive-Edition.jpg",
-        screenshots: [
-          "https://i.ibb.co/mFSW5b3R/ss-1a8e1aff75d059f19e3bf673ff2183344bbadbb4-1920x1080.jpg",
-          "https://i.ibb.co/zWqyR4ZM/Grand-Theft-Auto-San-Andreas-Definitive-Edition-HD-Texture-Pack-2060x1159.jpg",
-          "https://i.ibb.co/tMtKPV5b/Gta-san-andreas-controls-1024x482.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file_premium/tfbnz5mnh5az050/GTA-SA-DefEdit_v1.87_fullMod60fps.apks/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 10+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.52",
-        weight: "<i class=\"fa-solid fa-box\"></i> 7 GB",
-        tags: ["Android"]
-      },
-{
-        id: "hollow-knight",
-        name: "Hollow knight",
-        desc: "Desciende a la oscuridad y descubre las ruinas de un reino olvidado.\n\nHollow Knight es una aclamada aventura de acción y exploración en 2D que te adentra en Hallownest, un vasto e interconectado mundo de insectos en ruinas. Ámate con tu aguijón, perfecciona tus reflejos y desentraña los antiguos misterios que se ocultan bajo la superficie en este metroidvania considerado una auténtica obra maestra.",
-        image: "https://i.ibb.co/4g59TRkH/hollowknight-900x506.jpg",
-        screenshots: [
-          "https://i.ibb.co/KkCvZpt/okhm7mpm7rha1.jpg",
-          "https://i.ibb.co/whXF143X/69zw9r70c2u91.jpg",
-          "https://i.ibb.co/BK7QLXVk/Screenshot-20260726-124644-Hollow-Knight.png"
-        ],
-        directLink: "https://www.mediafire.com/file/22zrmq8zbx1p1do/ClyraPlay.xyz+Hollow+knight.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.0",
-        weight: "<i class=\"fa-solid fa-box\"></i> 931 MB",
-        tags: ["Android"]
-      },
-
-{
-        id: "minecraft-bedrock",
-        name: "Minecraft bedrock",
-        desc: "Sumérgete en el fenómeno global donde el único límite es tu propia imaginación. Explora mundos infinitos generados aleatoriamente, construye desde una humilde cabaña hasta majestuosos castillos y sobrevive a las peligrosas criaturas que acechan en la noche.\n\nYa sea que prefieras crear sin interrupciones o poner a prueba tus habilidades de supervivencia, Minecraft te ofrece la libertad total para jugar a tu manera. ¡Consíguelo hoy y empieza a picar, construir y explorar!",
-        image: "https://i.ibb.co/yFdCvSnW/new-minecraft-art-cover-what-do-you-think-v0-jncj9eqr9bad1.jpg",
-        screenshots: [
-          "https://i.ibb.co/RpNzmzCt/new-article-hero-image.jpg",
-          "https://i.ibb.co/FPxLwcB/26-4-5-1170x500.jpg",
-          "https://i.ibb.co/MDpXDPxj/1783926380-cach-tai-minecraft-bedrock-264030-preview-tren-windows-10-11.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file/71152a0el31wdgn/Minecraft_26.33_Oficial_Sin_Musica.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> V26.33",
-        weight: "<i class=\"fa-solid fa-box\"></i> 472 MB",
-        tags: ["Android"]
-      },
-{
-        id: "snappix",
-        name: "SnapPix",
-        desc: "¿Buscabas algo fresco? ¡Ya está aquí! Una plataforma totalmente nueva donde puedes subir tus imágenes y GIFs con el formato dinámico y adictivo que ya conoces de TikTok. 🔄💥\n\n🔞 ¡Sin censura! En SnapPix se permite el contenido +18, así que eres libre de expresarte y compartir lo que quieras, siempre con la mejor onda. 🔥😏",
-        image: "https://i.ibb.co/gL41CwZf/4818ecbc-f9c1-4d4a-b187-d5ba6d345394.png",
-        screenshots: [
-          "https://i.ibb.co/tT6Gm8Bm/IMG-20260726-134900.png",
-          "https://i.ibb.co/TMHPdFfP/IMG-20260726-134920.png",
-          "https://i.ibb.co/KxN3y1yC/IMG-20260726-134935.png"
-        ],
-        directLink: "https://www.mediafire.com/file/ojwwt85p08xzv2s/SnapPix.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.3",
-        weight: "<i class=\"fa-solid fa-box\"></i> 7 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "house-chores",
-        name: "House Chores",
-        desc: "Tareas del Hogar es una novela visual donde vives la historia de un joven durante sus vacaciones de verano. Los problemas surgen cuando empieza a ver a alguien cercano de una manera muy diferente. Para colmo, dos invitados inesperados irrumpen y complican aún más este verano caótico. ¿Lograrás triunfar durante tus vacaciones de verano? ¿O empezarás el curso escolar con las manos vacías?",
-        image: "https://i.ibb.co/7hJzg73/IMG-20260707-095811.png",
-        screenshots: [
-          "https://i.postimg.cc/vBTFrpzY/1.jpg",
-          "https://i.postimg.cc/XYKb4Kqb/2.jpg",
-          "https://i.postimg.cc/056rx3s1/3.jpg"
-        ],
-        directLink: "https://www.mediafire.com/file/kol81ze8t0qesru/HC_1.1.5a.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.1.5",
-        weight: "<i class=\"fa-solid fa-box\"></i> 1.72 GB",
-        tags: ["Android"]
-            },
-
-            {
-        id: "cryptid-park",
-        name: "Cryptid Park",
-        desc: "Este nuevo parque temático es para todos los amantes de las formas extrañas y espeluznantes que nos han mostrado las películas, la ciencia ficción, el terror y el anime a lo largo de los años.En este juego, encarnarás a un mímico solitario que ha llegado por casualidad a este nuevo parque temático. Con tantos objetos y criaturas para imitar, ¡orientarte será pan comido! ¿Verdad? Además, hay un montón de visitantes entusiastas y emocionados que visitan el parque, incluso fuera del horario de cierre. Parecen muy, muy interesados en algunas de tus transformaciones de monstruo… ¡Esperamos que les hagas pasar un buen rato! 🙂",
-        image: "https://erosgamesroom.com/wp-content/uploads/2026/07/Portada.gif",
-        screenshots: [
-          "https://i.postimg.cc/4NQC0b4K/1.png",
-          "https://i.postimg.cc/wTQKrcx7/2.png",
-          "https://i.postimg.cc/hP1FYb4z/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/hnji3cyqny6qa5q/CryPa_Level2.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> No especificado",
-        weight: "<i class=\"fa-solid fa-box\"></i> 125 MB",
-        tags: ["Android"]
-            },
-     {
-        id: "flipwitch-forbidden-sex-hex",
-        name: "FlipWitch – Forbidden Sex Hex",
-        desc: "Explora un mundo sumido en el caos, rebosante de lascivia y encuentros sexuales. Usa tus recién adquiridas habilidades de manipulación de género como una “FlipWitch” para derrotar a monstruos malvados, jefes gigantes y completar misiones para un elenco de personajes únicos y pintorescos. Aventúrate a través de bosques mágicos, mazmorras desiertas y ciudadelas viscosas en tu misión para derrotar a la malvada Bruja del Caos que ha corrompido este mundo hasta la oscuridad y ha dejado maldiciones sobre aldeanos y monstruos. Sálvalos de estas dolencias y serás recompensado con contenido H completamente animado.",
-        image: "https://i.ibb.co/5XJMcvvb/IMG-20260626-141524.png",
-        screenshots: [
-          "https://i.postimg.cc/bvRQCmn6/2.png",
-          "https://i.postimg.cc/SKGWTg9r/1.png",
-          "https://i.postimg.cc/mrSQXm95/4.png"
-        ],
-        directLink: "https://www.mediafire.com/file/bxuyfetj53bm1de/FWFS_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.5",
-        weight: "<i class=\"fa-solid fa-box\"></i> 344 MB",
-        tags: ["Pc"]
-},
-{
-        id: "monster-black-market",
-        name: "Monster Black Market",
-        desc: "El jugador acepta una propuesta secreta de Amilia, una miembro destacada del sindicato criminal más poderoso del continente. Ella le ofrece un territorio, donde pondrá a prueba al jugador haciéndole administrar una granja de monstruos y un burdel con monstruos y esclavos. Le ofrece un plazo de 50 días. Si el jugador administra el territorio y obtiene ganancias durante ese período, Amilia lo aceptará en la organización a la que pertenece.",
-        image: "https://i.ibb.co/Lhx9yYfb/IMG-20260626-140810.png",
-        screenshots: [
-          "https://i.postimg.cc/Jzh9PQyp/2.png",
-          "https://i.postimg.cc/y8NwvTJw/5.png",
-          "https://i.postimg.cc/mgr08SzG/6.png"
-        ],
-        directLink: "https://www.mediafire.com/file/x2uq0vgzmwgrqo9/MBM_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v2.1.1.0",
-        weight: "<i class=\"fa-solid fa-box\"></i> 304 MB",
-        tags: ["Pc"]
-},
-{
-        id: "winter-life-in-the-countryside",
-        name: "Winter: Life in the Countryside",
-        desc: "Son tus vacaciones de invierno. Estabas en tu apartamento, escondida dentro de la estufa para mantenerte caliente. Entonces, recibiste una llamada de tu tía. Con una sensación de déjà vu, pulsaste rápidamente el botón y contestaste. ¡Gané un sorteo y me dieron un boleto para un viaje a las aguas termales! Siento haberte avisado con tan poca antelación, pero ¿podrías venir a cuidar de Hazuki otra vez? El campo que visité por última vez en verano debe haber cambiado ahora que es invierno… Me pregunto cómo estará… Tus pensamientos divagan mientras sales de la estufa y te preparas para un viaje al campo.",
-        image: "https://erosgamesroom.com/wp-content/uploads/2026/03/Portada-1536x1152.webp",
-        screenshots: [
-          "https://i.postimg.cc/vB5cmnsn/2.png",
-          "https://i.postimg.cc/FR07KS41/3.png",
-          "https://i.postimg.cc/j2KCnjx2/5.png"
-        ],
-        directLink: "https://www.mediafire.com/file/fvs3ww7vt8hsdxg/WLitC_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v25.03.13",
-        weight: "<i class=\"fa-solid fa-box\"></i> 1.05 GB",
-        tags: ["Pc"]
-},
-{
-        id: "mad-island",
-        name: "Mad Island",
-        desc: "Tú y cuatro amigos disfrutan de un crucero cuando el barco choca contra una roca y se hunde. Despiertas en una isla desconocida donde conoces al otro protagonista del juego, con quien comenzarás tu aventura de supervivencia. El objetivo es encontrar a tus amigos y escapar de la isla.",
-        image: "https://i.ibb.co/chJWSCHB/IMG-20260626-135608.png",
-        screenshots: [
-          "https://i.postimg.cc/d1cqzC1q/7.png",
-          "https://i.postimg.cc/G2ncZDpS/8.png",
-          "https://i.postimg.cc/wM0gybkm/9.png"
-        ],
-        directLink: "https://www.mediafire.com/file/hyp7qrsu4189ctj/MI_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.5.8.2",
-        weight: "<i class=\"fa-solid fa-box\"></i> 1 GB",
-        tags: ["Pc"]
-},
-{
-        id: "whispered-promises-14-days-of-love-with-anna",
-        name: "Whispered Promises: 14 Days of Love with Anna",
-        desc: "Este juego es un simulador de convivencia y gestión donde vives con tu querida amiga de la infancia. ¡Disfruta de tu tiempo libre con Anna durante las vacaciones de 14 días!",
-        image: "https://erosgamesroom.com/wp-content/uploads/2026/03/Portada.png",
-        screenshots: [
-          "https://i.postimg.cc/0QJT6WLp/1.png",
-          "https://i.postimg.cc/Rh72d3Cv/2.png",
-          "https://i.postimg.cc/0jYhn651/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/p80j6ozfali0bqa/WPDolwA_%2528En_espa%25C3%25B1ol_por_DarkEros177%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
-        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No Especificado",
-        weight: "<i class=\"fa-solid fa-box\"></i> 640 MB",
-        tags: ["Pc"]
-},
-      {
-        id: "exposed-livestream",
-        name: "Exposed Livestream",
-        desc: "¡Transmite en directo de día, gasta bromas de noche y alcanza la fama en este juego de rol y aventuras! En la piel de Laika, una streamer de la vida real, crea contenido, consigue suscriptores y mejora tus habilidades. Explora la ciudad y arriésgalo todo para entretener a tu creciente audiencia. ¡Muéstrales lo que realmente quieren ver!",
-        image: "https://i.ibb.co/LD3CbgyQ/IMG-20260626-114141.png",
-        screenshots: [
-          "https://i.postimg.cc/QtPbx722/1.png",
-          "https://i.postimg.cc/63S05Zkg/2.png",
-          "https://i.postimg.cc/8c6bF5Gw/4.png"
-        ],
-        directLink: "https://www.mediafire.com/file/r2bt0myw6wudhak/EL_%2528En_espa%25C3%25B1ol_por_DarkEros177%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-windows\"></i> Windows 10",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.2",
-        weight: "<i class=\"fa-solid fa-box\"></i> 302 MB",
-        tags: ["Pc"]
-      },
-      {
-        id: "barely-working",
-        name: "Barely Working",
-        desc: "Juega como Candace, la zorrita de la oficina, que tiene que terminar un informe para el final del día. Por desgracia, sus compañeros están acostumbrados a ir a su escritorio para echar un polvo rápido. Candace tiene que gestionar tanto su informe como a sus compañeros a lo largo de la jornada.",
-        image: "https://i.ibb.co/QjvLjPkg/IMG-20260624-114233.png",
-        screenshots: [
-          "https://i.postimg.cc/PqKSf55S/1.png",
-          "https://i.postimg.cc/N0bdGjjC/4.png",
-          "https://i.postimg.cc/0rgfX6VD/7.png"
-        ],
-        directLink: "https://www.mediafire.com/file/4oa5ifqi356pb9r/b_w_14.0.1.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v14.0.1",
-        weight: "<i class=\"fa-solid fa-box\"></i> 77 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "live-with-my-sis",
-        name: "Live with My Sis",
-        desc: "Un día, solo estábamos mi hermana y yo. Una simulación de la vida cotidiana con mi hermana traviesa. Eres un hermano mayor que ha empezado a vivir con su hermana.» «A medida que pasáis los días juntos —viendo la tele y ayudándola a estudiar— las cosas empiezan a cambiar…",
-        image: "https://erosgamesroom.com/wp-content/uploads/2025/10/Portada-1.jpeg",
-        screenshots: [
-          "https://i.postimg.cc/5yGHMhq0/1.png",
-          "https://i.postimg.cc/gj5wPCy1/2.png",
-          "https://i.postimg.cc/3N6yHsCx/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/lbsrl9oc8tsruub/LwMLS.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No Especificado",
-        weight: "<i class=\"fa-solid fa-box\"></i> 168 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "daily-lives-of-my-countryside",
-        name: "Daily Lives of My Countryside",
-        desc: "Un chico regresa a su casa en el campo para continuar sus estudios. Sigámoslo para disfrutar de la hermosa vida rural.",
-        image: "https://erosgamesroom.com/wp-content/uploads/2025/11/Portada.png",
-        screenshots: [
-          "https://i.postimg.cc/xCzmXBPc/1.png",
-          "https://i.postimg.cc/BbfKHNhn/2.png",
-          "https://i.postimg.cc/QCZT1S6D/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/rloc4abmypbs649/DLoMC_v0.3.3.1_by_the66.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.3.3.1",
-        weight: "<i class=\"fa-solid fa-box\"></i> 345 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "succubus-hunt",
-        name: "Succubus Hunt",
-        desc: "Succubus Hunt se desarrolla en un mundo donde las chicas monstruo son increíblemente comunes, ¡y tú eres el único hombre humano¡ Corre, escabulle y ábrete paso a través de este emocionante mundo con 100 chicas monstruo sádicas, lindas y excitadas por encontrar!",
-        image: "https://i.ibb.co/G3rQ1mpC/Portada.png",
-        screenshots: [
-          "https://i.postimg.cc/TYcMW93G/1.png",
-          "https://i.postimg.cc/BQC91gn4/2.png",
-          "https://i.postimg.cc/pXBbnZLt/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/uh5ka3fatjct6mc/v1.52_SucHun.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.52",
-        weight: "<i class=\"fa-solid fa-box\"></i> 181 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "towns-charm",
-        name: "Town’s Charm",
-        desc: "Te mudas a una nueva ciudad y te instalas en una nueva casa antes de empezar la universidad, intentando adaptarte a tu nueva vida y forjar nuevas relaciones. Lo que se suponía que sería una transición molesta e incómoda podría convertirse en algo más interesante.",
-        image: "https://i.ibb.co/1Ybc3t80/Portada-1.png",
-        screenshots: [
-          "https://i.postimg.cc/ryPHvnBZ/1.png",
-          "https://i.postimg.cc/X7BP3KWf/2.png",
-          "https://i.postimg.cc/bNS580P0/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/mt6sn05tpui2ni9/TC_v0.6.5.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.6.5",
-        weight: "<i class=\"fa-solid fa-box\"></i> 249 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "honey-village",
-        name: "Honey Village",
-        desc: "De repente, despiertas en medio de un bosque. Frente a ti, una pequeña hada está siendo atacada por un orco. Tras rescatarla, ella ve tu fuerza y ​​te ruega que salves este mundo. Te dice que eres libre de hacer lo que quieras con chicas de todas las razas: elfos, slimes, súcubos, diablillos y más. Convencido de aceptar, te diriges al siguiente pueblo… pero ¿qué te espera?",
-        image: "https://i.ibb.co/67KG3vnf/Portada-1280x720.jpg",
-        screenshots: [
-          "https://i.postimg.cc/1zWw8JVR/1.png",
-          "https://i.postimg.cc/W49gdXqj/2.png",
-          "https://i.postimg.cc/KY9B1J3b/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/n31hql7oyy8l887/HoVi.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.1.0",
-        weight: "<i class=\"fa-solid fa-box\"></i> 324 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "magical-monstergirls",
-        name: "Magical Monstergirls Academy",
-        desc: "Eres el brujo humano más poderoso que el mundo haya conocido, pero tu poder genera celos y lujuria. Las súcubos quieren tu poder para sí mismas, pero ¿por qué? ¿Qué oscuro propósito impulsa su engaño? Por suerte, no estás solo ante esta amenaza y tus atractivas amigas están aquí para cuidarte. Entre dos aventuras llenas de libidinosas chicas monstruo, sabrán cómo relajarte y hacerte olvidar tus preocupaciones. Explora dominios lascivos, mazmorras repletas de chicas monstruo ansiosas por divertirse.",
-        image: "https://i.ibb.co/svMWdVDM/Portada.gif",
-        screenshots: [
-          "https://i.postimg.cc/wBCTjPkx/1.png",
-          "https://i.postimg.cc/N03fjVx0/2.png",
-          "https://i.postimg.cc/VNxLkTFk/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/roftwup2onjunfz/MagMonAca_4.1.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v4.1.1",
-        weight: "<i class=\"fa-solid fa-box\"></i> 190 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "back-alley-tales",
-        name: "Back Alley Tales",
-        desc: "En un pequeño pueblo, comenzaste a trabajar como guardia de seguridad y decidiste, por diversión, revisar las grabaciones de las cámaras de seguridad. Lo que no sabías era que descubrirías historias obscenas en callejones oscuros…",
-        image: "https://i.ibb.co/LD1ZnpfY/Portada.jpg",
-        screenshots: [
-          "https://i.postimg.cc/CLsfST24/1.png",
-          "https://i.postimg.cc/DyPbnkN6/2.png",
-          "https://i.postimg.cc/TYJWfMs9/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/bk2b9bqtz4n1nk4/URJJ.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v1.1.3",
-        weight: "<i class=\"fa-solid fa-box\"></i> 239 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "permit-deny",
-        name: "Permit, Deny",
-        desc: "Conviértete en el guardián de la Nación Agnar y lucha por la seguridad de sus ciudadanos.",
-        image: "https://i.ibb.co/zWJKdKvZ/Portada-1-1.png",
-        screenshots: [
-          "https://i.ibb.co/tP8RtvWg/1.png",
-          "https://i.ibb.co/VpPZPdFt/2.png",
-          "https://i.ibb.co/v69fXKW6/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/b63hem9jsfb7rzq/PD_2025-11-11.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v2025.11.11",
-        weight: "<i class=\"fa-solid fa-box\"></i> 21 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "intimate-days",
-        name: "Intimate Days with My Tsundere Sister",
-        desc: "Abandonados en la enorme mansión mientras nuestros padres están de viaje de negocios, solo estamos mi hermana menor y yo. Aunque suele ser distante conmigo, muestra una faceta diferente en las noches que estamos a solas. Mis emociones incontrolables se desbordan y finalmente decido romper el tabú entre hermanos y dejar que mi hermana refleje mis propios sentimientos. Sin embargo, parece que durante estas vacaciones de verano, no solo mi hermana, sino también otras chicas atractivas a mi alrededor, albergan sentimientos secretos hacia mí. Un mes de convivencia limitada… ¿podré reprimir la excitación palpitante teñida de decadencia?",
-        image: "https://i.ibb.co/XZcwy8Yg/Portada-1.jpg",
-        screenshots: [
-          "https://i.postimg.cc/v894c4vw/1.png",
-          "https://i.postimg.cc/8PSjWTyG/2.png",
-          "https://i.postimg.cc/CLsds9tn/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/3e9m66xaoh2ujey/IDwMTS_v0.3.1.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.3.1",
-        weight: "<i class=\"fa-solid fa-box\"></i> 539 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "gamer-struggles",
-        name: "Gamer Struggles",
-        desc: "Tras años pudriéndose en su habitación, Chiro finalmente es echada de su casa por ser una jugadora sucia, inútil y socialmente torpe ¿Cambiará su forma de ser y se integrará a la sociedad, o se hundirá aún más en la degeneración?",
-        image: "https://i.ibb.co/JwhRgSGc/Portada-1536x384.png",
-        screenshots: [
-          "https://i.postimg.cc/sx3b2yXL/1.png",
-          "https://i.postimg.cc/fyM1bZLG/2.png",
-          "https://i.postimg.cc/sx3b2yX8/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/s4yt2097wuoucsw/GS_0.1.8.3.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-circle-info\"></i> v0.1.8.3",
-        weight: "<i class=\"fa-solid fa-box\"></i> 188 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "milk-time",
-        name: "Milk Time",
-        desc: "Dame más de eso, Sensei. Me llegó un mensaje mientras estaba trabajando. Satisface a tu estudiante. Satisface a tu estudiante, que está obsesionada contigo.",
-        image: "https://i.ibb.co/Q7JQzV5X/Portada-2.png",
-        screenshots: [
-          "https://i.postimg.cc/7hXGX85W/1.png",
-          "https://i.postimg.cc/Vv4r4QJh/2.png",
-          "https://i.postimg.cc/tJDZDQsK/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/zg68b32856fpbs5/mi_ti.apk/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No especificado",
-        weight: "<i class=\"fa-solid fa-box\"></i> 190 MB",
-        tags: ["Android"]
-      },
-      {
-        id: "juegos-flash",
-        name: "Colección de juegos Flash",
-        desc: "Colección de 8 juegos Flash de Mew Games.",
-        image: "https://i.ibb.co/fdmyQSCr/Portada.jpg",
-        screenshots: [
-          "https://i.postimg.cc/5tJMqTgv/1.png",
-          "https://i.postimg.cc/ZqmhF2H6/2.png",
-          "https://i.postimg.cc/6QKNLgcn/3.png"
-        ],
-        directLink: "https://www.mediafire.com/file/gg8mwllu6wbg6hy/Pack_apk_%2528Eros_Games_Room%2529.rar/file",
-        versionAvailable: "<i class=\"fa-brands fa-android\"></i> 5+",
-        versionLatest: "<i class=\"fa-solid fa-ban\"></i> No especificado",
-        weight: "<i class=\"fa-solid fa-box\"></i> 139 MB",
-        tags: ["Android"]
-      }
-
-
-];
 
         let uniqueTags = [];
         const BASE_PAGE_TITLE = document.title || 'ClyraPlay';
@@ -4293,18 +3791,6 @@
             return null;
         }
 
-        function findGameByTitle(title) {
-            if (!title) return null;
-            title = String(title).toLowerCase();
-            for (var i = 0; i < gamesData.length; i++) {
-                var game = gamesData[i];
-                var gameTitle = String(game.name || game.text || game.id || game.link || game.src || '').toLowerCase();
-                if (gameTitle === title) return game;
-                if (slugifyText(gameTitle) === slugifyText(title)) return game;
-            }
-            return null;
-        }
-
         function getDeepLinkFromLocation() {
             var hash = window.location.hash || '';
             if (hash.indexOf('#/') !== 0) return null;
@@ -4322,51 +3808,22 @@
 
         function openDeepLinkFromUrl() {
             var deepLink = getDeepLinkFromLocation();
-            if (deepLink) {
-                if (deepLink.type === 'comic') {
-                    var comic = findComicByTitle(deepLink.title);
-                    if (comic) {
-                        openComicModal(comic);
-                    }
-                    return;
-                }
-
-                if (deepLink.type === 'game') {
-                    var game = findGameByTitle(deepLink.title);
-                    if (game) {
-                        openGameModal(game);
-                    }
-                }
+            if (deepLink && deepLink.type === 'comic') {
+                var linkedComic = findComicByTitle(deepLink.title);
+                if (linkedComic) openComicModal(linkedComic);
                 return;
             }
-
             var params = new URLSearchParams(window.location.search);
             var view = (params.get('view') || '').toLowerCase();
             var item = params.get('item') || '';
-            if (!view || !item) return;
-
-            if (view === 'comic') {
-                var comicLegacy = findComicBySlug(item);
-                if (comicLegacy) {
-                    openComicModal(comicLegacy);
-                }
-                return;
-            }
-
-            if (view === 'game') {
-                var gameLegacy = findGameBySlug(item);
-                if (gameLegacy) {
-                    openGameModal(gameLegacy);
-                }
+            if (view === 'comic' && item) {
+                var comic = findComicBySlug(item);
+                if (comic) openComicModal(comic);
             }
         }
 
         function findComicBySlug(slug) {
             return findComicByTitle(slug);
-        }
-
-        function findGameBySlug(slug) {
-            return findGameByTitle(slug);
         }
 
         function copyTextToClipboard(textValue) {
@@ -4462,40 +3919,6 @@
             return card;
         }
 
-        function createGameCard(game) {
-            const card = document.createElement('div');
-            card.className = 'card card-game';
-            card.style.backgroundImage = `url('${game.image}')`;
-            const gameKey = (window.ClyraStats && typeof window.ClyraStats.getContentKey === 'function') ?
-                window.ClyraStats.getContentKey('game', game) :
-                String(game.name || game.image || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-            card.dataset.contentKey = 'game::' + gameKey;
-            card.onclick = function() { openGameModal(game); };
-
-            const badge = document.createElement('div');
-            badge.className = 'card-user-badge';
-            badge.innerHTML = '<i class="fa-solid fa-eye"></i><span>0</span>';
-            card.appendChild(badge);
-
-            const content = document.createElement('div');
-            content.className = 'card-content';
-            const title = document.createElement('div');
-            title.className = 'card-title';
-            title.textContent = formatTitleCase(game.name);
-            const tagsContainer = document.createElement('div');
-            tagsContainer.className = 'card-subtitle';
-            tagsContainer.textContent = formatFirstTagCase(game.tags);
-
-            content.appendChild(title);
-            content.appendChild(tagsContainer);
-            card.appendChild(content);
-
-            if (window.ClyraStats && typeof window.ClyraStats.bindCounter === 'function') {
-                window.ClyraStats.bindCounter(card, 'game', gameKey, badge);
-            }
-            return card;
-        }
-
         function shuffleArray(array) {
             let currentIndex = array.length,
                 randomIndex;
@@ -4529,26 +3952,61 @@
                 });
             });
             uniqueTags = Array.from(tagsSet);
-        }
-
-        function initMainGames() {
-            const container = document.getElementById('games-container');
-            container.innerHTML = '';
-            gamesData.slice(0, 8).forEach(game => container.appendChild(createGameCard(game)));
+            // Top 10: orden estable por identificador de publicación más reciente.
+            var top = [...comicsData].sort(function(a,b){ return getGoId(b.link)-getGoId(a.link); }).slice(0,10);
+            var topBox = document.getElementById('top10-container');
+            if (topBox) {
+                topBox.innerHTML = '';
+                top.forEach(function(comic, i) {
+                    var wrap = document.createElement('div'); wrap.className = 'top10-item';
+                    var num = document.createElement('span'); num.className = 'top10-number'; num.textContent = String(i+1);
+                    wrap.appendChild(num); wrap.appendChild(createComicCard(comic)); topBox.appendChild(wrap);
+                });
+            }
+            var genreBox = document.getElementById('genre-sections');
+            if (genreBox) {
+                genreBox.innerHTML = '';
+                var genreMap = {};
+                comicsData.forEach(function(comic) {
+                    String(comic.genre || 'Otros').split(',').forEach(function(g) {
+                        g = g.trim(); if (!g || /^nuevo$/i.test(g)) return;
+                        if (!genreMap[g]) genreMap[g] = [];
+                        if (genreMap[g].indexOf(comic) === -1) genreMap[g].push(comic);
+                    });
+                });
+                // Ordenar de mayor a menor según la cantidad real de cómics de cada género.
+                // En caso de empate, mantener un orden alfabético estable.
+                Object.keys(genreMap)
+                    .filter(function(g) { return genreMap[g].length >= 2; })
+                    .sort(function(a, b) {
+                        var difference = genreMap[b].length - genreMap[a].length;
+                        return difference !== 0 ? difference : a.toLowerCase().localeCompare(b.toLowerCase());
+                    })
+                    .forEach(function(g) {
+                        var section = document.createElement('section'); section.className = 'catalog-section';
+                        section.dataset.comicCount = String(genreMap[g].length);
+                        var title = document.createElement('h2'); title.textContent = g;
+                        var row = document.createElement('div'); row.className = 'horizontal-scroll genre-row';
+                        // Mantener un máximo de 18 portadas por carrusel para cuidar el rendimiento.
+                        // El orden del género se calcula usando el catálogo completo, no solo estas portadas.
+                        genreMap[g].slice(0, 18).forEach(function(c){ row.appendChild(createComicCard(c)); });
+                        section.appendChild(title); section.appendChild(row); genreBox.appendChild(section);
+                    });
+            }
         }
 
         /* --- CONTROL DE VISTAS CÓMICS --- */
         function showAllComicsView() {
-            document.querySelector('.navbar').style.display = 'none';
             document.getElementById('main-view').style.display = 'none';
-            document.getElementById('all-games-view').style.display = 'none';
             document.getElementById('all-comics-view').style.display = 'block';
             window.scrollTo(0, 0);
-            renderAllComicsGrid(shuffleArray([...comicsData]));
+            var catalogComics = [...comicsData].sort(function(a, b) { return getGoId(b.link) - getGoId(a.link); });
+            renderAllComicsGrid(catalogComics);
+            var searchBox = document.getElementById('comic-search-input');
+            if (searchBox) setTimeout(function() { searchBox.focus(); }, 80);
         }
 
         function hideAllComicsView() {
-            document.querySelector('.navbar').style.display = 'flex';
             document.getElementById('all-comics-view').style.display = 'none';
             document.getElementById('main-view').style.display = 'block';
             document.getElementById('comic-search-input').value = '';
@@ -4566,37 +4024,10 @@
             dataArray.forEach(comic => grid.appendChild(createComicCard(comic)));
         }
 
-        /* --- CONTROL DE VISTAS JUEGOS --- */
-        function showAllGamesView() {
-            document.querySelector('.navbar').style.display = 'none';
-            document.getElementById('main-view').style.display = 'none';
-            document.getElementById('all-comics-view').style.display = 'none';
-            document.getElementById('all-games-view').style.display = 'block';
-            window.scrollTo(0, 0);
-            renderAllGamesGrid([...gamesData]);
-        }
-
         function openSearchPage() {
-            var extra = window.location.search || '';
-            window.location.href = 'Buscador.html' + extra;
-        }
-
-        function hideAllGamesView() {
-            document.querySelector('.navbar').style.display = 'flex';
-            document.getElementById('all-games-view').style.display = 'none';
-            document.getElementById('main-view').style.display = 'block';
-            document.getElementById('game-search-input').value = '';
-        }
-
-        function renderAllGamesGrid(dataArray) {
-            const grid = document.getElementById('all-games-grid');
-            grid.innerHTML = '';
-            if (dataArray.length === 0) {
-                grid.innerHTML =
-                    '<p style="grid-column: 1 / -1; text-align: center; color: #d0d0d0; margin-top: 30px;">No se encontraron juegos con esa búsqueda.</p>';
-                return;
-            }
-            dataArray.forEach(game => grid.appendChild(createGameCard(game)));
+            showAllComicsView();
+            var input = document.getElementById('comic-search-input');
+            if (input) setTimeout(function() { input.focus(); }, 80);
         }
 
         /* --- BUSCADORES --- */
@@ -4633,12 +4064,6 @@
             } else suggestionsBox.style.display = 'none';
         });
 
-        const gameSearchInput = document.getElementById('game-search-input');
-        gameSearchInput.addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase().trim();
-            const filteredGames = gamesData.filter(game => game.name.toLowerCase().includes(query));
-            renderAllGamesGrid(filteredGames);
-        });
 
         document.addEventListener('click', function(e) {
             if (!document.querySelector('.search-container').contains(e.target)) {
@@ -4681,20 +4106,6 @@
             clearDeepLink();
         }
 
-        let adWatched = false;
-        let awaitingReturn = false;
-        let currentDetailCard = null;
-        const adsRequired = 2;
-        let adsCompleted = 0;
-        const adUrls = [
-            'https://omg10.com/4/11019975',
-            'https://omg10.com/4/11205348'
-        ];
-
-        const adModal = document.getElementById('adModal');
-        const watchAdBtn = document.getElementById('watchAdBtn');
-        const linkBtn = document.getElementById('linkBtn');
-        const adStatus = document.getElementById('adStatus');
         const comicAdUrl = 'https://omg10.com/4/11019975';
         const downloadModal = document.getElementById('downloadModal');
 
@@ -4729,169 +4140,6 @@
             window.open(comicAdUrl, '_blank', 'noopener,noreferrer');
         }
 
-        function openGameModal(game) {
-            const modal = document.getElementById('game-details-modal');
-            const bodyElement = document.getElementById('modal-game-body');
-            bodyElement.innerHTML = '';
-            currentDetailCard = game;
-
-            setDeepLink('game', game);
-            updateDeepLinkBanner(bodyElement, 'game', game);
-
-            if (window.ClyraStats && typeof window.ClyraStats.recordOpen === 'function') {
-                window.ClyraStats.recordOpen('game', game);
-            }
-
-            if (game.image) {
-                const coverImg = document.createElement('img');
-                coverImg.src = game.image;
-                coverImg.className = 'game-cover-img';
-                bodyElement.appendChild(coverImg);
-            }
-
-            const gameTitle = document.createElement('div');
-            gameTitle.className = 'game-modal-game-title';
-            gameTitle.textContent = formatTitleCase(game.name);
-            bodyElement.appendChild(gameTitle);
-
-            const desc = document.createElement('p');
-            desc.className = 'game-desc-text';
-            desc.textContent = game.desc;
-            bodyElement.appendChild(desc);
-
-            const grid = document.createElement('div');
-            grid.className = 'game-meta-grid';
-            grid.innerHTML = `
-                <div class="game-meta-item">${game.versionAvailable}</div>
-                <div class="game-meta-item">${game.versionLatest}</div>
-                <div class="game-meta-item">${game.weight}</div>
-            `;
-            bodyElement.appendChild(grid);
-
-            if (game.screenshots && game.screenshots.length > 0) {
-                const ssSection = document.createElement('div');
-                ssSection.className = 'game-screenshots-section';
-                ssSection.innerHTML =
-                    '<span class="game-screenshots-label"><img class="game-capturas-icon" src="https://i.ibb.co/W4y02B2T/imagen.png" alt="Capturas"> Capturas de Pantalla</span>';
-                const ssScroll = document.createElement('div');
-                ssScroll.className = 'game-screenshots-scroll';
-                game.screenshots.forEach(url => {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.className = 'game-screenshot-img';
-                    img.onclick = () => openLightbox(url);
-                    ssScroll.appendChild(img);
-                });
-                ssSection.appendChild(ssScroll);
-                bodyElement.appendChild(ssSection);
-            }
-
-            const dlWrapper = document.createElement('div');
-            dlWrapper.className = 'game-dl-wrapper';
-            const dlBtn = document.createElement('button');
-            dlBtn.className = 'game-dl-btn';
-            dlBtn.type = 'button';
-            dlBtn.innerHTML = '<i class="fa-solid fa-download"></i> Descargar ahora';
-            dlBtn.onclick = openAdModal;
-            dlWrapper.appendChild(dlBtn);
-            bodyElement.appendChild(dlWrapper);
-
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeGameModal() {
-            document.getElementById('game-details-modal').style.display = 'none';
-            document.body.style.overflow = '';
-            document.getElementById('modal-game-body').innerHTML = '';
-            currentDetailCard = null;
-            clearDeepLink();
-        }
-
-        function openAdModal() {
-            adWatched = false;
-            awaitingReturn = false;
-            adsCompleted = 0;
-
-            linkBtn.disabled = true;
-            linkBtn.classList.remove('enabled');
-            linkBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Botón de enlace bloqueado';
-            adStatus.textContent =
-                `Toca Ver anuncio ${adsRequired} veces, vuelve a la aplicación después de cada anuncio y el enlace de MediaFire se desbloqueará.`;
-            adStatus.classList.remove('success');
-
-            adModal.classList.add('show');
-            adModal.setAttribute('aria-hidden', 'false');
-        }
-
-        function closeAdModal() {
-            adModal.classList.remove('show');
-            adModal.setAttribute('aria-hidden', 'true');
-            awaitingReturn = false;
-            if (!adWatched) {
-                watchAdBtn.disabled = false;
-                watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
-            }
-        }
-
-        watchAdBtn.addEventListener('click', () => {
-            const adUrl = adUrls[adsCompleted] || adUrls[adUrls.length - 1];
-            window.open(adUrl, '_blank', 'noopener,noreferrer');
-            watchAdBtn.disabled = true;
-            watchAdBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Abriendo anuncio...';
-            awaitingReturn = true;
-            adStatus.textContent = `Se abrió el anuncio ${adsCompleted + 1}/${adsRequired}. Vuelve a la aplicación para continuar.`;
-            adStatus.classList.remove('success');
-        });
-
-        function unlockLinkOnReturn() {
-            if (!awaitingReturn || adWatched) return;
-
-            adsCompleted += 1;
-            awaitingReturn = false;
-            watchAdBtn.disabled = false;
-            watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
-
-            if (adsCompleted >= adsRequired) {
-                adWatched = true;
-                linkBtn.disabled = false;
-                linkBtn.classList.add('enabled');
-                linkBtn.innerHTML = '<i class="fa-solid fa-unlock"></i> Enlace desbloqueado';
-                watchAdBtn.disabled = true;
-                watchAdBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Anuncios completados';
-                adStatus.textContent = 'Ya volviste a la aplicación. El enlace de MediaFire está desbloqueado.';
-                adStatus.classList.add('success');
-            } else {
-                const remaining = adsRequired - adsCompleted;
-                adStatus.textContent =
-                    `Anuncio completado ${adsCompleted}/${adsRequired}. Te falta ${remaining} más para desbloquear el enlace.`;
-                adStatus.classList.remove('success');
-            }
-        }
-
-        window.addEventListener('focus', unlockLinkOnReturn);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') unlockLinkOnReturn();
-        });
-
-        linkBtn.addEventListener('click', () => {
-            if (!adWatched || !currentDetailCard) return;
-            const directLink = currentDetailCard.directLink || '#';
-            window.open(directLink, '_blank', 'noopener,noreferrer');
-            closeAdModal();
-            closeGameModal();
-        });
-
-        adModal.addEventListener('click', (e) => {
-            if (e.target === adModal) {
-                if (!adWatched) {
-                    watchAdBtn.disabled = false;
-                    watchAdBtn.innerHTML = '<i class="fa-solid fa-play"></i> Ver anuncio';
-                }
-                closeAdModal();
-            }
-        });
-
         downloadModal.addEventListener('click', function(e) {
             if (e.target === downloadModal) {
                 closeDownloadModal();
@@ -4901,7 +4149,6 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (downloadModal.classList.contains('show')) closeDownloadModal();
-                if (adModal.classList.contains('show')) closeAdModal();
             }
         });
 
@@ -4944,7 +4191,6 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             initMainComics();
-            initMainGames();
             setTimeout(function() {
                 openDeepLinkFromUrl();
             }, 0);
@@ -4953,23 +4199,15 @@
         window.addEventListener('popstate', function() {
             var deepLink = getDeepLinkFromLocation();
             if (!deepLink) {
-                if (document.getElementById('comic-reader-modal').style.display === 'flex') {
-                    closeComicModal();
-                }
-                if (document.getElementById('game-details-modal').style.display === 'flex') {
-                    closeGameModal();
-                }
+                var comicModal = document.getElementById('comic-reader-modal');
+                if (comicModal && comicModal.style.display === 'flex') closeComicModal();
             }
         });
 
         window.addEventListener('hashchange', function() {
             if (!window.location.hash) {
-                if (document.getElementById('comic-reader-modal').style.display === 'flex') {
-                    closeComicModal();
-                }
-                if (document.getElementById('game-details-modal').style.display === 'flex') {
-                    closeGameModal();
-                }
+                var comicModal = document.getElementById('comic-reader-modal');
+                if (comicModal && comicModal.style.display === 'flex') closeComicModal();
             }
         });
     
