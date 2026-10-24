@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -11,7 +11,6 @@
 <title>Jinx Waifus Web</title>
 <link rel="icon" href="data:,">
 <style>
-  /* ===== FUENTE PERSONALIZADA ===== */
   @font-face {
     font-family: 'ClyraPlay';
     src: url('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf') format('truetype');
@@ -19,7 +18,6 @@
     font-style: normal;
     font-display: swap;
   }
-  /* ================================= */
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root{
@@ -125,7 +123,6 @@
 
   .layout{ display: flex; min-height: 100vh; position: relative; width: 100%; overflow-x: clip; }
 
-  /* Sidebar */
   .sidebar{ width: var(--sidebar-w);
     background: rgba(15,15,23,.75);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -195,7 +192,6 @@
     -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); z-index: 95; }
   .overlay.show{ display: block; animation: modalFade .2s; }
 
-  /* Bottom Nav (mobile) */
   .bottom-nav{
     display: none;
     position: fixed;
@@ -427,6 +423,9 @@
   .profile-info .tag{ font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 500; }
   .plus-badge{ display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 3px 10px; border-radius: 100px;
     background: linear-gradient(135deg, var(--gold), var(--pink)); color: white; font-weight: 800; text-transform: uppercase; }
+  .ultra-badge{ display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 3px 10px; border-radius: 100px;
+    background: linear-gradient(135deg, var(--purple), var(--cyan), var(--pink)); color: white; font-weight: 800; text-transform: uppercase;
+    background-size: 200% auto; box-shadow: 0 0 10px rgba(139,92,246,.5); animation: shimmer 3s linear infinite; }
 
   .stats-grid{ display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .stat{ padding: 16px 12px; border-radius: var(--radius);
@@ -485,7 +484,7 @@
   .wcard[data-r="exclusiva"]{ border-color: rgba(34,211,238,.55); }
   .wcard[data-r="exclusiva"] .rarity{ color: var(--exclusiva); background: rgba(34,211,238,.1); }
 
-  .wcard .cover-badge{ position:absolute; top:8px; right:8px; background: rgba(0,0,0,.65);
+  .wcard .status-badge{ position:absolute; top:8px; right:8px; background: rgba(0,0,0,.65);
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     color: var(--gold); font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 100px;
     box-shadow: var(--shadow-sm); z-index:2; display: flex; align-items: center;
@@ -767,7 +766,6 @@
   .sell-status.ok{ display: block; background: rgba(16,185,129,.1); color: #6ee7b7; border: 1px solid rgba(16,185,129,.3); }
   .sell-status.err{ display: block; background: rgba(239,68,68,.1); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
 
-  /* CONFIRM MODAL (reemplazo de confirm()) */
   #confirm-modal{ z-index: 10000; }
   #confirm-modal.show{ display: flex; align-items: center; justify-content: center; padding: 20px; }
   #confirm-modal .modal-overlay{ position: fixed; }
@@ -870,7 +868,6 @@
   .shop-search-empty{ text-align: center; padding: 46px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; font-weight: 500; }
   .shop-search-empty .icon{ font-size: 42px; margin-bottom: 12px; display: flex; justify-content: center; opacity: .5; color: var(--purple); }
 
-  /* Support Page */
   .support-group-card {
     display: flex; flex-direction: row;
     border-radius: var(--radius-lg); overflow: hidden;
@@ -1194,7 +1191,6 @@
   </div>
 </div>
 
-<!-- CONFIRM MODAL (reemplazo de confirm() nativo) -->
 <div id="confirm-modal" class="modal">
   <div class="modal-overlay"></div>
   <div class="modal-content confirm-modal-content">
@@ -1514,6 +1510,14 @@ let lastSalesSig = '';
 let lastCatalogSig = '';
 let lastSkinsSig = '';
 
+let battleRanking  = null;
+let mineralRanking = null;
+let ultraRanking   = null;
+let lastBattleRankingSig  = '';
+let lastMineralRankingSig = '';
+let lastUltraRankingSig   = '';
+let rankingSubTab = 'waifus';
+
 let sellWaifuName = null;
 let sellSending = false;
 
@@ -1666,20 +1670,26 @@ async function startSession(token) {
 
 async function loadAll() {
   const uid = session.userId;
-  const [uSnap, dSnap, cSnap, rSnap, sSnap, skSnap] = await Promise.all([
+  const [uSnap, dSnap, cSnap, rSnap, sSnap, skSnap, bRankSnap, mRankSnap, uRankSnap] = await Promise.all([
     get(ref(db, `users/${uid}`)),
     get(ref(db, `users/${uid}/data`)),
     get(ref(db, `catalog`)),
     get(ref(db, `ranking`)),
     get(ref(db, `sales`)),
-    get(ref(db, `skins`))
+    get(ref(db, `skins`)),
+    get(ref(db, `battleRanking`)),
+    get(ref(db, `mineralRanking`)),
+    get(ref(db, `ultraRanking`))
   ]);
-  userDoc  = uSnap.val()  || {};
-  userData = dSnap.val()  || {};
-  catalog  = cSnap.val()  || { pool: {}, series: {} };
-  ranking  = rSnap.val()  || { top: [], totalUsers: 0, totalWaifus: 0 };
-  sales    = sSnap.val()  || {};
-  skins    = skSnap.val() || {};
+  userDoc        = uSnap.val()  || {};
+  userData       = dSnap.val()  || {};
+  catalog        = cSnap.val()  || { pool: {}, series: {} };
+  ranking        = rSnap.val()  || { top: [], totalUsers: 0, totalWaifus: 0 };
+  sales          = sSnap.val()  || {};
+  skins          = skSnap.val() || {};
+  battleRanking  = bRankSnap.val() || { top: [], totalBattles: 0 };
+  mineralRanking = mRankSnap.val() || { top: [] };
+  ultraRanking   = uRankSnap.val() || { top: [] };
 }
 
 function subscribeRealtime() {
@@ -1688,9 +1698,8 @@ function subscribeRealtime() {
   unsubs.push(onValue(ref(db, `users/${uid}/data`), (s) => {
     const newData = s.val() || {};
     const sig = (newData.waifus?.length || 0) + '|' + (newData.coins || 0) + '|' +
-                ((newData.covers || []).join(',')) + '|' + ((newData.coversOff || []).join(',')) + '|' +
                 ((newData.skins || []).join(',')) + '|' + ((newData.skinsOff || []).join(',')) + '|' +
-                (newData.predeterminada || '') + '|' + (newData.plusExpiresAt || 0);
+                (newData.predeterminada || '') + '|' + (newData.plusExpiresAt || 0) + '|' + (newData.ultraExpiresAt || 0);
     if (sig === lastUserDataSig) return;
     lastUserDataSig = sig;
     userData = newData;
@@ -1752,7 +1761,34 @@ function subscribeRealtime() {
     if (sig === lastRankingSig) return;
     lastRankingSig = sig;
     ranking = newR;
-    if (currentTab === 'ranking') renderRanking();
+    if (currentTab === 'ranking' && rankingSubTab === 'waifus') renderRanking();
+  }));
+
+  unsubs.push(onValue(ref(db, `battleRanking`), (s) => {
+    const newR = s.val() || { top: [], totalBattles: 0 };
+    const sig = (newR.updatedAt || 0) + '|' + (newR.top?.length || 0);
+    if (sig === lastBattleRankingSig) return;
+    lastBattleRankingSig = sig;
+    battleRanking = newR;
+    if (currentTab === 'ranking' && rankingSubTab === 'batallas') renderRanking();
+  }));
+
+  unsubs.push(onValue(ref(db, `mineralRanking`), (s) => {
+    const newR = s.val() || { top: [] };
+    const sig = (newR.updatedAt || 0) + '|' + (newR.top?.length || 0);
+    if (sig === lastMineralRankingSig) return;
+    lastMineralRankingSig = sig;
+    mineralRanking = newR;
+    if (currentTab === 'ranking' && rankingSubTab === 'minerales') renderRanking();
+  }));
+
+  unsubs.push(onValue(ref(db, `ultraRanking`), (s) => {
+    const newR = s.val() || { top: [] };
+    const sig = (newR.updatedAt || 0) + '|' + (newR.top?.length || 0);
+    if (sig === lastUltraRankingSig) return;
+    lastUltraRankingSig = sig;
+    ultraRanking = newR;
+    if (currentTab === 'ranking' && rankingSubTab === 'ultra') renderRanking();
   }));
 }
 
@@ -2362,7 +2398,7 @@ async function submitSell(price) {
 $('sell-modal-close')?.addEventListener('click', closeSellModal);
 $('sell-modal')?.querySelector('.modal-overlay')?.addEventListener('click', closeSellModal);
 
-/* ============ CONFIRM MODAL CUSTOM (reemplazo de confirm()) ============ */
+/* ============ CONFIRM MODAL CUSTOM ============ */
 let confirmResolver = null;
 
 function resolveConfirm(value) {
@@ -2418,7 +2454,6 @@ function showConfirm({ title = '¿Confirmar?', message = '', confirmText = 'Acep
     document.body.classList.add('modal-open');
   });
 }
-/* ======================================================================= */
 
 const TAB_TITLES = {
   profile: 'Perfil', collection: 'Colección', ranking: 'Ranking', shop: 'Tienda', support: 'Soporte'
@@ -2509,14 +2544,22 @@ function renderModalProfile() {
   const coins  = Number(uData.coins) || 0;
   const collection = groupWaifusByRarity(waifus);
   const rc = countRarityFromGroups(collection);
-  const plusActive = uData.plusExpiresAt && uData.plusExpiresAt > Date.now();
-  const plusDays = plusActive ? Math.ceil((uData.plusExpiresAt - Date.now()) / 86400000) : 0;
+
+  const plusActive  = uData.plusExpiresAt  && uData.plusExpiresAt  > Date.now();
+  const plusDays    = plusActive  ? Math.ceil((uData.plusExpiresAt  - Date.now()) / 86400000) : 0;
+  const ultraActive = uData.ultraExpiresAt && uData.ultraExpiresAt > Date.now();
+  const ultraDays   = ultraActive ? Math.ceil((uData.ultraExpiresAt - Date.now()) / 86400000) : 0;
+
+  const subBadge = ultraActive
+    ? `<span class="ultra-badge">${ico('star',10)} Ultra ${ultraDays}d</span>`
+    : (plusActive ? `<span class="plus-badge">${ico('diamond',10)} Plus ${plusDays}d</span>` : '');
+
   const avatarInner = uDoc.photoUrl ? `<img src="${esc(uDoc.photoUrl)}" alt="" loading="lazy">` : initial;
 
   let html = `<div class="profile">
     <div class="avatar">${avatarInner}</div>
     <div class="profile-info">
-      <div class="name">${esc(name)}${plusActive ? `<span class="plus-badge">${ico('diamond',10)} Plus ${plusDays}d</span>` : ''}</div>
+      <div class="name">${esc(name)}${subBadge}</div>
       <div class="tag">${uDoc.username ? '@' + esc(uDoc.username) : 'ID: ' + modalOpenUserId}</div>
       ${modalRankInfo ? `<div class="tag">${ico('trophy',11)} Puesto #${modalRankInfo.place} de ${modalRankInfo.total}</div>` : ''}
     </div>
@@ -2599,8 +2642,16 @@ function renderProfile() {
   const coins = Number(userData.coins) || 0;
   const groups = groupWaifusByRarity(waifus);
   const rc = countRarityFromGroups(groups);
-  const plusActive = userData.plusExpiresAt && userData.plusExpiresAt > Date.now();
-  const plusDays = plusActive ? Math.ceil((userData.plusExpiresAt - Date.now()) / 86400000) : 0;
+
+  const plusActive  = userData.plusExpiresAt  && userData.plusExpiresAt  > Date.now();
+  const plusDays    = plusActive  ? Math.ceil((userData.plusExpiresAt  - Date.now()) / 86400000) : 0;
+  const ultraActive = userData.ultraExpiresAt && userData.ultraExpiresAt > Date.now();
+  const ultraDays   = ultraActive ? Math.ceil((userData.ultraExpiresAt - Date.now()) / 86400000) : 0;
+
+  const subBadge = ultraActive
+    ? `<span class="ultra-badge">${ico('star',10)} Ultra ${ultraDays}d</span>`
+    : (plusActive ? `<span class="plus-badge">${ico('diamond',11)} Plus ${plusDays}d</span>` : '');
+
   const total = waifus.length || 1;
   const pct = {
     comun:      (rc.comun / total) * 100,
@@ -2615,7 +2666,7 @@ function renderProfile() {
     <div class="profile">
       <div class="avatar">${avatarInner}</div>
       <div class="profile-info">
-        <div class="name">${esc(name)}${plusActive ? `<span class="plus-badge">${ico('diamond',11)} Plus ${plusDays}d</span>` : ''}</div>
+        <div class="name">${esc(name)}${subBadge}</div>
         <div class="tag">${userDoc.username ? '@' + esc(userDoc.username) : 'ID: ' + session.userId}</div>
       </div>
     </div>
@@ -2705,15 +2756,11 @@ function renderCollectionWaifus(container) {
   } else {
     html += `<p class="hint" style="text-align:left;margin:0 0 12px">${ico('tag',11)} Toca <b>Vender</b> en cualquier carta para ponerla en venta.</p>`;
     html += `<div class="grid">`;
-    const covers = new Set(userData.covers || []);
-    const coversOff = new Set(userData.coversOff || []);
     for (const w of list) {
       watchImage(w.name);
       const url = imageUrls[w.name] || '';
-      const hasCover = covers.has(w.name) && !coversOff.has(w.name);
       const initial = (w.name || '?').charAt(0).toUpperCase();
       html += `<div class="wcard" data-r="${w.rarity}" data-img="${esc(w.name)}">
-        ${hasCover ? `<span class="cover-badge">${ico('star',10)}</span>` : ''}
         <div class="img" data-open-card="${esc(w.name)}">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}</div>
         <div class="info">
           <div class="name" title="${esc(w.name)}">${esc(w.name)}</div>
@@ -3060,7 +3107,7 @@ function renderCollectionSkins(container) {
     const rl = RARITY_LABEL[rarity] || rarity;
 
     html += `<div class="wcard skin-card ${isActive ? 'skin-active' : ''}" data-r="${rarity}">
-      ${isActive ? `<span class="cover-badge">${ico('check',10)}</span>` : ''}
+      ${isActive ? `<span class="status-badge">${ico('check',10)}</span>` : ''}
       <div class="img">
         ${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}
         ${isActive ? `<div class="skin-active-tag">${ico('check',10)} ACTIVA</div>` : ''}
@@ -3104,24 +3151,56 @@ function renderCollectionSkins(container) {
 
 function renderRanking() {
   const c = $('tab-ranking');
+  if (!c) return;
+
+  c.innerHTML = `<div class="page-wrap">
+    <div class="subtabs" id="ranking-subtabs">
+      <button class="subtab ${rankingSubTab === 'waifus'    ? 'active' : ''}" data-rsub="waifus">${ico('layers',13)}Waifus</button>
+      <button class="subtab ${rankingSubTab === 'batallas'  ? 'active' : ''}" data-rsub="batallas">${ico('flame',13)}Batallas</button>
+      <button class="subtab ${rankingSubTab === 'minerales' ? 'active' : ''}" data-rsub="minerales">${ico('diamond',13)}Minerales</button>
+      <button class="subtab ${rankingSubTab === 'ultra'     ? 'active' : ''}" data-rsub="ultra">${ico('coin',13)}Millonarios</button>
+    </div>
+    <div id="ranking-content"></div>
+  </div>`;
+
+  c.querySelectorAll('#ranking-subtabs .subtab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      rankingSubTab = btn.dataset.rsub;
+      renderRanking();
+    });
+  });
+
+  const content = $('ranking-content');
+  if (!content) return;
+  if (rankingSubTab === 'waifus')         renderRankingWaifus(content);
+  else if (rankingSubTab === 'batallas')  renderRankingBatallas(content);
+  else if (rankingSubTab === 'minerales') renderRankingMinerales(content);
+  else if (rankingSubTab === 'ultra')     renderRankingUltra(content);
+}
+
+function renderRankingWaifus(container) {
   const top = ranking?.top || [];
-  if (!top.length) { c.innerHTML = `<div class="page-wrap"><div class="empty"><span class="icon">${ico('trophy',44)}</span>Sin datos de ranking aún.</div></div>`; return; }
+  if (!top.length) {
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('trophy',44)}</span>Sin datos de ranking aún.</div>`;
+    return;
+  }
   const myId = session.userId;
   const totalUsers = ranking.totalUsers || top.length;
-  let html = `<div class="page-wrap">
+  let html = `
     <div class="stats-grid">
       <div class="stat"><div class="num">${fmt(totalUsers)}</div><div class="lbl">${ico('users',12)} Jugadores</div></div>
       <div class="stat"><div class="num">${fmt(ranking.totalWaifus || 0)}</div><div class="lbl">${ico('layers',12)} Waifus totales</div></div>
     </div>
     <div class="section-title">${ico('trophy',11)} Top ${top.length}</div>
     <div class="rank-list">`;
+
   for (let i = 0; i < top.length; i++) {
     const u = top[i];
     const isMe = String(u.userId) === String(myId);
     const placeClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
-    const placeIcon = i < 3 ? ico('award', 20) : (i + 1);
+    const placeIcon  = i < 3 ? ico('award', 20) : (i + 1);
     const displayName = u.name || u.display || `Usuario ${u.userId}`;
-    const initial = (displayName || '?').charAt(0).toUpperCase();
+    const initial     = (displayName || '?').charAt(0).toUpperCase();
     const avatarInner = u.photoUrl ? `<img src="${esc(u.photoUrl)}" alt="" loading="lazy">` : initial;
     html += `<div class="rank-card ${placeClass} ${isMe ? 'is-me' : ''}" data-uid="${u.userId}" data-place="${i + 1}">
       <div class="place">${placeIcon}</div>
@@ -3138,13 +3217,144 @@ function renderRanking() {
       <div class="chev">${ico('chevron',18)}</div>
     </div>`;
   }
-  html += `</div><p class="hint" style="text-align:left;margin-top:14px">Toca cualquier jugador para ver su perfil completo.</p></div>`;
-  c.innerHTML = html;
-  c.querySelectorAll('.rank-card').forEach(card => {
+  html += `</div><p class="hint" style="text-align:left;margin-top:14px">Toca cualquier jugador para ver su perfil completo.</p>`;
+  container.innerHTML = html;
+  bindRankClicks(container, top.length);
+}
+
+function renderRankingBatallas(container) {
+  const top = battleRanking?.top || [];
+  const totalBattles = battleRanking?.totalBattles || 0;
+
+  if (!top.length) {
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('flame',44)}</span>Aún no hay batallas registradas.<br>¡Usa <b>/batalla</b> en el bot para empezar!</div>`;
+    return;
+  }
+
+  const myId = session.userId;
+  let html = `
+    <div class="stats-grid">
+      <div class="stat"><div class="num">${fmt(totalBattles)}</div><div class="lbl">${ico('flame',12)} Batallas</div></div>
+      <div class="stat"><div class="num">${fmt(top.length)}</div><div class="lbl">${ico('users',12)} Guerreros</div></div>
+    </div>
+    <div class="section-title">${ico('trophy',11)} Top ${top.length} Guerreros</div>
+    <div class="rank-list">`;
+
+  for (let i = 0; i < top.length; i++) {
+    const u = top[i];
+    const isMe = String(u.userId) === String(myId);
+    const placeClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+    const placeIcon  = i < 3 ? ico('award', 20) : (i + 1);
+    const displayName = u.name || u.display || `Usuario ${u.userId}`;
+    const initial     = (displayName || '?').charAt(0).toUpperCase();
+    const avatarInner = u.photoUrl ? `<img src="${esc(u.photoUrl)}" alt="" loading="lazy">` : initial;
+    html += `<div class="rank-card ${placeClass} ${isMe ? 'is-me' : ''}" data-uid="${u.userId}" data-place="${i + 1}">
+      <div class="place">${placeIcon}</div>
+      <div class="avatar-md">${avatarInner}</div>
+      <div class="body">
+        <div class="top-line"><div class="rn-name">${esc(displayName)}${isMe ? ' · tú' : ''}</div></div>
+        <div class="rn-user">${u.username ? '@' + esc(u.username) : ('ID: ' + u.userId)}</div>
+        <div class="stats">
+          <span class="sp pink">${ico('trophy',11)} ${fmt(u.wins)} <span class="lbl-s">victorias</span></span>
+          ${u.streak > 0     ? `<span class="sp">${ico('flame',11)} ${fmt(u.streak)} <span class="lbl-s">racha</span></span>` : ''}
+          ${u.bestStreak > 0 ? `<span class="sp gold">${ico('star',11)} ${fmt(u.bestStreak)} <span class="lbl-s">mejor</span></span>` : ''}
+        </div>
+      </div>
+      <div class="chev">${ico('chevron',18)}</div>
+    </div>`;
+  }
+  html += `</div><p class="hint" style="text-align:left;margin-top:14px">Solo aparecen los que han ganado al menos 1 batalla.</p>`;
+  container.innerHTML = html;
+  bindRankClicks(container, top.length);
+}
+
+function renderRankingMinerales(container) {
+  const top = mineralRanking?.top || [];
+
+  if (!top.length) {
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('diamond',44)}</span>Aún no hay minerales minados.<br>¡Usa <b>/minar</b> en el bot para empezar!</div>`;
+    return;
+  }
+
+  const myId = session.userId;
+  let html = `
+    <div class="section-title">${ico('diamond',11)} Top ${top.length} Mineros</div>
+    <div class="rank-list">`;
+
+  for (let i = 0; i < top.length; i++) {
+    const u = top[i];
+    const isMe = String(u.userId) === String(myId);
+    const placeClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+    const placeIcon  = i < 3 ? ico('award', 20) : (i + 1);
+    const displayName = u.name || u.display || `Usuario ${u.userId}`;
+    const initial     = (displayName || '?').charAt(0).toUpperCase();
+    const avatarInner = u.photoUrl ? `<img src="${esc(u.photoUrl)}" alt="" loading="lazy">` : initial;
+    html += `<div class="rank-card ${placeClass} ${isMe ? 'is-me' : ''}" data-uid="${u.userId}" data-place="${i + 1}">
+      <div class="place">${placeIcon}</div>
+      <div class="avatar-md">${avatarInner}</div>
+      <div class="body">
+        <div class="top-line"><div class="rn-name">${esc(displayName)}${isMe ? ' · tú' : ''}</div></div>
+        <div class="rn-user">${u.username ? '@' + esc(u.username) : ('ID: ' + u.userId)}</div>
+        <div class="stats">
+          <span class="sp gold">${ico('diamond',11)} ${fmt(u.diamante || 0)}</span>
+          <span class="sp">${ico('star',11)} ${fmt(u.oro || 0)}</span>
+          <span class="sp">${ico('circle',11)} ${fmt(u.hierro || 0)}</span>
+          <span class="sp pink">${ico('layers',11)} ${fmt(u.total || 0)} <span class="lbl-s">total</span></span>
+        </div>
+      </div>
+      <div class="chev">${ico('chevron',18)}</div>
+    </div>`;
+  }
+  html += `</div><p class="hint" style="text-align:left;margin-top:14px">Puntuación: 💎×10 + 🥇×5 + ⚙️×1 · Toca para ver perfil.</p>`;
+  container.innerHTML = html;
+  bindRankClicks(container, top.length);
+}
+
+function renderRankingUltra(container) {
+  const top = ultraRanking?.top || [];
+
+  if (!top.length) {
+    container.innerHTML = `<div class="empty"><span class="icon">${ico('coin',44)}</span>Aún no hay millonarios.<br>¡Consigue monedas en el bot!</div>`;
+    return;
+  }
+
+  const myId = session.userId;
+  let html = `
+    <div class="section-title">${ico('coin',11)} Top ${top.length} Millonarios</div>
+    <div class="rank-list">`;
+
+  for (let i = 0; i < top.length; i++) {
+    const u = top[i];
+    const isMe = String(u.userId) === String(myId);
+    const placeClass = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+    const placeIcon  = i < 3 ? ico('award', 20) : (i + 1);
+    const displayName = u.name || u.display || `Usuario ${u.userId}`;
+    const initial     = (displayName || '?').charAt(0).toUpperCase();
+    const avatarInner = u.photoUrl ? `<img src="${esc(u.photoUrl)}" alt="" loading="lazy">` : initial;
+    html += `<div class="rank-card ${placeClass} ${isMe ? 'is-me' : ''}" data-uid="${u.userId}" data-place="${i + 1}">
+      <div class="place">${placeIcon}</div>
+      <div class="avatar-md">${avatarInner}</div>
+      <div class="body">
+        <div class="top-line"><div class="rn-name">${esc(displayName)}${isMe ? ' · tú' : ''}</div></div>
+        <div class="rn-user">${u.username ? '@' + esc(u.username) : ('ID: ' + u.userId)}</div>
+        <div class="stats">
+          <span class="sp gold">${ico('coin',11)} ${fmt(u.coins)} <span class="lbl-s">monedas</span></span>
+        </div>
+      </div>
+      <div class="chev">${ico('chevron',18)}</div>
+    </div>`;
+  }
+  html += `</div><p class="hint" style="text-align:left;margin-top:14px">Los jugadores más ricos del servidor. Toca para ver perfil.</p>`;
+  container.innerHTML = html;
+  bindRankClicks(container, top.length);
+}
+
+function bindRankClicks(container, total) {
+  container.querySelectorAll('.rank-card').forEach(card => {
     card.addEventListener('click', () => {
       const uid = parseInt(card.dataset.uid, 10);
       const place = parseInt(card.dataset.place, 10);
-      if (!isNaN(uid)) openUserModal(uid, { place, total: totalUsers });
+      if (!isNaN(uid)) openUserModal(uid, { place, total });
     });
   });
 }
@@ -3424,7 +3634,7 @@ function renderShopWaifus(container) {
     const canAfford = myCoins >= (s.price || 0);
     const owned = ownedNames.has((wname || '').toLowerCase());
     const btnText = canAfford ? `Comprar ${fmt(s.price)}` : `Faltan ${fmt((s.price||0)-myCoins)}`;
-    const ownedBadge = owned ? `<span class="cover-badge" title="Ya la tienes" style="color:#6ee7b7;border-color:rgba(16,185,129,.4)">${ico('check',10)}</span>` : '';
+    const ownedBadge = owned ? `<span class="status-badge" title="Ya la tienes" style="color:#6ee7b7;border-color:rgba(16,185,129,.4)">${ico('check',10)}</span>` : '';
     html += `<div class="wcard" data-r="${rarity}" data-img="${esc(wname)}">
       ${ownedBadge}
       <div class="img">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : `<span class="placeholder">${initial}</span>`}</div>
@@ -3511,7 +3721,7 @@ function renderShopSkins(container) {
     else if (!canPay)  btnText = `Faltan ${fmt((sk.price||0) - myCoins)}`;
     else               btnText = `Comprar ${fmt(sk.price)}`;
 
-    const ownedBadge = owned ? `<span class="cover-badge" title="Ya la tienes" style="color:#6ee7b7;border-color:rgba(16,185,129,.4)">${ico('check',10)}</span>` : '';
+    const ownedBadge = owned ? `<span class="status-badge" title="Ya la tienes" style="color:#6ee7b7;border-color:rgba(16,185,129,.4)">${ico('check',10)}</span>` : '';
 
     html += `<div class="wcard" data-r="${rarity}">
       ${ownedBadge}
@@ -3585,7 +3795,6 @@ function renderShopBoxes(container) {
   });
 }
 
-/* LOGOUT */
 function doLogout() {
   unsubs.forEach(u => { try { u(); } catch {} }); unsubs.length = 0;
   imageUnsubs.forEach(u => { try { u(); } catch {} }); imageUnsubs.clear();
@@ -3601,6 +3810,9 @@ function doLogout() {
   shopSearch = ''; shopRarityFilter = 'all'; shopPriceFilter = 'all'; shopHideOwned = false;
   shopFiltersOpen = false;
   collectionFilter = 'all'; collectionSubTab = 'waifus';
+  rankingSubTab = 'waifus';
+  battleRanking = null; mineralRanking = null; ultraRanking = null;
+  lastBattleRankingSig = ''; lastMineralRankingSig = ''; lastUltraRankingSig = '';
   duplicatesMode = 'tienda'; storePrices = { ...DEFAULT_STORE_PRICES };
   if (unsubRequest) { unsubRequest(); unsubRequest = null; }
   $('sidebar').classList.remove('open');
