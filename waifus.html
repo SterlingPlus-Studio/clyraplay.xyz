@@ -1498,6 +1498,51 @@ function limitToLast(_count) { return null; }
 })();
 
 const $ = (id) => document.getElementById(id);
+
+// Reconciliador DOM: conserva los nodos <img> cuando su URL lógica no ha cambiado.
+// En una actualización de ventas/precios/skins solo cambia el contenido del artículo;
+// el elemento de imagen y su recurso ya decodificado siguen vivos, evitando parpadeos.
+function renderHtmlPreservingImages(container, html) {
+  if (!container) return;
+  const template = document.createElement('template');
+  template.innerHTML = String(html == null ? '' : html);
+
+  const identity = (img) => {
+    if (!img) return '';
+    const relaySource = img.dataset && img.dataset.relaySource;
+    const src = img.getAttribute('src') || '';
+    const value = relaySource || src;
+    return value ? 'img:' + value : '';
+  };
+
+  const pools = new Map();
+  container.querySelectorAll('img').forEach(img => {
+    const key = identity(img);
+    if (!key) return;
+    if (!pools.has(key)) pools.set(key, []);
+    pools.get(key).push(img);
+  });
+
+  template.content.querySelectorAll('img').forEach(newImg => {
+    const key = identity(newImg);
+    const pool = key && pools.get(key);
+    if (!pool || !pool.length) return;
+    const oldImg = pool.shift();
+
+    // Sincronizar atributos de presentación, pero conservar src, style y el estado
+    // del puente (data-relay-*) porque representan el recurso que ya está cargado.
+    const reserved = name => name === 'src' || name === 'srcset' || name === 'style' || name.startsWith('data-relay-');
+    Array.from(oldImg.attributes).forEach(attr => {
+      if (!reserved(attr.name) && !newImg.hasAttribute(attr.name)) oldImg.removeAttribute(attr.name);
+    });
+    Array.from(newImg.attributes).forEach(attr => {
+      if (!reserved(attr.name)) oldImg.setAttribute(attr.name, attr.value);
+    });
+    newImg.replaceWith(oldImg);
+  });
+
+  container.replaceChildren(...Array.from(template.content.childNodes));
+}
 const show = (id) => {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
@@ -1985,7 +2030,7 @@ function subscribeRealtime() {
     if (sig === lastCatalogSig) return;
     lastCatalogSig = sig;
     catalog = newCat;
-    if (currentTab === 'shop') renderShopContent();
+    if (currentTab === 'shop' && shopSubTab === 'boxes') renderShopContent();
   }));
 
   unsubs.push(onValue(ref(db, `sales`), (s) => {
@@ -2002,7 +2047,7 @@ function subscribeRealtime() {
     lastSalesSig = sig;
     sales = newSales;
     if (currentTab === 'shop') {
-      renderShopContent();
+      if (shopSubTab === 'waifus') renderShopContent();
       const statsContainer = $('tab-shop')?.querySelector('.stats-grid');
       if (statsContainer) refreshShopStats(statsContainer);
     }
@@ -2019,7 +2064,7 @@ function subscribeRealtime() {
     lastSkinsSig = sig;
     skins = newSkins;
     if (currentTab === 'shop') {
-      renderShopContent();
+      if (shopSubTab === 'skins') renderShopContent();
       const statsContainer = $('tab-shop')?.querySelector('.stats-grid');
       if (statsContainer) refreshShopStats(statsContainer);
     }
@@ -2879,7 +2924,7 @@ function renderModalProfile() {
     }
     html += `</div>`;
   }
-  modalBody.innerHTML = html;
+  renderHtmlPreservingImages(modalBody, html);
 }
 
 $('modal-close').addEventListener('click', closeUserModal);
@@ -2906,8 +2951,14 @@ function renderSidebarUser() {
   if (!userDoc) return;
   const name = [userDoc.firstName, userDoc.lastName].filter(Boolean).join(' ') || userDoc.username || 'Usuario';
   const avatarEl = $('sb-avatar');
-  if (userDoc.photoUrl) avatarEl.innerHTML = `<img src="${esc(userDoc.photoUrl)}" alt="" loading="lazy">`;
-  else avatarEl.textContent = (name || '?').charAt(0).toUpperCase();
+  if (userDoc.photoUrl) {
+    let avatarImg = avatarEl.querySelector('img');
+    if (!avatarImg || (avatarImg.getAttribute('src') || '') !== userDoc.photoUrl) {
+      renderHtmlPreservingImages(avatarEl, `<img src="${esc(userDoc.photoUrl)}" alt="" loading="lazy">`);
+    }
+  } else if (avatarEl.querySelector('img') || avatarEl.textContent !== (name || '?').charAt(0).toUpperCase()) {
+    avatarEl.textContent = (name || '?').charAt(0).toUpperCase();
+  }
   $('sb-name').textContent = name;
   $('sb-tag').textContent = userDoc.username ? '@' + userDoc.username : 'ID: ' + session.userId;
 }
@@ -2975,7 +3026,7 @@ function renderProfile() {
       <div class="stat"><div class="num" style="color:var(--exclusiva)">${rc.exclusiva}</div><div class="lbl">${ico('star',12)} Exclusiva</div></div>
     </div>
   </div>`;
-  c.innerHTML = html;
+  renderHtmlPreservingImages(c, html);
 }
 
 function renderCollection() {
@@ -2985,27 +3036,30 @@ function renderCollection() {
   const waifus = Array.isArray(userData?.waifus) ? userData.waifus : [];
   const ownedSkinIds = Array.isArray(userData?.skins) ? userData.skins : [];
   const dupInfo = computeDuplicatesInfo();
+  const tabsHtml = `
+    <button class="subtab ${collectionSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">${ico('package',13)}Waifus (${waifus.length})</button>
+    <button class="subtab ${collectionSubTab === 'skins' ? 'active' : ''}" data-sub="skins">${ico('card',13)}Skins (${ownedSkinIds.length})</button>
+    <button class="subtab ${collectionSubTab === 'duplicates' ? 'active' : ''}" data-sub="duplicates">${ico('tag',13)}Vender duplicada${dupInfo.totalDup > 0 ? ` (${dupInfo.totalDup})` : ''}</button>`;
 
-  c.innerHTML = `<div class="page-wrap">
-    <div class="subtabs" id="coll-subtabs">
-      <button class="subtab ${collectionSubTab === 'waifus' ? 'active' : ''}" data-sub="waifus">${ico('package',13)}Waifus (${waifus.length})</button>
-      <button class="subtab ${collectionSubTab === 'skins' ? 'active' : ''}" data-sub="skins">${ico('card',13)}Skins (${ownedSkinIds.length})</button>
-      <button class="subtab ${collectionSubTab === 'duplicates' ? 'active' : ''}" data-sub="duplicates">${ico('tag',13)}Vender duplicada${dupInfo.totalDup > 0 ? ` (${dupInfo.totalDup})` : ''}</button>
-    </div>
-    <div id="coll-content"></div>
-  </div>`;
-
-  c.querySelectorAll('#coll-subtabs .subtab').forEach(btn => {
+  let tabs = $('coll-subtabs');
+  let content = $('coll-content');
+  if (!tabs || !content || !c.contains(tabs) || !c.contains(content)) {
+    c.innerHTML = `<div class="page-wrap"><div class="subtabs" id="coll-subtabs"></div><div id="coll-content"></div></div>`;
+    tabs = $('coll-subtabs');
+    content = $('coll-content');
+  }
+  renderHtmlPreservingImages(tabs, tabsHtml);
+  tabs.querySelectorAll('.subtab').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (collectionSubTab === btn.dataset.sub) return;
       collectionSubTab = btn.dataset.sub;
       renderCollection();
     });
   });
 
-  const content = $('coll-content');
-  if (collectionSubTab === 'skins')      renderCollectionSkins(content);
+  if (collectionSubTab === 'skins') renderCollectionSkins(content);
   else if (collectionSubTab === 'duplicates') renderCollectionDuplicates(content);
-  else                                    renderCollectionWaifus(content);
+  else renderCollectionWaifus(content);
 }
 
 function renderCollectionWaifus(container) {
@@ -3051,7 +3105,7 @@ function renderCollectionWaifus(container) {
     }
     html += `</div>`;
   }
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
 
   container.querySelectorAll('.filters button').forEach(b => {
     b.addEventListener('click', () => { collectionFilter = b.dataset.f; renderCollection(); });
@@ -3406,7 +3460,7 @@ function renderCollectionSkins(container) {
     </div>`;
   }
   html += `</div>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
 
   container.querySelectorAll('[data-skin-toggle]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
@@ -3498,7 +3552,7 @@ function renderRankingWaifus(container) {
     </div>`;
   }
   html += `</div><p class="hint" style="text-align:left;margin-top:14px">Toca cualquier jugador para ver su perfil completo.</p>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
   bindRankClicks(container, top.length);
 }
 
@@ -3544,7 +3598,7 @@ function renderRankingBatallas(container) {
     </div>`;
   }
   html += `</div><p class="hint" style="text-align:left;margin-top:14px">Solo aparecen los que han ganado al menos 1 batalla.</p>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
   bindRankClicks(container, top.length);
 }
 
@@ -3586,7 +3640,7 @@ function renderRankingMinerales(container) {
     </div>`;
   }
   html += `</div><p class="hint" style="text-align:left;margin-top:14px">Puntuación: 💎×10 + 🥇×5 + ⚙️×1 · Toca para ver perfil.</p>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
   bindRankClicks(container, top.length);
 }
 
@@ -3625,7 +3679,7 @@ function renderRankingUltra(container) {
     </div>`;
   }
   html += `</div><p class="hint" style="text-align:left;margin-top:14px">Los jugadores más ricos del servidor. Toca para ver perfil.</p>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
   bindRankClicks(container, top.length);
 }
 
@@ -3754,7 +3808,7 @@ function renderShop() {
     ` : ''}
     <div id="shop-content"></div>
   </div>`;
-  c.innerHTML = html;
+  renderHtmlPreservingImages(c, html);
 
   c.querySelectorAll('#shop-subtabs .subtab').forEach(btn => {
     btn.addEventListener('click', () => { shopSubTab = btn.dataset.sub; renderShop(); });
@@ -3927,7 +3981,7 @@ function renderShopWaifus(container) {
     </div>`;
   }
   html += `</div>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
   container.querySelectorAll('.btn-buy-card').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -4018,7 +4072,7 @@ function renderShopSkins(container) {
     </div>`;
   }
   html += `</div>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
 
   container.querySelectorAll('[data-buy-skin]').forEach(btn => {
     btn.addEventListener('click', async (e) => {
@@ -4050,7 +4104,7 @@ function renderShopBoxes(container) {
     </div>`;
   }
   html += `</div><p class="hint" style="text-align:left;margin-top:18px">Toca una caja para abrirla al instante.<br>El bot procesará la apertura y las waifus aparecerán en tu colección en segundos.<br>Cada apertura consume las monedas correspondientes.</p>`;
-  container.innerHTML = html;
+  renderHtmlPreservingImages(container, html);
   container.querySelectorAll('.box-card').forEach(card => {
     const key = card.dataset.box;
     const canOpen = card.dataset.can === '1';
