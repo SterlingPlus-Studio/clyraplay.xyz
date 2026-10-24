@@ -1360,7 +1360,23 @@ async function get(reference) {
     if (!(img instanceof HTMLImageElement)) return;
     const src = img.getAttribute('src') || '';
     if (src.startsWith('/media/')) {
-      if (img.dataset.relaySource === src) return;
+      const sameRelaySource = img.dataset.relaySource === src;
+      if (sameRelaySource) {
+        // Una actualización de Firebase puede volver a escribir la ruta /media
+        // sobre la Data URL temporal. Nunca dejes que el navegador intente
+        // cargar /media desde GitHub Pages: el servidor real está en la laptop.
+        img.removeAttribute('src');
+        if (img.dataset.relayState === 'loaded' || img.dataset.relayState === 'error') {
+          img.dataset.relayState = 'idle';
+        }
+        img.setAttribute('loading', 'lazy');
+        img.setAttribute('decoding', 'async');
+        img.style.visibility = 'hidden';
+        img.style.opacity = '0';
+        io.unobserve(img);
+        io.observe(img); // provoca una nueva comprobación si sigue visible
+        return;
+      }
       img.dataset.relaySource = src;
       img.dataset.relayState = 'idle';
       img.dataset.relayNear = '0';
@@ -1974,7 +1990,14 @@ function subscribeRealtime() {
 
   unsubs.push(onValue(ref(db, `sales`), (s) => {
     const newSales = s.val() || {};
-    const sig = Object.keys(newSales).length + '|' + Object.values(newSales).map(x => x.price).join(',');
+    // Incluye la identidad y los datos visibles de cada venta. Comparar solo
+    // cantidad/precio pierde cambios cuando se compra una venta y otra tiene
+    // el mismo precio, por lo que otros jugadores no refrescan su tienda.
+    const sig = Object.keys(newSales).sort().map(id => {
+      const x = newSales[id] || {};
+      return [id, x.saleId || '', x.sellerId || '', x.sellerName || '', x.sellerUsername || '',
+        x.waifu?.name || '', x.waifu?.rarity || '', Number(x.price) || 0, x.timestamp || 0].join(':');
+    }).join('|');
     if (sig === lastSalesSig) return;
     lastSalesSig = sig;
     sales = newSales;
@@ -1987,7 +2010,11 @@ function subscribeRealtime() {
 
   unsubs.push(onValue(ref(db, `skins`), (s) => {
     const newSkins = s.val() || {};
-    const sig = Object.keys(newSkins).sort().map(k => k + ':' + (newSkins[k].sales || 0) + ':' + (newSkins[k].price || 0)).join(',');
+    const sig = Object.keys(newSkins).sort().map(k => {
+      const x = newSkins[k] || {};
+      return [k, x.waifuName || '', x.uploaderId || '', x.uploaderName || '', x.uploaderUsername || '',
+        Number(x.sales) || 0, Number(x.price) || 0, x.rarity || '', x.imageUrl || ''].join(':');
+    }).join('|');
     if (sig === lastSkinsSig) return;
     lastSkinsSig = sig;
     skins = newSkins;
@@ -2059,7 +2086,16 @@ function watchImage(name, targetMap = imageUnsubs) {
         let img = holder.querySelector('img');
         if (!img) {
           holder.innerHTML = `<img src="${esc(url)}" alt="" loading="lazy" style="opacity:0;transition:opacity .4s" onload="this.style.opacity='1'">`;
-        } else if (img.src !== url) { img.src = url; img.style.opacity = '1'; }
+        } else {
+          const attrSrc = img.getAttribute('src') || '';
+          // Una imagen /media/ ya gestionada por el cargador visible puede
+          // tener src temporal vacío o una Data URL. No la sobrescribas con
+          // la ruta local relativa al dominio de GitHub Pages.
+          if (img.dataset.relaySource !== url && attrSrc !== url) {
+            img.setAttribute('src', url);
+            img.style.opacity = '1';
+          }
+        }
       });
     }
   });
