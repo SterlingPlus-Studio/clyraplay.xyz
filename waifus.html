@@ -1199,9 +1199,11 @@
 </div>
 
 <script type="module">
+// La página puede vivir en GitHub Pages. Firebase funciona solo como puente temporal:
+// las lecturas, compras, sesiones e imágenes se resuelven en el servidor de la laptop.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, remove, query, limitToLast }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref as firebaseRef, set as firebaseSet, get as firebaseGet, onValue as firebaseOnValue, remove as firebaseRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDNPyj-_EdpKkmAFAkGEKJtirazIZ4f3Mo",
@@ -1214,7 +1216,259 @@ const firebaseConfig = {
   measurementId: "G-X6L9ZT5DW0"
 };
 const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const RELAY_ROOT = '__laptopRelay';
+const RELAY_TIMEOUT_MS = 18000;
+const IMAGE_TIMEOUT_MS = 35000;
+let currentBridgeUid = null;
+let bridgeUidPromise = null;
+
+function ensureBridgeAuth() {
+  if (currentBridgeUid) return Promise.resolve(currentBridgeUid);
+  if (bridgeUidPromise) return bridgeUidPromise;
+  bridgeUidPromise = new Promise((resolve, reject) => {
+    let stop = () => {};
+    let signInStarted = false;
+    const fail = err => { try { stop(); } catch {} bridgeUidPromise = null; reject(err); };
+    stop = onAuthStateChanged(auth, user => {
+      if (user) {
+        currentBridgeUid = user.uid;
+        try { stop(); } catch {}
+        resolve(user.uid);
+        return;
+      }
+      if (!signInStarted) {
+        signInStarted = true;
+        signInAnonymously(auth).catch(fail);
+      }
+    }, fail);
+  });
+  return bridgeUidPromise;
+}
+
+function ref(_db, path) { return { path: String(path || '').replace(/^\/+|\/+$/g, '') }; }
+class OnlineSnapshot {
+  constructor(value) { this._value = value === undefined ? null : value; }
+  val() { return this._value; }
+  exists() { return this._value !== null && this._value !== undefined; }
+}
+
+function relayCall(message, timeoutMs = RELAY_TIMEOUT_MS) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let unsubscribe = null;
+    let timeout = null;
+    let requestRef = null;
+    let responseRef = null;
+    let requestId = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 13) + '_' + Math.random().toString(36).slice(2, 8);
+    const finish = (err, value) => {
+      if (settled) return;
+      settled = true;
+      if (timeout) clearTimeout(timeout);
+      if (unsubscribe) { try { unsubscribe(); } catch {} }
+      if (requestRef) firebaseRemove(requestRef).catch(() => {});
+      if (responseRef) firebaseRemove(responseRef).catch(() => {});
+      if (err) reject(err); else resolve(value);
+    };
+    (async () => {
+      try {
+        const uid = await ensureBridgeAuth();
+        requestRef = firebaseRef(db, `${RELAY_ROOT}/requests/${uid}/${requestId}`);
+        responseRef = firebaseRef(db, `${RELAY_ROOT}/responses/${uid}/${requestId}`);
+        unsubscribe = firebaseOnValue(responseRef, snapshot => {
+          const response = snapshot.val();
+          if (!response || typeof response !== 'object') return;
+          if (response.ok) finish(null, response.value === undefined ? null : response.value);
+          else finish(new Error(response.error || 'El servidor de la laptop devolvió un error.'));
+        }, error => finish(new Error(error?.message || 'No se pudo leer la respuesta del puente Firebase.')));
+        timeout = setTimeout(() => finish(new Error('La laptop no respondió. Comprueba que el bot siga abierto y que Firebase tenga configurado el puente.')), timeoutMs);
+        await firebaseSet(requestRef, { ...message, createdAt: Date.now(), expiresAt: Date.now() + 60000 });
+      } catch (error) {
+        finish(new Error(error?.message || String(error)));
+      }
+    })();
+  });
+}
+
+async function relayImage(mediaUrl) {
+  const pathname = String(mediaUrl || '').split('?')[0].split('#')[0];
+  if (!pathname.startsWith('/media/')) return mediaUrl;
+  // Solo se conserva una promesa mientras la misma imagen se está descargando.
+  // Los Data URL terminados no se guardan en una caché global.
+  const active = relayImage.inflight.get(pathname);
+  if (active) return active;
+  const promise = relayCall({ type: 'image', path: pathname }, IMAGE_TIMEOUT_MS).then(result => {
+    if (!result || !result.mime || !result.base64) throw new Error('El servidor no devolvió la imagen.');
+    return `data:${result.mime};base64,${result.base64}`;
+  }).finally(() => {
+    if (relayImage.inflight.get(pathname) === promise) relayImage.inflight.delete(pathname);
+  });
+  relayImage.inflight.set(pathname, promise);
+  return promise;
+}
+relayImage.inflight = new Map();
+
+// Mantiene las rutas /media/ como texto hasta que la imagen entre en la pantalla.
+// Así una lectura de catálogo no descarga de golpe las imágenes de todas las waifus.
+function resolveRelayImages(value) { return value; }
+async function get(reference) {
+  const result = await relayCall({ type: 'db', method: 'GET', path: reference.path });
+  return new OnlineSnapshot(result);
+}
+
+(function setupVisibleOnlyRelayImages() {
+  if (!('IntersectionObserver' in window) || !('MutationObserver' in window)) return;
+  const io = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      const img = entry.target;
+      if (!img || !img.dataset || !img.dataset.relaySource) continue;
+      if (entry.isIntersecting && entry.intersectionRatio > 0) {
+        img.dataset.relayNear = '1';
+        if (img.dataset.relayState === 'loading' || img.dataset.relayState === 'loaded' || img.dataset.relayState === 'error') continue;
+        const requestedPath = img.dataset.relaySource;
+        img.dataset.relayState = 'loading';
+        relayImage(requestedPath).then(dataUrl => {
+          // If it scrolled away during transfer, discard the result rather than retaining it.
+          if (!img.isConnected || img.dataset.relayNear !== '1' || img.dataset.relaySource !== requestedPath) {
+            img.dataset.relayState = 'idle';
+            return;
+          }
+          if (!dataUrl) throw new Error('Imagen vacía');
+          img.setAttribute('src', dataUrl);
+          img.dataset.relayState = 'loaded';
+          img.style.visibility = '';
+          img.style.opacity = '1';
+        }).catch(error => {
+          if (img.dataset.relaySource === requestedPath) img.dataset.relayState = 'error';
+          // Log once per visible image; scrolling away resets it for a future retry.
+          console.warn('[Puente Firebase] No se pudo cargar una imagen visible:', error.message || error);
+        });
+      } else {
+        img.dataset.relayNear = '0';
+        if (img.dataset.relayState === 'loaded' || img.dataset.relayState === 'loading' || img.dataset.relayState === 'error') {
+          img.removeAttribute('src');
+          img.dataset.relayState = 'idle';
+          img.style.visibility = 'hidden';
+          img.style.opacity = '0';
+        }
+      }
+    }
+  }, { root: null, rootMargin: '0px', threshold: 0.01 });
+
+  function prepareImage(img) {
+    if (!(img instanceof HTMLImageElement)) return;
+    const src = img.getAttribute('src') || '';
+    if (src.startsWith('/media/')) {
+      if (img.dataset.relaySource === src) return;
+      img.dataset.relaySource = src;
+      img.dataset.relayState = 'idle';
+      img.dataset.relayNear = '0';
+      img.setAttribute('loading', 'lazy');
+      img.setAttribute('decoding', 'async');
+      img.removeAttribute('src');
+      img.style.visibility = 'hidden';
+      img.style.opacity = '0';
+      io.observe(img);
+      return;
+    }
+    // If a previously detached image node is reinserted, it may retain only
+    // data-relay-source because its temporary Data URL was intentionally released.
+    if (!src && img.dataset.relaySource && img.dataset.relayState === 'idle') {
+      io.observe(img);
+      return;
+    }
+    if (src && !src.startsWith('data:') && img.dataset.relaySource) {
+      io.unobserve(img);
+      delete img.dataset.relaySource;
+      delete img.dataset.relayState;
+      delete img.dataset.relayNear;
+    }
+  }
+
+  function scanNode(node) {
+    if (!node) return;
+    if (node instanceof HTMLImageElement) prepareImage(node);
+    if (node.querySelectorAll) node.querySelectorAll('img').forEach(prepareImage);
+  }
+  function releaseNode(node) {
+    if (!node) return;
+    const images = [];
+    if (node instanceof HTMLImageElement) images.push(node);
+    if (node.querySelectorAll) images.push(...node.querySelectorAll('img'));
+    for (const img of images) {
+      if (!img.dataset.relaySource || img.isConnected) continue;
+      io.unobserve(img);
+      img.removeAttribute('src');
+      img.dataset.relayNear = '0';
+      img.dataset.relayState = 'idle';
+      img.style.visibility = 'hidden';
+      img.style.opacity = '0';
+    }
+  }
+
+  document.querySelectorAll('img').forEach(prepareImage);
+  const mo = new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes' && record.target instanceof HTMLImageElement) {
+        prepareImage(record.target);
+        continue;
+      }
+      for (const node of record.addedNodes || []) scanNode(node);
+      for (const node of record.removedNodes || []) releaseNode(node);
+    }
+  });
+  mo.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['src'] });
+})();
+async function set(reference, value) {
+  await relayCall({ type: 'db', method: 'PUT', path: reference.path, value });
+}
+async function remove(reference) {
+  await relayCall({ type: 'db', method: 'DELETE', path: reference.path });
+}
+
+const onlineSubscriptions = new Set();
+let relayEventSubscription = null;
+const seenRelayEvents = new Set();
+const pageStartedAt = Date.now();
+function refreshSubscription(sub) {
+  if (!sub.active) return;
+  get({ path: sub.path }).then(snapshot => {
+    if (sub.active) sub.callback(snapshot);
+  }).catch(error => {
+    if (sub.active) console.warn('[Puente Firebase] No se pudo actualizar ' + sub.path + ':', error.message || error);
+  });
+}
+function ensureRelayEventSubscription() {
+  if (relayEventSubscription) return;
+  relayEventSubscription = firebaseOnValue(firebaseRef(db, `${RELAY_ROOT}/events`), snapshot => {
+    const events = snapshot.val() || {};
+    for (const [eventId, event] of Object.entries(events)) {
+      if (!event || seenRelayEvents.has(eventId)) continue;
+      seenRelayEvents.add(eventId);
+      if (Number(event.at || 0) < pageStartedAt) continue;
+      const changed = String(event.path || '').replace(/^\/+/, '');
+      for (const sub of onlineSubscriptions) {
+        if (!changed || changed === sub.path || changed.startsWith(sub.path + '/') || sub.path.startsWith(changed + '/')) {
+          refreshSubscription(sub);
+        }
+      }
+    }
+    // Bound client-side memory even if a Firebase event has not expired yet.
+    if (seenRelayEvents.size > 3000) seenRelayEvents.clear();
+  }, error => {
+    console.warn('[Puente Firebase] No se pudo suscribir a cambios:', error?.message || error);
+  });
+}
+function onValue(reference, callback) {
+  const sub = { path: reference.path, callback, active: true };
+  onlineSubscriptions.add(sub);
+  ensureRelayEventSubscription();
+  refreshSubscription(sub);
+  return () => { sub.active = false; onlineSubscriptions.delete(sub); };
+}
+function query(reference) { return reference; }
+function limitToLast(_count) { return null; }
 
 (function setupAndroidViewportFix() {
   if (!window.visualViewport) return;
@@ -1625,20 +1879,10 @@ $('btn-verify').addEventListener('click', async () => {
   btn.disabled = true;
   btn.innerHTML = '<span class="loading"></span>Verificando...';
   try {
-    const snap = await get(ref(db, `loginRequests/${currentRequestId}`));
-    const data = snap.val();
-    if (!data) throw new Error('Solicitud no encontrada.');
-    if (data.status !== 'sent') throw new Error('Solicitud inválida.');
-    if (Date.now() > data.expiresAt) throw new Error('Código expirado.');
-    if (String(data.code) !== typed) throw new Error('Código incorrecto.');
-
-    const token = crypto.randomUUID();
-    await set(ref(db, `sessions/${token}`), {
-      userId: data.userId, username: data.username || null,
-      createdAt: Date.now(), expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000
-    });
+    const result = await relayCall({ type: 'verify-login', requestId: currentRequestId, code: typed });
+    if (!result?.token) throw new Error('El servidor no devolvió una sesión válida.');
+    const token = result.token;
     localStorage.setItem('jinx_session', token);
-    await set(ref(db, `loginRequests/${currentRequestId}/status`), 'verified');
     await startSession(token);
   } catch (e) {
     setMsg(msg, e.message || 'Error.');
