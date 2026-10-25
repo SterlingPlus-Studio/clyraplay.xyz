@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -188,6 +188,30 @@
   .topbar-title{ font-size: 14px; font-weight: 700; color: var(--text); text-align: left; flex: 1; }
   .topbar-logout{ display: none; }
 
+  .topbar-support{
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 10px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    box-shadow: none;
+    flex-shrink: 0;
+    transition: all .18s;
+  }
+  .topbar-support:hover{
+    background: rgba(139,92,246,.15);
+    border-color: rgba(139,92,246,.4);
+    color: #c4b5fd;
+    transform: none;
+    box-shadow: none;
+  }
+  .topbar-support::after{ display: none; }
+
   .overlay{ display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6);
     -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); z-index: 95; }
   .overlay.show{ display: block; animation: modalFade .2s; }
@@ -202,7 +226,7 @@
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--border-2);
-    border-radius: 22px;
+    border-radius: 30px;
     padding: 6px;
     gap: 2px;
     z-index: 100;
@@ -221,7 +245,7 @@
     justify-content: center;
     gap: 3px;
     padding: 8px 4px;
-    border-radius: 16px;
+    border-radius: 24px;
     background: transparent;
     border: none;
     color: var(--muted);
@@ -955,11 +979,18 @@
   }
   .support-dev-link .ic { color: var(--muted-2); }
 
+  /* Soporte: dar aire respecto a la barra superior */
+  #tab-support .page-wrap { padding-top: 18px; }
+  #tab-support > .page-wrap > .section-title:first-child { margin-top: 0; }
+  #tab-support .support-group-card { margin-bottom: 8px; }
+  #tab-support .section-title + .support-group-card { margin-top: 0; }
+
   @media (max-width: 860px){
     .sidebar{ display: none; }
     .hamburger{ display: none; }
     .overlay{ display: none !important; }
     .topbar{ display: flex; }
+    .topbar-support{ display: flex; }
     .topbar-logout{
       display: flex;
       align-items: center;
@@ -973,7 +1004,7 @@
       color: var(--muted);
       box-shadow: none;
       flex-shrink: 0;
-      margin-left: auto;
+      margin-left: 0;
       transition: all .18s;
     }
     .topbar-logout:hover{
@@ -985,8 +1016,9 @@
     }
     .topbar-logout::after{ display: none; }
     .bottom-nav{ display: flex; }
+    body:not(.panel-active) .bottom-nav{ display: none; }
     .main{ margin-left: 0; padding: 0; width: 100%; max-width: 100%; }
-    .main-inner{ padding: 64px 14px calc(104px + env(safe-area-inset-bottom, 0px)); max-width: 100%; margin: 0 auto; }
+    .main-inner{ padding: 72px 14px calc(104px + env(safe-area-inset-bottom, 0px)); max-width: 100%; margin: 0 auto; }
     .layout { padding-top: 0; margin-top: 0; }
   }
   @media (max-width: 640px){
@@ -1011,7 +1043,7 @@
     .code-inputs{ gap: 4px; }
     .code-inputs input{ width: 42px; height: 54px; font-size: 20px; }
     .boxes-grid{ grid-template-columns: 1fr; }
-    .main-inner{ padding: 64px 12px calc(104px + env(safe-area-inset-bottom, 0px)); }
+    .main-inner{ padding: 72px 12px calc(104px + env(safe-area-inset-bottom, 0px)); }
     .box-prize{ width: 104px; padding: 8px; }
     .card-stage{ width: 220px; height: 308px; }
     .card-modal-hint{ font-size: 10px; letter-spacing: .15em; }
@@ -1051,7 +1083,7 @@
     .support-dev-link { font-size: 9px; }
     .support-dev-link .ic { width: 9px; height: 9px; }
 
-    .bottom-nav{ max-width: calc(100% - 16px); padding: 5px; border-radius: 20px; }
+    .bottom-nav{ max-width: calc(100% - 16px); padding: 5px; border-radius: 28px; }
     .bottom-nav-item{ padding: 7px 2px; font-size: 8.5px; gap: 2px; }
     .bottom-nav-item .icon svg{ width: 17px; height: 17px; }
   }
@@ -1115,11 +1147,11 @@
         <div class="uinfo"><div class="uname" id="sb-name">—</div><div class="utag" id="sb-tag">—</div></div>
       </div>
       <nav class="sidebar-nav">
+        <button class="nav-item" data-tab="support" data-icon="shield"><span class="icon"></span><span>Soporte</span></button>
         <button class="nav-item active" data-tab="profile" data-icon="user"><span class="icon"></span><span>Perfil</span></button>
         <button class="nav-item" data-tab="collection" data-icon="grid"><span class="icon"></span><span>Colección</span></button>
         <button class="nav-item" data-tab="ranking" data-icon="crown"><span class="icon"></span><span>Ranking</span></button>
         <button class="nav-item" data-tab="shop" data-icon="store"><span class="icon"></span><span>Tienda</span></button>
-        <button class="nav-item" data-tab="support" data-icon="shield"><span class="icon"></span><span>Soporte</span></button>
       </nav>
       <div class="sidebar-footer">
         <button class="btn-logout" id="btn-logout" data-icon="logout"><span class="icon"></span><span>Cerrar sesión</span></button>
@@ -1129,7 +1161,8 @@
       <div class="topbar">
         <button class="hamburger" id="hamburger" data-icon="menu" data-icon-size="18"></button>
         <div class="topbar-title" id="topbar-title">Perfil</div>
-        <button class="topbar-logout" id="btn-logout-mobile" data-icon="logout" data-icon-size="16"></button>
+        <button class="topbar-support" id="btn-support-mobile" data-icon="shield" data-icon-size="16" aria-label="Soporte" title="Soporte"></button>
+        <button class="topbar-logout" id="btn-logout-mobile" data-icon="logout" data-icon-size="16" aria-label="Cerrar sesión"></button>
       </div>
       <div class="main-inner">
         <div id="tab-profile" class="tab-content active"></div>
@@ -1147,7 +1180,6 @@
   <button class="bottom-nav-item" data-tab="collection" data-icon="grid"><span class="icon"></span><span>Colección</span></button>
   <button class="bottom-nav-item" data-tab="ranking" data-icon="crown"><span class="icon"></span><span>Ranking</span></button>
   <button class="bottom-nav-item" data-tab="shop" data-icon="store"><span class="icon"></span><span>Tienda</span></button>
-  <button class="bottom-nav-item" data-tab="support" data-icon="shield"><span class="icon"></span><span>Soporte</span></button>
 </nav>
 
 <div id="user-modal" class="modal">
@@ -1546,6 +1578,7 @@ function renderHtmlPreservingImages(container, html) {
 const show = (id) => {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
+  document.body.classList.toggle('panel-active', id === 'screen-panel');
 };
 function setMsg(el, text, kind = 'err') { el.className = 'msg ' + kind; el.textContent = text; }
 function clearMsg(el) { el.className = 'msg'; el.textContent = ''; }
@@ -2809,6 +2842,7 @@ document.querySelectorAll('.nav-item').forEach(b => {
 document.querySelectorAll('.bottom-nav-item').forEach(b => {
   b.addEventListener('click', () => navigateTo(b.dataset.tab));
 });
+$('btn-support-mobile')?.addEventListener('click', () => navigateTo('support'));
 
 $('hamburger').addEventListener('click', () => {
   $('sidebar').classList.toggle('open');
