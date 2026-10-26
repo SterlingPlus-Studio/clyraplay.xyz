@@ -1998,12 +1998,18 @@ $('btn-back').addEventListener('click', () => {
 async function startSession(token) {
   const sessSnap = await get(ref(db, `sessions/${token}`));
   const sess = sessSnap.val();
-  if (!sess) throw new Error('Sesión no válida.');
+  if (!sess) throw new Error('Sesión no válida o expirada.');
+  const previousSession = session;
   session = { token, ...sess };
-  show('screen-panel');
-  await loadAll();
-  subscribeRealtime();
-  renderAll();
+  try {
+    await loadAll();
+    subscribeRealtime();
+    renderAll();
+    show('screen-panel');
+  } catch (error) {
+    session = previousSession;
+    throw error;
+  }
 }
 
 async function loadAll() {
@@ -4201,8 +4207,19 @@ hydrateIcons();
 (async () => {
   const token = localStorage.getItem('jinx_session');
   if (!token) return;
-  try { await startSession(token); }
-  catch { localStorage.removeItem('jinx_session'); }
+  try {
+    await startSession(token);
+  } catch (error) {
+    const message = String(error?.message || error || '');
+    // Solo retirar el token si Firebase confirma que la sesión ya no existe.
+    // Si la laptop, el puente o la red están caídos, conservarlo para reintentar.
+    if (/sesión no válida|sesión.*expirada/i.test(message)) {
+      localStorage.removeItem('jinx_session');
+    } else {
+      console.warn('[Sesión] No se pudo restaurar temporalmente; se conserva el acceso guardado:', message);
+      setMsg($('msg-1'), 'No se pudo comprobar tu sesión porque el servidor no responde. Tu acceso se conservó; vuelve a cargar la página cuando el bot esté conectado.');
+    }
+  }
 })();
 </script>
 </body>
