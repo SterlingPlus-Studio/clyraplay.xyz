@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -724,6 +724,33 @@
     animation: shimmer 4s linear infinite; text-transform: uppercase; line-height: 1.1; }
   .login-wrap .logo-hero .l2{ font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-top: 10px; font-weight: 700; }
 
+  /* Pantalla de carga / comprobación de sesión */
+  .loading-state{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 34px 10px 14px;
+    text-align: center;
+  }
+  .big-spinner{
+    width: 46px;
+    height: 46px;
+    border: 3px solid rgba(139,92,246,.18);
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  .loading-label{
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
   #box-modal.show{ display: flex; align-items: center; justify-content: center; padding: 20px; }
   #box-modal .modal-overlay{ position: fixed; }
   .box-modal-content{ max-width: 560px; width: 100%; margin: 0; max-height: calc(100dvh - 40px);
@@ -1100,7 +1127,22 @@
 <div class="bg-grid"></div>
 <div id="toast-wrap"></div>
 
-<div id="screen-login" class="screen active">
+<div id="screen-loading" class="screen active">
+  <div class="login-wrap">
+    <div class="card">
+      <div class="logo-hero">
+        <div class="l1">Jinx Waifus</div>
+        <div class="l2">◢ Web Edition ◣</div>
+      </div>
+      <div class="loading-state">
+        <div class="big-spinner"></div>
+        <div class="loading-label">Comprobando sesión…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-login" class="screen">
   <div class="login-wrap">
     <div class="card">
       <div class="logo-hero"><div class="l1">Jinx Waifus</div><div class="l2">◢ Web Edition ◣</div></div>
@@ -2043,8 +2085,13 @@ $('btn-verify').addEventListener('click', async () => {
     if (!result?.token) throw new Error('El servidor no devolvió una sesión válida.');
     const token = result.token;
     localStorage.setItem('jinx_session', token);
+    show('screen-loading');
     await startSession(token);
   } catch (e) {
+    if (e?.code === 'SESSION_INVALID') {
+      localStorage.removeItem('jinx_session');
+    }
+    show('screen-code');
     setMsg(msg, e.message || 'Error.');
   } finally {
     btn.disabled = false;
@@ -4281,7 +4328,10 @@ hydrateIcons();
 
 (async () => {
   const token = localStorage.getItem('jinx_session');
-  if (!token) return;
+  if (!token) {
+    show('screen-login');
+    return;
+  }
   try {
     await startSession(token);
   } catch (error) {
@@ -4292,6 +4342,7 @@ hydrateIcons();
       console.warn('[Sesión] Conexión temporalmente no disponible; se conserva la sesión:', error?.message || error);
       setMsg($('msg-1'), 'No se pudo conectar con la laptop. Tu sesión se conservó; vuelve a intentarlo cuando el bot esté en línea.');
     }
+    show('screen-login');
   }
 })();
 </script>
