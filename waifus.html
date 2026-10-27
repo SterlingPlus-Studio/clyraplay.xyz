@@ -1251,7 +1251,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 const RELAY_ROOT = '__laptopRelay';
-const RELAY_TIMEOUT_MS = 18000;
+const RELAY_TIMEOUT_MS = 15000;
 const IMAGE_TIMEOUT_MS = 35000;
 let currentBridgeUid = null;
 let bridgeUidPromise = null;
@@ -1314,13 +1314,34 @@ function relayCall(message, timeoutMs = RELAY_TIMEOUT_MS) {
           if (response.ok) finish(null, response.value === undefined ? null : response.value);
           else finish(new Error(response.error || 'El servidor de la laptop devolvió un error.'));
         }, error => finish(new Error(error?.message || 'No se pudo leer la respuesta del puente Firebase.')));
-        timeout = setTimeout(() => finish(new Error('La laptop no respondió. Comprueba que el bot siga abierto y que Firebase tenga configurado el puente.')), timeoutMs);
+        timeout = setTimeout(() => {
+          const error = new Error('La laptop tardó demasiado en responder. Se puede reintentar sin perder la sesión.');
+          error.retryable = true;
+          finish(error);
+        }, timeoutMs);
         await firebaseSet(requestRef, { ...message, createdAt: Date.now(), expiresAt: Date.now() + 60000 });
-      } catch (error) {
-        finish(new Error(error?.message || String(error)));
+      } catch (cause) {
+        const error = new Error(cause?.message || String(cause));
+        error.retryable = true;
+        finish(error);
       }
     })();
   });
+}
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function relayCallRetrySafe(message, timeoutMs = RELAY_TIMEOUT_MS, maxAttempts = 2) {
+  let lastError;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await relayCall(message, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      if (!error?.retryable || attempt + 1 >= maxAttempts) throw error;
+      await delay(500 + attempt * 700);
+    }
+  }
+  throw lastError || new Error('No se pudo completar la solicitud.');
 }
 
 async function relayImage(mediaUrl) {
@@ -1345,7 +1366,10 @@ relayImage.inflight = new Map();
 // Así una lectura de catálogo no descarga de golpe las imágenes de todas las waifus.
 function resolveRelayImages(value) { return value; }
 async function get(reference) {
-  const result = await relayCall({ type: 'db', method: 'GET', path: reference.path });
+  const message = { type: 'db', method: 'GET', path: reference.path };
+  const result = reference.path.startsWith('sessions/')
+    ? await relayCallRetrySafe(message, RELAY_TIMEOUT_MS, 2)
+    : await relayCall(message);
   return new OnlineSnapshot(result);
 }
 
@@ -1815,6 +1839,9 @@ function getOwnedWaifuNames() {
 
 let currentRequestId = null;
 let unsubRequest = null;
+let loginPollTimer = null;
+let loginPollBusy = false;
+let loginRequestResolved = false;
 let mode = 'username';
 let session = null;
 let userDoc = null;
@@ -1909,6 +1936,49 @@ codeInputs.forEach((inp, i) => {
 });
 const getTypedCode = () => codeInputs.map(i => i.value).join('');
 
+function stopLoginRequestPoll() {
+  if (loginPollTimer) clearTimeout(loginPollTimer);
+  loginPollTimer = null;
+  loginPollBusy = false;
+}
+
+function handleLoginRequestStatus(id, data) {
+  if (!data || currentRequestId !== id) return;
+  const msg = $('msg-1');
+  const btn = $('btn-request');
+  if (data.status === 'sent') {
+    loginRequestResolved = true;
+    stopLoginRequestPoll();
+    show('screen-code');
+    setTimeout(() => codeInputs[0].focus(), 100);
+  } else if (data.status === 'error') {
+    loginRequestResolved = true;
+    stopLoginRequestPoll();
+    setMsg(msg, data.error || 'No se pudo iniciar sesión.');
+    btn.disabled = false;
+    btn.innerHTML = ico('play',15) + 'Enviar código';
+  }
+}
+
+function scheduleLoginStatusPoll(id, waitMs = 3500) {
+  if (loginPollTimer) clearTimeout(loginPollTimer);
+  if (loginRequestResolved || currentRequestId !== id) return;
+  loginPollTimer = setTimeout(async () => {
+    if (loginPollBusy || loginRequestResolved || currentRequestId !== id) return;
+    loginPollBusy = true;
+    try {
+      const snapshot = await get(ref(db, `loginRequests/${id}`));
+      handleLoginRequestStatus(id, snapshot.val());
+    } catch (error) {
+      // Si el puente está reiniciándose, conserva la petición y vuelve a consultar.
+      console.warn('[Inicio de sesión] Consulta temporal fallida:', error?.message || error);
+    } finally {
+      loginPollBusy = false;
+      if (!loginRequestResolved && currentRequestId === id) scheduleLoginStatusPoll(id, 4500);
+    }
+  }, waitMs);
+}
+
 $('btn-request').addEventListener('click', async () => {
   const raw = inputEl.value.trim();
   const msg = $('msg-1');
@@ -1926,6 +1996,8 @@ $('btn-request').addEventListener('click', async () => {
   }
 
   const btn = $('btn-request');
+  stopLoginRequestPoll();
+  loginRequestResolved = false;
   btn.disabled = true;
   btn.innerHTML = '<span class="loading"></span>Enviando...';
 
@@ -1940,15 +2012,9 @@ $('btn-request').addEventListener('click', async () => {
 
     if (unsubRequest) unsubRequest();
     unsubRequest = onValue(ref(db, `loginRequests/${id}`), (snap) => {
-      const data = snap.val();
-      if (!data) return;
-      if (data.status === 'sent') { show('screen-code'); setTimeout(() => codeInputs[0].focus(), 100); }
-      else if (data.status === 'error') {
-        setMsg(msg, data.error || 'Error desconocido.');
-        btn.disabled = false;
-        btn.innerHTML = ico('play',15) + 'Enviar código';
-      }
+      handleLoginRequestStatus(id, snap.val());
     });
+    scheduleLoginStatusPoll(id, 1800);
 
     setTimeout(() => {
       if ($('screen-login').classList.contains('active')) {
@@ -1973,7 +2039,7 @@ $('btn-verify').addEventListener('click', async () => {
   btn.disabled = true;
   btn.innerHTML = '<span class="loading"></span>Verificando...';
   try {
-    const result = await relayCall({ type: 'verify-login', requestId: currentRequestId, code: typed });
+    const result = await relayCallRetrySafe({ type: 'verify-login', requestId: currentRequestId, code: typed }, RELAY_TIMEOUT_MS, 2);
     if (!result?.token) throw new Error('El servidor no devolvió una sesión válida.');
     const token = result.token;
     localStorage.setItem('jinx_session', token);
@@ -1987,6 +2053,8 @@ $('btn-verify').addEventListener('click', async () => {
 });
 
 $('btn-back').addEventListener('click', () => {
+  stopLoginRequestPoll();
+  loginRequestResolved = true;
   if (unsubRequest) { unsubRequest(); unsubRequest = null; }
   show('screen-login');
   clearMsg($('msg-1'));
@@ -1998,18 +2066,23 @@ $('btn-back').addEventListener('click', () => {
 async function startSession(token) {
   const sessSnap = await get(ref(db, `sessions/${token}`));
   const sess = sessSnap.val();
-  if (!sess) throw new Error('Sesión no válida o expirada.');
-  const previousSession = session;
+  if (!sess || !sess.userId || !Number(sess.expiresAt) || Number(sess.expiresAt) <= Date.now()) {
+    const error = new Error('La sesión ya no existe o ha caducado. Inicia sesión de nuevo.');
+    error.code = 'SESSION_INVALID';
+    throw error;
+  }
   session = { token, ...sess };
   try {
     await loadAll();
-    subscribeRealtime();
-    renderAll();
-    show('screen-panel');
   } catch (error) {
-    session = previousSession;
+    session = null;
     throw error;
   }
+  // No mostrar el panel hasta tener cargados los datos iniciales, para evitar
+  // dejar la interfaz en un estado incompleto si el puente se reconecta.
+  show('screen-panel');
+  subscribeRealtime();
+  renderAll();
 }
 
 async function loadAll() {
@@ -4170,6 +4243,8 @@ function renderShopBoxes(container) {
 }
 
 function doLogout() {
+  stopLoginRequestPoll();
+  loginRequestResolved = true;
   unsubs.forEach(u => { try { u(); } catch {} }); unsubs.length = 0;
   imageUnsubs.forEach(u => { try { u(); } catch {} }); imageUnsubs.clear();
   actionUnsubs.forEach(u => { try { u(); } catch {} }); actionUnsubs.clear();
@@ -4210,14 +4285,12 @@ hydrateIcons();
   try {
     await startSession(token);
   } catch (error) {
-    const message = String(error?.message || error || '');
-    // Solo retirar el token si Firebase confirma que la sesión ya no existe.
-    // Si la laptop, el puente o la red están caídos, conservarlo para reintentar.
-    if (/sesión no válida|sesión.*expirada/i.test(message)) {
+    if (error?.code === 'SESSION_INVALID') {
       localStorage.removeItem('jinx_session');
     } else {
-      console.warn('[Sesión] No se pudo restaurar temporalmente; se conserva el acceso guardado:', message);
-      setMsg($('msg-1'), 'No se pudo comprobar tu sesión porque el servidor no responde. Tu acceso se conservó; vuelve a cargar la página cuando el bot esté conectado.');
+      // No borra el token por una caída temporal de la laptop/Firebase.
+      console.warn('[Sesión] Conexión temporalmente no disponible; se conserva la sesión:', error?.message || error);
+      setMsg($('msg-1'), 'No se pudo conectar con la laptop. Tu sesión se conservó; vuelve a intentarlo cuando el bot esté en línea.');
     }
   }
 })();
