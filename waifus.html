@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -83,6 +83,7 @@
   }
   body.modal-open { overflow: hidden; }
   .ic { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+  .ic.icon-3d { filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.45)) drop-shadow(0 0 1px rgba(0,0,0,.3)); }
 
   .bg-layers { position: fixed; inset: 0; z-index: -2; pointer-events: none;
     background:
@@ -116,9 +117,7 @@
     animation: toastIn .35s cubic-bezier(.2,.9,.3,1.2); width: fit-content; max-width: 100%; text-align: center;
     pointer-events: auto; display: flex; align-items: center; gap: 10px; justify-content: center; }
   .toast.ok{ border-color: rgba(16,185,129,.4); }
-  .toast.ok .ic{ color: var(--ok); }
   .toast.err{ border-color: rgba(239,68,68,.4); }
-  .toast.err .ic{ color: var(--err); }
   .toast.hide{ animation: toastOut .3s ease forwards; }
 
   .layout{ display: flex; min-height: 100vh; position: relative; width: 100%; overflow-x: clip; }
@@ -155,13 +154,12 @@
     padding: 11px 14px; border-radius: var(--radius-sm); color: var(--text-2); font-size: 13px; font-weight: 600;
     cursor: pointer; border: 1px solid transparent;
     background: transparent; transition: all .18s ease; text-align: left; font-family: inherit; width: 100%; position: relative; }
-  .nav-item .icon{ font-size: 16px; width: 20px; min-width: 20px; text-align: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); transition: color .18s; }
+  .nav-item .icon{ font-size: 16px; width: 20px; min-width: 20px; text-align: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: transform .18s; }
   .nav-item > span:last-child{ flex: 1; text-align: left; }
   .nav-item:hover:not(.active){ color: var(--text); background: rgba(255,255,255,.04); }
-  .nav-item:hover:not(.active) .icon{ color: var(--text-2); }
+  .nav-item:hover:not(.active) .icon{ transform: scale(1.12) rotate(-4deg); }
   .nav-item.active{ color: var(--text); background: rgba(255,255,255,.06);
     border-color: var(--border-2); box-shadow: var(--shadow-sm); }
-  .nav-item.active .icon{ color: #fff; }
   .nav-item.active::before{ content:''; position:absolute; left: 0; top: 25%; bottom: 25%; width: 3px;
     background: linear-gradient(180deg, var(--pink), var(--purple)); border-radius: 0 3px 3px 0; }
   .sidebar-footer{ padding: 12px 10px; padding-bottom: max(12px, env(safe-area-inset-bottom, 12px)); border-top: 1px solid var(--border); }
@@ -270,7 +268,6 @@
     box-shadow: 0 3px 12px rgba(236,72,153,.35);
     transform: translateY(-1px);
   }
-  .bottom-nav-item.active .icon{ color: #fff; }
 
   .card{ background: var(--surface);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -336,7 +333,6 @@
   .subtab:hover:not(.active){ color: var(--text); background: rgba(255,255,255,.06); border-color: var(--border-2); transform: none; }
   .subtab.active{ background: rgba(255,255,255,.08); color: var(--text);
     border-color: var(--border-2); }
-  .subtab.active .ic{ color: var(--purple); }
 
   .subtabs-inner{ display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap;
     padding: 5px; border-radius: var(--radius); background: rgba(255,255,255,.03); border: 1px solid var(--border); }
@@ -349,8 +345,6 @@
   .subtab-inner:hover:not(.active){ color: var(--text); background: rgba(255,255,255,.04); transform: none; }
   .subtab-inner.active{ color: var(--text); background: rgba(255,255,255,.08);
     border-color: var(--border-2); box-shadow: var(--shadow-sm); }
-  .subtab-inner.active .ic{ color: var(--purple); }
-  .subtab-inner[data-dup="agente"].active .ic{ color: var(--gold); }
 
   .dup-price-grid{ display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .dup-price-card{ padding: 14px; border-radius: var(--radius);
@@ -369,7 +363,7 @@
     text-align: left; border-radius: var(--radius-sm); background: rgba(0,0,0,.25); color: var(--gold);
     border: 1px solid var(--border); font-variant-numeric: tabular-nums; width: 100%; outline: none; }
   .dup-price-card .dpc-input-wrap input:focus{ border-color: rgba(139,92,246,.4); background: rgba(255,255,255,.05); }
-  .dup-price-card .dpc-input-wrap .ic{ position: absolute; right: 12px; color: var(--gold); pointer-events: none; }
+  .dup-price-card .dpc-input-wrap .ic{ position: absolute; right: 12px; pointer-events: none; }
   .dup-price-card .dpc-qty{ font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
     display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
   .dup-price-card .dpc-qty b{ color: var(--cyan); font-weight: 800; font-size: 14px; }
@@ -380,7 +374,6 @@
     border: 1px solid rgba(245,158,11,.25); position: relative; overflow: hidden; }
   .agent-hero-title{ font-size: 17px; font-weight: 800; margin-bottom: 8px;
     color: var(--text); display: flex; align-items: center; gap: 8px; }
-  .agent-hero-title .ic{ color: var(--gold); }
   .agent-hero-text{ font-size: 13px; color: var(--muted); line-height: 1.6; }
   .agent-hero-text b{ color: var(--text-2); font-weight: 700; }
   .agent-hero-text .no-excl{ color: var(--exclusiva); font-weight: 700; }
@@ -414,7 +407,7 @@
   .agent-total b.zero { color: var(--muted-2); font-size: 18px; }
 
   .agent-empty { text-align: center; padding: 46px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; }
-  .agent-empty .icon { font-size: 40px; margin-bottom: 12px; display: flex; justify-content: center; opacity: .5; color: var(--purple); }
+  .agent-empty .icon { font-size: 40px; margin-bottom: 12px; display: flex; justify-content: center; opacity: .5; }
   .agent-empty b { color: var(--text); }
 
   .btn-agent-sell { width: 100%; padding: 15px 18px; border-radius: var(--radius); font-size: 14px; font-weight: 700;
@@ -458,7 +451,6 @@
   .stat .num{ font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
   .stat .lbl{ font-size: 11px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600;
     display: inline-flex; align-items: center; gap: 5px; justify-content: center; }
-  .stat .lbl .ic{ color: var(--muted-2); }
 
   .rarity-bar{ display:flex; height: 6px; border-radius: 20px; overflow: hidden; margin-bottom: 16px;
     background: rgba(255,255,255,.04); border: 1px solid var(--border); }
@@ -703,7 +695,7 @@
   .box-card[data-box="legendaria"] .bprice{ color: var(--legendaria); border-color: rgba(251,191,36,.35); }
 
   .empty{ text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; font-weight: 500; }
-  .empty .icon{ font-size: 44px; margin-bottom: 12px; display:flex; justify-content:center; opacity:.5; color: var(--purple); }
+  .empty .icon{ font-size: 44px; margin-bottom: 12px; display:flex; justify-content:center; opacity:.7; }
   .loading{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius:50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
 
   .code-inputs{ display:flex; gap:6px; justify-content:center; margin: 20px 0; }
@@ -723,33 +715,6 @@
     background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     animation: shimmer 4s linear infinite; text-transform: uppercase; line-height: 1.1; }
   .login-wrap .logo-hero .l2{ font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin-top: 10px; font-weight: 700; }
-
-  /* Pantalla de carga / comprobación de sesión */
-  .loading-state{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    padding: 34px 10px 14px;
-    text-align: center;
-  }
-  .big-spinner{
-    width: 46px;
-    height: 46px;
-    border: 3px solid rgba(139,92,246,.18);
-    border-top-color: var(--purple);
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
-  }
-  .loading-label{
-    font-size: 11px;
-    letter-spacing: .22em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 700;
-    animation: pulse 1.6s ease-in-out infinite;
-  }
 
   #box-modal.show{ display: flex; align-items: center; justify-content: center; padding: 20px; }
   #box-modal .modal-overlay{ position: fixed; }
@@ -870,7 +835,7 @@
 
   .shop-search{ margin-bottom: 18px; }
   .shop-search-input-wrap{ position: relative; display: flex; align-items: center; margin-bottom: 10px; }
-  .shop-search-input-wrap > .ic{ position: absolute; left: 14px; color: var(--muted-2); pointer-events: none; }
+  .shop-search-input-wrap > .ic{ position: absolute; left: 14px; pointer-events: none; }
   .shop-search-input-wrap input{ padding-left: 42px; padding-right: 42px; }
   .shop-search-clear{ position: absolute; right: 8px; width: 30px; height: 30px; padding: 0; border-radius: 50%;
     background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--muted); opacity: 0; pointer-events: none; transition: all .18s; }
@@ -917,7 +882,7 @@
     padding: 3px 8px; border-radius: 100px; background: rgba(255,255,255,.05); border: 1px solid var(--border-2);
     color: var(--text-2); font-weight: 700; margin-left: auto; }
   .shop-search-empty{ text-align: center; padding: 46px 20px; color: var(--muted); font-size: 13px; line-height: 1.7; font-weight: 500; }
-  .shop-search-empty .icon{ font-size: 42px; margin-bottom: 12px; display: flex; justify-content: center; opacity: .5; color: var(--purple); }
+  .shop-search-empty .icon{ font-size: 42px; margin-bottom: 12px; display: flex; justify-content: center; opacity: .7; }
 
   .support-group-card {
     display: flex; flex-direction: row;
@@ -952,7 +917,6 @@
     display: flex; align-items: center; gap: 8px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .support-group-title .ic { color: var(--cyan); flex-shrink: 0; }
   .support-group-desc {
     font-size: 12px; color: var(--muted); line-height: 1.5;
     margin-bottom: 10px; font-weight: 500;
@@ -1004,9 +968,7 @@
     display: inline-flex; align-items: center; gap: 4px;
     font-weight: 500;
   }
-  .support-dev-link .ic { color: var(--muted-2); }
 
-  /* Soporte: dar aire respecto a la barra superior */
   #tab-support .page-wrap { padding-top: 18px; }
   #tab-support > .page-wrap > .section-title:first-child { margin-top: 0; }
   #tab-support .support-group-card { margin-bottom: 8px; }
@@ -1088,12 +1050,11 @@
     .agent-hero-text{ font-size: 12px; }
 
     .subtab-inner{ padding: 10px 12px; font-size: 11px; min-width: 90px; }
-    .subtab-inner .ic{ width: 13px; height: 13px; }
 
     .dup-price-grid{ grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .dup-price-card{ padding: 10px 10px; }
     .dup-price-card .dpc-input-wrap input{ padding: 9px 28px 9px 10px; font-size: 13px; }
-    .dup-price-card .dpc-input-wrap .ic{ right: 8px; width: 12px; height: 12px; }
+    .dup-price-card .dpc-input-wrap .ic{ right: 8px; }
     .dup-price-card .dpc-head{ font-size: 10px; letter-spacing: .06em; }
     .dup-price-card .dpc-qty{ font-size: 10px; }
     .dup-price-card .dpc-qty b{ font-size: 12px; }
@@ -1108,7 +1069,6 @@
     .support-dev-img { width: 42px; height: 42px; border-width: 1.5px; }
     .support-dev-name { font-size: 11px; }
     .support-dev-link { font-size: 9px; }
-    .support-dev-link .ic { width: 9px; height: 9px; }
 
     .bottom-nav{ max-width: calc(100% - 16px); padding: 5px; border-radius: 28px; }
     .bottom-nav-item{ padding: 7px 2px; font-size: 8.5px; gap: 2px; }
@@ -1127,22 +1087,7 @@
 <div class="bg-grid"></div>
 <div id="toast-wrap"></div>
 
-<div id="screen-loading" class="screen active">
-  <div class="login-wrap">
-    <div class="card">
-      <div class="logo-hero">
-        <div class="l1">Jinx Waifus</div>
-        <div class="l2">◢ Web Edition ◣</div>
-      </div>
-      <div class="loading-state">
-        <div class="big-spinner"></div>
-        <div class="loading-label">Comprobando sesión…</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="screen-login" class="screen">
+<div id="screen-login" class="screen active">
   <div class="login-wrap">
     <div class="card">
       <div class="logo-hero"><div class="l1">Jinx Waifus</div><div class="l2">◢ Web Edition ◣</div></div>
@@ -1389,8 +1334,6 @@ async function relayCallRetrySafe(message, timeoutMs = RELAY_TIMEOUT_MS, maxAtte
 async function relayImage(mediaUrl) {
   const pathname = String(mediaUrl || '').split('?')[0].split('#')[0];
   if (!pathname.startsWith('/media/')) return mediaUrl;
-  // Solo se conserva una promesa mientras la misma imagen se está descargando.
-  // Los Data URL terminados no se guardan en una caché global.
   const active = relayImage.inflight.get(pathname);
   if (active) return active;
   const promise = relayCall({ type: 'image', path: pathname }, IMAGE_TIMEOUT_MS).then(result => {
@@ -1404,8 +1347,6 @@ async function relayImage(mediaUrl) {
 }
 relayImage.inflight = new Map();
 
-// Mantiene las rutas /media/ como texto hasta que la imagen entre en la pantalla.
-// Así una lectura de catálogo no descarga de golpe las imágenes de todas las waifus.
 function resolveRelayImages(value) { return value; }
 async function get(reference) {
   const message = { type: 'db', method: 'GET', path: reference.path };
@@ -1427,7 +1368,6 @@ async function get(reference) {
         const requestedPath = img.dataset.relaySource;
         img.dataset.relayState = 'loading';
         relayImage(requestedPath).then(dataUrl => {
-          // If it scrolled away during transfer, discard the result rather than retaining it.
           if (!img.isConnected || img.dataset.relayNear !== '1' || img.dataset.relaySource !== requestedPath) {
             img.dataset.relayState = 'idle';
             return;
@@ -1439,7 +1379,6 @@ async function get(reference) {
           img.style.opacity = '1';
         }).catch(error => {
           if (img.dataset.relaySource === requestedPath) img.dataset.relayState = 'error';
-          // Log once per visible image; scrolling away resets it for a future retry.
           console.warn('[Puente Firebase] No se pudo cargar una imagen visible:', error.message || error);
         });
       } else {
@@ -1460,9 +1399,6 @@ async function get(reference) {
     if (src.startsWith('/media/')) {
       const sameRelaySource = img.dataset.relaySource === src;
       if (sameRelaySource) {
-        // Una actualización de Firebase puede volver a escribir la ruta /media
-        // sobre la Data URL temporal. Nunca dejes que el navegador intente
-        // cargar /media desde GitHub Pages: el servidor real está en la laptop.
         img.removeAttribute('src');
         if (img.dataset.relayState === 'loaded' || img.dataset.relayState === 'error') {
           img.dataset.relayState = 'idle';
@@ -1472,7 +1408,7 @@ async function get(reference) {
         img.style.visibility = 'hidden';
         img.style.opacity = '0';
         io.unobserve(img);
-        io.observe(img); // provoca una nueva comprobación si sigue visible
+        io.observe(img);
         return;
       }
       img.dataset.relaySource = src;
@@ -1486,8 +1422,6 @@ async function get(reference) {
       io.observe(img);
       return;
     }
-    // If a previously detached image node is reinserted, it may retain only
-    // data-relay-source because its temporary Data URL was intentionally released.
     if (!src && img.dataset.relaySource && img.dataset.relayState === 'idle') {
       io.observe(img);
       return;
@@ -1568,7 +1502,6 @@ function ensureRelayEventSubscription() {
         }
       }
     }
-    // Bound client-side memory even if a Firebase event has not expired yet.
     if (seenRelayEvents.size > 3000) seenRelayEvents.clear();
   }, error => {
     console.warn('[Puente Firebase] No se pudo suscribir a cambios:', error?.message || error);
@@ -1597,9 +1530,6 @@ function limitToLast(_count) { return null; }
 
 const $ = (id) => document.getElementById(id);
 
-// Reconciliador DOM: conserva los nodos <img> cuando su URL lógica no ha cambiado.
-// En una actualización de ventas/precios/skins solo cambia el contenido del artículo;
-// el elemento de imagen y su recurso ya decodificado siguen vivos, evitando parpadeos.
 function renderHtmlPreservingImages(container, html) {
   if (!container) return;
   const template = document.createElement('template');
@@ -1627,8 +1557,6 @@ function renderHtmlPreservingImages(container, html) {
     if (!pool || !pool.length) return;
     const oldImg = pool.shift();
 
-    // Sincronizar atributos de presentación, pero conservar src, style y el estado
-    // del puente (data-relay-*) porque representan el recurso que ya está cargado.
     const reserved = name => name === 'src' || name === 'srcset' || name === 'style' || name.startsWith('data-relay-');
     Array.from(oldImg.attributes).forEach(attr => {
       if (!reserved(attr.name) && !newImg.hasAttribute(attr.name)) oldImg.removeAttribute(attr.name);
@@ -1722,46 +1650,260 @@ const DEVELOPERS = [
   { name: 'Shin', url: 'https://t.me/Krlos2k', image: 'https://i.ibb.co/0jhPFxPY/photo-2026-10-18-10-48-14.jpg' }
 ];
 
-const I = {
-  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
-  dice:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/><circle cx="16" cy="8" r="1.4" fill="currentColor"/><circle cx="8" cy="16" r="1.4" fill="currentColor"/><circle cx="16" cy="16" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/>',
-  crown:'<path d="M2 20h20"/><path d="M4 20V8l4 4 4-8 4 8 4-4v12"/>',
-  trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
-  store:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
-  package:'<path d="M16.5 9.4 7.5 4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
-  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
-  sparkles:'<path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9z"/><path d="M19 3v3"/><path d="M20.5 4.5h-3"/>',
-  flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
-  diamond:'<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 21 8 9l4-6 4 6-4 12"/>',
-  circle:'<circle cx="12" cy="12" r="8"/>',
-  coin:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 12h5"/>',
-  globe:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
-  gift:'<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
-  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
-  hash:'<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>',
-  check:'<polyline points="20 6 9 17 4 12"/>',
-  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
-  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-  chart:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
-  layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
-  play:'<polygon points="5 3 19 12 5 21 5 3"/>',
-  back:'<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
-  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-  menu:'<line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>',
-  card:'<rect x="2" y="6" width="20" height="12" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>',
-  filter:'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
-  search:'<circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/>',
-  eyeoff:'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
-  dollar:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-  award:'<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
-  chevron:'<polyline points="9 18 15 12 9 6"/>',
-  tag:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>'
-};
+/* ============================================================
+   ICONOS 3D A COLOR
+   ============================================================ */
+let __icSeq = 0;
 function ico(name, size = 16) {
-  return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[name] || ''}</svg>`;
+  const u = 'i3d' + (++__icSeq) + '_';
+  const L = (id, c1, c2, dir) => {
+    if (dir === 'h') return `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
+    if (dir === 'r') return `<radialGradient id="${id}" cx=".5" cy=".35" r=".78"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>`;
+    return `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
+  };
+  const D = (s) => `<defs>${s}</defs>`;
+  let b = '';
+
+  switch (name) {
+    case 'home': {
+      b = D(L(u+'a','#c4b5fd','#7c3aed') + L(u+'b','#fde68a','#f59e0b'))
+        + `<path d="M3.5 11l8.5-7.5 8.5 7.5v8.5a1.5 1.5 0 0 1-1.5 1.5H16v-5.5h-4V21H6.5A1.5 1.5 0 0 1 5 19.5z" fill="url(#${u}a)"/>`
+        + `<path d="M3 11.5 12 4l9 7.5" fill="none" stroke="url(#${u}b)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+      break;
+    }
+    case 'user': {
+      b = D(L(u+'a','#c4b5fd','#7c3aed') + L(u+'b','#ddd6fe','#a78bfa'))
+        + `<circle cx="12" cy="7.5" r="3.8" fill="url(#${u}b)"/>`
+        + `<path d="M4.5 21v-1.5a4.5 4.5 0 0 1 4.5-4.5h6a4.5 4.5 0 0 1 4.5 4.5V21z" fill="url(#${u}a)"/>`
+        + `<circle cx="10.8" cy="6.5" r="1.2" fill="#fff" opacity=".55"/>`;
+      break;
+    }
+    case 'users': {
+      b = D(L(u+'a','#67e8f9','#0891b2') + L(u+'b','#a5f3fc','#06b6d4') + L(u+'c','#cffafe','#22d3ee'))
+        + `<circle cx="9" cy="8" r="3.4" fill="url(#${u}b)"/>`
+        + `<circle cx="17" cy="9" r="2.7" fill="url(#${u}c)" opacity=".9"/>`
+        + `<path d="M2.5 20v-1a4 4 0 0 1 4-4h5a4 4 0 0 1 4 4v1z" fill="url(#${u}a)"/>`
+        + `<path d="M14.5 15h2.5a3.5 3.5 0 0 1 3.5 3.5V20h-2.5v-1a4 4 0 0 0-1.4-3" fill="url(#${u}a)" opacity=".85"/>`;
+      break;
+    }
+    case 'grid': {
+      b = D(L(u+'a','#f9a8d4','#db2777') + L(u+'b','#c4b5fd','#7c3aed') + L(u+'c','#67e8f9','#0891b2') + L(u+'d','#fde68a','#d97706'))
+        + `<rect x="3" y="3" width="8" height="8" rx="2" fill="url(#${u}a)"/>`
+        + `<rect x="13" y="3" width="8" height="8" rx="2" fill="url(#${u}b)"/>`
+        + `<rect x="13" y="13" width="8" height="8" rx="2" fill="url(#${u}c)"/>`
+        + `<rect x="3" y="13" width="8" height="8" rx="2" fill="url(#${u}d)"/>`;
+      break;
+    }
+    case 'dice': {
+      b = D(L(u+'a','#fca5a5','#dc2626'))
+        + `<rect x="3" y="3" width="18" height="18" rx="4" fill="url(#${u}a)"/>`
+        + `<circle cx="8" cy="8" r="1.4" fill="#fff"/><circle cx="16" cy="8" r="1.4" fill="#fff"/>`
+        + `<circle cx="12" cy="12" r="1.4" fill="#fff"/>`
+        + `<circle cx="8" cy="16" r="1.4" fill="#fff"/><circle cx="16" cy="16" r="1.4" fill="#fff"/>`;
+      break;
+    }
+    case 'crown': {
+      b = D(L(u+'a','#fde68a','#d97706') + L(u+'b','#fef3c7','#f59e0b','h'))
+        + `<path d="M3 18l-1-11 6 5 4-8 4 8 6-5-1 11z" fill="url(#${u}a)"/>`
+        + `<rect x="3" y="18" width="18" height="2.5" rx="1" fill="url(#${u}b)"/>`
+        + `<circle cx="12" cy="9.5" r="1.2" fill="#fff" opacity=".7"/>`;
+      break;
+    }
+    case 'trophy': {
+      b = D(L(u+'a','#fde68a','#d97706') + L(u+'b','#fef9c3','#fbbf24'))
+        + `<path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="url(#${u}a)"/>`
+        + `<path d="M7 6H4a3 3 0 0 0 3 3M17 6h3a3 3 0 0 1-3 3" fill="none" stroke="url(#${u}b)" stroke-width="1.8"/>`
+        + `<rect x="10" y="13" width="4" height="4" fill="url(#${u}b)"/>`
+        + `<rect x="7" y="18" width="10" height="2.5" rx="1" fill="url(#${u}a)"/>`;
+      break;
+    }
+    case 'store': {
+      b = D(L(u+'a','#86efac','#16a34a') + L(u+'b','#bbf7d0','#22c55e') + L(u+'c','#fef3c7','#f59e0b','h'))
+        + `<path d="M4 9l1-5h14l1 5v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2z" fill="url(#${u}c)"/>`
+        + `<rect x="4" y="11" width="16" height="10" fill="url(#${u}a)"/>`
+        + `<rect x="9" y="14" width="6" height="7" fill="url(#${u}b)"/>`;
+      break;
+    }
+    case 'package': {
+      b = D(L(u+'a','#d4a373','#a16207') + L(u+'b','#fcd34d','#ca8a04') + L(u+'c','#fde68a','#eab308','h'))
+        + `<path d="M3 7l9-4 9 4v10l-9 4-9-4z" fill="url(#${u}a)"/>`
+        + `<path d="M3 7l9 4 9-4M12 11v10" stroke="url(#${u}b)" stroke-width="1.5" fill="none"/>`
+        + `<path d="M7.5 5L16.5 9" stroke="url(#${u}c)" stroke-width="1.5"/>`;
+      break;
+    }
+    case 'star': {
+      b = D(L(u+'a','#fef9c3','#f59e0b','r') + L(u+'b','#fde68a','#d97706'))
+        + `<path d="M12 2.5l2.9 6.1 6.6.7-4.9 4.5 1.4 6.5L12 17l-6 3.3 1.4-6.5-4.9-4.5 6.6-.7z" fill="url(#${u}a)" stroke="url(#${u}b)" stroke-width=".6"/>`
+        + `<path d="M9.5 10l2.5-1.5" stroke="#fff" stroke-width=".8" opacity=".6" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'sparkles': {
+      b = D(L(u+'a','#a5f3fc','#06b6d4') + L(u+'b','#e9d5ff','#8b5cf6'))
+        + `<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z" fill="url(#${u}a)"/>`
+        + `<path d="M19 3v3M20.5 4.5h-3" stroke="url(#${u}b)" stroke-width="1.5" stroke-linecap="round"/>`
+        + `<path d="M5 18v2M4 19h2" stroke="url(#${u}b)" stroke-width="1.2" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'flame': {
+      b = D(L(u+'a','#fbbf24','#dc2626') + L(u+'b','#fef3c7','#f59e0b','r'))
+        + `<path d="M8.5 14.5c0-2 1-3 1-3 0 2 1.5 2 2 1 .5-1-.5-4-1-5 .5-.5 2 1 3 2.5 1.5 2.3 2.5 4 2.5 6a5 5 0 1 1-10 0c0-1 .2-2 .5-2.5.2.5 1 1 2 1z" fill="url(#${u}a)"/>`
+        + `<ellipse cx="11" cy="16" rx="1.8" ry="1.5" fill="url(#${u}b)" opacity=".75"/>`;
+      break;
+    }
+    case 'diamond': {
+      b = D(L(u+'a','#67e8f9','#0891b2') + L(u+'b','#cffafe','#06b6d4'))
+        + `<path d="M6 3h12l4 6-10 12L2 9z" fill="url(#${u}a)"/>`
+        + `<path d="M2 9h20M12 21L8 9l4-6 4 6z" stroke="url(#${u}b)" stroke-width=".8" fill="none"/>`
+        + `<path d="M9 9l3-6 3 6z" fill="url(#${u}b)" opacity=".6"/>`;
+      break;
+    }
+    case 'circle': {
+      b = D(L(u+'a','#fbcfe8','#db2777','r'))
+        + `<circle cx="12" cy="12" r="9" fill="url(#${u}a)"/>`
+        + `<circle cx="9" cy="9" r="2.2" fill="#fff" opacity=".5"/>`;
+      break;
+    }
+    case 'coin': {
+      b = D(L(u+'a','#fef3c7','#b45309','r') + L(u+'b','#fde047','#d97706'))
+        + `<circle cx="12" cy="12" r="9" fill="url(#${u}a)"/>`
+        + `<circle cx="12" cy="12" r="6" fill="url(#${u}b)"/>`
+        + `<circle cx="9" cy="9" r="2" fill="#fff" opacity=".55"/>`;
+      break;
+    }
+    case 'globe': {
+      b = D(L(u+'a','#93c5fd','#1e40af','r') + L(u+'b','#bfdbfe','#3b82f6'))
+        + `<circle cx="12" cy="12" r="9" fill="url(#${u}a)"/>`
+        + `<ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="url(#${u}b)" stroke-width="1"/>`
+        + `<path d="M3 12h18M4 7h16M4 17h16" stroke="url(#${u}b)" stroke-width="1" fill="none"/>`;
+      break;
+    }
+    case 'gift': {
+      b = D(L(u+'a','#fca5a5','#dc2626') + L(u+'b','#fde68a','#f59e0b') + L(u+'c','#fef3c7','#fbbf24','h'))
+        + `<rect x="3" y="8" width="18" height="4" fill="url(#${u}c)"/>`
+        + `<rect x="4" y="11" width="16" height="10" fill="url(#${u}a)"/>`
+        + `<rect x="10.5" y="8" width="3" height="13" fill="url(#${u}b)"/>`
+        + `<path d="M12 8c-1-3-4-3-4-1 0 1 2 1 4 1 2 0 4 0 4-1 0-2-3-2-4 1z" fill="url(#${u}b)"/>`;
+      break;
+    }
+    case 'logout': {
+      b = D(L(u+'a','#fca5a5','#dc2626') + L(u+'b','#fecaca','#f87171'))
+        + `<path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5" fill="none" stroke="url(#${u}b)" stroke-width="2.2" stroke-linecap="round"/>`
+        + `<path d="M10 12h11M16 7l5 5-5 5" stroke="url(#${u}a)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+      break;
+    }
+    case 'hash': {
+      b = D(L(u+'a','#a78bfa','#06b6d4','h'))
+        + `<path d="M5 9h15M4 15h15M10 3l-2 18M16 3l-2 18" stroke="url(#${u}a)" stroke-width="2.2" stroke-linecap="round" fill="none"/>`;
+      break;
+    }
+    case 'check': {
+      b = D(L(u+'a','#6ee7b7','#059669'))
+        + `<path d="M4 12.5l5.5 5.5L20 6.5" stroke="url(#${u}a)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+      break;
+    }
+    case 'x': {
+      b = D(L(u+'a','#fca5a5','#b91c1c'))
+        + `<path d="M6 6l12 12M18 6L6 18" stroke="url(#${u}a)" stroke-width="3" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'clock': {
+      b = D(L(u+'a','#bfdbfe','#1d4ed8','r') + L(u+'b','#fef3c7','#f59e0b'))
+        + `<circle cx="12" cy="12" r="9" fill="url(#${u}a)"/>`
+        + `<circle cx="12" cy="12" r="6.5" fill="none" stroke="#e0e7ff" stroke-width=".8" opacity=".6"/>`
+        + `<path d="M12 7v5l3.5 2" stroke="url(#${u}b)" stroke-width="2" stroke-linecap="round" fill="none"/>`;
+      break;
+    }
+    case 'chart': {
+      b = D(L(u+'a','#86efac','#16a34a') + L(u+'b','#67e8f9','#0891b2') + L(u+'c','#c4b5fd','#7c3aed'))
+        + `<rect x="3" y="12" width="4.5" height="8" rx="1" fill="url(#${u}a)"/>`
+        + `<rect x="9.75" y="6" width="4.5" height="14" rx="1" fill="url(#${u}b)"/>`
+        + `<rect x="16.5" y="9" width="4.5" height="11" rx="1" fill="url(#${u}c)"/>`;
+      break;
+    }
+    case 'layers': {
+      b = D(L(u+'a','#c4b5fd','#7c3aed') + L(u+'b','#a78bfa','#6d28d9') + L(u+'c','#e9d5ff','#8b5cf6'))
+        + `<path d="M12 3l9 5-9 5-9-5z" fill="url(#${u}c)"/>`
+        + `<path d="M3 12l9 5 9-5" stroke="url(#${u}b)" stroke-width="2" fill="none" stroke-linejoin="round"/>`
+        + `<path d="M3 17l9 5 9-5" stroke="url(#${u}a)" stroke-width="2" fill="none" stroke-linejoin="round"/>`;
+      break;
+    }
+    case 'play': {
+      b = D(L(u+'a','#86efac','#16a34a','r'))
+        + `<circle cx="12" cy="12" r="9" fill="url(#${u}a)"/>`
+        + `<path d="M10 8l6 4-6 4z" fill="#fff"/>`;
+      break;
+    }
+    case 'back': {
+      b = D(L(u+'a','#a78bfa','#6366f1','h'))
+        + `<path d="M19 12H5M12 5l-7 7 7 7" stroke="url(#${u}a)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+      break;
+    }
+    case 'shield': {
+      b = D(L(u+'a','#67e8f9','#1e40af') + L(u+'b','#a5f3fc','#0ea5e9'))
+        + `<path d="M12 2.5l8 3v6c0 5.5-4.5 9.5-8 11-3.5-1.5-8-5.5-8-11v-6z" fill="url(#${u}a)"/>`
+        + `<path d="M12 2.5l8 3v6c0 5.5-4.5 9.5-8 11V2.5z" fill="url(#${u}b)" opacity=".5"/>`
+        + `<path d="M8.5 12l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+      break;
+    }
+    case 'menu': {
+      b = D(L(u+'a','#c4b5fd','#8b5cf6','h'))
+        + `<path d="M4 6h16M4 12h16M4 18h16" stroke="url(#${u}a)" stroke-width="2.5" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'card': {
+      b = D(L(u+'a','#c4b5fd','#6d28d9') + L(u+'b','#fde68a','#f59e0b'))
+        + `<rect x="2" y="6" width="20" height="13" rx="2.5" fill="url(#${u}a)"/>`
+        + `<rect x="2" y="9" width="20" height="2.5" fill="url(#${u}b)"/>`
+        + `<rect x="5" y="14" width="5" height="2" rx=".5" fill="#fde68a" opacity=".8"/>`;
+      break;
+    }
+    case 'filter': {
+      b = D(L(u+'a','#c4b5fd','#7c3aed'))
+        + `<path d="M3 4h18l-7 9v7l-4-2v-5z" fill="url(#${u}a)"/>`;
+      break;
+    }
+    case 'search': {
+      b = D(L(u+'a','#67e8f9','#0891b2') + L(u+'b','#a5f3fc','#06b6d4'))
+        + `<circle cx="11" cy="11" r="6.5" fill="none" stroke="url(#${u}a)" stroke-width="2.5"/>`
+        + `<path d="M16 16l5 5" stroke="url(#${u}b)" stroke-width="2.8" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'eyeoff': {
+      b = D(L(u+'a','#fca5a5','#dc2626','h'))
+        + `<path d="M3 3l18 18" stroke="url(#${u}a)" stroke-width="2.5" stroke-linecap="round"/>`
+        + `<path d="M10.5 5.5A10 10 0 0 1 12 5.5c4.5 0 8 3.5 10 6.5-.7 1-1.7 2.3-3 3.4M6.3 6.3C4.2 7.7 2.7 9.6 2 12c2 3 5.5 6.5 10 6.5 1.7 0 3.2-.5 4.5-1.3" stroke="url(#${u}a)" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'dollar': {
+      b = D(L(u+'a','#86efac','#15803d'))
+        + `<path d="M12 2.5v19M16.5 7H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7.5" stroke="url(#${u}a)" stroke-width="2.2" stroke-linecap="round" fill="none"/>`;
+      break;
+    }
+    case 'award': {
+      b = D(L(u+'a','#fef3c7','#d97706','r') + L(u+'b','#fbbf24','#b45309') + L(u+'c','#fcd34d','#f59e0b'))
+        + `<path d="M8 14l-2 8 6-3 6 3-2-8" fill="url(#${u}b)"/>`
+        + `<circle cx="12" cy="9" r="6.5" fill="url(#${u}a)" stroke="url(#${u}b)" stroke-width=".7"/>`
+        + `<circle cx="12" cy="9" r="3.5" fill="url(#${u}c)" opacity=".85"/>`
+        + `<path d="M9.5 9l1.8 1.8 3.2-3.5" stroke="#92400e" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
+      break;
+    }
+    case 'chevron': {
+      b = D(L(u+'a','#a78bfa','#6366f1','h'))
+        + `<path d="M9 5l7 7-7 7" stroke="url(#${u}a)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+      break;
+    }
+    case 'tag': {
+      b = D(L(u+'a','#fdba74','#ea580c') + L(u+'b','#fed7aa','#f97316','h'))
+        + `<path d="M3 3h8l10 10-8 8L3 11z" fill="url(#${u}a)"/>`
+        + `<circle cx="7.5" cy="7.5" r="1.7" fill="#fff"/>`;
+      break;
+    }
+    default: {
+      b = `<circle cx="12" cy="12" r="9" fill="#8b5cf6"/>`;
+    }
+  }
+
+  return `<svg class="ic icon-3d" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${b}</svg>`;
 }
 function hydrateIcons(root = document) {
   root.querySelectorAll('[data-icon]').forEach(el => {
@@ -2012,7 +2154,6 @@ function scheduleLoginStatusPoll(id, waitMs = 3500) {
       const snapshot = await get(ref(db, `loginRequests/${id}`));
       handleLoginRequestStatus(id, snapshot.val());
     } catch (error) {
-      // Si el puente está reiniciándose, conserva la petición y vuelve a consultar.
       console.warn('[Inicio de sesión] Consulta temporal fallida:', error?.message || error);
     } finally {
       loginPollBusy = false;
@@ -2085,13 +2226,8 @@ $('btn-verify').addEventListener('click', async () => {
     if (!result?.token) throw new Error('El servidor no devolvió una sesión válida.');
     const token = result.token;
     localStorage.setItem('jinx_session', token);
-    show('screen-loading');
     await startSession(token);
   } catch (e) {
-    if (e?.code === 'SESSION_INVALID') {
-      localStorage.removeItem('jinx_session');
-    }
-    show('screen-code');
     setMsg(msg, e.message || 'Error.');
   } finally {
     btn.disabled = false;
@@ -2125,8 +2261,6 @@ async function startSession(token) {
     session = null;
     throw error;
   }
-  // No mostrar el panel hasta tener cargados los datos iniciales, para evitar
-  // dejar la interfaz en un estado incompleto si el puente se reconecta.
   show('screen-panel');
   subscribeRealtime();
   renderAll();
@@ -2194,9 +2328,6 @@ function subscribeRealtime() {
 
   unsubs.push(onValue(ref(db, `sales`), (s) => {
     const newSales = s.val() || {};
-    // Incluye la identidad y los datos visibles de cada venta. Comparar solo
-    // cantidad/precio pierde cambios cuando se compra una venta y otra tiene
-    // el mismo precio, por lo que otros jugadores no refrescan su tienda.
     const sig = Object.keys(newSales).sort().map(id => {
       const x = newSales[id] || {};
       return [id, x.saleId || '', x.sellerId || '', x.sellerName || '', x.sellerUsername || '',
@@ -2292,9 +2423,6 @@ function watchImage(name, targetMap = imageUnsubs) {
           holder.innerHTML = `<img src="${esc(url)}" alt="" loading="lazy" style="opacity:0;transition:opacity .4s" onload="this.style.opacity='1'">`;
         } else {
           const attrSrc = img.getAttribute('src') || '';
-          // Una imagen /media/ ya gestionada por el cargador visible puede
-          // tener src temporal vacío o una Data URL. No la sobrescribas con
-          // la ruta local relativa al dominio de GitHub Pages.
           if (img.dataset.relaySource !== url && attrSrc !== url) {
             img.setAttribute('src', url);
             img.style.opacity = '1';
@@ -4328,21 +4456,16 @@ hydrateIcons();
 
 (async () => {
   const token = localStorage.getItem('jinx_session');
-  if (!token) {
-    show('screen-login');
-    return;
-  }
+  if (!token) return;
   try {
     await startSession(token);
   } catch (error) {
     if (error?.code === 'SESSION_INVALID') {
       localStorage.removeItem('jinx_session');
     } else {
-      // No borra el token por una caída temporal de la laptop/Firebase.
       console.warn('[Sesión] Conexión temporalmente no disponible; se conserva la sesión:', error?.message || error);
       setMsg($('msg-1'), 'No se pudo conectar con la laptop. Tu sesión se conservó; vuelve a intentarlo cuando el bot esté en línea.');
     }
-    show('screen-login');
   }
 })();
 </script>
