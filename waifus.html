@@ -1193,7 +1193,7 @@
       <input id="identifier" type="text" placeholder="@tunombre" autocomplete="username">
       <button id="btn-request" class="btn-full" data-icon="play">Enviar código</button>
       <div id="msg-1" class="msg"></div>
-      <p class="hint" id="hint-1">El bot te enviará un <b>código de 6 dígitos</b>.<br>Debes haber hablado antes con el bot.<br><span style="opacity:.78">La página debe abrirse desde el servidor de tu laptop (localhost:3000) o desde la IP local de esa laptop en la misma Wi-Fi.</span></p>
+      <p class="hint" id="hint-1">El bot te enviará un <b>código de 6 dígitos</b>.<br>Debes haber hablado antes con el bot.<br><span style="opacity:.78">La página de GitHub se conecta directamente con tu laptop mediante WebRTC y Firebase.</span></p>
     </div>
   </div>
 </div>
@@ -1311,38 +1311,206 @@
 </div>
 
 <script type="module">
-// Modo local sin túneles ni servicios de retransmisión.
-// El HTML, las API y las imágenes deben abrirse desde este mismo servidor: 
-// http://localhost:3000 o http://IP_LOCAL_DE_LA_LAPTOP:3000 (misma Wi-Fi).
-// Una página publicada en GitHub Pages no puede alcanzar una laptop detrás de NAT
-// sin un canal público intermediario; en ese caso, abre la URL local del servidor.
-// Firebase no se carga en el navegador: firebase.js guarda SOLO sessions/<token> en RTDB.
-localStorage.removeItem('jinx_server_url'); // descarta direcciones antiguas de túneles
-const API_BASE = '';
+// GitHub Pages (HTTPS) usa Firebase para señalización y un DataChannel WebRTC
+// directo hacia el proceso Node de la laptop. Firebase no aloja imágenes ni catálogo.
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getDatabase, ref as firebaseRef, get as firebaseGet, set as firebaseSet, onValue as firebaseOnValue } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyASVU1LB41spYNUPrHaRY-kg4MeaGi_9Nw',
+  authDomain: 'jinxwebedit.firebaseapp.com',
+  databaseURL: 'https://jinxwebedit-default-rtdb.firebaseio.com',
+  projectId: 'jinxwebedit',
+  storageBucket: 'jinxwebedit.firebasestorage.app',
+  messagingSenderId: '674393458723',
+  appId: '1:674393458723:web:1a36d94b533773700d8996',
+  measurementId: 'G-SMSVBNZCNC'
+};
+const jinxRtcApp = initializeApp(firebaseConfig, 'jinxweb-rtc-client');
+const jinxSignalDb = getDatabase(jinxRtcApp);
+const API_BASE = ''; // No se hacen fetch a localhost ni a una IP de la laptop.
 let SERVER_READY = false;
-const SERVER_HELP = location.hostname === 'github.io' || location.hostname.endsWith('.github.io')
-  ? 'Estás abriendo el panel desde GitHub Pages. Sin túneles, la página debe abrirse desde tu laptop: inicia el bot y entra en http://localhost:3000. Desde otro equipo de la misma Wi-Fi, usa http://IP_LOCAL_DE_TU_LAPTOP:3000.'
-  : 'No se encuentra el servidor local. Inicia el bot en tu laptop con «npm start» y abre http://localhost:3000. Desde otro dispositivo de la misma Wi-Fi, usa la dirección IP local que aparece en la consola y el puerto 3000.';
-async function pingJinxServer(base) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetch((base || '') + '/api/health', {
-      method: 'GET', cache: 'no-store', headers: { 'Accept': 'application/json' },
-      mode: 'cors', signal: controller.signal
+let rtcConnectionPromise = null;
+let rtcPeer = null;
+let rtcChannel = null;
+let rtcRequestSequence = 0;
+const rtcPending = new Map();
+const rtcMediaCache = new Map();
+const RTC_ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+];
+const SERVER_HELP = 'No se pudo establecer una conexión WebRTC directa con la laptop. Comprueba que el bot esté encendido, que Firebase Realtime Database tenga publicadas las reglas de webrtc/ y que la red permita conexiones UDP/STUN. Esta modalidad no usa localhost, IP local, túneles ni relés TURN.';
+
+function newRtcRoomId() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+function waitRtcIceComplete(pc, timeoutMs = 18000) {
+  if (pc.iceGatheringState === 'complete') return Promise.resolve();
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      pc.removeEventListener('icegatheringstatechange', changed);
+      resolve();
+    };
+    const changed = () => { if (pc.iceGatheringState === 'complete') finish(); };
+    const timer = setTimeout(finish, timeoutMs);
+    pc.addEventListener('icegatheringstatechange', changed);
+    changed();
+  });
+}
+function base64ToBytes(value) {
+  const binary = atob(value || '');
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+function handleRtcMessage(event) {
+  let message;
+  try { message = JSON.parse(typeof event.data === 'string' ? event.data : new TextDecoder().decode(event.data)); }
+  catch { return; }
+  const pending = rtcPending.get(String(message.id || ''));
+  if (!pending) return;
+  if (message.t === 'response') {
+    rtcPending.delete(String(message.id));
+    pending.resolve(new Response(base64ToBytes(message.body).buffer, { status: message.status || 200, headers: message.headers || {} }));
+  } else if (message.t === 'response-start') {
+    pending.status = message.status || 200;
+    pending.headers = message.headers || {};
+    pending.total = Number(message.total) || 0;
+    pending.chunks = new Array(pending.total);
+    pending.received = 0;
+  } else if (message.t === 'response-chunk') {
+    if (!pending.chunks || !Number.isInteger(message.index) || message.index < 0 || message.index >= pending.chunks.length) return;
+    if (!pending.chunks[message.index]) {
+      pending.chunks[message.index] = base64ToBytes(message.data);
+      pending.received++;
+    }
+  } else if (message.t === 'response-end') {
+    if (!pending.chunks || pending.received !== pending.total) {
+      rtcPending.delete(String(message.id));
+      pending.reject(new Error('La transferencia de datos llegó incompleta.'));
+      return;
+    }
+    const size = pending.chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const merged = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of pending.chunks) { merged.set(chunk, offset); offset += chunk.length; }
+    rtcPending.delete(String(message.id));
+    pending.resolve(new Response(merged.buffer, { status: pending.status, headers: pending.headers }));
+  }
+}
+function waitForRtcAnswer(roomRef, timeoutMs = 45000) {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    let unsubscribe = () => {};
+    const timer = setTimeout(() => done(new Error('La laptop no contestó la señalización WebRTC.')), timeoutMs);
+    function done(error, value) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      try { unsubscribe(); } catch {}
+      error ? reject(error) : resolve(value);
+    }
+    unsubscribe = firebaseOnValue(roomRef, snapshot => {
+      const value = snapshot.val();
+      if (value?.answer?.sdp) done(null, value.answer);
+      else if (value?.error) done(new Error(value.error));
+    }, error => done(error));
+  });
+}
+async function connectJinxWebRTC() {
+  if (rtcChannel?.readyState === 'open') return true;
+  if (rtcConnectionPromise) return rtcConnectionPromise;
+  rtcConnectionPromise = (async () => {
+    const hostSnap = await firebaseGet(firebaseRef(jinxSignalDb, 'webrtc/host'));
+    const host = hostSnap.val();
+    if (!host?.online || Date.now() - Number(host.lastSeen || 0) > 30000) {
+      throw new Error('Firebase no detecta el servidor activo de tu laptop. Inicia el bot y espera a que publique su presencia.');
+    }
+    const pc = new RTCPeerConnection({ iceServers: RTC_ICE_SERVERS, iceCandidatePoolSize: 2 });
+    rtcPeer = pc;
+    const channel = pc.createDataChannel('jinx-api', { ordered: true });
+    rtcChannel = channel;
+    channel.onmessage = handleRtcMessage;
+    channel.onclose = () => {
+      SERVER_READY = false;
+      if (rtcChannel === channel) rtcChannel = null;
+      if (rtcPeer === pc) rtcPeer = null;
+    };
+    channel.onerror = () => { SERVER_READY = false; };
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await waitRtcIceComplete(pc);
+    const roomId = newRtcRoomId();
+    const roomRef = firebaseRef(jinxSignalDb, 'webrtc/requests/' + roomId);
+    const answerPromise = waitForRtcAnswer(roomRef);
+    await firebaseSet(roomRef, {
+      offer: { type: 'offer', sdp: pc.localDescription.sdp },
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 120000
     });
-    const data = await response.json().catch(() => null);
-    return !!(response.ok && data && data.ok === true && data.service === 'jinxweb-local' && data.firebaseProject === 'jinxwebedit');
-  } finally { clearTimeout(timer); }
+    const answer = await answerPromise;
+    await pc.setRemoteDescription(answer);
+    await new Promise((resolve, reject) => {
+      if (channel.readyState === 'open') return resolve();
+      const timer = setTimeout(() => reject(new Error('WebRTC no logró abrir el canal de datos. La red podría bloquear UDP/STUN.')), 35000);
+      channel.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+      channel.addEventListener('close', () => { clearTimeout(timer); reject(new Error('El canal WebRTC se cerró antes de conectar.')); }, { once: true });
+    });
+    SERVER_READY = true;
+    console.info('[JinxWeb] Conexión directa WebRTC establecida con la laptop.');
+    return true;
+  })().catch(error => {
+    SERVER_READY = false;
+    try { rtcChannel?.close(); } catch {}
+    try { rtcPeer?.close(); } catch {}
+    rtcChannel = null; rtcPeer = null;
+    throw new Error(SERVER_HELP + ' Detalle: ' + (error?.message || error));
+  }).finally(() => { rtcConnectionPromise = null; });
+  return rtcConnectionPromise;
+}
+async function rtcFetch(url, options = {}, timeoutMs = 30000) {
+  await connectJinxWebRTC();
+  const channel = rtcChannel;
+  if (!channel || channel.readyState !== 'open') throw new Error('El canal directo con la laptop no está conectado.');
+  const id = 'r' + (++rtcRequestSequence) + '_' + Math.random().toString(36).slice(2, 10);
+  const headers = {};
+  new Headers(options.headers || {}).forEach((value, key) => { headers[key.toLowerCase()] = value; });
+  if (options.body && !headers['content-type']) headers['content-type'] = 'application/json';
+  const responsePromise = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => { rtcPending.delete(id); reject(new Error('La laptop tardó demasiado en responder.')); }, timeoutMs);
+    rtcPending.set(id, {
+      resolve: response => { clearTimeout(timer); resolve(response); },
+      reject: error => { clearTimeout(timer); reject(error); }
+    });
+  });
+  channel.send(JSON.stringify({ t: 'request', id, method: options.method || 'GET', url, headers, body: typeof options.body === 'string' ? options.body : '' }));
+  return responsePromise;
+}
+window.__jinxRtcCleanup = () => {
+  try { for (const pending of rtcPending.values()) pending.reject(new Error('Página cerrada.')); } catch {}
+  try { rtcChannel?.close(); } catch {}
+  try { rtcPeer?.close(); } catch {}
+  for (const objectUrl of rtcMediaCache.values()) { try { URL.revokeObjectURL(objectUrl); } catch {} }
+  rtcPending.clear(); rtcMediaCache.clear();
+};
+window.addEventListener('beforeunload', window.__jinxRtcCleanup);
+async function pingJinxServer() {
+  const response = await rtcFetch('/api/health', { method: 'GET', headers: { Accept: 'application/json' } }, 15000);
+  const data = await response.json().catch(() => null);
+  return !!(response.ok && data?.ok === true && data.service === 'jinxweb-local' && data.firebaseProject === 'jinxwebedit');
 }
 async function ensureJinxServer() {
-  if (SERVER_READY) return;
-  try {
-    if (!await pingJinxServer(API_BASE)) throw new Error('El servidor respondió, pero no es el servidor JinxWeb esperado.');
-    SERVER_READY = true;
-  } catch (error) {
-    throw new Error(SERVER_HELP + (error && error.name === 'AbortError' ? ' La comprobación agotó el tiempo.' : ''));
-  }
+  if (SERVER_READY && rtcChannel?.readyState === 'open') return;
+  await connectJinxWebRTC();
+  if (!await pingJinxServer()) throw new Error('La conexión WebRTC abrió, pero el motor local no respondió. Reinicia el bot.');
+  SERVER_READY = true;
 }
 const db = {};
 const RELAY_TIMEOUT_MS = 15000;
@@ -1369,7 +1537,7 @@ async function apiRequest(url, options = {}, timeoutMs = RELAY_TIMEOUT_MS) {
   try {
     const headers = sessionHeaders(options.headers || {});
     if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-    const response = await fetch(API_BASE + url, { ...options, headers, signal: controller.signal, cache: 'no-store' });
+    const response = await rtcFetch(url, { ...options, headers }, timeoutMs);
     const data = await response.json().catch(() => null);
     if (!response.ok) {
       const error = new Error(data?.error || `Error HTTP ${response.status}`);
@@ -1406,18 +1574,21 @@ async function relayCallRetrySafe(message, timeoutMs = RELAY_TIMEOUT_MS, maxAtte
   }
   throw lastError || new Error('No se pudo completar la solicitud.');
 }
-function resolveServerMediaUrl(value) {
-  if (typeof value !== 'string' || !value) return value;
-  if (/^\/media\//i.test(value) && API_BASE) return API_BASE + value;
-  return value;
+async function resolveServerMediaUrl(value) {
+  if (typeof value !== 'string' || !value || !/^\/media\//i.test(value)) return value;
+  if (rtcMediaCache.has(value)) return rtcMediaCache.get(value);
+  const response = await rtcFetch(value, { method: 'GET' }, IMAGE_TIMEOUT_MS);
+  if (!response.ok) throw new Error('No se pudo descargar la imagen desde la laptop (' + response.status + ').');
+  const objectUrl = URL.createObjectURL(await response.blob());
+  rtcMediaCache.set(value, objectUrl);
+  return objectUrl;
 }
-function normalizeServerMedia(value) {
+async function normalizeServerMedia(value) {
   if (typeof value === 'string') return resolveServerMediaUrl(value);
-  if (Array.isArray(value)) return value.map(normalizeServerMedia);
+  if (Array.isArray(value)) return Promise.all(value.map(normalizeServerMedia));
   if (value && typeof value === 'object') {
-    const out = {};
-    for (const [key, item] of Object.entries(value)) out[key] = normalizeServerMedia(item);
-    return out;
+    const entries = await Promise.all(Object.entries(value).map(async ([key, item]) => [key, await normalizeServerMedia(item)]));
+    return Object.fromEntries(entries);
   }
   return value;
 }
@@ -1425,7 +1596,7 @@ async function relayImage(mediaUrl) { return resolveServerMediaUrl(mediaUrl || '
 function resolveRelayImages(value) { return normalizeServerMedia(value); }
 async function get(reference) {
   const result = await apiRequest('/api/db?path=' + encodeURIComponent(reference.path));
-  return new OnlineSnapshot(normalizeServerMedia(result));
+  return new OnlineSnapshot(await normalizeServerMedia(result));
 }
 
 async function set(reference, value) {
@@ -1439,33 +1610,28 @@ async function remove(reference) {
 
 const onlineSubscriptions = new Set();
 let relayEventSubscription = null;
+const activeSubscriptionRefreshes = new WeakSet();
 function refreshSubscription(sub) {
-  if (!sub.active) return;
+  if (!sub.active || activeSubscriptionRefreshes.has(sub)) return;
+  activeSubscriptionRefreshes.add(sub);
   get({ path: sub.path }).then(snapshot => {
     if (sub.active) sub.callback(snapshot);
   }).catch(error => {
-    if (sub.active) console.warn('[Servidor local] No se pudo actualizar ' + sub.path + ':', error.message || error);
-  });
+    if (sub.active) console.warn('[JinxWeb RTC] No se pudo actualizar ' + sub.path + ':', error.message || error);
+  }).finally(() => activeSubscriptionRefreshes.delete(sub));
 }
 function ensureRelayEventSubscription() {
   const token = localStorage.getItem('jinx_session');
   if (!token || relayEventSubscription) return;
-  const sourceUrl = API_BASE + '/api/events?token=' + encodeURIComponent(token);
-  relayEventSubscription = new EventSource(sourceUrl);
-  relayEventSubscription.onmessage = event => {
-    let changed = '';
-    try { changed = String(JSON.parse(event.data).path || '').replace(/^\/+/, ''); } catch { return; }
-    for (const sub of onlineSubscriptions) {
-      if (!changed || changed === sub.path || changed.startsWith(sub.path + '/') || sub.path.startsWith(changed + '/')) refreshSubscription(sub);
-    }
-  };
-  relayEventSubscription.onerror = () => {
-    // EventSource reconecta automáticamente; no se elimina para evitar abrir múltiples canales.
-  };
+  // El DataChannel no utiliza EventSource: se consulta el JSON local periódicamente.
+  relayEventSubscription = setInterval(() => {
+    if (rtcChannel?.readyState !== 'open') return;
+    for (const sub of onlineSubscriptions) refreshSubscription(sub);
+  }, 4500);
 }
 function closeRelayEventSubscription() {
   if (relayEventSubscription) {
-    try { relayEventSubscription.close(); } catch {}
+    clearInterval(relayEventSubscription);
     relayEventSubscription = null;
   }
 }
