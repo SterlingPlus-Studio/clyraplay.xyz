@@ -1193,9 +1193,7 @@
       <input id="identifier" type="text" placeholder="@tunombre" autocomplete="username">
       <button id="btn-request" class="btn-full" data-icon="play">Enviar código</button>
       <div id="msg-1" class="msg"></div>
-      <button id="btn-server-config" class="btn-ghost btn-full" type="button" style="margin-top:10px;font-size:12px">Conectar servidor</button>
-      <div id="server-config-status" class="msg" aria-live="polite"></div>
-      <p class="hint" id="hint-1">El bot te enviará un <b>código de 6 dígitos</b>.<br>Debes haber hablado antes con el bot.</p>
+      <p class="hint" id="hint-1">El bot te enviará un <b>código de 6 dígitos</b>.<br>Debes haber hablado antes con el bot.<br><span style="opacity:.78">La página debe abrirse desde el servidor de tu laptop (localhost:3000) o desde la IP local de esa laptop en la misma Wi-Fi.</span></p>
     </div>
   </div>
 </div>
@@ -1313,13 +1311,18 @@
 </div>
 
 <script type="module">
-// Conexión con el servidor local del bot. Firebase no se carga en el navegador:
-// la web consulta las carpetas locales y el backend guarda SOLO sessions/<token> en RTDB.
-// Puede funcionar en el mismo origen (localhost o túnel) o contra un HTTPS externo.
-// Para GitHub Pages, configura el servidor con el botón "Conectar servidor".
-let API_BASE = String(window.JINX_SERVER_URL || localStorage.getItem('jinx_server_url') || '').trim().replace(/\/+$/, '');
+// Modo local sin túneles ni servicios de retransmisión.
+// El HTML, las API y las imágenes deben abrirse desde este mismo servidor: 
+// http://localhost:3000 o http://IP_LOCAL_DE_LA_LAPTOP:3000 (misma Wi-Fi).
+// Una página publicada en GitHub Pages no puede alcanzar una laptop detrás de NAT
+// sin un canal público intermediario; en ese caso, abre la URL local del servidor.
+// Firebase no se carga en el navegador: firebase.js guarda SOLO sessions/<token> en RTDB.
+localStorage.removeItem('jinx_server_url'); // descarta direcciones antiguas de túneles
+const API_BASE = '';
 let SERVER_READY = false;
-const SERVER_HELP = 'No se puede alcanzar el servidor de tu laptop. Si la página está publicada en GitHub Pages, inicia un túnel HTTPS hacia el puerto 3000 (por ejemplo: cloudflared tunnel --url http://localhost:3000) y pulsa «Conectar servidor» para pegar la URL https://...trycloudflare.com. También puedes abrir directamente esa URL para cargar el HTML desde tu laptop.';
+const SERVER_HELP = location.hostname === 'github.io' || location.hostname.endsWith('.github.io')
+  ? 'Estás abriendo el panel desde GitHub Pages. Sin túneles, la página debe abrirse desde tu laptop: inicia el bot y entra en http://localhost:3000. Desde otro equipo de la misma Wi-Fi, usa http://IP_LOCAL_DE_TU_LAPTOP:3000.'
+  : 'No se encuentra el servidor local. Inicia el bot en tu laptop con «npm start» y abre http://localhost:3000. Desde otro dispositivo de la misma Wi-Fi, usa la dirección IP local que aparece en la consola y el puerto 3000.';
 async function pingJinxServer(base) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
@@ -1536,51 +1539,6 @@ const show = (id) => {
 function setMsg(el, text, kind = 'err') { el.className = 'msg ' + kind; el.textContent = text; }
 function clearMsg(el) { el.className = 'msg'; el.textContent = ''; }
 
-$('btn-server-config').addEventListener('click', async () => {
-  const current = API_BASE || '';
-  const entered = window.prompt(
-    'Pega la URL HTTPS del túnel que apunta a tu laptop y al puerto 3000.\nEjemplo: https://xxxxx.trycloudflare.com\nNo escribas /api ni una ruta al final.',
-    current
-  );
-  if (entered === null) return;
-  const candidate = entered.trim().replace(/\/+$/, '');
-  if (!candidate) {
-    API_BASE = '';
-    SERVER_READY = false;
-    localStorage.removeItem('jinx_server_url');
-    setMsg($('server-config-status'), 'Se usará el mismo origen de esta página.', 'ok');
-    return;
-  }
-  let parsed;
-  try { parsed = new URL(candidate); } catch {
-    setMsg($('server-config-status'), 'La dirección no es válida.', 'err');
-    return;
-  }
-  const sameHttpLocal = parsed.protocol === 'http:' && /^(localhost|127\.0\.0\.1)$/.test(parsed.hostname) && location.protocol !== 'https:';
-  if (parsed.protocol !== 'https:' && !sameHttpLocal) {
-    setMsg($('server-config-status'), 'Desde GitHub Pages necesitas una URL HTTPS. Una dirección http:// de tu laptop será bloqueada por el navegador.', 'err');
-    return;
-  }
-  if (parsed.username || parsed.password || parsed.search || parsed.hash || parsed.pathname !== '/') {
-    setMsg($('server-config-status'), 'Pega solo el dominio del servidor, sin usuario, contraseña, parámetros ni rutas.', 'err');
-    return;
-  }
-  const button = $('btn-server-config');
-  button.disabled = true;
-  button.textContent = 'Comprobando servidor…';
-  try {
-    if (!await pingJinxServer(candidate)) throw new Error('No respondió el servicio JinxWeb esperado.');
-    API_BASE = candidate;
-    SERVER_READY = true;
-    localStorage.setItem('jinx_server_url', candidate);
-    setMsg($('server-config-status'), 'Servidor conectado correctamente.', 'ok');
-  } catch (error) {
-    setMsg($('server-config-status'), 'No se pudo conectar. Comprueba que el bot esté encendido y que la URL HTTPS del túnel sea la actual.', 'err');
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Cambiar servidor';
-  }
-});
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmt(n){ try { return Number(n).toLocaleString('es-MX'); } catch { return String(n); } }
 
