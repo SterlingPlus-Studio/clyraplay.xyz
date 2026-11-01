@@ -92,7 +92,6 @@
   .section-title::before { content: ''; width: 3px; height: 12px; background: linear-gradient(180deg, var(--pink), var(--purple)); border-radius: 3px; flex-shrink: 0; }
   #tab-collection .section-title, #tab-shop .section-title { margin-top: 0; margin-bottom: 10px; }
 
-  /* 🚪 BOTÓN DE LOGOUT INLINE (junto a títulos en móvil) */
   .inline-logout-btn {
     display: none;
     width: 34px;
@@ -134,7 +133,6 @@
   .subtab:hover { background: rgba(255,255,255,.06); color: var(--text); }
   .subtab.active { background: linear-gradient(135deg, rgba(236,72,153,.2), rgba(139,92,246,.2)); color: var(--text); border-color: var(--pink); }
 
-  /* 🔍 BUSCADOR DE TIENDA */
   .shop-search {
     position: relative;
     margin-bottom: 12px;
@@ -177,7 +175,6 @@
   .shop-search .clear-btn:hover { background: rgba(255,255,255,.16); color: var(--text); }
   .shop-search .clear-btn.visible { display: flex; }
 
-  /* 🔥 CUADRÍCULA: 5 COLUMNAS EN PC */
   .waifu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   @media (max-width: 1100px) { .waifu-grid { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 850px) { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -266,7 +263,6 @@
   .waifu-card[data-r="legendaria"] .waifu-rarity-badge { color: var(--legendaria); }
   .waifu-card[data-r="exclusiva"] .waifu-rarity-badge { color: var(--exclusiva); }
 
-  /* 📱 BARRA INFERIOR FLOTANTE (ANDROID / MÓVIL) */
   .mobile-nav {
     display: none;
     position: fixed;
@@ -320,7 +316,6 @@
     .avatar { width: 60px; height: 60px; font-size: 22px; }
   }
 
-  /* 🔥 ESTILOS PARA MODALES Y TOASTS (MENSAJES HTML) */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
   .modal-overlay.active { display: flex; animation: slideUp .2s ease; }
   .modal-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow); }
@@ -347,7 +342,6 @@
 </head>
 <body>
 
-<!-- COMPONENTES DE MODAL Y TOAST (FUERA DE LAS PANTALLAS) -->
 <div id="custom-modal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-title" id="modal-title">Título</div>
@@ -499,7 +493,6 @@
           </button>
         </div>
 
-        <!-- 🔍 BUSCADOR POR NOMBRE -->
         <div class="shop-search">
           <input id="shop-search" type="text" placeholder="Buscar por nombre..." autocomplete="off">
           <button type="button" class="clear-btn" id="shop-search-clear" aria-label="Limpiar">✕</button>
@@ -515,7 +508,6 @@
     </div>
   </div>
 
-  <!-- 📱 BARRA INFERIOR FLOTANTE (MÓVIL / ANDROID) - SIN BOTÓN DE SALIR -->
   <nav class="mobile-nav" id="mobile-nav">
     <button class="mnav-btn active" data-tab="profile"><span class="icon" data-icon="user"></span> Perfil</button>
     <button class="mnav-btn" data-tab="collection"><span class="icon" data-icon="package"></span> Colección</button>
@@ -649,41 +641,99 @@
   }
   hydrateIcons();
 
-  // ================= LAZY LOAD & CACHE =================
-  const imageCache = new Map();
-  const imageObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      const imgContainer = entry.target;
-      const targetName = imgContainer.dataset.name;
-      const imageType = imgContainer.dataset.type || 'waifu';
-      const imgTag = imgContainer.querySelector('img');
+  // ================= CACHÉ PERSISTENTE (IndexedDB) =================
+  const IMG_CACHE_DB = 'jinx_imgs_v1';
+  const IMG_CACHE_STORE = 'data';
+  let imgDBPromise = null;
 
-      if (entry.isIntersecting) {
-        if (!imgTag || !imgTag.classList.contains('loaded')) {
-          getLocalImage(imageType, targetName).then(url => {
-            if (url && imgContainer.isConnected) {
-              let img = imgContainer.querySelector('img');
-              if (!img) {
-                img = document.createElement('img');
-                imgContainer.insertBefore(img, imgContainer.firstChild);
-              }
-              img.src = url;
-              img.onload = () => img.classList.add('loaded');
-            }
-          });
+  function getImgDB() {
+    if (imgDBPromise) return imgDBPromise;
+    imgDBPromise = new Promise((resolve) => {
+      try {
+        if (typeof indexedDB === 'undefined') return resolve(null);
+        const req = indexedDB.open(IMG_CACHE_DB, 1);
+        req.onupgradeneeded = () => {
+          if (!req.result.objectStoreNames.contains(IMG_CACHE_STORE)) {
+            req.result.createObjectStore(IMG_CACHE_STORE);
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch { resolve(null); }
+    });
+    return imgDBPromise;
+  }
+
+  async function idbGetImg(key) {
+    const db = await getImgDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IMG_CACHE_STORE, 'readonly');
+        const req = tx.objectStore(IMG_CACHE_STORE).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      } catch { resolve(null); }
+    });
+  }
+
+  async function idbSetImg(key, dataUrl) {
+    const db = await getImgDB();
+    if (!db) return;
+    try {
+      const tx = db.transaction(IMG_CACHE_STORE, 'readwrite');
+      tx.objectStore(IMG_CACHE_STORE).put(dataUrl, key);
+    } catch {}
+  }
+
+  // ================= LAZY LOAD & CACHE (2 OBSERVERS) =================
+  const imageCache = new Map();
+
+  // 🟢 Observer de CARGA: precarga 3 filas por debajo (scroll fluido)
+  const imageLoadObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const imgContainer = entry.target;
+      const imgTag = imgContainer.querySelector('img');
+      if (imgTag && imgTag.classList.contains('loaded')) return;
+
+      getLocalImage(imgContainer.dataset.type || 'waifu', imgContainer.dataset.name).then(url => {
+        if (url && imgContainer.isConnected) {
+          let img = imgContainer.querySelector('img');
+          if (!img) {
+            img = document.createElement('img');
+            imgContainer.insertBefore(img, imgContainer.firstChild);
+          }
+          img.src = url;
+          img.onload = () => img.classList.add('loaded');
         }
-      } else {
-        if (imgTag && imgTag.classList.contains('loaded')) {
-          imgTag.remove(); 
-        }
+      });
+    });
+  }, { rootMargin: '600px' });
+
+  // 🔴 Observer de DESCARGA: elimina la imagen APENAS sale de pantalla
+  const imageUnloadObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) return;
+      const imgTag = entry.target.querySelector('img');
+      if (imgTag && imgTag.classList.contains('loaded')) {
+        imgTag.remove(); // 🧹 libera memoria; la URL sigue guardada en IndexedDB
       }
     });
-  }, { rootMargin: '100px' });
+  }, { rootMargin: '0px' }); // ← 0px = unload inmediato
 
   async function getLocalImage(type, target) {
     const cacheKey = `${type}_${target}`;
     if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
 
+    // 1️⃣ Caché persistente (sobrevive reloads, cierres, etc.)
+    const cached = await idbGetImg(cacheKey);
+    if (cached) {
+      imageCache.set(cacheKey, cached);
+      return cached;
+    }
+
+    // 2️⃣ Pedir al backend vía Firebase
     return new Promise((resolve) => {
       const reqId = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
       const reqRef = ref(db, 'image_requests/' + reqId);
@@ -693,22 +743,29 @@
         const res = snap.val();
         if (!res) return;
         unsub();
-        
+
         let url = null;
         if (res.success && res.base64) url = `data:image/${res.mime};base64,${res.base64}`;
-        
+
         imageCache.set(cacheKey, url);
+        if (url) idbSetImg(cacheKey, url); // solo cachear éxitos
         resolve(url);
         set(resRef, null).catch(()=>{});
       });
 
       set(reqRef, { type, target, createdAt: Date.now() }).catch(() => resolve(null));
-      setTimeout(() => { unsub(); resolve(null); }, 8000); 
+      setTimeout(() => { unsub(); resolve(null); }, 12000);
     });
   }
 
   async function requestSync(uid) {
     await set(ref(db, 'sync_requests/' + uid), { userId: uid, createdAt: Date.now() }).catch(()=>{});
+  }
+
+  // Helper: observar con AMBOS observers
+  function observeImg(el) {
+    imageLoadObserver.observe(el);
+    imageUnloadObserver.observe(el);
   }
 
   // ================= AUTH & LOGIN =================
@@ -886,25 +943,30 @@
 
         const infoDiv = document.createElement('div');
         infoDiv.className = 'waifu-info';
+        const sellLabel = w.count > 1 ? `Vender 1 (de ${w.count})` : 'Vender';
         infoDiv.innerHTML = `
           <div class="waifu-name" title="${w.name}">${w.name}</div>
-          <button class="btn-sell" data-name="${w.name}" data-rarity="${w.rarity}">Vender</button>
+          <button class="btn-sell" data-name="${w.name}" data-rarity="${w.rarity}" data-count="${w.count}">${sellLabel}</button>
         `;
 
         card.appendChild(imgDiv);
         card.appendChild(infoDiv);
         grid.appendChild(card);
 
-        imageObserver.observe(imgDiv);
+        observeImg(imgDiv);
       });
 
       grid.querySelectorAll('.btn-sell').forEach(btn => {
         btn.onclick = async () => {
           const name = btn.dataset.name;
+          const count = parseInt(btn.dataset.count, 10) || 1;
+          const countMsg = count > 1
+            ? `\n\n📦 Tienes ${count} copias. Solo se venderá 1 copia.`
+            : '';
           
           showModal(
-            'Vender Waifu', 
-            `¿Por cuánto quieres vender a ${name}?\n(Mínimo: 100 | Máximo: 3500)`, 
+            'Vender 1 copia', 
+            `¿Por cuánto quieres vender a ${name}?${countMsg}\n(Mínimo: 100 | Máximo: 3500)`, 
             true, 
             'Ej: 500', 
             '100', 
@@ -928,13 +990,20 @@
 
                 if (res.status === 'done') {
                   unsub();
-                  showToast('¡Waifu puesta en venta!', 'success');
+                  const copiesLeft = (typeof res.copiesAfter === 'number')
+                    ? res.copiesAfter
+                    : Math.max(0, count - 1);
+                  const soldName = res.waifuName || name;
+                  const msg = copiesLeft > 0
+                    ? `¡1 copia de ${soldName} vendida! Te quedan ${copiesLeft}.`
+                    : `¡${soldName} vendida! (última copia)`;
+                  showToast(msg, 'success');
                   requestSync(auth.currentUser.uid);
                 } else if (res.status === 'error') {
                   unsub();
                   showToast('Error: ' + res.error, 'error');
                   btn.disabled = false;
-                  btn.textContent = 'Vender';
+                  btn.textContent = count > 1 ? `Vender 1 (de ${count})` : 'Vender';
                 }
               });
 
@@ -949,7 +1018,7 @@
               }).catch(err => {
                 showToast('Error: ' + err.message, 'error');
                 btn.disabled = false;
-                btn.textContent = 'Vender';
+                btn.textContent = count > 1 ? `Vender 1 (de ${count})` : 'Vender';
                 unsub();
               });
             }
@@ -998,7 +1067,7 @@
         card.appendChild(infoDiv);
         grid.appendChild(card);
 
-        imageObserver.observe(imgDiv);
+        observeImg(imgDiv);
       });
 
       grid.querySelectorAll('.btn-toggle').forEach(btn => {
@@ -1059,7 +1128,6 @@
       return true;
     });
 
-    // 🔍 FILTRO POR NOMBRE
     const q = shopSearchQuery.trim().toLowerCase();
     if (q) {
       items = items.filter(item => {
@@ -1117,7 +1185,7 @@
       card.appendChild(infoDiv);
       grid.appendChild(card);
 
-      imageObserver.observe(imgDiv);
+      observeImg(imgDiv);
     });
 
     grid.querySelectorAll('.btn-buy').forEach(btn => {
@@ -1191,6 +1259,16 @@
     const el = $('tab-' + tab);
     if (el) el.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // ⚡ Prefetch proactivo
+    setTimeout(() => {
+      document.querySelectorAll(`#tab-${tab} .waifu-img[data-name]`).forEach(el => {
+        const img = el.querySelector('img');
+        if (!img || !img.classList.contains('loaded')) {
+          getLocalImage(el.dataset.type || 'waifu', el.dataset.name);
+        }
+      });
+    }, 60);
   }
 
   document.querySelectorAll('.nav-item[data-tab], .mnav-btn[data-tab]').forEach(btn => {
@@ -1224,7 +1302,6 @@
     };
   });
 
-  // 🔍 BUSCADOR DE TIENDA (filtro por nombre)
   const shopSearchInput = $('shop-search');
   const shopSearchClear = $('shop-search-clear');
 
@@ -1252,15 +1329,12 @@
       if (unsubProfile) unsubProfile();
       if (unsubGameData) unsubGameData();
       if (unsubShopData) unsubShopData();
-      imageCache.clear();
+      imageCache.clear(); // RAM sí; IndexedDB NO (útil en re-login)
     } catch (e) {}
     signOut(auth).catch(() => {}).finally(() => window.location.reload());
   }
 
-  // Sidebar (PC)
   $('btn-logout').onclick = doLogout;
-
-  // Botones inline (móvil) — junto a los títulos de sección y en el header del perfil
   document.querySelectorAll('.inline-logout-btn[data-logout]').forEach(btn => {
     btn.onclick = doLogout;
   });
