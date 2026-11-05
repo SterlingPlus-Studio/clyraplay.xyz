@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,120 +9,84 @@
 <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <link rel="preload" as="font" type="font/ttf" href="https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf" crossorigin>
 <style>
-  @font-face {
-    font-family: 'ClyraPlay';
-    src: url('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf') format('truetype');
-    font-display: swap;
-  }
+  @font-face { font-family: 'ClyraPlay'; src: url('https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf') format('truetype'); font-display: swap; }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'ClyraPlay', -apple-system, sans-serif !important; -webkit-tap-highlight-color: transparent; }
   *:focus { outline: none !important; }
-  button:focus, input:focus, textarea:focus, select:focus, a:focus, [tabindex]:focus { outline: none !important; box-shadow: none; }
   *::-moz-focus-inner { border: 0; }
-
-  :root{
-    --pink:#ec4899; --purple:#8b5cf6; --cyan:#06b6d4; --gold:#f59e0b;
-    --bg:#0a0a0f; --surface:rgba(20,20,30,0.85); --surface-2:#191920; --surface-3:#212129;
-    --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.12);
-    --text:#f5f5f7; --text-2:#c7c7d2; --muted:#8b8b9e;
-    --comun:#ffb6c1; --rara:#fb7185; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee;
-    --sidebar-w: 240px;
-    --radius: 10px; --radius-lg: 16px; --radius-xl: 20px;
-    --shadow: 0 4px 20px rgba(0,0,0,.35);
-  }
+  :root{ --pink:#ec4899; --purple:#8b5cf6; --cyan:#06b6d4; --gold:#f59e0b; --bg:#0a0a0f; --surface:rgba(20,20,30,0.85); --surface-2:#191920; --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.12); --text:#f5f5f7; --text-2:#c7c7d2; --muted:#8b8b9e; --comun:#ffb6c1; --rara:#fb7185; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee; --sidebar-w: 240px; --radius: 10px; --radius-lg: 16px; --radius-xl: 20px; --shadow: 0 4px 20px rgba(0,0,0,.35); }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes shimmer { 0%{background-position: -200% 0} 100%{background-position: 200% 0} }
-  @keyframes heartPop {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
-    30% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
-  }
+  @keyframes heartPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); } 30% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); } }
   @keyframes heartPopSmall { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
-  @keyframes pulseSound {
-    0%, 100% { transform: scale(1); box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4); }
-    50% { transform: scale(1.05); box-shadow: 0 8px 28px rgba(236, 72, 153, 0.6); }
-  }
-
+  @keyframes pulseSound { 0%, 100% { transform: scale(1); box-shadow: 0 6px 20px rgba(236,72,153,.4); } 50% { transform: scale(1.05); box-shadow: 0 8px 28px rgba(236,72,153,.6); } }
   html, body { overflow-x: hidden; }
   body { color: var(--text); background: var(--bg); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    transform: translateZ(0); will-change: transform;
-    background-image:
-      radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.18), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.22), transparent 60%),
-      radial-gradient(ellipse 600px 500px at 50% 100%, rgba(6,182,212,.10), transparent 60%);
-  }
+  body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; transform: translateZ(0); will-change: transform; background-image: radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.18), transparent 60%), radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.22), transparent 60%), radial-gradient(ellipse 600px 500px at 50% 100%, rgba(6,182,212,.10), transparent 60%); }
   .screen { display: none; width: 100%; min-height: 100vh; }
   .screen.active { display: block; animation: fadeIn .25s ease; }
-
   .loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .loading-spinner { width: 56px; height: 56px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--pink); border-right-color: var(--purple); animation: spin 1s linear infinite; margin-bottom: 20px; }
   .loading-label { font-size: 11px; color: var(--muted); letter-spacing: .25em; text-transform: uppercase; font-weight: 700; }
-
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .login-card { background: rgba(22,22,32,0.94); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px; width: 100%; max-width: 420px; box-shadow: var(--shadow); }
   .logo-hero { text-align: center; margin-bottom: 28px; }
   .logo-hero .l1 { font-size: 26px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink)); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite; text-transform: uppercase; letter-spacing: -0.01em; }
   .logo-hero .l2 { font-size: 10px; color: var(--muted); margin-top: 8px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
   label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: .05em; }
-  input, textarea { width: 100%; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--text); font-size: 15px; font-family: inherit; transition: border-color .15s, box-shadow .15s; }
+  input, textarea { width: 100%; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--text); font-size: 15px; font-family: inherit; }
   input::placeholder, textarea::placeholder { color: var(--muted); }
   input:focus, textarea:focus { border-color: var(--purple); }
-  button { padding: 11px 18px; border-radius: var(--radius); border: none; background: var(--surface-2); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .18s, background .18s, border-color .18s, box-shadow .18s, color .18s, opacity .18s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  button { padding: 11px 18px; border-radius: var(--radius); border: none; background: var(--surface-2); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .18s, opacity .18s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   button:hover:not(:disabled) { transform: translateY(-1px); }
   button:disabled { opacity: .5; cursor: not-allowed; }
-  button.btn-primary { width: 100%; margin-top: 16px; padding: 13px 18px; background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; box-shadow: 0 4px 14px rgba(236,72,153,.25); }
+  button.btn-primary { width: 100%; margin-top: 16px; padding: 13px 18px; background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; }
   button.btn-secondary { width: 100%; margin-top: 8px; background: rgba(255,255,255,.05); border: 1px solid var(--border); }
   .msg { margin-top: 14px; padding: 11px 14px; border-radius: var(--radius); font-size: 13px; display: none; font-weight: 600; border: 1px solid; line-height: 1.4; }
   .msg.err { display: block; background: rgba(239,68,68,.1); color: #fca5a5; border-color: rgba(239,68,68,.25); }
   .msg.ok { display: block; background: rgba(16,185,129,.1); color: #6ee7b7; border-color: rgba(16,185,129,.25); }
   .code-inputs { display: flex; gap: 8px; justify-content: center; margin: 22px 0; }
   .code-inputs input { width: 46px; height: 56px; text-align: center; font-size: 22px; font-weight: 800; padding: 0; }
-
   .layout { display: flex; min-height: 100vh; }
   .sidebar { width: var(--sidebar-w); background: rgba(15,15,23,.95); border-right: 1px solid var(--border); position: fixed; top: 0; bottom: 0; padding: 20px 14px; z-index: 100; display: flex; flex-direction: column; gap: 16px; }
   .sidebar-brand { padding: 4px 8px 16px; border-bottom: 1px solid var(--border); }
-  .sidebar-brand .logo { font-size: 15px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.01em; }
+  .sidebar-brand .logo { font-size: 15px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,.03); border-radius: var(--radius); border: 1px solid var(--border); }
-  .avatar-sm { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; overflow: hidden; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,.15); }
+  .avatar-sm { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; overflow: hidden; flex-shrink: 0; }
   .avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
   .sidebar-user .info { flex: 1; min-width: 0; }
-  .sidebar-user .uname { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
+  .sidebar-user .uname { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sidebar-user .utag { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nav-group { display: flex; flex-direction: column; gap: 2px; background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.06); border-radius: var(--radius); padding: 6px; }
-  .nav-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: transparent; color: var(--text-2); border: none; justify-content: flex-start; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s; margin: 0; text-align: left; }
+  .nav-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: transparent; color: var(--text-2); border: none; justify-content: flex-start; font-size: 13px; font-weight: 600; cursor: pointer; margin: 0; text-align: left; }
   .nav-item:hover { background: rgba(255,255,255,.06); color: var(--text); }
   .nav-item.active { background: linear-gradient(135deg, rgba(236,72,153,.18), rgba(139,92,246,.18)); color: var(--text); border-left: 3px solid var(--pink); padding-left: 9px; }
   .nav-item.active .icon { color: var(--pink); }
   .icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; color: inherit; }
   .icon svg { width: 100%; height: 100%; display: block; }
   .btn-logout { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; margin-top: auto; padding: 10px 12px; justify-content: flex-start; font-weight: 600; font-size: 13px; }
-
   .main { flex: 1; margin-left: var(--sidebar-w); padding: 24px 28px; width: 100%; max-width: 1280px; margin-right: auto; }
   .tab-content { display: none; }
   .tab-content.active { display: block; animation: fadeIn .2s ease; }
-
   .profile-header { display: flex; align-items: center; gap: 16px; background: rgba(22,22,32,0.92); padding: 18px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-  .avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; border: 2px solid rgba(255,255,255,.2); overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 10px rgba(236,72,153,.25); }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; border: 2px solid rgba(255,255,255,.2); overflow: hidden; flex-shrink: 0; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
   .profile-info { flex: 1; min-width: 0; }
-  .profile-info .name { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .profile-info .name { font-size: 18px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .profile-info .tag { font-size: 13px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .section-title { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 24px 0 12px 0; font-weight: 700; display: flex; align-items: center; gap: 8px; }
   .section-title::before { content: ''; width: 3px; height: 12px; background: linear-gradient(180deg, var(--pink), var(--purple)); border-radius: 3px; flex-shrink: 0; }
   #tab-collection .section-title, #tab-shop .section-title { margin-top: 0; margin-bottom: 14px; }
-  .inline-logout-btn { display: none; width: 32px; height: 32px; margin: 0 0 0 auto; padding: 0; border-radius: 50%; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.35); color: #fca5a5; align-items: center; justify-content: center; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; flex-shrink: 0; }
+  .inline-logout-btn { display: none; width: 32px; height: 32px; margin: 0 0 0 auto; padding: 0; border-radius: 50%; background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.35); color: #fca5a5; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
   .inline-logout-btn .icon, .inline-logout-btn .icon svg { width: 16px; height: 16px; }
-
   .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .stat-box { background: rgba(22,22,32,0.92); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; justify-content: center; min-height: 92px; position: relative; overflow: hidden; }
   .stat-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, currentColor, transparent 70%); opacity: .08; pointer-events: none; }
   .stat-lbl { font-size: 11px; color: var(--text-2); text-transform: uppercase; font-weight: 700; letter-spacing: .06em; display: flex; align-items: center; gap: 8px; position: relative; }
   .stat-lbl .icon { width: 16px; height: 16px; }
   .stat-lbl .icon svg { width: 16px; height: 16px; }
-  .stat-num { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; color: var(--text); position: relative; }
+  .stat-num { font-size: 28px; font-weight: 900; line-height: 1; color: var(--text); position: relative; }
   .minerals-bar { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(22,22,32,0.92); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
   .mineral-cell { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-right: 1px solid var(--border); }
   .mineral-cell:last-child { border-right: none; }
@@ -131,13 +95,7 @@
   .mineral-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .mineral-val { font-size: 17px; font-weight: 800; color: var(--text); }
   .mineral-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
-  @media (max-width: 640px) {
-    .stats-grid { grid-template-columns: 1fr; }
-    .minerals-bar { grid-template-columns: 1fr; }
-    .mineral-cell { border-right: none; border-bottom: 1px solid var(--border); }
-    .mineral-cell:last-child { border-bottom: none; }
-  }
-
+  @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } .minerals-bar { grid-template-columns: 1fr; } .mineral-cell { border-right: none; border-bottom: 1px solid var(--border); } .mineral-cell:last-child { border-bottom: none; } }
   .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
   .filters button { width: auto; margin: 0; padding: 6px 14px; border-radius: 100px; background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
   .filters button.active { background: linear-gradient(135deg, rgba(236,72,153,.2), rgba(139,92,246,.2)); color: var(--text); border-color: rgba(236,72,153,.4); }
@@ -149,7 +107,7 @@
   .shop-toggles { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
   .toggle-switch { display: inline-flex; align-items: center; gap: 10px; padding: 9px 16px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 100px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--muted); user-select: none; margin: 0; }
   .toggle-switch input { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; padding: 0; margin: 0; }
-  .toggle-switch .toggle-slider { position: relative; width: 32px; height: 18px; background: rgba(255,255,255,.12); border-radius: 100px; transition: background .2s; flex-shrink: 0; border: 1px solid var(--border); }
+  .toggle-switch .toggle-slider { position: relative; width: 32px; height: 18px; background: rgba(255,255,255,.12); border-radius: 100px; flex-shrink: 0; border: 1px solid var(--border); }
   .toggle-switch .toggle-slider::before { content: ''; position: absolute; top: 1px; left: 1px; width: 14px; height: 14px; background: var(--muted); border-radius: 50%; transition: transform .2s, background .2s; }
   .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, rgba(236,72,153,.35), rgba(139,92,246,.35)); border-color: rgba(236,72,153,.4); }
   .toggle-switch input:checked + .toggle-slider::before { transform: translateX(14px); background: #fff; }
@@ -159,13 +117,11 @@
   .shop-search::before { content: '🔍'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; opacity: .65; z-index: 1; }
   .shop-search .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; margin: 0; padding: 0; border-radius: 50%; background: rgba(255,255,255,.08); border: none; color: var(--muted); font-size: 13px; font-weight: 700; display: none; align-items: center; justify-content: center; z-index: 2; }
   .shop-search .clear-btn.visible { display: flex; }
-
   .waifu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
   @media (max-width: 1100px) { .waifu-grid { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 850px)  { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 550px)  { .waifu-grid { grid-template-columns: repeat(2, 1fr); } }
-  .waifu-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; position: relative; display: flex; flex-direction: column; content-visibility: auto; contain-intrinsic-size: auto 340px; contain: layout style; }
-  .waifu-card:hover { transform: translateY(-3px); border-color: var(--border-2); box-shadow: var(--shadow); }
+  @media (max-width: 850px) { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 550px) { .waifu-grid { grid-template-columns: repeat(2, 1fr); } }
+  .waifu-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; position: relative; display: flex; flex-direction: column; content-visibility: auto; contain-intrinsic-size: auto 340px; contain: layout style; }
   .waifu-img { width: 100%; aspect-ratio: 3/4; background: #111; display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative; overflow: hidden; }
   .waifu-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
   .waifu-img img.loaded { opacity: 1; }
@@ -174,34 +130,23 @@
   .waifu-seller-badge { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,.88); color: var(--gold); padding: 4px 9px; border-radius: 100px; font-size: 10px; font-weight: 700; border: 1px solid var(--border-2); z-index: 2; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .waifu-info { padding: 10px 8px; text-align: center; border-top: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 72px; flex-shrink: 0; }
   .waifu-info.shop-info { justify-content: space-between; }
-  .waifu-name { font-size: 12px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+  .waifu-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
   .btn-buy, .btn-sell, .btn-toggle { padding: 8px 10px; font-size: 11px; font-weight: 700; border-radius: 8px; cursor: pointer; width: 100%; border: 1.5px solid transparent; margin: 0; line-height: 1.3; }
   .btn-buy { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; color: #fff; }
   .btn-sell { background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #fbbf24; color: #fff; }
   .btn-toggle.active { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; color: #fff; }
   .btn-toggle.inactive { background: rgba(255,255,255,.08); border-color: var(--border-2); color: var(--muted); }
-  .waifu-card[data-r="comun"]      .waifu-rarity-badge { color: var(--comun); }
-  .waifu-card[data-r="rara"]       .waifu-rarity-badge { color: var(--rara); }
-  .waifu-card[data-r="epica"]      .waifu-rarity-badge { color: var(--epica); }
+  .waifu-card[data-r="comun"] .waifu-rarity-badge { color: var(--comun); }
+  .waifu-card[data-r="rara"] .waifu-rarity-badge { color: var(--rara); }
+  .waifu-card[data-r="epica"] .waifu-rarity-badge { color: var(--epica); }
   .waifu-card[data-r="legendaria"] .waifu-rarity-badge { color: var(--legendaria); }
-  .waifu-card[data-r="exclusiva"]  .waifu-rarity-badge { color: var(--exclusiva); }
-
+  .waifu-card[data-r="exclusiva"] .waifu-rarity-badge { color: var(--exclusiva); }
   .mobile-nav { display: none; position: fixed; bottom: 12px; left: 12px; right: 12px; z-index: 300; background: rgba(18,18,28,.97); border: 1px solid var(--border-2); border-radius: 22px; padding: 6px; gap: 4px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
-  .mnav-btn { flex: 1; margin: 0; padding: 8px 4px; border-radius: 16px; background: transparent; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 700; cursor: pointer; letter-spacing: .02em; }
+  .mnav-btn { flex: 1; margin: 0; padding: 8px 4px; border-radius: 16px; background: transparent; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 700; cursor: pointer; }
   .mnav-btn.active { background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22)); color: var(--text); }
   .mnav-btn.active .icon { color: var(--pink); }
   .mnav-btn .icon, .mnav-btn .icon svg { width: 20px; height: 20px; }
-  @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .main { margin-left: 0; padding: 20px 16px 100px; }
-    .mobile-nav { display: flex; }
-    .inline-logout-btn { display: flex; }
-    .profile-info .name { font-size: 16px; }
-    .avatar { width: 48px; height: 48px; font-size: 17px; }
-    .stat-num { font-size: 22px; }
-    .stat-box { min-height: 78px; padding: 14px 16px; }
-  }
-
+  @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .main { margin-left: 0; padding: 20px 16px 100px; } .mobile-nav { display: flex; } .inline-logout-btn { display: flex; } .profile-info .name { font-size: 16px; } .avatar { width: 48px; height: 48px; font-size: 17px; } .stat-num { font-size: 22px; } .stat-box { min-height: 78px; padding: 14px 16px; } }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
   .modal-overlay.active { display: flex; animation: fadeIn .18s ease; }
   .modal-box { background: rgba(22,22,32,0.97); border: 1px solid var(--border-2); border-radius: var(--radius-xl); padding: 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow); animation: slideUp .22s ease; max-height: calc(100vh - 40px); overflow-y: auto; }
@@ -211,18 +156,14 @@
   .modal-actions { display: flex; gap: 10px; }
   .modal-btn { flex: 1; padding: 11px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 700; cursor: pointer; border: none; margin: 0; }
   .modal-btn.cancel { background: rgba(255,255,255,.1); color: var(--text); }
-  .modal-btn.accept { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; box-shadow: 0 3px 10px rgba(236,72,153,.3); }
-
+  .modal-btn.accept { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; }
   .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: calc(100% - 32px); max-width: 400px; }
   .toast { background: rgba(22,22,32,0.97); border: 1px solid var(--border-2); padding: 11px 22px; border-radius: 100px; font-size: 13px; font-weight: 700; color: #fff; box-shadow: var(--shadow); animation: slideUp .28s ease; transition: opacity .25s, transform .25s; text-align: center; }
   .toast.error { border-color: #ef4444; color: #fca5a5; }
   .toast.success { border-color: #10b981; color: #6ee7b7; }
   @media (min-width: 769px) { .toast-container { bottom: 24px; } }
-
-  /* ============ TIKTOK ============ */
   #tab-tiktok.active { position: fixed; top: 0; left: var(--sidebar-w); right: 0; bottom: 0; background: #000; z-index: 50; margin: 0; padding: 0; }
   @media (max-width: 768px) { #tab-tiktok.active { left: 0; } }
-
   .tiktok-shell { position: relative; width: 100%; height: 100%; background: #000; }
   .tiktok-feed-v { width: 100%; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
   .tiktok-feed-v::-webkit-scrollbar { display: none; }
@@ -238,18 +179,17 @@
   .tiktok-top-tab.active { color: #fff; }
   .tiktok-top-tab.active::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 24px; height: 2px; background: #fff; border-radius: 1px; }
   .tiktok-top-right { display: flex; gap: 4px; align-items: center; }
-  .tiktok-icon-btn { background: none; border: none; color: #fff; font-size: 22px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: background .15s; }
+  .tiktok-icon-btn { background: none; border: none; color: #fff; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; }
   .tiktok-icon-btn:hover { background: rgba(255,255,255,.15); }
   .tiktok-icon-btn svg { width: 24px; height: 24px; display: block; }
-
   .tiktok-actions-rail { position: absolute; right: 8px; bottom: 130px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 5; color: #fff; }
   @media (max-width: 768px) { .tiktok-actions-rail { bottom: 200px; } }
-  .tiktok-profile-btn { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); border: 2px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; cursor: pointer; position: relative; flex-shrink: 0; }
+  .tiktok-profile-btn { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); border: 2px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; cursor: pointer; flex-shrink: 0; }
   .tiktok-profile-btn img { width: 100%; height: 100%; object-fit: cover; }
-  .tiktok-action-btn { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 0; margin: 0; transition: transform .15s; width: auto; }
+  .tiktok-action-btn { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 0; margin: 0; width: auto; }
   .tiktok-action-btn:hover:not(:disabled) { transform: scale(1.1); }
   .tiktok-action-btn:disabled { opacity: .6; cursor: not-allowed; }
-  .tiktok-action-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); transition: transform .2s, color .2s; }
+  .tiktok-action-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
   .tiktok-action-icon svg { width: 100%; height: 100%; display: block; }
   .tiktok-action-icon .heart-path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
   .tiktok-action-btn.liked .tiktok-action-icon { color: #fe2c55; animation: heartPopSmall .4s ease; }
@@ -262,17 +202,14 @@
   .tiktok-music-line { font-size: 13px; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 4px rgba(0,0,0,.7); opacity: .95; }
   .tiktok-music-line .tiktok-music-icon { animation: spin 4s linear infinite; display: inline-flex; width: 14px; height: 14px; }
   .tiktok-music-line .tiktok-music-icon svg { width: 100%; height: 100%; }
-  .tiktok-heart-pop { position: absolute; pointer-events: none; animation: heartPop .7s ease-out forwards; z-index: 10; filter: drop-shadow(0 4px 12px rgba(0,0,0,.5)); transform-origin: center; }
+  .tiktok-heart-pop { position: absolute; pointer-events: none; animation: heartPop .7s ease-out forwards; z-index: 10; transform-origin: center; }
   .tiktok-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px 20px; color: rgba(255,255,255,.7); font-size: 14px; text-align: center; line-height: 1.6; }
   .tiktok-empty .tiktok-empty-icon { margin-bottom: 20px; opacity: .6; display: inline-flex; }
   .tiktok-empty .tiktok-empty-icon svg { width: 64px; height: 64px; }
-
-  /* ============ TIKTOK PROFILE ============ */
-  .tiktok-profile-view { position: absolute; inset: 0; background: #000; z-index: 90; overflow-y: auto; display: none; color: #fff; -webkit-overflow-scrolling: touch; }
+  .tiktok-profile-view { position: absolute; inset: 0; background: #000; z-index: 90; overflow-y: auto; display: none; color: #fff; }
   .tiktok-profile-view.active { display: block; animation: fadeIn .2s ease; }
   .tt-profile-topbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 0; background: #000; z-index: 10; }
   .tt-profile-back { width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-  .tt-profile-back:hover { background: rgba(255,255,255,.1); }
   .tt-profile-back svg { width: 22px; height: 22px; }
   .tt-profile-topname { flex: 1; text-align: center; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 40px; }
   .tt-profile-main { padding: 20px 16px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -284,10 +221,8 @@
   .tt-profile-stat { display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .tt-profile-stat-num { font-size: 17px; font-weight: 800; }
   .tt-profile-stat-lbl { font-size: 11px; color: rgba(255,255,255,.6); font-weight: 600; }
-  .tt-profile-btn { padding: 10px 32px; border-radius: 8px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; min-width: 140px; background: #fe2c55; color: #fff; transition: opacity .15s; }
-  .tt-profile-btn:hover { opacity: .9; }
+  .tt-profile-btn { padding: 10px 32px; border-radius: 8px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; min-width: 140px; background: #fe2c55; color: #fff; }
   .tt-profile-btn.following { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.3); }
-  .tt-profile-btn:disabled { opacity: .5; cursor: not-allowed; }
   .tt-profile-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 61px; background: #000; z-index: 9; }
   .tt-profile-tab { flex: 1; padding: 14px; background: transparent; border: none; color: rgba(255,255,255,.6); font-size: 13px; font-weight: 700; cursor: pointer; position: relative; }
   .tt-profile-tab.active { color: #fff; }
@@ -299,24 +234,17 @@
   .tt-profile-video-item .tt-pv-likes svg { width: 14px; height: 14px; }
   .tt-profile-video-item .tt-pv-caption { position: absolute; top: 6px; left: 6px; right: 6px; color: #fff; font-size: 11px; line-height: 1.3; text-shadow: 0 1px 3px rgba(0,0,0,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 2; }
   .tt-profile-empty { grid-column: 1/-1; padding: 60px 20px; text-align: center; color: rgba(255,255,255,.5); font-size: 13px; }
-
-  /* ============ AUDIO PROMPT ============ */
   .tiktok-audio-prompt { position: absolute; inset: 0; background: rgba(0,0,0,.78); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   .tiktok-audio-prompt.active { display: flex; animation: fadeIn .2s ease; }
   .tiktok-audio-card { background: rgba(22,22,32,0.98); border: 1px solid var(--border-2); border-radius: 20px; padding: 28px 24px; max-width: 320px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.7); animation: slideUp .3s ease; }
   .tiktok-audio-icon { width: 72px; height: 72px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--pink), var(--purple)); border-radius: 50%; color: #fff; animation: pulseSound 2s ease-in-out infinite; }
   .tiktok-audio-icon svg { width: 36px; height: 36px; }
-  .tiktok-audio-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; letter-spacing: -0.01em; }
+  .tiktok-audio-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
   .tiktok-audio-desc { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.5; }
   .tiktok-audio-actions { display: flex; gap: 8px; }
-  .tiktok-audio-actions button { flex: 1; padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; background: rgba(255,255,255,0.08); color: var(--text); transition: background .15s, transform .15s; margin: 0; }
-  .tiktok-audio-actions button:hover { background: rgba(255,255,255,0.14); }
-  .tiktok-audio-actions button.primary { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; box-shadow: 0 4px 14px rgba(236,72,153,0.35); }
-  .tiktok-audio-actions button.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(236,72,153,0.5); }
-
-  /* ============ UPLOAD ============ */
-  .tt-modal-drop { border: 2px dashed var(--border-2); border-radius: var(--radius-lg); padding: 24px; text-align: center; cursor: pointer; color: var(--text-2); background: rgba(255,255,255,.02); transition: background .15s, border-color .15s; margin-bottom: 14px; }
-  .tt-modal-drop:hover { background: rgba(255,255,255,.05); border-color: var(--purple); }
+  .tiktok-audio-actions button { flex: 1; padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; background: rgba(255,255,255,0.08); color: var(--text); margin: 0; }
+  .tiktok-audio-actions button.primary { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; }
+  .tt-modal-drop { border: 2px dashed var(--border-2); border-radius: var(--radius-lg); padding: 24px; text-align: center; cursor: pointer; color: var(--text-2); background: rgba(255,255,255,.02); margin-bottom: 14px; }
   .tt-modal-drop.has-file { border-color: var(--pink); background: rgba(236,72,153,.05); color: var(--text); }
   .tt-modal-drop .tt-icon { font-size: 28px; margin-bottom: 6px; }
   .tt-modal-drop .tt-file-name { font-size: 12px; color: var(--muted); margin-top: 4px; word-break: break-all; }
@@ -326,17 +254,14 @@
   .tt-progress { height: 6px; background: rgba(255,255,255,.08); border-radius: 100px; overflow: hidden; margin-bottom: 12px; display: none; }
   .tt-progress.visible { display: block; }
   .tt-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan)); transition: width .2s ease; }
-  .tt-progress-text { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 12px; font-weight: 700; letter-spacing: .05em; }
-
-  /* ============ COMMENTS ============ */
+  .tt-progress-text { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 12px; font-weight: 700; }
   .tiktok-comments-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 1500; align-items: flex-end; justify-content: center; }
   .tiktok-comments-overlay.active { display: flex; animation: fadeIn .2s ease; }
-  .tiktok-comments-sheet { background: #1a1a1f; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; height: 70vh; display: flex; flex-direction: column; animation: slideUp .3s ease; border: 1px solid var(--border); border-bottom: none; }
+  .tiktok-comments-sheet { background: #1a1a1f; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; height: 70vh; display: flex; flex-direction: column; border: 1px solid var(--border); border-bottom: none; }
   @media (max-width: 768px) { .tiktok-comments-sheet { height: 80vh; } }
   .tiktok-comments-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .tiktok-comments-header .title { font-size: 14px; font-weight: 700; color: var(--text); }
   .tiktok-comments-close { background: none; border: none; color: var(--muted); font-size: 20px; padding: 4px 8px; cursor: pointer; border-radius: 6px; }
-  .tiktok-comments-close:hover { background: rgba(255,255,255,.08); color: var(--text); }
   .tiktok-comments-list { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 14px; }
   .tiktok-comments-empty { text-align: center; color: var(--muted); padding: 40px 20px; font-size: 13px; }
   .tiktok-comment-item { display: flex; gap: 10px; align-items: flex-start; }
@@ -344,12 +269,11 @@
   .tiktok-comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .tiktok-comment-body { flex: 1; min-width: 0; }
   .tiktok-comment-user { font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 2px; cursor: pointer; }
-  .tiktok-comment-text { font-size: 13px; color: var(--text); line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; }
+  .tiktok-comment-text { font-size: 13px; color: var(--text); line-height: 1.4; word-wrap: break-word; }
   .tiktok-comment-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
   .tiktok-comments-input-wrap { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); flex-shrink: 0; }
   .tiktok-comments-input-wrap input { flex: 1; padding: 10px 14px; border-radius: 100px; background: rgba(255,255,255,.06); border: 1px solid var(--border); font-size: 14px; }
   .tiktok-comments-input-wrap button { padding: 10px 18px; border-radius: 100px; background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; font-size: 13px; font-weight: 700; border: none; cursor: pointer; }
-  .tiktok-comments-input-wrap button:disabled { opacity: .5; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -410,10 +334,7 @@
 <div id="screen-login" class="screen">
   <div class="login-wrap">
     <div class="login-card">
-      <div class="logo-hero">
-        <div class="l1">SentinelCollection</div>
-        <div class="l2">◢ Web Edition ◣</div>
-      </div>
+      <div class="logo-hero"><div class="l1">SentinelCollection</div><div class="l2">◢ Web Edition ◣</div></div>
       <label for="identifier">@Usuario de Telegram</label>
       <input id="identifier" type="text" placeholder="@tunombre" autocomplete="username">
       <button id="btn-request" class="btn-primary">✨ Enviar código</button>
@@ -425,10 +346,7 @@
 <div id="screen-code" class="screen">
   <div class="login-wrap">
     <div class="login-card">
-      <div class="logo-hero">
-        <div class="l1">Verificación</div>
-        <div class="l2">Ingresa el código</div>
-      </div>
+      <div class="logo-hero"><div class="l1">Verificación</div><div class="l2">Ingresa el código</div></div>
       <div class="code-inputs" id="code-inputs">
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
@@ -447,16 +365,13 @@
       <div class="sidebar-brand"><div class="logo">SentinelCollection</div></div>
       <div class="sidebar-user">
         <div class="avatar-sm" id="sb-avatar">?</div>
-        <div class="info">
-          <div class="uname" id="sb-name">Cargando...</div>
-          <div class="utag" id="sb-tag">—</div>
-        </div>
+        <div class="info"><div class="uname" id="sb-name">Cargando...</div><div class="utag" id="sb-tag">—</div></div>
       </div>
       <div class="nav-group">
         <button class="nav-item active" data-tab="profile"><span class="icon" data-icon="user"></span> Perfil</button>
         <button class="nav-item" data-tab="collection"><span class="icon" data-icon="package"></span> Mi Colección</button>
         <button class="nav-item" data-tab="shop"><span class="icon" data-icon="store"></span> Tienda</button>
-        <button class="nav-item" data-tab="tiktok"><span class="icon" data-icon="music"></span> TikTok</button>
+        <button class="nav-item" data-tab="tiktok"><span class="icon" data-icon="music"></span> Videos</button>
       </div>
       <button class="nav-item btn-logout" id="btn-logout"><span class="icon" data-icon="logout"></span> Cerrar Sesión</button>
     </aside>
@@ -465,49 +380,25 @@
       <div id="tab-profile" class="tab-content active">
         <div class="profile-header">
           <div class="avatar" id="p-avatar">?</div>
-          <div class="profile-info">
-            <div class="name" id="p-name">Cargando...</div>
-            <div class="tag" id="p-tag">—</div>
-          </div>
+          <div class="profile-info"><div class="name" id="p-name">Cargando...</div><div class="tag" id="p-tag">—</div></div>
           <button class="inline-logout-btn" data-logout aria-label="Cerrar sesión"><span class="icon" data-icon="logout"></span></button>
         </div>
         <div class="section-title">Resumen</div>
         <div class="stats-grid">
-          <div class="stat-box" style="color:var(--gold)">
-            <div class="stat-lbl"><span class="icon" data-icon="coin"></span> Monedas</div>
-            <div class="stat-num" id="stat-coins" style="color:var(--gold)">0</div>
-          </div>
-          <div class="stat-box" style="color:var(--pink)">
-            <div class="stat-lbl"><span class="icon" data-icon="layers"></span> Personajes totales</div>
-            <div class="stat-num" id="stat-waifus" style="color:var(--pink)">0</div>
-          </div>
-          <div class="stat-box" style="color:var(--purple)">
-            <div class="stat-lbl"><span class="icon" data-icon="sparkles"></span> Personajes únicos</div>
-            <div class="stat-num" id="stat-unique" style="color:var(--purple)">0</div>
-          </div>
+          <div class="stat-box" style="color:var(--gold)"><div class="stat-lbl"><span class="icon" data-icon="coin"></span> Monedas</div><div class="stat-num" id="stat-coins" style="color:var(--gold)">0</div></div>
+          <div class="stat-box" style="color:var(--pink)"><div class="stat-lbl"><span class="icon" data-icon="layers"></span> Personajes totales</div><div class="stat-num" id="stat-waifus" style="color:var(--pink)">0</div></div>
+          <div class="stat-box" style="color:var(--purple)"><div class="stat-lbl"><span class="icon" data-icon="sparkles"></span> Personajes únicos</div><div class="stat-num" id="stat-unique" style="color:var(--purple)">0</div></div>
         </div>
         <div class="section-title">Minerales</div>
         <div class="minerals-bar">
-          <div class="mineral-cell">
-            <span class="icon" data-icon="gear"></span>
-            <div class="mineral-info"><div class="mineral-val" id="stat-hierro">0</div><div class="mineral-lbl">Hierro</div></div>
-          </div>
-          <div class="mineral-cell">
-            <span class="icon" data-icon="medal"></span>
-            <div class="mineral-info"><div class="mineral-val" id="stat-oro">0</div><div class="mineral-lbl">Oro</div></div>
-          </div>
-          <div class="mineral-cell">
-            <span class="icon" data-icon="diamond"></span>
-            <div class="mineral-info"><div class="mineral-val" id="stat-diamante">0</div><div class="mineral-lbl">Diamante</div></div>
-          </div>
+          <div class="mineral-cell"><span class="icon" data-icon="gear"></span><div class="mineral-info"><div class="mineral-val" id="stat-hierro">0</div><div class="mineral-lbl">Hierro</div></div></div>
+          <div class="mineral-cell"><span class="icon" data-icon="medal"></span><div class="mineral-info"><div class="mineral-val" id="stat-oro">0</div><div class="mineral-lbl">Oro</div></div></div>
+          <div class="mineral-cell"><span class="icon" data-icon="diamond"></span><div class="mineral-info"><div class="mineral-val" id="stat-diamante">0</div><div class="mineral-lbl">Diamante</div></div></div>
         </div>
       </div>
 
       <div id="tab-collection" class="tab-content">
-        <div class="section-title">
-          <span>Mi Colección</span>
-          <button class="inline-logout-btn" data-logout aria-label="Cerrar sesión"><span class="icon" data-icon="logout"></span></button>
-        </div>
+        <div class="section-title"><span>Mi Colección</span><button class="inline-logout-btn" data-logout aria-label="Cerrar sesión"><span class="icon" data-icon="logout"></span></button></div>
         <div class="shop-header-row">
           <div class="subtabs" id="coll-subtabs">
             <button class="subtab active" data-coll="waifus">Personajes</button>
@@ -528,10 +419,7 @@
       </div>
 
       <div id="tab-shop" class="tab-content">
-        <div class="section-title">
-          <span>Tienda</span>
-          <button class="inline-logout-btn" data-logout aria-label="Cerrar sesión"><span class="icon" data-icon="logout"></span></button>
-        </div>
+        <div class="section-title"><span>Tienda</span><button class="inline-logout-btn" data-logout aria-label="Cerrar sesión"><span class="icon" data-icon="logout"></span></button></div>
         <div class="shop-search">
           <input id="shop-search" type="text" placeholder="Buscar por nombre..." autocomplete="off">
           <button type="button" class="clear-btn" id="shop-search-clear" aria-label="Limpiar">✕</button>
@@ -597,7 +485,7 @@
     <button class="mnav-btn active" data-tab="profile"><span class="icon" data-icon="user"></span> Perfil</button>
     <button class="mnav-btn" data-tab="collection"><span class="icon" data-icon="package"></span> Colección</button>
     <button class="mnav-btn" data-tab="shop"><span class="icon" data-icon="store"></span> Tienda</button>
-    <button class="mnav-btn" data-tab="tiktok"><span class="icon" data-icon="music"></span> TikTok</button>
+    <button class="mnav-btn" data-tab="tiktok"><span class="icon" data-icon="music"></span> Videos</button>
   </nav>
 </div>
 
@@ -615,108 +503,58 @@
     messagingSenderId: "674393458723",
     appId: "1:674393458723:web:1a36d94b533773700d8996"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
 
   const $ = id => document.getElementById(id);
-  const show = id => {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    $(id).classList.add('active');
-  };
-  const setMsg = (id, text, type) => {
-    const el = $(id); el.className = 'msg ' + (type || 'err'); el.textContent = text;
-  };
+  const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+  const setMsg = (id, text, type) => { const el = $(id); el.className = 'msg ' + (type || 'err'); el.textContent = text; };
   const NUM_FMT = new Intl.NumberFormat('es-MX');
 
-  // ================= ESTADO GLOBAL =================
-  let currentRequestId = null;
-  let unsubRequest = null;
-  let unsubProfile = null;
-  let unsubGameData = null;
-  let unsubShopData = null;
-  let myGameData = null;
-  let shopData = { waifus: [], skins: [] };
-  let currentFilter = 'all';
-  let shopFilter = 'waifus';
-  let collectionTab = 'waifus';
-  let syncRequested = false;
-  let shopSearchQuery = '';
-  let hideMine = true;
-  let hideOwned = true;
-
-  let collectionDirty = true;
-  let shopDirty = true;
-  let lastGameDataUpdatedAt = undefined;
-  let lastShopUpdatedAt = undefined;
+  let currentRequestId = null, unsubRequest = null, unsubProfile = null, unsubGameData = null, unsubShopData = null;
+  let myGameData = null, shopData = { waifus: [], skins: [] };
+  let currentFilter = 'all', shopFilter = 'waifus', collectionTab = 'waifus', syncRequested = false;
+  let shopSearchQuery = '', hideMine = true, hideOwned = true;
+  let collectionDirty = true, shopDirty = true, lastGameDataUpdatedAt, lastShopUpdatedAt;
   const rafPending = { collection: false, shop: false };
-
-  let cachedOwnedForGameData = null;
-  let cachedOwnedWaifuNames = new Set();
-  let cachedOwnedSkinIds = new Set();
+  let cachedOwnedForGameData = null, cachedOwnedWaifuNames = new Set(), cachedOwnedSkinIds = new Set();
 
   function getOwnedSets() {
-    if (cachedOwnedForGameData === myGameData) {
-      return { waifus: cachedOwnedWaifuNames, skins: cachedOwnedSkinIds };
-    }
+    if (cachedOwnedForGameData === myGameData) return { waifus: cachedOwnedWaifuNames, skins: cachedOwnedSkinIds };
     cachedOwnedForGameData = myGameData;
     cachedOwnedWaifuNames = new Set((myGameData?.waifusList || []).map(w => String(w.name).toLowerCase()));
     cachedOwnedSkinIds = new Set((myGameData?.skinsList || []).map(s => String(s.id)));
     return { waifus: cachedOwnedWaifuNames, skins: cachedOwnedSkinIds };
   }
-
   function scheduleRender(scope) {
     if (rafPending[scope]) return;
     rafPending[scope] = true;
-    requestAnimationFrame(() => {
-      rafPending[scope] = false;
-      if (scope === 'collection') renderCollection();
-      else if (scope === 'shop') renderShop();
-    });
+    requestAnimationFrame(() => { rafPending[scope] = false; if (scope === 'collection') renderCollection(); else if (scope === 'shop') renderShop(); });
   }
   function markCollectionDirty() { collectionDirty = true; scheduleRender('collection'); }
   function markShopDirty() { shopDirty = true; scheduleRender('shop'); }
 
-  // ================= TOASTS + MODAL =================
   function showToast(message, type = 'info') {
     const container = $('toast-container');
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
+    toast.className = `toast ${type}`; toast.textContent = message;
     container.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
-      setTimeout(() => toast.remove(), 250);
-    }, 3000);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(10px)'; setTimeout(() => toast.remove(), 250); }, 3000);
   }
 
   let modalCallback = null;
   function showModal(title, desc, showInput, placeholder, defaultVal, callback) {
-    $('modal-title').textContent = title;
-    $('modal-desc').textContent = desc;
+    $('modal-title').textContent = title; $('modal-desc').textContent = desc;
     const input = $('modal-input');
-    if (showInput) {
-      input.style.display = 'block';
-      input.placeholder = placeholder || '';
-      input.value = defaultVal || '';
-      setTimeout(() => input.focus(), 100);
-    } else { input.style.display = 'none'; }
-    $('custom-modal').classList.add('active');
-    modalCallback = callback;
+    if (showInput) { input.style.display = 'block'; input.placeholder = placeholder || ''; input.value = defaultVal || ''; setTimeout(() => input.focus(), 100); }
+    else input.style.display = 'none';
+    $('custom-modal').classList.add('active'); modalCallback = callback;
   }
-
   $('modal-cancel').onclick = () => { $('custom-modal').classList.remove('active'); modalCallback = null; };
-  $('modal-accept').onclick = () => {
-    const inputVal = $('modal-input').value;
-    $('custom-modal').classList.remove('active');
-    if (modalCallback) modalCallback(inputVal);
-    modalCallback = null;
-  };
+  $('modal-accept').onclick = () => { const v = $('modal-input').value; $('custom-modal').classList.remove('active'); if (modalCallback) modalCallback(v); modalCallback = null; };
   $('modal-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') $('modal-accept').click(); });
 
-  // ================= ICONOS 3D =================
   let __icSeq = 0;
   function ico(name, size = 18) {
     const u = 'i3d' + (++__icSeq) + '_';
@@ -725,7 +563,7 @@
       if (dir === 'r') return `<radialGradient id="${id}" cx=".5" cy=".35" r=".78"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>`;
       return `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
     };
-    const D = (s) => `<defs>${s}</defs>`;
+    const D = s => `<defs>${s}</defs>`;
     let b = '';
     switch (name) {
       case 'user': b = D(L(u+'a','#c4b5fd','#7c3aed') + L(u+'b','#ddd6fe','#a78bfa')) + `<circle cx="12" cy="7.5" r="3.8" fill="url(#${u}b)"/><path d="M4.5 21v-1.5a4.5 4.5 0 0 1 4.5-4.5h6a4.5 4.5 0 0 1 4.5 4.5V21z" fill="url(#${u}a)"/>`; break;
@@ -764,9 +602,7 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
   }
 
-  // ================= CACHÉ PERSISTENTE =================
-  const IMG_CACHE_DB = 'jinx_imgs_v1';
-  const IMG_CACHE_STORE = 'data';
+  const IMG_CACHE_DB = 'jinx_imgs_v1', IMG_CACHE_STORE = 'data';
   let imgDBPromise = null;
   function getImgDB() {
     if (imgDBPromise) return imgDBPromise;
@@ -775,547 +611,412 @@
         if (typeof indexedDB === 'undefined') return resolve(null);
         const req = indexedDB.open(IMG_CACHE_DB, 1);
         req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(IMG_CACHE_STORE)) req.result.createObjectStore(IMG_CACHE_STORE); };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(null);
+        req.onsuccess = () => resolve(req.result); req.onerror = () => resolve(null);
       } catch { resolve(null); }
     });
     return imgDBPromise;
   }
-  async function idbGetImg(key) {
-    const db = await getImgDB();
-    if (!db) return null;
-    return new Promise((resolve) => {
-      try {
-        const tx = db.transaction(IMG_CACHE_STORE, 'readonly');
-        const req = tx.objectStore(IMG_CACHE_STORE).get(key);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => resolve(null);
-      } catch { resolve(null); }
-    });
-  }
-  async function idbSetImg(key, dataUrl) {
-    const db = await getImgDB();
-    if (!db) return;
-    try {
-      const tx = db.transaction(IMG_CACHE_STORE, 'readwrite');
-      tx.objectStore(IMG_CACHE_STORE).put(dataUrl, key);
-    } catch {}
-  }
+  async function idbGetImg(key) { const db = await getImgDB(); if (!db) return null; return new Promise(r => { try { const tx = db.transaction(IMG_CACHE_STORE,'readonly'); const req = tx.objectStore(IMG_CACHE_STORE).get(key); req.onsuccess = () => r(req.result || null); req.onerror = () => r(null); } catch { r(null); } }); }
+  async function idbSetImg(key, val) { const db = await getImgDB(); if (!db) return; try { const tx = db.transaction(IMG_CACHE_STORE,'readwrite'); tx.objectStore(IMG_CACHE_STORE).put(val, key); } catch {} }
 
-  // ================= LAZY IMAGES =================
-  const imageCache = new Map();
-  const pendingRequests = new Map();
-
-  function loadImageForContainer(imgContainer) {
-    if (!imgContainer || !imgContainer.isConnected) return;
-    const imgTag = imgContainer.querySelector('img');
-    if (imgTag && imgTag.classList.contains('loaded')) return;
-    const type = imgContainer.dataset.type || 'waifu';
-    const name = imgContainer.dataset.name;
-    if (!name) return;
+  const imageCache = new Map(), pendingRequests = new Map();
+  function loadImageForContainer(c) {
+    if (!c || !c.isConnected) return;
+    const img = c.querySelector('img'); if (img && img.classList.contains('loaded')) return;
+    const type = c.dataset.type || 'waifu', name = c.dataset.name; if (!name) return;
     getLocalImage(type, name).then(url => {
-      if (!imgContainer.isConnected) return;
-      if (url) {
-        let img = imgContainer.querySelector('img');
-        if (!img) {
-          img = document.createElement('img');
-          img.decoding = 'async'; img.loading = 'lazy'; img.draggable = false; img.alt = '';
-          imgContainer.insertBefore(img, imgContainer.firstChild);
-        }
-        if (img.getAttribute('src') !== url) img.src = url;
-        if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
-        else img.onload = () => img.classList.add('loaded');
-      }
+      if (!c.isConnected || !url) return;
+      let el = c.querySelector('img');
+      if (!el) { el = document.createElement('img'); el.decoding = 'async'; el.loading = 'lazy'; el.draggable = false; el.alt = ''; c.insertBefore(el, c.firstChild); }
+      if (el.getAttribute('src') !== url) el.src = url;
+      if (el.complete && el.naturalWidth > 0) el.classList.add('loaded'); else el.onload = () => el.classList.add('loaded');
     });
   }
   const imageLoadObserver = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      imageLoadObserver.unobserve(entry.target);
-      loadImageForContainer(entry.target);
-    }
+    for (const e of entries) { if (!e.isIntersecting) continue; imageLoadObserver.unobserve(e.target); loadImageForContainer(e.target); }
   }, { rootMargin: '800px 0px' });
 
   async function getLocalImage(type, target) {
-    const cacheKey = `${type}_${target}`;
-    if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
-    if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey);
-    const promise = (async () => {
-      try {
-        const stored = await idbGetImg(cacheKey);
-        if (stored) { imageCache.set(cacheKey, stored); return stored; }
-      } catch {}
-      return new Promise((resolve) => {
-        const reqId  = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-        const reqRef = ref(db, 'image_requests/'  + reqId);
-        const resRef = ref(db, 'image_responses/' + reqId);
+    const key = `${type}_${target}`;
+    if (imageCache.has(key)) return imageCache.get(key);
+    if (pendingRequests.has(key)) return pendingRequests.get(key);
+    const p = (async () => {
+      try { const s = await idbGetImg(key); if (s) { imageCache.set(key, s); return s; } } catch {}
+      return new Promise(resolve => {
+        const reqId = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const reqRef = ref(db, 'image_requests/' + reqId), resRef = ref(db, 'image_responses/' + reqId);
         let done = false, unsub = null;
-        const finish = (url, cacheNull) => {
-          if (done) return;
-          done = true;
+        const finish = (url, cNull) => {
+          if (done) return; done = true;
           try { unsub && unsub(); } catch {}
-          if (url) { imageCache.set(cacheKey, url); idbSetImg(cacheKey, url); }
-          else if (cacheNull) { imageCache.set(cacheKey, null); }
-          set(resRef, null).catch(() => {});
-          resolve(url || null);
+          if (url) { imageCache.set(key, url); idbSetImg(key, url); } else if (cNull) imageCache.set(key, null);
+          set(resRef, null).catch(() => {}); resolve(url || null);
         };
-        unsub = onValue(resRef, (snap) => {
-          const res = snap.val();
-          if (!res) return;
-          if (res.success && res.base64) finish(`data:image/${res.mime};base64,${res.base64}`, false);
-          else finish(null, true);
-        });
+        unsub = onValue(resRef, snap => { const r = snap.val(); if (!r) return; if (r.success && r.base64) finish(`data:image/${r.mime};base64,${r.base64}`, false); else finish(null, true); });
         set(reqRef, { type, target, createdAt: Date.now() }).catch(() => finish(null, false));
         setTimeout(() => finish(null, false), 8000);
       });
     })();
-    pendingRequests.set(cacheKey, promise);
-    try { return await promise; } finally { pendingRequests.delete(cacheKey); }
+    pendingRequests.set(key, p);
+    try { return await p; } finally { pendingRequests.delete(key); }
   }
-
   async function requestSync(uid) { await set(ref(db, 'sync_requests/' + uid), { userId: uid, createdAt: Date.now() }).catch(()=>{}); }
   function observeImg(el) { imageLoadObserver.observe(el); }
-  function cleanupGridObservers(grid) {
-    if (!grid) return;
-    grid.querySelectorAll('.waifu-img').forEach(el => { try { imageLoadObserver.unobserve(el); } catch {} });
-  }
+  function cleanupGridObservers(grid) { if (!grid) return; grid.querySelectorAll('.waifu-img').forEach(el => { try { imageLoadObserver.unobserve(el); } catch {} }); }
 
-  // ================= AUTH =================
   onAuthStateChanged(auth, (user) => {
-    if (user && !user.isAnonymous) {
-      loadDashboard(user.uid);
-    } else if (user && user.isAnonymous) {
-      if ($('screen-loading').classList.contains('active')) show('screen-login');
-    } else {
-      signInAnonymously(auth).catch(e => { setMsg('msg-login', e.message, 'err'); show('screen-login'); });
-    }
+    if (user && !user.isAnonymous) loadDashboard(user.uid);
+    else if (user && user.isAnonymous) { if ($('screen-loading').classList.contains('active')) show('screen-login'); }
+    else signInAnonymously(auth).catch(e => { setMsg('msg-login', e.message, 'err'); show('screen-login'); });
   });
 
   $('btn-request').onclick = async () => {
-    const raw = $('identifier').value.trim();
-    if (!raw) return setMsg('msg-login', 'Escribe tu usuario.', 'err');
-    $('btn-request').disabled = true;
-    $('btn-request').textContent = 'Enviando...';
-    setMsg('msg-login', '');
+    const raw = $('identifier').value.trim(); if (!raw) return setMsg('msg-login', 'Escribe tu usuario.', 'err');
+    $('btn-request').disabled = true; $('btn-request').textContent = 'Enviando...'; setMsg('msg-login', '');
     try {
       const username = raw.replace(/^@+/, '').toLowerCase();
       currentRequestId = (crypto.randomUUID && crypto.randomUUID()) || ('r_' + Date.now());
       await set(ref(db, 'login_requests/' + currentRequestId), { owner: auth.currentUser.uid, username, status: 'pending', createdAt: Date.now() });
-      show('screen-code');
-      $('code-inputs').querySelector('input').focus();
-      listenToRequest();
-    } catch (e) {
-      setMsg('msg-login', "Error: " + e.message, 'err');
-      $('btn-request').disabled = false; $('btn-request').textContent = '✨ Enviar código';
-    }
+      show('screen-code'); $('code-inputs').querySelector('input').focus(); listenToRequest();
+    } catch (e) { setMsg('msg-login', "Error: " + e.message, 'err'); $('btn-request').disabled = false; $('btn-request').textContent = '✨ Enviar código'; }
   };
-
   function listenToRequest() {
     if (unsubRequest) unsubRequest();
-    unsubRequest = onValue(ref(db, 'login_requests/' + currentRequestId), (snap) => {
-      const d = snap.val();
-      if (!d) return;
+    unsubRequest = onValue(ref(db, 'login_requests/' + currentRequestId), snap => {
+      const d = snap.val(); if (!d) return;
       if (d.status === 'ready') setMsg('msg-code', '✅ Código enviado.', 'ok');
       if (d.status === 'error') { setMsg('msg-code', '❌ ' + d.error, 'err'); $('btn-verify').disabled = false; }
       if (d.status === 'verified' && d.customToken) {
-        unsubRequest();
-        $('btn-verify').textContent = 'Ingresando...';
+        unsubRequest(); $('btn-verify').textContent = 'Ingresando...';
         signInWithCustomToken(auth, d.customToken).catch(e => { setMsg('msg-code', '❌ ' + e.message, 'err'); $('btn-verify').disabled = false; });
       }
     });
   }
-
   $('btn-verify').onclick = async () => {
     const code = [...$('code-inputs').querySelectorAll('input')].map(i => i.value).join('');
     if (code.length !== 6) return setMsg('msg-code', 'Faltan dígitos.', 'err');
-    $('btn-verify').disabled = true;
-    setMsg('msg-code', '⏳ Verificando...', 'ok');
-    try {
-      await update(ref(db, 'login_requests/' + currentRequestId), { userCode: code, status: 'checking' });
-      setMsg('msg-code', '⏳ Esperando validación...', 'ok');
-    } catch (e) { setMsg('msg-code', 'Error: ' + e.message, 'err'); $('btn-verify').disabled = false; }
+    $('btn-verify').disabled = true; setMsg('msg-code', '⏳ Verificando...', 'ok');
+    try { await update(ref(db, 'login_requests/' + currentRequestId), { userCode: code, status: 'checking' }); setMsg('msg-code', '⏳ Esperando validación...', 'ok'); }
+    catch (e) { setMsg('msg-code', 'Error: ' + e.message, 'err'); $('btn-verify').disabled = false; }
   };
-
   $('btn-back').onclick = () => { if (unsubRequest) unsubRequest(); currentRequestId = null; show('screen-login'); };
 
-  // ================= DASHBOARD =================
   function loadDashboard(uid) {
     show('screen-panel');
-    getLocalImage('avatar', uid).then(dataUrl => {
-      const imgHtml = dataUrl ? `<img src="${dataUrl}" decoding="async" alt="">` : '?';
-      $('p-avatar').innerHTML = imgHtml;
-      $('sb-avatar').innerHTML = imgHtml;
-    });
+    getLocalImage('avatar', uid).then(url => { const h = url ? `<img src="${url}" decoding="async" alt="">` : '?'; $('p-avatar').innerHTML = h; $('sb-avatar').innerHTML = h; });
     if (unsubProfile) unsubProfile();
-    unsubProfile = onValue(ref(db, 'users/' + uid + '/profile'), (snap) => {
-      const p = snap.val() || {};
-      const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Usuario';
-      $('p-name').textContent = fullName;
-      $('p-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
-      $('sb-name').textContent = fullName;
-      $('sb-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
+    unsubProfile = onValue(ref(db, 'users/' + uid + '/profile'), snap => {
+      const p = snap.val() || {}; const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Usuario';
+      $('p-name').textContent = fullName; $('p-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
+      $('sb-name').textContent = fullName; $('sb-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
     });
     if (unsubGameData) unsubGameData();
-    unsubGameData = onValue(ref(db, 'users/' + uid + '/gameData'), (snap) => {
+    unsubGameData = onValue(ref(db, 'users/' + uid + '/gameData'), snap => {
       const data = snap.val() || {};
-      if ((!data.waifusList || !data.skinsList) && !syncRequested) {
-        syncRequested = true; myGameData = data; requestSync(uid); return;
-      }
+      if ((!data.waifusList || !data.skinsList) && !syncRequested) { syncRequested = true; myGameData = data; requestSync(uid); return; }
       if (data.updatedAt && data.updatedAt === lastGameDataUpdatedAt) return;
-      lastGameDataUpdatedAt = data.updatedAt;
-      myGameData = data;
-      $('stat-coins').textContent   = NUM_FMT.format(Number(data.coins || 0));
-      $('stat-waifus').textContent  = NUM_FMT.format(Number(data.waifusTotal || 0));
-      $('stat-unique').textContent  = NUM_FMT.format(Number(data.waifusUnique || 0));
+      lastGameDataUpdatedAt = data.updatedAt; myGameData = data;
+      $('stat-coins').textContent = NUM_FMT.format(Number(data.coins || 0));
+      $('stat-waifus').textContent = NUM_FMT.format(Number(data.waifusTotal || 0));
+      $('stat-unique').textContent = NUM_FMT.format(Number(data.waifusUnique || 0));
       const m = data.minerals || {};
-      $('stat-hierro').textContent  = NUM_FMT.format(Number(m.hierro || 0));
-      $('stat-oro').textContent     = NUM_FMT.format(Number(m.oro || 0));
-      $('stat-diamante').textContent= NUM_FMT.format(Number(m.diamante || 0));
+      $('stat-hierro').textContent = NUM_FMT.format(Number(m.hierro || 0));
+      $('stat-oro').textContent = NUM_FMT.format(Number(m.oro || 0));
+      $('stat-diamante').textContent = NUM_FMT.format(Number(m.diamante || 0));
       markCollectionDirty(); markShopDirty();
     });
     if (unsubShopData) unsubShopData();
-    unsubShopData = onValue(ref(db, 'shop_data'), (snap) => {
+    unsubShopData = onValue(ref(db, 'shop_data'), snap => {
       const data = snap.val() || { waifus: [], skins: [] };
       if (data.updatedAt && data.updatedAt === lastShopUpdatedAt) return;
-      lastShopUpdatedAt = data.updatedAt;
-      shopData = data;
-      markShopDirty();
+      lastShopUpdatedAt = data.updatedAt; shopData = data; markShopDirty();
     });
     listenMyFollowing();
     listenTiktokFeed();
   }
 
-  // ================= COLLECTION =================
   function renderCollection(force = false) {
-    const grid = $('collection-grid');
-    const filters = $('coll-filters-wrap');
+    const grid = $('collection-grid'), filters = $('coll-filters-wrap');
     if (!grid) return;
     if (!force && !$('tab-collection').classList.contains('active')) { collectionDirty = true; return; }
-    collectionDirty = false;
-    cleanupGridObservers(grid); grid.innerHTML = '';
-
+    collectionDirty = false; cleanupGridObservers(grid); grid.innerHTML = '';
     if (collectionTab === 'waifus') {
       filters.style.display = '';
       let list = myGameData?.waifusList || [];
       if (currentFilter !== 'all') list = list.filter(w => w.rarity === currentFilter);
-      if (list.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🎴 No hay personajes.</div>`; return; }
+      if (!list.length) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🎴 No hay personajes.</div>`; return; }
       const order = { exclusiva:0, legendaria:1, epica:2, rara:3, comun:4 };
       list = [...list].sort((a,b) => (order[a.rarity]||9) - (order[b.rarity]||9));
       const frag = document.createDocumentFragment();
       list.forEach(w => {
-        const card = document.createElement('div');
-        card.className = 'waifu-card'; card.dataset.r = w.rarity;
-        const imgDiv = document.createElement('div');
-        imgDiv.className = 'waifu-img'; imgDiv.dataset.name = w.name; imgDiv.dataset.type = 'waifu';
-        const badge = document.createElement('div');
-        badge.className = 'waifu-badge'; badge.textContent = `x${w.count}`;
-        imgDiv.appendChild(badge);
-        const rBadge = document.createElement('div');
-        rBadge.className = 'waifu-rarity-badge'; rBadge.textContent = w.rarity;
-        imgDiv.appendChild(rBadge);
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'waifu-info';
-        const sellLabel = w.count > 1 ? `💰 Vender 1 (de ${w.count})` : '💰 Vender';
-        infoDiv.innerHTML = `<div class="waifu-name" title="${w.name}">${w.name}</div><button class="btn-sell" data-name="${w.name}" data-count="${w.count}">${sellLabel}</button>`;
-        card.appendChild(imgDiv); card.appendChild(infoDiv);
-        frag.appendChild(card); observeImg(imgDiv);
+        const card = document.createElement('div'); card.className = 'waifu-card'; card.dataset.r = w.rarity;
+        const img = document.createElement('div'); img.className = 'waifu-img'; img.dataset.name = w.name; img.dataset.type = 'waifu';
+        const b = document.createElement('div'); b.className = 'waifu-badge'; b.textContent = `x${w.count}`; img.appendChild(b);
+        const rb = document.createElement('div'); rb.className = 'waifu-rarity-badge'; rb.textContent = w.rarity; img.appendChild(rb);
+        const info = document.createElement('div'); info.className = 'waifu-info';
+        const label = w.count > 1 ? `💰 Vender 1 (de ${w.count})` : '💰 Vender';
+        info.innerHTML = `<div class="waifu-name">${w.name}</div><button class="btn-sell" data-name="${w.name}" data-count="${w.count}">${label}</button>`;
+        card.appendChild(img); card.appendChild(info); frag.appendChild(card); observeImg(img);
       });
       grid.appendChild(frag);
       grid.querySelectorAll('.btn-sell').forEach(btn => {
         btn.onclick = () => {
-          const name = btn.dataset.name;
-          const count = parseInt(btn.dataset.count, 10) || 1;
-          const countMsg = count > 1 ? `\n\n📦 Tienes ${count} copias. Solo se venderá 1.` : '';
-          showModal('💰 Vender personaje', `¿Por cuánto quieres vender a ${name}?${countMsg}\n(Mínimo: 100 · Máximo: 3500)`, true, 'Ej: 500', '100', async (priceStr) => {
-            if (!priceStr) return;
-            const price = parseInt(priceStr, 10);
+          const name = btn.dataset.name, count = parseInt(btn.dataset.count, 10) || 1;
+          showModal('💰 Vender personaje', `¿Por cuánto quieres vender a ${name}?\n(Mín: 100 · Máx: 3500)`, true, 'Ej: 500', '100', async (ps) => {
+            if (!ps) return;
+            const price = parseInt(ps, 10);
             if (isNaN(price) || price < 100 || price > 3500) return showToast('⚠️ Precio inválido.', 'error');
             btn.disabled = true; btn.textContent = '...';
             const reqId = 'sell_' + Date.now();
             const reqRef = ref(db, 'sell_waifu_requests/' + reqId);
-            const unsub = onValue(reqRef, (snap) => {
-              const res = snap.val();
-              if (!res) return;
-              if (res.status === 'done') {
-                unsub();
-                showToast(`✅ ¡Vendiste 1 ${res.waifuName || name}!`, 'success');
-                requestSync(auth.currentUser.uid);
-              } else if (res.status === 'error') {
-                unsub();
-                showToast('❌ ' + res.error, 'error');
-                btn.disabled = false; btn.textContent = count > 1 ? `💰 Vender 1 (de ${count})` : '💰 Vender';
-              }
+            const unsub = onValue(reqRef, snap => {
+              const r = snap.val(); if (!r) return;
+              if (r.status === 'done') { unsub(); showToast(`✅ ¡Vendiste 1 ${r.waifuName || name}!`, 'success'); requestSync(auth.currentUser.uid); }
+              else if (r.status === 'error') { unsub(); showToast('❌ ' + r.error, 'error'); btn.disabled = false; btn.textContent = count > 1 ? `💰 Vender 1 (de ${count})` : '💰 Vender'; }
             });
-            await set(reqRef, {
-              userId: auth.currentUser.uid, userName: $('p-name').textContent,
-              username: $('p-tag').textContent.replace('@',''),
-              waifuName: name, price, status: 'pending', createdAt: Date.now()
-            }).catch(err => {
-              showToast('❌ ' + err.message, 'error');
-              btn.disabled = false; btn.textContent = count > 1 ? `💰 Vender 1 (de ${count})` : '💰 Vender'; unsub();
-            });
+            await set(reqRef, { userId: auth.currentUser.uid, userName: $('p-name').textContent, username: $('p-tag').textContent.replace('@',''), waifuName: name, price, status: 'pending', createdAt: Date.now() }).catch(err => { showToast('❌ ' + err.message, 'error'); btn.disabled = false; unsub(); });
           });
         };
       });
     } else {
       filters.style.display = 'none';
-      const skinsList = myGameData?.skinsList || [];
-      if (skinsList.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🎨 No tienes skins.</div>`; return; }
+      const skins = myGameData?.skinsList || [];
+      if (!skins.length) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🎨 No tienes skins.</div>`; return; }
       const frag = document.createDocumentFragment();
-      skinsList.forEach(s => {
-        const isActive = s.active !== false;
-        const card = document.createElement('div');
-        card.className = 'waifu-card'; card.dataset.r = s.rarity;
-        const imgDiv = document.createElement('div');
-        imgDiv.className = 'waifu-img'; imgDiv.dataset.name = s.id; imgDiv.dataset.type = 'skin';
-        const rBadge = document.createElement('div');
-        rBadge.className = 'waifu-rarity-badge'; rBadge.textContent = s.rarity;
-        imgDiv.appendChild(rBadge);
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'waifu-info';
-        infoDiv.innerHTML = `<div class="waifu-name" title="${s.waifuName}">${s.waifuName}</div><button class="btn-toggle ${isActive ? 'active' : 'inactive'}" data-id="${s.id}" data-active="${isActive}">${isActive ? '✓ Desactivar' : '○ Activar'}</button>`;
-        card.appendChild(imgDiv); card.appendChild(infoDiv);
-        frag.appendChild(card); observeImg(imgDiv);
+      skins.forEach(s => {
+        const active = s.active !== false;
+        const card = document.createElement('div'); card.className = 'waifu-card'; card.dataset.r = s.rarity;
+        const img = document.createElement('div'); img.className = 'waifu-img'; img.dataset.name = s.id; img.dataset.type = 'skin';
+        const rb = document.createElement('div'); rb.className = 'waifu-rarity-badge'; rb.textContent = s.rarity; img.appendChild(rb);
+        const info = document.createElement('div'); info.className = 'waifu-info';
+        info.innerHTML = `<div class="waifu-name">${s.waifuName}</div><button class="btn-toggle ${active ? 'active' : 'inactive'}" data-id="${s.id}" data-active="${active}">${active ? '✓ Desactivar' : '○ Activar'}</button>`;
+        card.appendChild(img); card.appendChild(info); frag.appendChild(card); observeImg(img);
       });
       grid.appendChild(frag);
       grid.querySelectorAll('.btn-toggle').forEach(btn => {
         btn.onclick = async () => {
-          const id = btn.dataset.id;
-          const isActive = btn.dataset.active === 'true';
+          const id = btn.dataset.id, active = btn.dataset.active === 'true';
           btn.disabled = true; btn.textContent = '...';
           const reqId = 'tog_' + Date.now();
           const reqRef = ref(db, 'skin_toggle_requests/' + reqId);
-          const unsub = onValue(reqRef, (snap) => {
-            const res = snap.val();
-            if (!res) return;
-            if (res.status === 'done') { unsub(); requestSync(auth.currentUser.uid); set(reqRef, null).catch(()=>{}); }
-            else if (res.status === 'error') { unsub(); showToast('❌ ' + res.error, 'error'); btn.disabled = false; btn.textContent = isActive ? '✓ Desactivar' : '○ Activar'; set(reqRef, null).catch(()=>{}); }
+          const unsub = onValue(reqRef, snap => {
+            const r = snap.val(); if (!r) return;
+            if (r.status === 'done') { unsub(); requestSync(auth.currentUser.uid); set(reqRef, null).catch(()=>{}); }
+            else if (r.status === 'error') { unsub(); showToast('❌ ' + r.error, 'error'); btn.disabled = false; btn.textContent = active ? '✓ Desactivar' : '○ Activar'; set(reqRef, null).catch(()=>{}); }
           });
-          await set(reqRef, { userId: auth.currentUser.uid, skinId: id, activate: !isActive, status: 'pending', createdAt: Date.now() });
+          await set(reqRef, { userId: auth.currentUser.uid, skinId: id, activate: !active, status: 'pending', createdAt: Date.now() });
         };
       });
     }
   }
 
-  // ================= SHOP =================
   function renderShop(force = false) {
-    const grid = $('shop-grid');
-    if (!grid) return;
+    const grid = $('shop-grid'); if (!grid) return;
     if (!force && !$('tab-shop').classList.contains('active')) { shopDirty = true; return; }
-    shopDirty = false;
-    cleanupGridObservers(grid); grid.innerHTML = '';
-    const currentUserId = auth.currentUser?.uid;
-    const owned = getOwnedSets();
+    shopDirty = false; cleanupGridObservers(grid); grid.innerHTML = '';
+    const me = auth.currentUser?.uid, owned = getOwnedSets();
     let items = shopFilter === 'waifus' ? (shopData.waifus || []) : (shopData.skins || []);
     items = items.filter(item => {
-      if (hideMine && String(item.sellerId) === String(currentUserId)) return false;
+      if (hideMine && String(item.sellerId) === String(me)) return false;
       if (shopFilter === 'skins') { if (owned.skins.has(String(item.id))) return false; }
       else { if (hideOwned && owned.waifus.has(String(item.name).toLowerCase())) return false; }
       return true;
     });
     const q = shopSearchQuery.trim().toLowerCase();
-    if (q) items = items.filter(item => String(item.waifuName || item.name || '').toLowerCase().includes(q));
-    if (items.length === 0) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🛒 No hay artículos disponibles.</div>`; return; }
+    if (q) items = items.filter(i => String(i.waifuName || i.name || '').toLowerCase().includes(q));
+    if (!items.length) { grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🛒 No hay artículos.</div>`; return; }
     const frag = document.createDocumentFragment();
     items.forEach(item => {
-      const isSkin = shopFilter === 'skins';
-      const nameToImg = isSkin ? item.id : item.name;
-      const card = document.createElement('div');
-      card.className = 'waifu-card'; card.dataset.r = item.rarity;
-      const imgDiv = document.createElement('div');
-      imgDiv.className = 'waifu-img'; imgDiv.dataset.name = nameToImg; imgDiv.dataset.type = isSkin ? 'skin' : 'waifu';
-      const priceBadge = document.createElement('div');
-      priceBadge.className = 'waifu-badge'; priceBadge.style.color = 'var(--gold)'; priceBadge.textContent = `🪙 ${item.price}`;
-      imgDiv.appendChild(priceBadge);
-      const rBadge = document.createElement('div');
-      rBadge.className = 'waifu-rarity-badge'; rBadge.textContent = item.rarity;
-      imgDiv.appendChild(rBadge);
-      const sellerBadge = document.createElement('div');
-      sellerBadge.className = 'waifu-seller-badge'; sellerBadge.textContent = item.seller;
-      imgDiv.appendChild(sellerBadge);
-      const infoDiv = document.createElement('div');
-      infoDiv.className = 'waifu-info shop-info';
-      infoDiv.innerHTML = `<div class="waifu-name">${item.waifuName || item.name}${isSkin ? ' · Skin' : ''}</div><button class="btn-buy" data-id="${item.id}" data-type="${isSkin ? 'skin' : 'waifu'}" data-name="${item.waifuName || item.name}" data-price="${item.price}">🛍️ Comprar</button>`;
-      card.appendChild(imgDiv); card.appendChild(infoDiv);
-      frag.appendChild(card); observeImg(imgDiv);
+      const isSkin = shopFilter === 'skins', nameToImg = isSkin ? item.id : item.name;
+      const card = document.createElement('div'); card.className = 'waifu-card'; card.dataset.r = item.rarity;
+      const img = document.createElement('div'); img.className = 'waifu-img'; img.dataset.name = nameToImg; img.dataset.type = isSkin ? 'skin' : 'waifu';
+      const pb = document.createElement('div'); pb.className = 'waifu-badge'; pb.style.color = 'var(--gold)'; pb.textContent = `🪙 ${item.price}`; img.appendChild(pb);
+      const rb = document.createElement('div'); rb.className = 'waifu-rarity-badge'; rb.textContent = item.rarity; img.appendChild(rb);
+      const sb = document.createElement('div'); sb.className = 'waifu-seller-badge'; sb.textContent = item.seller; img.appendChild(sb);
+      const info = document.createElement('div'); info.className = 'waifu-info shop-info';
+      info.innerHTML = `<div class="waifu-name">${item.waifuName || item.name}${isSkin ? ' · Skin' : ''}</div><button class="btn-buy" data-id="${item.id}" data-type="${isSkin ? 'skin' : 'waifu'}" data-name="${item.waifuName || item.name}" data-price="${item.price}">🛍️ Comprar</button>`;
+      card.appendChild(img); card.appendChild(info); frag.appendChild(card); observeImg(img);
     });
     grid.appendChild(frag);
     grid.querySelectorAll('.btn-buy').forEach(btn => {
       btn.onclick = () => {
-        const id = btn.dataset.id;
-        const type = btn.dataset.type;
-        const name = btn.dataset.name;
-        const price = Number(btn.dataset.price);
-        if (!myGameData || myGameData.coins < price) return showToast('⚠️ No tienes suficientes monedas.', 'error');
+        const id = btn.dataset.id, type = btn.dataset.type, name = btn.dataset.name, price = Number(btn.dataset.price);
+        if (!myGameData || myGameData.coins < price) return showToast('⚠️ Sin monedas suficientes.', 'error');
         showModal('🛍️ Confirmar compra', `¿Comprar a ${name} por ${price} monedas?`, false, '', '', async () => {
           btn.disabled = true; btn.textContent = '...';
           const reqId = 'buy_' + Date.now();
           const resRef = ref(db, 'shop_buy_requests/' + reqId);
-          const unsub = onValue(resRef, (snap) => {
-            const res = snap.val();
-            if (!res) return;
-            if (res.status === 'done') {
-              unsub(); showToast('🎉 ¡Compra exitosa!', 'success'); requestSync(auth.currentUser.uid);
-              const card = btn.closest('.waifu-card');
-              if (card) { card.style.transition = 'opacity .3s, transform .3s'; card.style.opacity = '0'; card.style.transform = 'scale(0.9)'; setTimeout(() => card.remove(), 300); }
-              set(resRef, null).catch(()=>{});
-            } else if (res.status === 'error') {
-              unsub(); showToast('❌ ' + res.error, 'error'); btn.disabled = false; btn.textContent = '🛍️ Comprar'; set(resRef, null).catch(()=>{});
-            }
+          const unsub = onValue(resRef, snap => {
+            const r = snap.val(); if (!r) return;
+            if (r.status === 'done') { unsub(); showToast('🎉 ¡Compra exitosa!', 'success'); requestSync(auth.currentUser.uid); const c = btn.closest('.waifu-card'); if (c) { c.style.transition = 'opacity .3s'; c.style.opacity = '0'; setTimeout(() => c.remove(), 300); } set(resRef, null).catch(()=>{}); }
+            else if (r.status === 'error') { unsub(); showToast('❌ ' + r.error, 'error'); btn.disabled = false; btn.textContent = '🛍️ Comprar'; set(resRef, null).catch(()=>{}); }
           });
-          await set(resRef, {
-            itemId: id, itemName: name, type, price, buyerId: auth.currentUser.uid,
-            buyerName: $('p-name').textContent, buyerUsername: $('p-tag').textContent.replace('@',''),
-            status: 'pending', createdAt: Date.now()
-          }).catch(err => { showToast('❌ ' + err.message, 'error'); btn.disabled = false; btn.textContent = '🛍️ Comprar'; unsub(); });
+          await set(resRef, { itemId: id, itemName: name, type, price, buyerId: auth.currentUser.uid, buyerName: $('p-name').textContent, buyerUsername: $('p-tag').textContent.replace('@',''), status: 'pending', createdAt: Date.now() }).catch(err => { showToast('❌ ' + err.message, 'error'); btn.disabled = false; btn.textContent = '🛍️ Comprar'; unsub(); });
         });
       };
     });
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (m) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-  }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  // ================= TIKTOK =================
-  const TIKTOK_MAX_BYTES = 15 * 1024 * 1024;
-  const TIKTOK_CHUNK_B64 = 512 * 1024;
-  const TIKTOK_FETCH_TIMEOUT = 45000;
+  // ═══════════════════════════════════════════════════════════════
+  // VIDEOS (feed tipo TikTok)
+  // ═══════════════════════════════════════════════════════════════
+  const TIKTOK_MAX_BYTES = 15 * 1024 * 1024, TIKTOK_CHUNK_B64 = 512 * 1024, TIKTOK_FETCH_TIMEOUT = 45000;
+  let tiktokFeed = [], tiktokUnsub = null, tiktokSelectedFile = null, tiktokUploading = false;
+  let tiktokTabMode = 'foryou', activeCommentsMediaId = null, unsubComments = null;
+  let tiktokAudioEnabled = false, tiktokAudioPromptShown = false;
+  let userFollowingSet = new Set(), unsubMyFollowing = null;
+  let profileUserId = null, profileTab = 'videos', unsubProfileFollowers = null, unsubProfileFollowing = null;
 
-  let tiktokFeed = [];
-  let tiktokUnsub = null;
-  let tiktokSelectedFile = null;
-  let tiktokUploading = false;
-  let tiktokTabMode = 'foryou';
-  let activeCommentsMediaId = null;
-  let unsubComments = null;
+  let activeVideoId = null;
+  let scrollDebounceTimer = null;
 
-  let tiktokAudioEnabled = false;
-  let tiktokAudioPromptShown = false;
-
-  let userFollowingSet = new Set();
-  let unsubMyFollowing = null;
-  let profileUserId = null;
-  let profileTab = 'videos';
-  let unsubProfileFollowers = null;
-  let unsubProfileFollowing = null;
-
-  const tiktokMediaCache   = new Map();
-  const tiktokMediaPending = new Map();
-  const tiktokVideoRefs    = new Map();
-  const tiktokLikedByMe    = new Set();
-  const tiktokAvatarCache  = new Map();
+  const tiktokMediaCache = new Map(), tiktokMediaPending = new Map();
+  const tiktokVideoRefs = new Map(), tiktokLikedByMe = new Set(), tiktokAvatarCache = new Map();
 
   function formatCount(n) {
     n = Number(n) || 0;
     if (n < 1000) return String(n);
     if (n < 1000000) { const v = n / 1000; return (v < 10 ? v.toFixed(1) : Math.floor(v)) + 'K'; }
-    const v = n / 1000000;
-    return (v < 10 ? v.toFixed(1) : Math.floor(v)) + 'M';
+    const v = n / 1000000; return (v < 10 ? v.toFixed(1) : Math.floor(v)) + 'M';
   }
-
   function formatRelativeTime(ts) {
-    const diff = Date.now() - Number(ts || 0);
-    const sec = Math.floor(diff / 1000);
-    if (sec < 60) return 'ahora';
-    const min = Math.floor(sec / 60);
-    if (min < 60) return `${min}m`;
-    const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr}h`;
-    const d = Math.floor(hr / 24);
-    if (d < 7) return `${d}d`;
+    const d = Date.now() - Number(ts || 0), s = Math.floor(d / 1000);
+    if (s < 60) return 'ahora';
+    const m = Math.floor(s / 60); if (m < 60) return `${m}m`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}h`;
+    const dd = Math.floor(h / 24); if (dd < 7) return `${dd}d`;
     return new Date(Number(ts)).toLocaleDateString('es-MX', { day:'2-digit', month:'short' });
   }
-
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => { const res = String(reader.result || ''); const idx = res.indexOf(','); resolve(idx >= 0 ? res.slice(idx + 1) : res); };
-      reader.onerror = () => reject(new Error('Error leyendo archivo.'));
-      reader.readAsDataURL(file);
+      const r = new FileReader();
+      r.onload = () => { const s = String(r.result || ''); const i = s.indexOf(','); resolve(i >= 0 ? s.slice(i + 1) : s); };
+      r.onerror = () => reject(new Error('Error leyendo archivo.'));
+      r.readAsDataURL(file);
     });
   }
-
-  function base64ToBlobUrl(base64, mime) {
-    const bin = atob(base64);
-    const len = bin.length;
-    const bytes = new Uint8Array(len);
+  function base64ToBlobUrl(b64, mime) {
+    const bin = atob(b64), len = bin.length, bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
     return URL.createObjectURL(new Blob([bytes], { type: mime }));
   }
 
-  // ---- Helpers audio ----
-  function getAllVideos() {
-    return Array.from(document.querySelectorAll('.tiktok-media video'));
+  function getVisibleSlideId() {
+    const feed = $('tiktok-feed');
+    if (!feed) return null;
+    const feedRect = feed.getBoundingClientRect();
+    const midY = feedRect.top + feedRect.height / 2;
+    let bestId = null, bestDist = Infinity;
+    const slides = feed.querySelectorAll('.tiktok-slide');
+    for (const slide of slides) {
+      const rect = slide.getBoundingClientRect();
+      if (rect.top <= midY && rect.bottom >= midY) {
+        const center = rect.top + rect.height / 2;
+        const dist = Math.abs(center - midY);
+        if (dist < bestDist) { bestDist = dist; bestId = slide.dataset.mediaId; }
+      }
+    }
+    return bestId;
   }
 
   function pauseAllVideos() {
-    getAllVideos().forEach(v => { try { v.pause(); } catch {} });
+    tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
+    activeVideoId = null;
   }
 
-  async function playVideoWithAudioState(video) {
-    if (!video) return;
-    video.muted = !tiktokAudioEnabled;
-    try {
-      await video.play();
-    } catch (e) {
-      // Autoplay con sonido bloqueado: si el usuario quiere audio, reintentar
-      // muteado para que al menos se vea, pero sin tocar el estado global.
-      if (e && e.name === 'NotAllowedError' && !video.muted) {
-        video.muted = true;
-        try { await video.play(); } catch {}
-      }
+  function setActiveVideo(mediaId) {
+    if (!mediaId) {
+      if (activeVideoId !== null) { pauseAllVideos(); }
+      return;
     }
+    if (activeVideoId === mediaId) {
+      const v = tiktokVideoRefs.get(mediaId);
+      if (v && v.paused) {
+        v.muted = !tiktokAudioEnabled;
+        v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+      }
+      return;
+    }
+    tiktokVideoRefs.forEach((v, id) => {
+      if (id !== mediaId) { try { v.pause(); } catch {} }
+    });
+    activeVideoId = mediaId;
+    const v = tiktokVideoRefs.get(mediaId);
+    if (v) {
+      v.muted = !tiktokAudioEnabled;
+      v.play().catch(() => {
+        v.muted = true;
+        v.play().catch(() => {});
+      });
+    }
+  }
+
+  function onTiktokScroll() {
+    clearTimeout(scrollDebounceTimer);
+    scrollDebounceTimer = setTimeout(() => {
+      if (document.hidden || profileUserId) return;
+      if (!$('tab-tiktok').classList.contains('active')) return;
+      const id = getVisibleSlideId();
+      if (id) setActiveVideo(id);
+    }, 80);
+  }
+  function onTiktokScrollEnd() {
+    clearTimeout(scrollDebounceTimer);
+    if (document.hidden || profileUserId) return;
+    if (!$('tab-tiktok').classList.contains('active')) return;
+    const id = getVisibleSlideId();
+    if (id) setActiveVideo(id);
   }
 
   function updateAllMuteButtons() {
     const icon = tiktokAudioEnabled ? tic('sound', 22) : tic('mute', 22);
     const title = tiktokAudioEnabled ? 'Silenciar' : 'Activar sonido';
-    document.querySelectorAll('.tiktok-mute-btn').forEach(btn => {
-      btn.innerHTML = icon;
-      btn.title = title;
-    });
+    document.querySelectorAll('.tiktok-mute-btn').forEach(btn => { btn.innerHTML = icon; btn.title = title; });
   }
-
-  function showAudioPrompt() {
-    $('tiktok-audio-icon').innerHTML = tic('sound', 36);
-    $('tiktok-audio-prompt').classList.add('active');
-  }
+  function showAudioPrompt() { $('tiktok-audio-icon').innerHTML = tic('sound', 36); $('tiktok-audio-prompt').classList.add('active'); }
   function hideAudioPrompt() { $('tiktok-audio-prompt').classList.remove('active'); }
 
   function enableTiktokAudio() {
     tiktokAudioEnabled = true;
     tiktokAudioPromptShown = true;
     hideAudioPrompt();
-    // ⚡ Pausar → desmutear → play, para forzar al navegador a reevaluar el audio
-    getAllVideos().forEach(v => {
-      try { v.pause(); } catch {}
-      v.muted = false;
-      v.play().catch(() => {
-        // Si el navegador aún bloquea, al menos deja el video listo
-        v.muted = true;
-        v.play().catch(() => {});
-      });
-    });
     updateAllMuteButtons();
+    const visibleId = getVisibleSlideId();
+    tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
+    activeVideoId = null;
+    if (visibleId) {
+      const v = tiktokVideoRefs.get(visibleId);
+      if (v) {
+        v.muted = false;
+        const p = v.play();
+        if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(() => {}); });
+        activeVideoId = visibleId;
+      }
+    }
   }
-
   function skipTiktokAudio() {
     tiktokAudioEnabled = false;
     tiktokAudioPromptShown = true;
     hideAudioPrompt();
-    getAllVideos().forEach(v => { v.muted = true; });
+    tiktokVideoRefs.forEach(v => { v.muted = true; });
     updateAllMuteButtons();
   }
-
   function toggleTiktokAudio() {
     tiktokAudioEnabled = !tiktokAudioEnabled;
     tiktokAudioPromptShown = true;
-    getAllVideos().forEach(v => {
+    const visibleId = getVisibleSlideId();
+    tiktokVideoRefs.forEach((v, id) => {
       if (tiktokAudioEnabled) {
-        try { v.pause(); } catch {}
-        v.muted = false;
-        v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+        if (id === visibleId) {
+          try { v.pause(); } catch {}
+          v.muted = false;
+          v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+          activeVideoId = id;
+        } else {
+          try { v.pause(); } catch {}
+        }
       } else {
         v.muted = true;
       }
@@ -1323,174 +1024,119 @@
     updateAllMuteButtons();
   }
 
-  // ---- Fetch media ----
   async function fetchTiktokMedia(mediaId) {
     if (tiktokMediaCache.has(mediaId)) return tiktokMediaCache.get(mediaId);
     if (tiktokMediaPending.has(mediaId)) return tiktokMediaPending.get(mediaId);
-    const promise = (async () => {
+    const p = (async () => {
       const reqId = 'tkm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-      const reqRef = ref(db, 'image_requests/' + reqId);
-      const resRef = ref(db, 'image_responses/' + reqId);
+      const reqRef = ref(db, 'image_requests/' + reqId), resRef = ref(db, 'image_responses/' + reqId);
       await set(reqRef, { type: 'tiktok', target: mediaId, createdAt: Date.now() }).catch(() => {});
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         let done = false, unsub = null;
-        const finish = (result) => {
-          if (done) return;
-          done = true;
-          try { unsub && unsub(); } catch {}
-          set(resRef, null).catch(() => {});
-          set(ref(db, 'tiktok_chunks/' + reqId), null).catch(() => {});
-          resolve(result);
-        };
+        const finish = (r) => { if (done) return; done = true; try { unsub && unsub(); } catch {} set(resRef, null).catch(() => {}); set(ref(db, 'tiktok_chunks/' + reqId), null).catch(() => {}); resolve(r); };
         const timer = setTimeout(() => finish(null), TIKTOK_FETCH_TIMEOUT);
-        unsub = onValue(resRef, async (snap) => {
-          const res = snap.val();
-          if (!res) return;
+        unsub = onValue(resRef, async snap => {
+          const res = snap.val(); if (!res) return;
           if (res.success === false) { clearTimeout(timer); return finish(null); }
           if (!res.chunked) {
             if (!res.base64) { clearTimeout(timer); return finish(null); }
-            const mime = res.mime || 'application/octet-stream';
-            const fileType = res.fileType || 'image';
+            const mime = res.mime || 'application/octet-stream', fileType = res.fileType || 'image';
             let url, isObjectUrl = false;
             if (fileType === 'video') { url = base64ToBlobUrl(res.base64, mime); isObjectUrl = true; }
             else { url = `data:${mime};base64,${res.base64}`; }
             const entry = { url, mime, fileType, isObjectUrl };
-            tiktokMediaCache.set(mediaId, entry);
-            clearTimeout(timer);
-            return finish(entry);
+            tiktokMediaCache.set(mediaId, entry); clearTimeout(timer); return finish(entry);
           }
           if (!res.ready) return;
           try {
             const chunksSnap = await get(ref(db, 'tiktok_chunks/' + reqId));
-            const chunks = chunksSnap.val() || {};
-            let base64 = '';
-            const total = Number(res.totalChunks) || 0;
-            for (let i = 0; i < total; i++) {
-              if (!chunks[i]) { clearTimeout(timer); return finish(null); }
-              base64 += chunks[i];
-            }
-            if (!base64) { clearTimeout(timer); return finish(null); }
-            const mime = res.mime || 'application/octet-stream';
-            const fileType = res.fileType || 'video';
-            const url = base64ToBlobUrl(base64, mime);
+            const chunks = chunksSnap.val() || {}; let b64 = ''; const total = Number(res.totalChunks) || 0;
+            for (let i = 0; i < total; i++) { if (!chunks[i]) { clearTimeout(timer); return finish(null); } b64 += chunks[i]; }
+            if (!b64) { clearTimeout(timer); return finish(null); }
+            const mime = res.mime || 'application/octet-stream', fileType = res.fileType || 'video';
+            const url = base64ToBlobUrl(b64, mime);
             const entry = { url, mime, fileType, isObjectUrl: true };
-            tiktokMediaCache.set(mediaId, entry);
-            clearTimeout(timer);
-            return finish(entry);
-          } catch (e) { clearTimeout(timer); finish(null); }
+            tiktokMediaCache.set(mediaId, entry); clearTimeout(timer); return finish(entry);
+          } catch { clearTimeout(timer); finish(null); }
         });
       });
     })();
-    tiktokMediaPending.set(mediaId, promise);
-    try { return await promise; } finally { tiktokMediaPending.delete(mediaId); }
+    tiktokMediaPending.set(mediaId, p);
+    try { return await p; } finally { tiktokMediaPending.delete(mediaId); }
   }
 
-  // ⚡ Observer corregido: respeta audio + pausa si perfil abierto o pestaña oculta
-  const tiktokVideoObserver = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      const video = entry.target;
-      if (!(video instanceof HTMLVideoElement)) continue;
-      if (entry.isIntersecting) {
-        if (document.hidden || profileUserId) continue;
-        playVideoWithAudioState(video);
-      } else {
-        try { video.pause(); } catch {}
-      }
-    }
-  }, { rootMargin: '0px', threshold: 0.6 });
-
-  async function loadAvatarInto(el, userId, fallbackChar) {
+  async function loadAvatarInto(el, userId, fallback) {
     if (tiktokAvatarCache.has(userId)) { el.innerHTML = tiktokAvatarCache.get(userId); return; }
-    el.textContent = fallbackChar;
+    el.textContent = fallback;
     try {
-      const dataUrl = await getLocalImage('avatar', userId);
-      if (dataUrl && el.isConnected) {
-        const html = `<img src="${dataUrl}" alt="">`;
-        tiktokAvatarCache.set(userId, html);
-        el.innerHTML = html;
-      }
+      const url = await getLocalImage('avatar', userId);
+      if (url && el.isConnected) { const h = `<img src="${url}" alt="">`; tiktokAvatarCache.set(userId, h); el.innerHTML = h; }
     } catch {}
   }
 
   async function loadTiktokMedia(container, mediaId) {
     const media = await fetchTiktokMedia(mediaId);
     if (!container.isConnected) return;
-    if (!media) {
-      container.innerHTML = '';
-      const ph = document.createElement('div');
-      ph.className = 'tiktok-placeholder';
-      ph.textContent = 'No se pudo cargar el archivo';
-      container.appendChild(ph);
-      return;
-    }
-    const existingPlaceholder = container.querySelector('.tiktok-placeholder');
-    if (existingPlaceholder) existingPlaceholder.remove();
-
+    if (!media) { container.innerHTML = ''; const ph = document.createElement('div'); ph.className = 'tiktok-placeholder'; ph.textContent = 'No se pudo cargar'; container.appendChild(ph); return; }
+    const ph = container.querySelector('.tiktok-placeholder'); if (ph) ph.remove();
     let mediaEl;
     if (media.fileType === 'video') {
       mediaEl = document.createElement('video');
       mediaEl.src = media.url;
       mediaEl.muted = !tiktokAudioEnabled;
-      mediaEl.loop = true;
-      mediaEl.playsInline = true;
-      mediaEl.setAttribute('playsinline', '');
-      mediaEl.preload = 'metadata';
-      tiktokVideoObserver.observe(mediaEl);
+      mediaEl.loop = true; mediaEl.playsInline = true;
+      mediaEl.setAttribute('playsinline', ''); mediaEl.preload = 'metadata';
       tiktokVideoRefs.set(mediaId, mediaEl);
     } else {
       mediaEl = document.createElement('img');
       mediaEl.src = media.url; mediaEl.loading = 'lazy'; mediaEl.decoding = 'async'; mediaEl.alt = ''; mediaEl.draggable = false;
     }
     container.appendChild(mediaEl);
+    if (mediaEl instanceof HTMLVideoElement) {
+      const visibleId = getVisibleSlideId();
+      if (visibleId === mediaId && !document.hidden && !profileUserId && $('tab-tiktok').classList.contains('active')) {
+        setActiveVideo(mediaId);
+      }
+    }
   }
 
-  // ---- Follows ----
   function listenMyFollowing() {
-    const myUid = String(auth.currentUser?.uid || '');
-    if (!myUid) return;
+    const me = String(auth.currentUser?.uid || ''); if (!me) return;
     if (unsubMyFollowing) { try { unsubMyFollowing(); } catch {} }
-    unsubMyFollowing = onValue(ref(db, 'tiktok_follows/following/' + myUid), (snap) => {
+    unsubMyFollowing = onValue(ref(db, 'tiktok_follows/following/' + me), snap => {
       userFollowingSet = new Set(Object.keys(snap.val() || {}));
       if (profileUserId) updateFollowButton();
-      if (tiktokTabMode === 'following' && $('tab-tiktok').classList.contains('active')) {
-        renderTiktokFeed();
-      }
+      if (tiktokTabMode === 'following' && $('tab-tiktok').classList.contains('active')) renderTiktokFeed();
     });
   }
-
-  async function toggleFollow(targetUserId) {
-    const myUid = String(auth.currentUser?.uid || '');
-    if (!myUid || !targetUserId || myUid === String(targetUserId)) return;
-    const currentlyFollowing = userFollowingSet.has(String(targetUserId));
-    const btn = $('tt-profile-follow-btn');
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  async function toggleFollow(targetId) {
+    const me = String(auth.currentUser?.uid || '');
+    if (!me || !targetId || me === String(targetId)) return;
+    const following = userFollowingSet.has(String(targetId));
+    const btn = $('tt-profile-follow-btn'); if (btn) { btn.disabled = true; btn.textContent = '...'; }
     try {
-      if (currentlyFollowing) {
-        await remove(ref(db, `tiktok_follows/following/${myUid}/${targetUserId}`));
-        await remove(ref(db, `tiktok_follows/followers/${targetUserId}/${myUid}`));
+      if (following) {
+        await remove(ref(db, `tiktok_follows/following/${me}/${targetId}`));
+        await remove(ref(db, `tiktok_follows/followers/${targetId}/${me}`));
       } else {
-        await set(ref(db, `tiktok_follows/following/${myUid}/${targetUserId}`), { createdAt: Date.now() });
-        await set(ref(db, `tiktok_follows/followers/${targetUserId}/${myUid}`), { createdAt: Date.now() });
+        await set(ref(db, `tiktok_follows/following/${me}/${targetId}`), { createdAt: Date.now() });
+        await set(ref(db, `tiktok_follows/followers/${targetId}/${me}`), { createdAt: Date.now() });
       }
     } catch (e) { showToast('❌ ' + e.message, 'error'); }
     finally { if (btn) btn.disabled = false; updateFollowButton(); }
   }
-
   function updateFollowButton() {
-    const btn = $('tt-profile-follow-btn');
-    if (!btn) return;
-    const myUid = String(auth.currentUser?.uid || '');
-    if (!profileUserId || String(profileUserId) === myUid) { btn.style.display = 'none'; return; }
+    const btn = $('tt-profile-follow-btn'); if (!btn) return;
+    const me = String(auth.currentUser?.uid || '');
+    if (!profileUserId || String(profileUserId) === me) { btn.style.display = 'none'; return; }
     btn.style.display = '';
     const following = userFollowingSet.has(String(profileUserId));
     btn.classList.toggle('following', following);
     btn.textContent = following ? 'Siguiendo' : 'Seguir';
   }
 
-  // ---- Profile ----
   function openTiktokProfile(userId) {
     if (!userId) return;
-    // ⚡ PAUSAR TODOS LOS VIDEOS antes de abrir el perfil
     pauseAllVideos();
     profileUserId = String(userId);
     profileTab = 'videos';
@@ -1498,150 +1144,86 @@
     $('tiktok-profile-view').classList.add('active');
     $('tiktok-profile-view').scrollTop = 0;
     document.querySelectorAll('.tt-profile-tab').forEach(t => t.classList.toggle('active', t.dataset.ptab === 'videos'));
-
     if (unsubProfileFollowers) { try { unsubProfileFollowers(); } catch {} }
     if (unsubProfileFollowing) { try { unsubProfileFollowing(); } catch {} }
-    unsubProfileFollowers = onValue(ref(db, 'tiktok_follows/followers/' + profileUserId), (snap) => {
-      $('tt-profile-followers-count').textContent = formatCount(Object.keys(snap.val() || {}).length);
-    });
-    unsubProfileFollowing = onValue(ref(db, 'tiktok_follows/following/' + profileUserId), (snap) => {
-      $('tt-profile-following-count').textContent = formatCount(Object.keys(snap.val() || {}).length);
-    });
-
+    unsubProfileFollowers = onValue(ref(db, 'tiktok_follows/followers/' + profileUserId), snap => { $('tt-profile-followers-count').textContent = formatCount(Object.keys(snap.val() || {}).length); });
+    unsubProfileFollowing = onValue(ref(db, 'tiktok_follows/following/' + profileUserId), snap => { $('tt-profile-following-count').textContent = formatCount(Object.keys(snap.val() || {}).length); });
     renderTiktokProfile();
     updateFollowButton();
   }
-
   function closeTiktokProfile() {
     $('tiktok-profile-view').classList.remove('active');
     profileUserId = null;
     if (unsubProfileFollowers) { try { unsubProfileFollowers(); } catch {} unsubProfileFollowers = null; }
     if (unsubProfileFollowing) { try { unsubProfileFollowing(); } catch {} unsubProfileFollowing = null; }
-    // ⚡ Reanudar el video visible
-    setTimeout(() => resumeVisibleVideo(), 100);
+    setTimeout(() => {
+      if (document.hidden) return;
+      if (!$('tab-tiktok').classList.contains('active')) return;
+      const id = getVisibleSlideId();
+      if (id) setActiveVideo(id);
+    }, 150);
   }
-
-  function resumeVisibleVideo() {
-    if (!$('tab-tiktok').classList.contains('active')) return;
-    if (profileUserId) return;
-    if (document.hidden) return;
-    const feed = $('tiktok-feed');
-    if (!feed) return;
-    const feedRect = feed.getBoundingClientRect();
-    const midY = feedRect.top + feedRect.height / 2;
-    const slides = feed.querySelectorAll('.tiktok-slide');
-    for (const slide of slides) {
-      const rect = slide.getBoundingClientRect();
-      if (rect.top <= midY && rect.bottom >= midY) {
-        const video = slide.querySelector('video');
-        if (video) playVideoWithAudioState(video);
-        break;
-      }
-    }
-  }
-
   function renderTiktokProfile() {
     if (!profileUserId) return;
     const userVideos = tiktokFeed.filter(p => String(p.userId) === String(profileUserId));
     const likedVideos = tiktokFeed.filter(p => p.likedBy && p.likedBy[profileUserId]);
     const totalLikes = userVideos.reduce((s, v) => s + (Number(v.likes) || 0), 0);
     const sample = userVideos[0] || likedVideos[0] || null;
-    const displayName = sample?.userName || 'Usuario';
-    const displayUsername = sample?.username || '';
-    $('tt-profile-topname').textContent = '@' + (displayUsername || displayName || 'usuario');
-    $('tt-profile-name').textContent = displayName;
-    $('tt-profile-username').textContent = '@' + (displayUsername || 'usuario');
-    loadAvatarInto($('tt-profile-avatar'), profileUserId, (displayName || 'U').charAt(0).toUpperCase());
+    const dn = sample?.userName || 'Usuario', du = sample?.username || '';
+    $('tt-profile-topname').textContent = '@' + (du || dn || 'usuario');
+    $('tt-profile-name').textContent = dn;
+    $('tt-profile-username').textContent = '@' + (du || 'usuario');
+    loadAvatarInto($('tt-profile-avatar'), profileUserId, (dn || 'U').charAt(0).toUpperCase());
     $('tt-profile-videos-count').textContent = formatCount(userVideos.length);
     $('tt-profile-likes-count').textContent = formatCount(totalLikes);
-    const list = profileTab === 'liked' ? likedVideos : userVideos;
-    renderProfileGrid(list);
+    renderProfileGrid(profileTab === 'liked' ? likedVideos : userVideos);
   }
-
   function renderProfileGrid(videos) {
-    const grid = $('tt-profile-grid');
-    grid.innerHTML = '';
-    if (!videos.length) {
-      grid.innerHTML = `<div class="tt-profile-empty">${profileTab === 'liked' ? '💔 No le ha gustado ningún video' : '📭 Aún no tiene publicaciones'}</div>`;
-      return;
-    }
+    const grid = $('tt-profile-grid'); grid.innerHTML = '';
+    if (!videos.length) { grid.innerHTML = `<div class="tt-profile-empty">${profileTab === 'liked' ? '💔 No le ha gustado ningún video' : '📭 Aún no tiene publicaciones'}</div>`; return; }
     const frag = document.createDocumentFragment();
     videos.forEach(v => {
-      const item = document.createElement('div');
-      item.className = 'tt-profile-video-item';
-      item.dataset.mediaId = v.id;
-      const caption = document.createElement('div');
-      caption.className = 'tt-pv-caption';
-      caption.textContent = v.caption || '';
-      if (!v.caption) caption.style.display = 'none';
-      item.appendChild(caption);
-      const likes = document.createElement('div');
-      likes.className = 'tt-pv-likes';
-      likes.innerHTML = `${tic('heart-filled', 14)} <span>${formatCount(v.likes || 0)}</span>`;
-      item.appendChild(likes);
-      const obs = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) { obs.disconnect(); loadProfileThumb(item, v); }
-        }
-      }, { rootMargin: '400px 0px' });
+      const item = document.createElement('div'); item.className = 'tt-profile-video-item'; item.dataset.mediaId = v.id;
+      const cap = document.createElement('div'); cap.className = 'tt-pv-caption'; cap.textContent = v.caption || ''; if (!v.caption) cap.style.display = 'none'; item.appendChild(cap);
+      const likes = document.createElement('div'); likes.className = 'tt-pv-likes'; likes.innerHTML = `${tic('heart-filled', 14)} <span>${formatCount(v.likes || 0)}</span>`; item.appendChild(likes);
+      const obs = new IntersectionObserver((entries) => { for (const e of entries) if (e.isIntersecting) { obs.disconnect(); loadProfileThumb(item, v); } }, { rootMargin: '400px 0px' });
       obs.observe(item);
-      item.addEventListener('click', () => {
-        closeTiktokProfile();
-        setTimeout(() => scrollToTiktokPost(v.id), 100);
-      });
+      item.addEventListener('click', () => { closeTiktokProfile(); setTimeout(() => scrollToTiktokPost(v.id), 100); });
       frag.appendChild(item);
     });
     grid.appendChild(frag);
   }
-
   async function loadProfileThumb(item, post) {
     const media = await fetchTiktokMedia(post.id);
     if (!media || !item.isConnected) return;
     let el;
-    if (media.fileType === 'video') {
-      el = document.createElement('video');
-      el.src = media.url; el.muted = true; el.playsInline = true;
-      el.setAttribute('playsinline', ''); el.preload = 'metadata';
-    } else {
-      el = document.createElement('img');
-      el.src = media.url; el.loading = 'lazy'; el.decoding = 'async';
-    }
+    if (media.fileType === 'video') { el = document.createElement('video'); el.src = media.url; el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); el.preload = 'metadata'; }
+    else { el = document.createElement('img'); el.src = media.url; el.loading = 'lazy'; }
     item.insertBefore(el, item.firstChild);
   }
-
   $('tt-profile-back').onclick = closeTiktokProfile;
   $('tt-profile-follow-btn').onclick = () => { if (profileUserId) toggleFollow(profileUserId); };
   document.querySelectorAll('.tt-profile-tab').forEach(tab => {
     tab.onclick = () => {
       document.querySelectorAll('.tt-profile-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      profileTab = tab.dataset.ptab;
-      renderTiktokProfile();
+      tab.classList.add('active'); profileTab = tab.dataset.ptab; renderTiktokProfile();
     };
   });
 
-  // ---- Feed ----
   function renderTiktokFeed() {
-    const feed = $('tiktok-feed');
-    if (!feed) return;
-
+    const feed = $('tiktok-feed'); if (!feed) return;
     tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
     tiktokVideoRefs.clear();
+    activeVideoId = null;
     feed.innerHTML = '';
 
-    const myUid = String(auth.currentUser?.uid || '');
+    const me = String(auth.currentUser?.uid || '');
     let sorted = [...tiktokFeed].sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
-
-    if (tiktokTabMode === 'following') {
-      sorted = sorted.filter(p => userFollowingSet.has(String(p.userId)) || String(p.userId) === myUid);
-    }
+    if (tiktokTabMode === 'following') sorted = sorted.filter(p => userFollowingSet.has(String(p.userId)) || String(p.userId) === me);
 
     if (!sorted.length) {
-      const empty = document.createElement('div');
-      empty.className = 'tiktok-empty';
-      empty.innerHTML = tiktokTabMode === 'following'
-        ? `<div class="tiktok-empty-icon">${tic('music', 64)}</div><div>Los usuarios que sigues aún no han publicado nada.</div>`
-        : `<div class="tiktok-empty-icon">${tic('music', 64)}</div><div>Sin publicaciones por ahora.</div>`;
+      const empty = document.createElement('div'); empty.className = 'tiktok-empty';
+      empty.innerHTML = tiktokTabMode === 'following' ? `<div class="tiktok-empty-icon">${tic('music', 64)}</div><div>Los usuarios que sigues aún no han publicado nada.</div>` : `<div class="tiktok-empty-icon">${tic('music', 64)}</div><div>Sin publicaciones por ahora.</div>`;
       feed.appendChild(empty);
       return;
     }
@@ -1651,24 +1233,12 @@
     const muteTitle = tiktokAudioEnabled ? 'Silenciar' : 'Activar sonido';
 
     sorted.forEach(post => {
-      const slide = document.createElement('div');
-      slide.className = 'tiktok-slide';
-      slide.dataset.mediaId = post.id;
-
-      const mediaWrap = document.createElement('div');
-      mediaWrap.className = 'tiktok-media';
-      const placeholder = document.createElement('div');
-      placeholder.className = 'tiktok-placeholder';
-      placeholder.textContent = post.fileType === 'video' ? '⏳ Cargando video...' : '⏳ Cargando imagen...';
-      mediaWrap.appendChild(placeholder);
-
-      const gradTop = document.createElement('div');
-      gradTop.className = 'tiktok-gradient-top';
-      const grad = document.createElement('div');
-      grad.className = 'tiktok-gradient';
-
-      const topBar = document.createElement('div');
-      topBar.className = 'tiktok-top-bar';
+      const slide = document.createElement('div'); slide.className = 'tiktok-slide'; slide.dataset.mediaId = post.id;
+      const mediaWrap = document.createElement('div'); mediaWrap.className = 'tiktok-media';
+      const ph = document.createElement('div'); ph.className = 'tiktok-placeholder'; ph.textContent = post.fileType === 'video' ? '⏳ Cargando video...' : '⏳ Cargando imagen...'; mediaWrap.appendChild(ph);
+      const gT = document.createElement('div'); gT.className = 'tiktok-gradient-top';
+      const gB = document.createElement('div'); gB.className = 'tiktok-gradient';
+      const topBar = document.createElement('div'); topBar.className = 'tiktok-top-bar';
       topBar.innerHTML = `
         <button class="tiktok-icon-btn" data-action="upload" title="Subir">${tic('plus', 24)}</button>
         <div class="tiktok-top-tabs">
@@ -1678,82 +1248,45 @@
         <div class="tiktok-top-right">
           <button class="tiktok-icon-btn tiktok-mute-btn" data-action="mute" title="${muteTitle}">${muteIcon}</button>
           <button class="tiktok-icon-btn" data-action="logout" title="Cerrar sesión">${tic('logout', 22)}</button>
-        </div>
-      `;
-
-      const isLiked = tiktokLikedByMe.has(post.id) || !!(post.likedBy && post.likedBy[myUid]);
-      const isMine = String(post.userId) === myUid;
-      const actionsRail = document.createElement('div');
-      actionsRail.className = 'tiktok-actions-rail';
-      actionsRail.innerHTML = `
+        </div>`;
+      const isLiked = tiktokLikedByMe.has(post.id) || !!(post.likedBy && post.likedBy[me]);
+      const isMine = String(post.userId) === me;
+      const rail = document.createElement('div'); rail.className = 'tiktok-actions-rail';
+      rail.innerHTML = `
         <div class="tiktok-profile-btn" data-user-id="${post.userId}" title="${escapeHtml(post.userName || post.username || 'Usuario')}"></div>
-        <button class="tiktok-action-btn ${isLiked ? 'liked' : ''}" data-action="like">
-          <span class="tiktok-action-icon">${tic('heart', 32)}</span>
-          <span class="tiktok-action-label">${formatCount(post.likes || 0)}</span>
-        </button>
-        <button class="tiktok-action-btn" data-action="comment">
-          <span class="tiktok-action-icon">${tic('comment', 32)}</span>
-          <span class="tiktok-action-label">${formatCount(post.comments || 0)}</span>
-        </button>
-        <button class="tiktok-action-btn" data-action="share">
-          <span class="tiktok-action-icon">${tic('share', 32)}</span>
-          <span class="tiktok-action-label">${formatCount(post.shares || 0)}</span>
-        </button>
-        ${isMine ? `<button class="tiktok-action-btn" data-action="delete"><span class="tiktok-action-icon">${tic('trash', 32)}</span></button>` : ''}
-      `;
-
-      const bottomInfo = document.createElement('div');
-      bottomInfo.className = 'tiktok-bottom-info';
+        <button class="tiktok-action-btn ${isLiked ? 'liked' : ''}" data-action="like"><span class="tiktok-action-icon">${tic('heart', 32)}</span><span class="tiktok-action-label">${formatCount(post.likes || 0)}</span></button>
+        <button class="tiktok-action-btn" data-action="comment"><span class="tiktok-action-icon">${tic('comment', 32)}</span><span class="tiktok-action-label">${formatCount(post.comments || 0)}</span></button>
+        <button class="tiktok-action-btn" data-action="share"><span class="tiktok-action-icon">${tic('share', 32)}</span><span class="tiktok-action-label">${formatCount(post.shares || 0)}</span></button>
+        ${isMine ? `<button class="tiktok-action-btn" data-action="delete"><span class="tiktok-action-icon">${tic('trash', 32)}</span></button>` : ''}`;
       const uname = post.username || post.userName || 'Usuario';
-      bottomInfo.innerHTML = `
-        <div class="tiktok-user-line">@${escapeHtml(uname)}</div>
-        ${post.caption ? `<div class="tiktok-caption">${escapeHtml(post.caption)}</div>` : ''}
-        <div class="tiktok-music-line"><span class="tiktok-music-icon">${tic('music', 14)}</span> Sonido original - @${escapeHtml(uname)}</div>
-      `;
+      const bottom = document.createElement('div'); bottom.className = 'tiktok-bottom-info';
+      bottom.innerHTML = `<div class="tiktok-user-line">@${escapeHtml(uname)}</div>${post.caption ? `<div class="tiktok-caption">${escapeHtml(post.caption)}</div>` : ''}<div class="tiktok-music-line"><span class="tiktok-music-icon">${tic('music', 14)}</span> Sonido original - @${escapeHtml(uname)}</div>`;
 
-      slide.appendChild(mediaWrap);
-      slide.appendChild(gradTop);
-      slide.appendChild(grad);
-      slide.appendChild(topBar);
-      slide.appendChild(actionsRail);
-      slide.appendChild(bottomInfo);
+      slide.appendChild(mediaWrap); slide.appendChild(gT); slide.appendChild(gB);
+      slide.appendChild(topBar); slide.appendChild(rail); slide.appendChild(bottom);
       frag.appendChild(slide);
 
-      const profileBtn = actionsRail.querySelector('.tiktok-profile-btn');
-      loadAvatarInto(profileBtn, post.userId, (post.userName || uname || 'U').charAt(0).toUpperCase());
+      loadAvatarInto(rail.querySelector('.tiktok-profile-btn'), post.userId, (post.userName || uname || 'U').charAt(0).toUpperCase());
 
       const mediaObserver = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) { mediaObserver.disconnect(); loadTiktokMedia(mediaWrap, post.id); }
-        }
+        for (const e of entries) if (e.isIntersecting) { mediaObserver.disconnect(); loadTiktokMedia(mediaWrap, post.id); }
       }, { rootMargin: '600px 0px' });
       mediaObserver.observe(mediaWrap);
 
       topBar.querySelector('[data-action="upload"]').onclick = openTiktokUploadModal;
       topBar.querySelector('[data-action="logout"]').onclick = doLogout;
       topBar.querySelector('[data-action="mute"]').onclick = toggleTiktokAudio;
-      topBar.querySelectorAll('.tiktok-top-tab').forEach(tabEl => {
-        tabEl.onclick = () => {
-          tiktokTabMode = tabEl.dataset.mode;
-          renderTiktokFeed();
-          const feedEl = $('tiktok-feed');
-          if (feedEl) feedEl.scrollTop = 0;
-        };
+      topBar.querySelectorAll('.tiktok-top-tab').forEach(t => {
+        t.onclick = () => { tiktokTabMode = t.dataset.mode; renderTiktokFeed(); const f = $('tiktok-feed'); if (f) f.scrollTop = 0; };
       });
 
-      const likeBtn = actionsRail.querySelector('[data-action="like"]');
-      likeBtn.onclick = () => handleTiktokLike(post, likeBtn);
-      const commentBtn = actionsRail.querySelector('[data-action="comment"]');
-      commentBtn.onclick = () => openTiktokComments(post);
-      const shareBtn = actionsRail.querySelector('[data-action="share"]');
-      shareBtn.onclick = () => handleTiktokShare(post);
-      const deleteBtn = actionsRail.querySelector('[data-action="delete"]');
-      if (deleteBtn) deleteBtn.onclick = () => handleTiktokDelete(post, deleteBtn);
+      const likeBtn = rail.querySelector('[data-action="like"]'); likeBtn.onclick = () => handleTiktokLike(post, likeBtn);
+      const commentBtn = rail.querySelector('[data-action="comment"]'); commentBtn.onclick = () => openTiktokComments(post);
+      const shareBtn = rail.querySelector('[data-action="share"]'); shareBtn.onclick = () => handleTiktokShare(post);
+      const delBtn = rail.querySelector('[data-action="delete"]'); if (delBtn) delBtn.onclick = () => handleTiktokDelete(post, delBtn);
+      rail.querySelector('.tiktok-profile-btn').onclick = (e) => { e.stopPropagation(); openTiktokProfile(post.userId); };
 
-      profileBtn.onclick = (e) => { e.stopPropagation(); openTiktokProfile(post.userId); };
-
-      let lastTap = 0;
-      let tapTimer = null;
+      let lastTap = 0, tapTimer = null;
       mediaWrap.addEventListener('click', (e) => {
         if (e.target.closest('.tiktok-actions-rail') || e.target.closest('.tiktok-top-bar') || e.target.closest('.tiktok-bottom-info')) return;
         const now = Date.now();
@@ -1767,8 +1300,11 @@
           tapTimer = setTimeout(() => {
             const video = mediaWrap.querySelector('video');
             if (video) {
-              if (video.paused) playVideoWithAudioState(video);
-              else video.pause();
+              if (video.paused) {
+                video.muted = !tiktokAudioEnabled;
+                video.play().catch(() => { video.muted = true; video.play().catch(()=>{}); });
+                activeVideoId = post.id;
+              } else video.pause();
             }
           }, 300);
         }
@@ -1777,183 +1313,144 @@
 
     feed.appendChild(frag);
     updateAllMuteButtons();
+
+    feed.removeEventListener('scroll', onTiktokScroll);
+    feed.addEventListener('scroll', onTiktokScroll, { passive: true });
+    feed.removeEventListener('scrollend', onTiktokScrollEnd);
+    feed.addEventListener('scrollend', onTiktokScrollEnd, { passive: true });
+
+    setTimeout(() => {
+      if (!document.hidden && !profileUserId && $('tab-tiktok').classList.contains('active')) {
+        const id = getVisibleSlideId();
+        if (id) setActiveVideo(id);
+      }
+    }, 120);
   }
 
-  function showHeartPop(container, clientX, clientY) {
+  function showHeartPop(container, x, y) {
     const rect = container.getBoundingClientRect();
-    const heart = document.createElement('div');
-    heart.className = 'tiktok-heart-pop';
-    heart.innerHTML = `<svg viewBox="0 0 24 24" width="90" height="90"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="#fe2c55"/></svg>`;
-    heart.style.left = (clientX - rect.left) + 'px';
-    heart.style.top = (clientY - rect.top) + 'px';
-    container.appendChild(heart);
-    setTimeout(() => heart.remove(), 750);
+    const h = document.createElement('div'); h.className = 'tiktok-heart-pop';
+    h.innerHTML = `<svg viewBox="0 0 24 24" width="90" height="90"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="#fe2c55"/></svg>`;
+    h.style.left = (x - rect.left) + 'px'; h.style.top = (y - rect.top) + 'px';
+    container.appendChild(h); setTimeout(() => h.remove(), 750);
   }
 
   async function handleTiktokLike(post, btn) {
     if (!btn) return;
-    const myUid = String(auth.currentUser?.uid || '');
-    if (!myUid) return;
+    const me = String(auth.currentUser?.uid || ''); if (!me) return;
     const currentlyLiked = tiktokLikedByMe.has(post.id);
     const action = currentlyLiked ? 'unlike' : 'like';
     btn.disabled = true;
     const reqId = 'tklike_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const reqRef = ref(db, 'tiktok_like_requests/' + reqId);
-    const unsub = onValue(reqRef, (snap) => {
-      const res = snap.val();
-      if (!res) return;
-      if (res.status === 'done') {
+    const unsub = onValue(reqRef, snap => {
+      const r = snap.val(); if (!r) return;
+      if (r.status === 'done') {
         unsub(); set(reqRef, null).catch(() => {});
-        if (action === 'like') tiktokLikedByMe.add(post.id);
-        else tiktokLikedByMe.delete(post.id);
+        if (action === 'like') tiktokLikedByMe.add(post.id); else tiktokLikedByMe.delete(post.id);
         btn.classList.toggle('liked', action === 'like');
-        btn.querySelector('.tiktok-action-label').textContent = formatCount(res.likes || 0);
+        btn.querySelector('.tiktok-action-label').textContent = formatCount(r.likes || 0);
         btn.disabled = false;
-      } else if (res.status === 'error') {
-        unsub(); set(reqRef, null).catch(() => {});
-        showToast('❌ ' + res.error, 'error');
-        btn.disabled = false;
-      }
+      } else if (r.status === 'error') { unsub(); set(reqRef, null).catch(() => {}); showToast('❌ ' + r.error, 'error'); btn.disabled = false; }
     });
-    await set(reqRef, { userId: myUid, mediaId: post.id, action, status: 'pending', createdAt: Date.now() }).catch((err) => {
-      unsub(); showToast('❌ ' + err.message, 'error'); btn.disabled = false;
-    });
+    await set(reqRef, { userId: me, mediaId: post.id, action, status: 'pending', createdAt: Date.now() }).catch(err => { unsub(); showToast('❌ ' + err.message, 'error'); btn.disabled = false; });
   }
 
   async function handleTiktokShare(post) {
     const url = `${location.origin}${location.pathname}?tiktok=${post.id}`;
     let shared = false;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `@${post.username || post.userName || 'Usuario'}`, text: post.caption || 'Mira esto', url });
-        shared = true;
-      }
-    } catch (e) {}
-    if (!shared) {
-      try { await navigator.clipboard.writeText(url); showToast('📋 Enlace copiado', 'success'); }
-      catch { showToast('⚠️ No se pudo compartir', 'error'); }
-    }
-    const myUid = String(auth.currentUser?.uid || '');
-    if (myUid) {
+    try { if (navigator.share) { await navigator.share({ title: `@${post.username || post.userName || 'Usuario'}`, text: post.caption || 'Mira esto', url }); shared = true; } } catch {}
+    if (!shared) { try { await navigator.clipboard.writeText(url); showToast('📋 Enlace copiado', 'success'); } catch { showToast('⚠️ No se pudo compartir', 'error'); } }
+    const me = String(auth.currentUser?.uid || '');
+    if (me) {
       const reqId = 'tkshare_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-      set(ref(db, 'tiktok_share_requests/' + reqId), { userId: myUid, mediaId: post.id, status: 'pending', createdAt: Date.now() }).catch(()=>{});
+      set(ref(db, 'tiktok_share_requests/' + reqId), { userId: me, mediaId: post.id, status: 'pending', createdAt: Date.now() }).catch(()=>{});
     }
   }
 
   function handleTiktokDelete(post, btn) {
     if (!btn) return;
-    const myUid = String(auth.currentUser?.uid || '');
-    if (String(post.userId) !== myUid) return;
+    const me = String(auth.currentUser?.uid || '');
+    if (String(post.userId) !== me) return;
     showModal('🗑️ Eliminar publicación', '¿Seguro que quieres borrar esta publicación?', false, '', '', async () => {
       btn.disabled = true;
       const reqId = 'tkdel_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
       const reqRef = ref(db, 'tiktok_delete_requests/' + reqId);
-      const unsub = onValue(reqRef, (snap) => {
-        const res = snap.val();
-        if (!res) return;
-        if (res.status === 'done') {
+      const unsub = onValue(reqRef, snap => {
+        const r = snap.val(); if (!r) return;
+        if (r.status === 'done') {
           unsub(); set(reqRef, null).catch(() => {});
-          const cached = tiktokMediaCache.get(post.id);
-          if (cached?.isObjectUrl) { try { URL.revokeObjectURL(cached.url); } catch {} }
-          tiktokMediaCache.delete(post.id);
-          tiktokLikedByMe.delete(post.id);
-          const v = tiktokVideoRefs.get(post.id);
-          if (v) { try { v.pause(); } catch {} tiktokVideoRefs.delete(post.id); }
+          const c = tiktokMediaCache.get(post.id); if (c?.isObjectUrl) try { URL.revokeObjectURL(c.url); } catch {}
+          tiktokMediaCache.delete(post.id); tiktokLikedByMe.delete(post.id);
+          const v = tiktokVideoRefs.get(post.id); if (v) { try { v.pause(); } catch {} tiktokVideoRefs.delete(post.id); }
           tiktokFeed = tiktokFeed.filter(p => p.id !== post.id);
           renderTiktokFeed();
           if (profileUserId) renderTiktokProfile();
           showToast('🗑️ Publicación eliminada.', 'success');
-        } else if (res.status === 'error') {
-          unsub(); set(reqRef, null).catch(() => {});
-          showToast('❌ ' + res.error, 'error'); btn.disabled = false;
-        }
+        } else if (r.status === 'error') { unsub(); set(reqRef, null).catch(() => {}); showToast('❌ ' + r.error, 'error'); btn.disabled = false; }
       });
-      await set(reqRef, { userId: myUid, mediaId: post.id, status: 'pending', createdAt: Date.now() }).catch((err) => {
-        unsub(); showToast('❌ ' + err.message, 'error'); btn.disabled = false;
-      });
+      await set(reqRef, { userId: me, mediaId: post.id, status: 'pending', createdAt: Date.now() }).catch(err => { unsub(); showToast('❌ ' + err.message, 'error'); btn.disabled = false; });
     });
   }
 
-  // ---- Comments ----
   function openTiktokComments(post) {
     activeCommentsMediaId = post.id;
-    const modal = $('tiktok-comments-modal');
-    const list = $('tiktok-comments-list');
-    const title = $('tiktok-comments-title');
-    title.textContent = `Comentarios (${formatCount(post.comments || 0)})`;
-    list.innerHTML = `<div class="tiktok-comments-empty">Cargando...</div>`;
-    modal.classList.add('active');
+    $('tiktok-comments-title').textContent = `Comentarios (${formatCount(post.comments || 0)})`;
+    $('tiktok-comments-list').innerHTML = `<div class="tiktok-comments-empty">Cargando...</div>`;
+    $('tiktok-comments-modal').classList.add('active');
     if (unsubComments) unsubComments();
-    unsubComments = onValue(ref(db, 'tiktok_comments/' + post.id), (snap) => {
+    unsubComments = onValue(ref(db, 'tiktok_comments/' + post.id), snap => {
       const data = snap.val() || {};
       const items = Object.values(data).sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
-      title.textContent = `Comentarios (${formatCount(items.length)})`;
+      $('tiktok-comments-title').textContent = `Comentarios (${formatCount(items.length)})`;
+      const list = $('tiktok-comments-list');
       if (!items.length) { list.innerHTML = `<div class="tiktok-comments-empty">💬 Sé el primero en comentar</div>`; return; }
       const frag = document.createDocumentFragment();
       items.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'tiktok-comment-item';
-        const avatar = document.createElement('div');
-        avatar.className = 'tiktok-comment-avatar';
-        loadAvatarInto(avatar, c.userId, (c.userName || c.username || 'U').charAt(0).toUpperCase());
-        avatar.onclick = () => { closeTiktokComments(); openTiktokProfile(c.userId); };
-        const body = document.createElement('div');
-        body.className = 'tiktok-comment-body';
+        const item = document.createElement('div'); item.className = 'tiktok-comment-item';
+        const av = document.createElement('div'); av.className = 'tiktok-comment-avatar';
+        loadAvatarInto(av, c.userId, (c.userName || c.username || 'U').charAt(0).toUpperCase());
+        av.onclick = () => { closeTiktokComments(); openTiktokProfile(c.userId); };
+        const body = document.createElement('div'); body.className = 'tiktok-comment-body';
         body.innerHTML = `<div class="tiktok-comment-user">${escapeHtml(c.userName || c.username || 'Usuario')}</div><div class="tiktok-comment-text">${escapeHtml(c.text)}</div><div class="tiktok-comment-time">${formatRelativeTime(c.createdAt)}</div>`;
         body.querySelector('.tiktok-comment-user').onclick = () => { closeTiktokComments(); openTiktokProfile(c.userId); };
-        item.appendChild(avatar); item.appendChild(body); frag.appendChild(item);
+        item.appendChild(av); item.appendChild(body); frag.appendChild(item);
       });
       list.innerHTML = ''; list.appendChild(frag);
     });
   }
-
   function closeTiktokComments() {
     $('tiktok-comments-modal').classList.remove('active');
     if (unsubComments) { try { unsubComments(); } catch {} unsubComments = null; }
     activeCommentsMediaId = null;
   }
-
   async function submitTiktokComment() {
     if (!activeCommentsMediaId) return;
-    const input = $('tiktok-comment-input');
-    const btn = $('tiktok-comment-submit');
-    const text = input.value.trim();
-    if (!text) return;
-    const myUid = String(auth.currentUser?.uid || '');
-    if (!myUid) return;
+    const input = $('tiktok-comment-input'), btn = $('tiktok-comment-submit');
+    const text = input.value.trim(); if (!text) return;
+    const me = String(auth.currentUser?.uid || ''); if (!me) return;
     btn.disabled = true;
     const reqId = 'tkcom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const reqRef = ref(db, 'tiktok_comment_requests/' + reqId);
-    const unsub = onValue(reqRef, (snap) => {
-      const res = snap.val();
-      if (!res) return;
-      if (res.status === 'done') { unsub(); set(reqRef, null).catch(() => {}); input.value = ''; btn.disabled = false; input.focus(); }
-      else if (res.status === 'error') { unsub(); set(reqRef, null).catch(() => {}); showToast('❌ ' + res.error, 'error'); btn.disabled = false; }
+    const unsub = onValue(reqRef, snap => {
+      const r = snap.val(); if (!r) return;
+      if (r.status === 'done') { unsub(); set(reqRef, null).catch(() => {}); input.value = ''; btn.disabled = false; input.focus(); }
+      else if (r.status === 'error') { unsub(); set(reqRef, null).catch(() => {}); showToast('❌ ' + r.error, 'error'); btn.disabled = false; }
     });
-    await set(reqRef, {
-      mediaId: activeCommentsMediaId, userId: myUid,
-      userName: $('p-name').textContent || 'Usuario',
-      username: $('p-tag').textContent.replace('@',''),
-      text, status: 'pending', createdAt: Date.now()
-    }).catch((err) => { unsub(); showToast('❌ ' + err.message, 'error'); btn.disabled = false; });
+    await set(reqRef, { mediaId: activeCommentsMediaId, userId: me, userName: $('p-name').textContent || 'Usuario', username: $('p-tag').textContent.replace('@',''), text, status: 'pending', createdAt: Date.now() }).catch(err => { unsub(); showToast('❌ ' + err.message, 'error'); btn.disabled = false; });
   }
-
   $('tiktok-comments-close').onclick = closeTiktokComments;
-  $('tiktok-comments-modal').addEventListener('click', (e) => { if (e.target === $('tiktok-comments-modal')) closeTiktokComments(); });
+  $('tiktok-comments-modal').addEventListener('click', e => { if (e.target === $('tiktok-comments-modal')) closeTiktokComments(); });
   $('tiktok-comment-submit').onclick = submitTiktokComment;
-  $('tiktok-comment-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') submitTiktokComment(); });
+  $('tiktok-comment-input').addEventListener('keypress', e => { if (e.key === 'Enter') submitTiktokComment(); });
 
   $('tiktok-audio-enable').onclick = enableTiktokAudio;
   $('tiktok-audio-skip').onclick = skipTiktokAudio;
 
-  // ---- Upload ----
   function openTiktokUploadModal() {
     tiktokSelectedFile = null;
-    $('tt-file-input').value = '';
-    $('tt-file-name').textContent = '';
-    $('tt-caption').value = '';
-    $('tt-preview').innerHTML = '';
-    $('tt-preview').classList.remove('visible');
+    $('tt-file-input').value = ''; $('tt-file-name').textContent = ''; $('tt-caption').value = '';
+    $('tt-preview').innerHTML = ''; $('tt-preview').classList.remove('visible');
     $('tt-drop').classList.remove('has-file');
     $('tt-submit').disabled = true; $('tt-submit').textContent = 'Publicar';
     $('tt-progress').classList.remove('visible');
@@ -1966,70 +1463,57 @@
     if (tiktokUploading) return;
     $('tiktok-upload-modal').classList.remove('active');
     const prev = $('tt-preview');
-    const v = prev.querySelector('video');
-    if (v && v.src && v.src.startsWith('blob:')) { try { URL.revokeObjectURL(v.src); } catch {} }
-    const i = prev.querySelector('img');
-    if (i && i.src && i.src.startsWith('blob:')) { try { URL.revokeObjectURL(i.src); } catch {} }
+    const v = prev.querySelector('video'); if (v && v.src?.startsWith('blob:')) try { URL.revokeObjectURL(v.src); } catch {}
+    const i = prev.querySelector('img'); if (i && i.src?.startsWith('blob:')) try { URL.revokeObjectURL(i.src); } catch {}
   }
   function handleTiktokFileSelected(file) {
     if (!file) return;
-    if (file.size > TIKTOK_MAX_BYTES) { showToast('⚠️ Archivo demasiado grande. Máx 15 MB.', 'error'); return; }
-    const isVideo = file.type.startsWith('video/');
-    const isImage = file.type.startsWith('image/');
-    if (!isVideo && !isImage) { showToast('⚠️ Solo imágenes o videos.', 'error'); return; }
+    if (file.size > TIKTOK_MAX_BYTES) return showToast('⚠️ Máx 15 MB.', 'error');
+    const isV = file.type.startsWith('video/'), isI = file.type.startsWith('image/');
+    if (!isV && !isI) return showToast('⚠️ Solo imágenes o videos.', 'error');
     tiktokSelectedFile = file;
     $('tt-file-name').textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`;
-    $('tt-drop').classList.add('has-file');
-    $('tt-submit').disabled = false;
+    $('tt-drop').classList.add('has-file'); $('tt-submit').disabled = false;
     const prev = $('tt-preview'); prev.innerHTML = '';
     const url = URL.createObjectURL(file);
-    if (isVideo) { const v = document.createElement('video'); v.src = url; v.muted = true; v.playsInline = true; v.controls = true; prev.appendChild(v); }
-    else { const img = document.createElement('img'); img.src = url; prev.appendChild(img); }
+    if (isV) { const v = document.createElement('video'); v.src = url; v.muted = true; v.playsInline = true; v.controls = true; prev.appendChild(v); }
+    else { const im = document.createElement('img'); im.src = url; prev.appendChild(im); }
     prev.classList.add('visible');
   }
   async function submitTiktokUpload() {
     if (!tiktokSelectedFile || tiktokUploading) return;
-    const file = tiktokSelectedFile;
-    const caption = ($('tt-caption').value || '').trim().slice(0, 280);
+    const file = tiktokSelectedFile, caption = ($('tt-caption').value || '').trim().slice(0, 280);
     tiktokUploading = true; $('tt-submit').disabled = true; $('tt-submit').textContent = 'Preparando...';
     $('tt-progress').classList.add('visible');
     $('tt-progress-text').style.display = 'block';
     $('tt-progress-text').textContent = '0%'; $('tt-progress-bar').style.width = '0%';
     try {
-      const base64 = await fileToBase64(file);
-      const totalChunks = Math.max(1, Math.ceil(base64.length / TIKTOK_CHUNK_B64));
-      const uploadId = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-      const myUid = String(auth.currentUser?.uid || '');
-      const userName = $('p-name').textContent || 'Usuario';
-      const username = $('p-tag').textContent.replace('@', '');
-      await set(ref(db, 'tiktok_uploads/' + uploadId), {
-        userId: myUid, username, userName,
+      const b64 = await fileToBase64(file);
+      const total = Math.max(1, Math.ceil(b64.length / TIKTOK_CHUNK_B64));
+      const uid = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      const me = String(auth.currentUser?.uid || '');
+      await set(ref(db, 'tiktok_uploads/' + uid), {
+        userId: me, username: $('p-tag').textContent.replace('@',''), userName: $('p-name').textContent || 'Usuario',
         fileType: file.type.startsWith('video/') ? 'video' : 'image',
-        mime: file.type, fileName: file.name, caption,
-        totalChunks, totalSize: base64.length, status: 'uploading', createdAt: Date.now()
+        mime: file.type, fileName: file.name, caption, totalChunks: total, totalSize: b64.length, status: 'uploading', createdAt: Date.now()
       });
-      let uploaded = 0;
-      for (let i = 0; i < totalChunks; i++) {
-        const chunk = base64.slice(i * TIKTOK_CHUNK_B64, (i + 1) * TIKTOK_CHUNK_B64);
-        await set(ref(db, `tiktok_uploads/${uploadId}/chunks/${i}`), chunk);
-        uploaded++;
-        const pct = Math.round((uploaded / totalChunks) * 100);
+      for (let i = 0; i < total; i++) {
+        await set(ref(db, `tiktok_uploads/${uid}/chunks/${i}`), b64.slice(i * TIKTOK_CHUNK_B64, (i + 1) * TIKTOK_CHUNK_B64));
+        const pct = Math.round(((i + 1) / total) * 100);
         $('tt-progress-bar').style.width = pct + '%';
-        $('tt-progress-text').textContent = `${pct}%  (${uploaded}/${totalChunks})`;
+        $('tt-progress-text').textContent = `${pct}%  (${i + 1}/${total})`;
         $('tt-submit').textContent = `Subiendo ${pct}%`;
       }
-      const finishId = uploadId + '_fin';
-      const finishRef = ref(db, 'tiktok_finalize_requests/' + finishId);
-      await set(finishRef, { uploadId, userId: myUid, status: 'pending', createdAt: Date.now() });
-      $('tt-progress-text').textContent = 'Procesando en el servidor...';
-      $('tt-submit').textContent = 'Procesando...';
+      const fid = uid + '_fin';
+      const fRef = ref(db, 'tiktok_finalize_requests/' + fid);
+      await set(fRef, { uploadId: uid, userId: me, status: 'pending', createdAt: Date.now() });
+      $('tt-progress-text').textContent = 'Procesando...'; $('tt-submit').textContent = 'Procesando...';
       await new Promise((resolve, reject) => {
         let done = false;
-        const unsub = onValue(finishRef, (snap) => {
-          const r = snap.val();
-          if (!r || done) return;
-          if (r.status === 'done') { done = true; unsub(); set(finishRef, null).catch(() => {}); resolve(); }
-          else if (r.status === 'error') { done = true; unsub(); set(finishRef, null).catch(() => {}); reject(new Error(r.error || 'Error al procesar')); }
+        const unsub = onValue(fRef, snap => {
+          const r = snap.val(); if (!r || done) return;
+          if (r.status === 'done') { done = true; unsub(); set(fRef, null).catch(() => {}); resolve(); }
+          else if (r.status === 'error') { done = true; unsub(); set(fRef, null).catch(() => {}); reject(new Error(r.error || 'Error')); }
         });
         setTimeout(() => { if (!done) { done = true; unsub(); reject(new Error('Tiempo agotado.')); } }, 90000);
       });
@@ -2045,159 +1529,120 @@
   }
   $('tt-cancel').onclick = closeTiktokUploadModal;
   $('tt-drop').onclick = () => $('tt-file-input').click();
-  $('tt-file-input').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) handleTiktokFileSelected(f); });
+  $('tt-file-input').addEventListener('change', e => { const f = e.target.files?.[0]; if (f) handleTiktokFileSelected(f); });
   $('tt-submit').onclick = submitTiktokUpload;
-  $('tiktok-upload-modal').addEventListener('click', (e) => { if (e.target === $('tiktok-upload-modal')) closeTiktokUploadModal(); });
+  $('tiktok-upload-modal').addEventListener('click', e => { if (e.target === $('tiktok-upload-modal')) closeTiktokUploadModal(); });
 
   function listenTiktokFeed() {
     if (tiktokUnsub) { try { tiktokUnsub(); } catch {} }
-    tiktokUnsub = onValue(ref(db, 'tiktok_data'), (snap) => {
-      const data = snap.val() || {};
-      const arr = [];
-      const myUid = String(auth.currentUser?.uid || '');
+    tiktokUnsub = onValue(ref(db, 'tiktok_data'), snap => {
+      const data = snap.val() || {}; const arr = []; const me = String(auth.currentUser?.uid || '');
       tiktokLikedByMe.clear();
       for (const [id, v] of Object.entries(data)) {
         if (!v) continue;
         v.id = v.id || id;
-        if (v.likedBy && v.likedBy[myUid]) tiktokLikedByMe.add(v.id);
+        if (v.likedBy && v.likedBy[me]) tiktokLikedByMe.add(v.id);
         arr.push(v);
       }
-      const oldIds = new Set(tiktokFeed.map(p => p.id));
-      const newIds = new Set(arr.map(p => p.id));
-      const added = [...newIds].filter(id => !oldIds.has(id));
-      const removed = [...oldIds].filter(id => !newIds.has(id));
+      const oldIds = new Set(tiktokFeed.map(p => p.id)), newIds = new Set(arr.map(p => p.id));
+      const added = [...newIds].filter(id => !oldIds.has(id)), removed = [...oldIds].filter(id => !newIds.has(id));
       tiktokFeed = arr;
       if (!$('tab-tiktok').classList.contains('active')) return;
-      if (added.length === 0 && removed.length === 0) updateTiktokCounts();
+      if (!added.length && !removed.length) updateTiktokCounts();
       else renderTiktokFeed();
       if (profileUserId) renderTiktokProfile();
     });
   }
-
   function updateTiktokCounts() {
-    const feedEl = $('tiktok-feed');
-    if (!feedEl) return;
+    const feed = $('tiktok-feed'); if (!feed) return;
     tiktokFeed.forEach(post => {
-      const slide = feedEl.querySelector(`.tiktok-slide[data-media-id="${post.id}"]`);
-      if (!slide) return;
-      const likeBtn = slide.querySelector('[data-action="like"]');
-      const commentBtn = slide.querySelector('[data-action="comment"]');
-      const shareBtn = slide.querySelector('[data-action="share"]');
-      if (likeBtn) {
-        const isLiked = tiktokLikedByMe.has(post.id);
-        likeBtn.classList.toggle('liked', isLiked);
-        likeBtn.querySelector('.tiktok-action-label').textContent = formatCount(post.likes || 0);
-      }
-      if (commentBtn) commentBtn.querySelector('.tiktok-action-label').textContent = formatCount(post.comments || 0);
-      if (shareBtn) shareBtn.querySelector('.tiktok-action-label').textContent = formatCount(post.shares || 0);
+      const slide = feed.querySelector(`.tiktok-slide[data-media-id="${post.id}"]`); if (!slide) return;
+      const like = slide.querySelector('[data-action="like"]'), cm = slide.querySelector('[data-action="comment"]'), sh = slide.querySelector('[data-action="share"]');
+      if (like) { const liked = tiktokLikedByMe.has(post.id); like.classList.toggle('liked', liked); like.querySelector('.tiktok-action-label').textContent = formatCount(post.likes || 0); }
+      if (cm) cm.querySelector('.tiktok-action-label').textContent = formatCount(post.comments || 0);
+      if (sh) sh.querySelector('.tiktok-action-label').textContent = formatCount(post.shares || 0);
     });
   }
 
-  // ⚡ Pausar videos al ocultar la pestaña del navegador
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) pauseAllVideos();
-    else resumeVisibleVideo();
+    else {
+      setTimeout(() => {
+        if (!profileUserId && $('tab-tiktok').classList.contains('active')) {
+          const id = getVisibleSlideId();
+          if (id) setActiveVideo(id);
+        }
+      }, 200);
+    }
+  });
+  window.addEventListener('blur', () => { pauseAllVideos(); });
+  window.addEventListener('focus', () => {
+    setTimeout(() => {
+      if (!profileUserId && $('tab-tiktok').classList.contains('active') && !document.hidden) {
+        const id = getVisibleSlideId();
+        if (id) setActiveVideo(id);
+      }
+    }, 200);
   });
 
-  // ⚡ Pausar videos al perder foco la ventana (cambio de app, etc.)
-  window.addEventListener('blur', () => { pauseAllVideos(); });
-  window.addEventListener('focus', () => { setTimeout(() => resumeVisibleVideo(), 100); });
-
-  // ================= NAV =================
   function switchTab(tab) {
     if (tab === 'collection' && collectionDirty) renderCollection(true);
     if (tab === 'shop' && shopDirty) renderShop(true);
-
     document.querySelectorAll('.nav-item[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.mnav-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const el = $('tab-' + tab);
-    if (el) el.classList.add('active');
-
+    const el = $('tab-' + tab); if (el) el.classList.add('active');
     if (tab === 'tiktok') {
       renderTiktokFeed();
       if (!tiktokAudioPromptShown) setTimeout(() => showAudioPrompt(), 300);
     } else {
-      // ⚡ Pausar todos los videos al salir de TikTok
       pauseAllVideos();
       closeTiktokProfile();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
-
-  document.querySelectorAll('.nav-item[data-tab], .mnav-btn[data-tab]').forEach(btn => {
-    btn.onclick = () => switchTab(btn.dataset.tab);
-  });
+  document.querySelectorAll('.nav-item[data-tab], .mnav-btn[data-tab]').forEach(btn => { btn.onclick = () => switchTab(btn.dataset.tab); });
 
   document.querySelectorAll('#coll-subtabs .subtab').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('#coll-subtabs .subtab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      collectionTab = btn.dataset.coll;
-      renderCollection(true);
-    };
+    btn.onclick = () => { document.querySelectorAll('#coll-subtabs .subtab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); collectionTab = btn.dataset.coll; renderCollection(true); };
   });
-
   document.querySelectorAll('#coll-filters button').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('#coll-filters button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentFilter = btn.dataset.f;
-      renderCollection(true);
-    };
+    btn.onclick = () => { document.querySelectorAll('#coll-filters button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentFilter = btn.dataset.f; renderCollection(true); };
   });
-
   document.querySelectorAll('#shop-filters .subtab').forEach(btn => {
     btn.onclick = () => {
-      document.querySelectorAll('#shop-filters .subtab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      document.querySelectorAll('#shop-filters .subtab').forEach(b => b.classList.remove('active')); btn.classList.add('active');
       shopFilter = btn.dataset.shop;
       $('toggle-hide-owned-wrap').style.display = shopFilter === 'skins' ? 'none' : '';
       renderShop(true);
     };
   });
-
-  $('toggle-hide-mine').addEventListener('change', (e) => { hideMine = e.target.checked; markShopDirty(); });
-  $('toggle-hide-owned').addEventListener('change', (e) => { hideOwned = e.target.checked; markShopDirty(); });
-
-  const shopSearchInput = $('shop-search');
-  const shopSearchClear = $('shop-search-clear');
-  let searchDebounceTimer = null;
-  shopSearchInput.addEventListener('input', (e) => {
+  $('toggle-hide-mine').addEventListener('change', e => { hideMine = e.target.checked; markShopDirty(); });
+  $('toggle-hide-owned').addEventListener('change', e => { hideOwned = e.target.checked; markShopDirty(); });
+  const sInput = $('shop-search'), sClear = $('shop-search-clear'); let sTimer = null;
+  sInput.addEventListener('input', e => {
     shopSearchQuery = e.target.value;
-    if (shopSearchQuery.length > 0) shopSearchClear.classList.add('visible');
-    else shopSearchClear.classList.remove('visible');
-    clearTimeout(searchDebounceTimer);
-    searchDebounceTimer = setTimeout(() => markShopDirty(), 200);
+    if (shopSearchQuery.length > 0) sClear.classList.add('visible'); else sClear.classList.remove('visible');
+    clearTimeout(sTimer); sTimer = setTimeout(() => markShopDirty(), 200);
   });
-  shopSearchClear.addEventListener('click', () => {
-    shopSearchInput.value = ''; shopSearchQuery = '';
-    shopSearchClear.classList.remove('visible');
-    shopSearchInput.focus();
-    clearTimeout(searchDebounceTimer); markShopDirty();
-  });
+  sClear.addEventListener('click', () => { sInput.value = ''; shopSearchQuery = ''; sClear.classList.remove('visible'); sInput.focus(); clearTimeout(sTimer); markShopDirty(); });
 
-  // ================= LOGOUT =================
   function doLogout() {
     try {
-      if (unsubProfile) unsubProfile();
-      if (unsubGameData) unsubGameData();
-      if (unsubShopData) unsubShopData();
-      if (unsubComments) { try { unsubComments(); } catch {} unsubComments = null; }
-      if (unsubMyFollowing) { try { unsubMyFollowing(); } catch {} unsubMyFollowing = null; }
-      if (unsubProfileFollowers) { try { unsubProfileFollowers(); } catch {} unsubProfileFollowers = null; }
-      if (unsubProfileFollowing) { try { unsubProfileFollowing(); } catch {} unsubProfileFollowing = null; }
+      if (unsubProfile) unsubProfile(); if (unsubGameData) unsubGameData(); if (unsubShopData) unsubShopData();
+      if (unsubComments) try { unsubComments(); } catch {}
+      if (unsubMyFollowing) try { unsubMyFollowing(); } catch {}
+      if (unsubProfileFollowers) try { unsubProfileFollowers(); } catch {}
+      if (unsubProfileFollowing) try { unsubProfileFollowing(); } catch {}
       imageCache.clear(); pendingRequests.clear();
-      if (tiktokUnsub) { try { tiktokUnsub(); } catch {} }
+      if (tiktokUnsub) try { tiktokUnsub(); } catch {}
       tiktokMediaCache.forEach(v => { if (v.isObjectUrl) try { URL.revokeObjectURL(v.url); } catch {} });
-      tiktokMediaCache.clear();
-      tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
-      tiktokVideoRefs.clear();
-      tiktokLikedByMe.clear(); tiktokAvatarCache.clear();
+      tiktokMediaCache.clear(); tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
+      tiktokVideoRefs.clear(); tiktokLikedByMe.clear(); tiktokAvatarCache.clear();
       tiktokFeed = []; tiktokAudioEnabled = false; tiktokAudioPromptShown = false;
-      profileUserId = null; userFollowingSet.clear();
-      hideAudioPrompt(); closeTiktokProfile();
-    } catch (e) {}
+      profileUserId = null; userFollowingSet.clear(); activeVideoId = null;
+      hideAudioPrompt();
+    } catch {}
     signOut(auth).catch(() => {}).finally(() => window.location.reload());
   }
   $('btn-logout').onclick = doLogout;
@@ -2205,34 +1650,21 @@
 
   const codeInputs = [...$('code-inputs').querySelectorAll('input')];
   codeInputs.forEach((inp, i) => {
-    inp.addEventListener('input', () => {
-      inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
-      if (inp.value && i < codeInputs.length - 1) codeInputs[i + 1].focus();
-    });
-    inp.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !inp.value && i > 0) codeInputs[i - 1].focus();
-    });
+    inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g, '').slice(0, 1); if (inp.value && i < codeInputs.length - 1) codeInputs[i + 1].focus(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Backspace' && !inp.value && i > 0) codeInputs[i - 1].focus(); });
   });
 
-  // ================= URL PARAM =================
   function checkTiktokUrlParam() {
-    const params = new URLSearchParams(location.search);
-    const mediaId = params.get('tiktok');
-    if (!mediaId) return;
-    setTimeout(() => {
-      switchTab('tiktok');
-      setTimeout(() => scrollToTiktokPost(mediaId), 500);
-    }, 2500);
+    const id = new URLSearchParams(location.search).get('tiktok'); if (!id) return;
+    setTimeout(() => { switchTab('tiktok'); setTimeout(() => scrollToTiktokPost(id), 500); }, 2500);
   }
-
-  async function scrollToTiktokPost(mediaId, tries = 15) {
+  async function scrollToTiktokPost(id, tries = 15) {
     if (tries <= 0) return;
-    const slide = document.querySelector(`.tiktok-slide[data-media-id="${mediaId}"]`);
+    const slide = document.querySelector(`.tiktok-slide[data-media-id="${id}"]`);
     if (slide) { slide.scrollIntoView({ behavior: 'auto', block: 'start' }); return; }
-    setTimeout(() => scrollToTiktokPost(mediaId, tries - 1), 400);
+    setTimeout(() => scrollToTiktokPost(id, tries - 1), 400);
   }
-
-  onAuthStateChanged(auth, (u) => { if (u && !u.isAnonymous) checkTiktokUrlParam(); });
+  onAuthStateChanged(auth, u => { if (u && !u.isAnonymous) checkTiktokUrlParam(); });
 </script>
 </body>
 </html>
