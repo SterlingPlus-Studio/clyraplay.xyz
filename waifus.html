@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0f">
 <title>Jinx Waifus Web</title>
 <link rel="icon" href="data:,">
+<link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
+<link rel="preload" as="font" type="font/ttf" href="https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf" crossorigin>
 <style>
   @font-face {
     font-family: 'ClyraPlay';
@@ -26,12 +29,22 @@
   @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes shimmer { 0%{background-position: -200% 0} 100%{background-position: 200% 0} }
 
+  html, body { overflow-x: hidden; }
   body {
     color: var(--text); background: var(--bg); min-height: 100vh;
-    background-image: radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.16), transparent 60%),
-                      radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.20), transparent 60%);
-    background-attachment: fixed;
   }
+  /* ⚡ Gradientes como pseudo-elemento fixed (evita jank de background-attachment:fixed) */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.16), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.20), transparent 60%);
+  }
+
   .screen { display: none; width: 100%; min-height: 100vh; }
   .screen.active { display: block; animation: slideUp .35s ease; }
 
@@ -39,7 +52,7 @@
   .loading-spinner { width: 64px; height: 64px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--pink); border-right-color: var(--purple); animation: spin 1s linear infinite; margin-bottom: 20px; }
   
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 440px; backdrop-filter: blur(20px); box-shadow: var(--shadow); }
+  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 440px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: var(--shadow); }
   .logo-hero { text-align: center; margin-bottom: 24px; }
   .logo-hero .l1 { font-size: 34px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink)); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite; text-transform: uppercase; }
   
@@ -56,7 +69,7 @@
   .code-inputs input { width: 46px; height: 58px; text-align: center; font-size: 22px; font-weight: 800; padding: 0; }
 
   .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-w); background: rgba(15,15,23,.75); border-right: 1px solid var(--border); position: fixed; top: 0; bottom: 0; padding: 20px 14px; backdrop-filter: blur(24px); z-index: 100; display: flex; flex-direction: column; }
+  .sidebar { width: var(--sidebar-w); background: rgba(15,15,23,.95); border-right: 1px solid var(--border); position: fixed; top: 0; bottom: 0; padding: 20px 14px; z-index: 100; display: flex; flex-direction: column; }
   .sidebar-brand { padding: 0 10px 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
   .sidebar-brand .logo { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,.03); border-radius: var(--radius); margin-bottom: 20px; border: 1px solid var(--border); }
@@ -72,8 +85,7 @@
   .nav-item.active { background: linear-gradient(135deg, rgba(236,72,153,.15), rgba(139,92,246,.15)); color: var(--text); border-left: 3px solid var(--pink); }
   
   .icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; }
-  .icon svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-  
+
   .btn-logout { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; margin-top: auto; border-radius: var(--radius); padding: 12px 14px; }
   .btn-logout:hover { background: rgba(239,68,68,.2); }
 
@@ -94,28 +106,17 @@
 
   .inline-logout-btn {
     display: none;
-    width: 34px;
-    height: 34px;
-    margin: 0 0 0 auto;
-    padding: 0;
+    width: 34px; height: 34px;
+    margin: 0 0 0 auto; padding: 0;
     border-radius: 50%;
     background: rgba(239,68,68,.15);
     border: 1px solid rgba(239,68,68,.4);
     color: #fca5a5;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all .2s;
-    -webkit-tap-highlight-color: transparent;
+    align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,.3);
   }
-  .inline-logout-btn:hover,
-  .inline-logout-btn:active {
-    background: rgba(239,68,68,.3);
-    border-color: rgba(239,68,68,.65);
-    transform: scale(.94);
-  }
+  .inline-logout-btn:hover { background: rgba(239,68,68,.3); border-color: rgba(239,68,68,.65); }
   .inline-logout-btn .icon { width: 18px; height: 18px; }
   .inline-logout-btn .icon svg { width: 18px; height: 18px; }
 
@@ -133,45 +134,10 @@
   .subtab:hover { background: rgba(255,255,255,.06); color: var(--text); }
   .subtab.active { background: linear-gradient(135deg, rgba(236,72,153,.2), rgba(139,92,246,.2)); color: var(--text); border-color: var(--pink); }
 
-  .shop-search {
-    position: relative;
-    margin-bottom: 12px;
-  }
-  .shop-search input {
-    padding-left: 42px;
-    padding-right: 42px;
-    font-size: 14px;
-  }
-  .shop-search::before {
-    content: '🔍';
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    pointer-events: none;
-    opacity: .65;
-    z-index: 1;
-  }
-  .shop-search .clear-btn {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 26px;
-    height: 26px;
-    margin: 0;
-    padding: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,.08);
-    color: var(--muted);
-    font-size: 14px;
-    font-weight: 700;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-  }
+  .shop-search { position: relative; margin-bottom: 12px; }
+  .shop-search input { padding-left: 42px; padding-right: 42px; font-size: 14px; }
+  .shop-search::before { content: '🔍'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; opacity: .65; z-index: 1; }
+  .shop-search .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; margin: 0; padding: 0; border-radius: 50%; background: rgba(255,255,255,.08); color: var(--muted); font-size: 14px; font-weight: 700; display: none; align-items: center; justify-content: center; z-index: 2; }
   .shop-search .clear-btn:hover { background: rgba(255,255,255,.16); color: var(--text); }
   .shop-search .clear-btn.visible { display: flex; }
 
@@ -180,80 +146,35 @@
   @media (max-width: 850px) { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 550px) { .waifu-grid { grid-template-columns: repeat(2, 1fr); } }
 
-  .waifu-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: .2s; position: relative; display: flex; flex-direction: column; }
-  .waifu-card:hover { transform: translateY(-3px); border-color: var(--border-2); box-shadow: var(--shadow); }
+  /* ⚡ Optimización: content-visibility salta paint de tarjetas fuera de pantalla */
+  .waifu-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; transition: border-color .2s, box-shadow .2s;
+    position: relative; display: flex; flex-direction: column;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 350px;
+  }
+  .waifu-card:hover { border-color: var(--border-2); box-shadow: var(--shadow); }
   
   .waifu-img { width: 100%; aspect-ratio: 3/4; background: #111; display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative; overflow: hidden; }
   .waifu-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
   .waifu-img img.loaded { opacity: 1; }
   
-  .waifu-badge { 
-    position: absolute; top: 6px; right: 6px; 
-    background: rgba(0,0,0,.85); 
-    padding: 4px 8px; 
-    border-radius: 100px; 
-    font-size: 11px; 
-    font-weight: 800; 
-    backdrop-filter: blur(4px); 
-    border: 1px solid var(--border-2); 
-    z-index: 2; 
-    box-shadow: 0 2px 6px rgba(0,0,0,.5);
-  }
-  
-  .waifu-rarity-badge { 
-    position: absolute; bottom: 6px; right: 6px; 
-    background: rgba(0,0,0,.85); 
-    padding: 4px 8px; 
-    border-radius: 100px; 
-    font-size: 10px; 
-    font-weight: 800; 
-    backdrop-filter: blur(4px); 
-    border: 1px solid var(--border-2); 
-    z-index: 2; 
-    text-transform: uppercase; 
-    box-shadow: 0 2px 6px rgba(0,0,0,.5);
-    letter-spacing: 0.5px;
-  }
-
-  .waifu-seller-badge {
-    position: absolute; bottom: 6px; left: 6px;
-    background: rgba(0,0,0,.85);
-    color: var(--gold);
-    padding: 4px 8px;
-    border-radius: 100px;
-    font-size: 10px;
-    font-weight: 700;
-    backdrop-filter: blur(4px);
-    border: 1px solid var(--border-2);
-    z-index: 2;
-    box-shadow: 0 2px 6px rgba(0,0,0,.5);
-    max-width: 60%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  .waifu-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.85); padding: 4px 8px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid var(--border-2); z-index: 2; }
+  .waifu-rarity-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.85); padding: 4px 8px; border-radius: 100px; font-size: 10px; font-weight: 800; border: 1px solid var(--border-2); z-index: 2; text-transform: uppercase; letter-spacing: 0.5px; }
+  .waifu-seller-badge { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,.85); color: var(--gold); padding: 4px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; border: 1px solid var(--border-2); z-index: 2; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   .waifu-info { padding: 8px 6px; text-align: center; border-top: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 64px; flex-shrink: 0; }
   .waifu-info.shop-info { min-height: 64px; justify-content: space-between; padding: 8px 6px; }
 
-  .waifu-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0; width: 100%; line-height: 1.2; display: block; }
+  .waifu-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; line-height: 1.2; display: block; }
   
-  .btn-buy, .btn-sell, .btn-toggle { 
-    padding: 8px; 
-    font-size: 11px; 
-    margin-top: 0; 
-    border-radius: 8px; 
-    color: white; font-weight: 700; 
-    cursor: pointer; width: 100%; transition: all .2s; 
-    border: 1.5px solid transparent;
-  }
+  .btn-buy, .btn-sell, .btn-toggle { padding: 8px; font-size: 11px; margin-top: 0; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; width: 100%; transition: border-color .2s, background .2s; border: 1.5px solid transparent; }
   .btn-buy { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
   .btn-buy:hover { border-color: #6ee7b7; }
   .btn-sell { background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #fbbf24; }
   .btn-sell:hover { border-color: #fcd34d; }
-  
-  .btn-toggle.active { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; color: white; }
-  .btn-toggle.active:hover { background: linear-gradient(135deg, #ef4444, #dc2626); border-color: #f87171; }
+  .btn-toggle.active { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
   .btn-toggle.inactive { background: rgba(255,255,255,.1); border-color: var(--border-2); color: var(--muted); }
   .btn-toggle.inactive:hover { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; color: white; }
 
@@ -265,50 +186,19 @@
 
   .mobile-nav {
     display: none;
-    position: fixed;
-    bottom: 14px;
-    left: 14px;
-    right: 14px;
-    z-index: 300;
-    background: rgba(18,18,28,0.94);
+    position: fixed; bottom: 14px; left: 14px; right: 14px; z-index: 300;
+    background: rgba(18,18,28,.98);
     border: 1px solid var(--border-2);
-    border-radius: 22px;
-    padding: 6px;
-    gap: 4px;
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03) inset;
+    border-radius: 22px; padding: 6px; gap: 4px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.6);
   }
-  .mnav-btn {
-    flex: 1;
-    margin: 0;
-    padding: 8px 4px;
-    border-radius: 16px;
-    background: transparent;
-    color: var(--muted);
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    font-size: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all .2s;
-    letter-spacing: .3px;
-    -webkit-tap-highlight-color: transparent;
-  }
+  .mnav-btn { flex: 1; margin: 0; padding: 8px 4px; border-radius: 16px; background: transparent; color: var(--muted); border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 700; cursor: pointer; transition: all .2s; letter-spacing: .3px; }
   .mnav-btn .icon { width: 22px; height: 22px; }
   .mnav-btn .icon svg { width: 22px; height: 22px; }
-  .mnav-btn:active { transform: scale(.94); }
-  .mnav-btn.active {
-    background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22));
-    color: var(--text);
-  }
+  .mnav-btn.active { background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22)); color: var(--text); }
 
   @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); transition: .3s; }
+    .sidebar { transform: translateX(-100%); }
     .main { margin-left: 0; padding: 20px 15px; padding-bottom: 110px; }
     .mobile-nav { display: flex; }
     .inline-logout-btn { display: flex; }
@@ -331,13 +221,11 @@
   .modal-btn.accept:hover { transform: translateY(-1px); }
 
   .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: calc(100% - 32px); max-width: 380px; }
-  .toast { background: var(--surface); border: 1px solid var(--border-2); padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 700; color: white; backdrop-filter: blur(10px); box-shadow: var(--shadow); animation: slideUp .3s ease; transition: opacity .3s, transform .3s; text-align: center; }
+  .toast { background: var(--surface); border: 1px solid var(--border-2); padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 700; color: white; box-shadow: var(--shadow); animation: slideUp .3s ease; transition: opacity .3s, transform .3s; text-align: center; }
   .toast.error { border-color: #ef4444; color: #fca5a5; }
   .toast.success { border-color: #10b981; color: #6ee7b7; }
 
-  @media (min-width: 769px) {
-    .toast-container { bottom: 20px; }
-  }
+  @media (min-width: 769px) { .toast-container { bottom: 20px; } }
 </style>
 </head>
 <body>
@@ -543,6 +431,9 @@
     const el = $(id); el.className = 'msg ' + (type || 'err'); el.textContent = text;
   };
 
+  // ⚡ Cache de formateo de números
+  const NUM_FMT = new Intl.NumberFormat('es-MX');
+
   // ================= VARIABLES DE ESTADO GLOBALES =================
   let currentRequestId = null;
   let unsubRequest = null;
@@ -555,8 +446,42 @@
   let shopFilter = 'waifus';
   let collectionTab = 'waifus'; 
   let syncRequested = false;
-  let lastShopString = ''; 
   let shopSearchQuery = '';
+
+  // ⚡ Dirty flags + control de render
+  let collectionDirty = true;
+  let shopDirty = true;
+  let lastGameDataUpdatedAt = undefined;
+  let lastShopUpdatedAt = undefined;
+  const rafPending = { collection: false, shop: false };
+
+  // ⚡ Cache de sets "owned" para la tienda
+  let cachedOwnedForGameData = null;
+  let cachedOwnedWaifuNames = new Set();
+  let cachedOwnedSkinIds = new Set();
+
+  function getOwnedSets() {
+    if (cachedOwnedForGameData === myGameData) {
+      return { waifus: cachedOwnedWaifuNames, skins: cachedOwnedSkinIds };
+    }
+    cachedOwnedForGameData = myGameData;
+    cachedOwnedWaifuNames = new Set((myGameData?.waifusList || []).map(w => String(w.name).toLowerCase()));
+    cachedOwnedSkinIds = new Set((myGameData?.skinsList || []).map(s => String(s.id)));
+    return { waifus: cachedOwnedWaifuNames, skins: cachedOwnedSkinIds };
+  }
+
+  // ================= RENDER SCHEDULING (rAF + dirty) =================
+  function scheduleRender(scope) {
+    if (rafPending[scope]) return;
+    rafPending[scope] = true;
+    requestAnimationFrame(() => {
+      rafPending[scope] = false;
+      if (scope === 'collection') renderCollection();
+      else if (scope === 'shop') renderShop();
+    });
+  }
+  function markCollectionDirty() { collectionDirty = true; scheduleRender('collection'); }
+  function markShopDirty() { shopDirty = true; scheduleRender('shop'); }
 
   // ================= SISTEMA DE NOTIFICACIONES Y MODALES =================
   function showToast(message, type = 'info') {
@@ -589,21 +514,14 @@
     modalCallback = callback;
   }
 
-  $('modal-cancel').onclick = () => {
-    $('custom-modal').classList.remove('active');
-    modalCallback = null;
-  };
-
+  $('modal-cancel').onclick = () => { $('custom-modal').classList.remove('active'); modalCallback = null; };
   $('modal-accept').onclick = () => {
     const inputVal = $('modal-input').value;
     $('custom-modal').classList.remove('active');
     if (modalCallback) modalCallback(inputVal);
     modalCallback = null;
   };
-
-  $('modal-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') $('modal-accept').click();
-  });
+  $('modal-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') $('modal-accept').click(); });
 
   // ================= ICONOS 3D =================
   let __icSeq = 0;
@@ -635,8 +553,7 @@
 
   function hydrateIcons() {
     document.querySelectorAll('[data-icon]').forEach(el => {
-      const name = el.dataset.icon;
-      el.innerHTML = ico(name, 18);
+      el.innerHTML = ico(el.dataset.icon, 18);
     });
   }
   hydrateIcons();
@@ -686,11 +603,10 @@
     } catch {}
   }
 
-  // ================= LAZY LOAD & CACHE (2 OBSERVERS) =================
-  const imageCache      = new Map(); // cacheKey -> url | null
-  const pendingRequests = new Map(); // cacheKey -> Promise<url|null>
+  // ================= LAZY LOAD & CACHE =================
+  const imageCache = new Map();
+  const pendingRequests = new Map();
 
-  // ---- Carga real de la imagen para un contenedor ----
   function loadImageForContainer(imgContainer, attempt = 1) {
     if (!imgContainer || !imgContainer.isConnected) return;
     const imgTag = imgContainer.querySelector('img');
@@ -702,31 +618,26 @@
 
     getLocalImage(type, name).then(url => {
       if (!imgContainer.isConnected) return;
-
       if (url) {
         let img = imgContainer.querySelector('img');
         if (!img) {
           img = document.createElement('img');
+          img.decoding = 'async';
           imgContainer.insertBefore(img, imgContainer.firstChild);
         }
         if (img.getAttribute('src') !== url) img.src = url;
         if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
         else img.onload = () => img.classList.add('loaded');
       } else if (attempt < 3 && !imageCache.has(`${type}_${name}`)) {
-        // reintentar solo si no fue "not found" cacheado
         setTimeout(() => loadImageForContainer(imgContainer, attempt + 1), 2000 * attempt);
       }
     });
   }
 
-  // 🟢 Observer de CARGA (entra en viewport + 800px)
   const imageLoadObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) loadImageForContainer(entry.target);
-    });
+    entries.forEach(entry => { if (entry.isIntersecting) loadImageForContainer(entry.target); });
   }, { rootMargin: '800px' });
 
-  // 🔴 Observer de DESCARGA (se aleja >1600px)
   const imageUnloadObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) return;
@@ -735,7 +646,6 @@
     });
   }, { rootMargin: '1600px' });
 
-  // ---- Pedir imagen (deduplicada + cache selectivo) ----
   async function getLocalImage(type, target) {
     const cacheKey = `${type}_${target}`;
 
@@ -745,10 +655,7 @@
     const promise = (async () => {
       try {
         const stored = await idbGetImg(cacheKey);
-        if (stored) {
-          imageCache.set(cacheKey, stored);
-          return stored;
-        }
+        if (stored) { imageCache.set(cacheKey, stored); return stored; }
       } catch {}
 
       return new Promise((resolve) => {
@@ -756,21 +663,14 @@
         const reqRef = ref(db, 'image_requests/'  + reqId);
         const resRef = ref(db, 'image_responses/' + reqId);
 
-        let done = false;
-        let unsub = null;
+        let done = false, unsub = null;
 
         const finish = (url, cacheNull) => {
           if (done) return;
           done = true;
           try { unsub && unsub(); } catch {}
-
-          if (url) {
-            imageCache.set(cacheKey, url);
-            idbSetImg(cacheKey, url);
-          } else if (cacheNull) {
-            imageCache.set(cacheKey, null);
-          }
-
+          if (url) { imageCache.set(cacheKey, url); idbSetImg(cacheKey, url); }
+          else if (cacheNull) { imageCache.set(cacheKey, null); }
           set(resRef, null).catch(() => {});
           resolve(url || null);
         };
@@ -778,26 +678,17 @@
         unsub = onValue(resRef, (snap) => {
           const res = snap.val();
           if (!res) return;
-          if (res.success && res.base64) {
-            finish(`data:image/${res.mime};base64,${res.base64}`, false);
-          } else {
-            finish(null, true);
-          }
+          if (res.success && res.base64) finish(`data:image/${res.mime};base64,${res.base64}`, false);
+          else finish(null, true);
         });
 
-        set(reqRef, { type, target, createdAt: Date.now() })
-          .catch(() => finish(null, false));
-
+        set(reqRef, { type, target, createdAt: Date.now() }).catch(() => finish(null, false));
         setTimeout(() => finish(null, false), 8000);
       });
     })();
 
     pendingRequests.set(cacheKey, promise);
-    try {
-      return await promise;
-    } finally {
-      pendingRequests.delete(cacheKey);
-    }
+    try { return await promise; } finally { pendingRequests.delete(cacheKey); }
   }
 
   async function requestSync(uid) {
@@ -831,11 +722,9 @@
   $('btn-request').onclick = async () => {
     const raw = $('identifier').value.trim();
     if (!raw) return setMsg('msg-login', 'Escribe tu usuario.', 'err');
-    
     $('btn-request').disabled = true;
     $('btn-request').textContent = 'Enviando...';
     setMsg('msg-login', '');
-
     try {
       const username = raw.replace(/^@+/, '').toLowerCase();
       currentRequestId = (crypto.randomUUID && crypto.randomUUID()) || ('r_' + Date.now());
@@ -863,7 +752,7 @@
         $('btn-verify').disabled = false;
       }
       if (d.status === 'verified' && d.customToken) {
-        unsubRequest(); 
+        unsubRequest();
         $('btn-verify').textContent = 'Ingresando...';
         signInWithCustomToken(auth, d.customToken).catch(e => {
           setMsg('msg-code', '❌ ' + e.message, 'err'); $('btn-verify').disabled = false;
@@ -893,7 +782,7 @@
   // ================= DASHBOARD =================
   function loadDashboard(uid) {
     show('screen-panel');
-    
+
     getLocalImage('avatar', uid).then(dataUrl => {
       const imgHtml = dataUrl ? `<img src="${dataUrl}">` : '?';
       $('p-avatar').innerHTML = imgHtml;
@@ -912,56 +801,64 @@
 
     if (unsubGameData) unsubGameData();
     unsubGameData = onValue(ref(db, 'users/' + uid + '/gameData'), (snap) => {
-      myGameData = snap.val() || {};
-      
-      if ((!myGameData.waifusList || !myGameData.skinsList) && !syncRequested) {
+      const data = snap.val() || {};
+
+      if ((!data.waifusList || !data.skinsList) && !syncRequested) {
         syncRequested = true;
+        myGameData = data;
         requestSync(uid);
         return;
       }
 
-      const fmt = (n) => Number(n || 0).toLocaleString('es-MX');
-      $('stat-coins').textContent = fmt(myGameData.coins);
-      $('stat-waifus').textContent = fmt(myGameData.waifusTotal);
-      $('stat-unique').textContent = fmt(myGameData.waifusUnique);
-      
-      if (myGameData.minerals) {
-        $('stat-hierro').textContent = fmt(myGameData.minerals.hierro);
-        $('stat-oro').textContent = fmt(myGameData.minerals.oro);
-        $('stat-diamante').textContent = fmt(myGameData.minerals.diamante);
-      }
+      // ⚡ Skip si no cambió (updatedAt es barato de comparar)
+      if (data.updatedAt && data.updatedAt === lastGameDataUpdatedAt) return;
+      lastGameDataUpdatedAt = data.updatedAt;
+      myGameData = data;
 
-      renderCollection();
-      renderShop();
+      // Stats (solo 6 elementos, rápido)
+      $('stat-coins').textContent   = NUM_FMT.format(Number(data.coins || 0));
+      $('stat-waifus').textContent  = NUM_FMT.format(Number(data.waifusTotal || 0));
+      $('stat-unique').textContent  = NUM_FMT.format(Number(data.waifusUnique || 0));
+      const m = data.minerals || {};
+      $('stat-hierro').textContent  = NUM_FMT.format(Number(m.hierro || 0));
+      $('stat-oro').textContent     = NUM_FMT.format(Number(m.oro || 0));
+      $('stat-diamante').textContent= NUM_FMT.format(Number(m.diamante || 0));
+
+      markCollectionDirty();
+      markShopDirty();
     });
 
     if (unsubShopData) unsubShopData();
     unsubShopData = onValue(ref(db, 'shop_data'), (snap) => {
-      const newData = snap.val() || { waifus: [], skins: [] };
-      const currentString = JSON.stringify(newData.waifus) + JSON.stringify(newData.skins);
-      if (currentString === lastShopString) return;
-      lastShopString = currentString;
-      shopData = newData;
-      renderShop();
+      const data = snap.val() || { waifus: [], skins: [] };
+      if (data.updatedAt && data.updatedAt === lastShopUpdatedAt) return;
+      lastShopUpdatedAt = data.updatedAt;
+      shopData = data;
+      markShopDirty();
     });
   }
 
   // ================= RENDER COLECCIÓN =================
-  function renderCollection() {
+  function renderCollection(force = false) {
     const grid = $('collection-grid');
     const filters = $('coll-filters-wrap');
     if (!grid) return;
 
+    // ⚡ Si la pestaña no está activa y no se fuerza, marcar dirty y salir
+    if (!force && !$('tab-collection').classList.contains('active')) {
+      collectionDirty = true;
+      return;
+    }
+    collectionDirty = false;
+
     cleanupGridObservers(grid);
-    grid.innerHTML = ''; 
+    grid.innerHTML = '';
 
     if (collectionTab === 'waifus') {
       filters.style.display = 'block';
-      
+
       let list = myGameData?.waifusList || [];
-      if (currentFilter !== 'all') {
-        list = list.filter(w => w.rarity === currentFilter);
-      }
+      if (currentFilter !== 'all') list = list.filter(w => w.rarity === currentFilter);
 
       if (list.length === 0) {
         grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted);">No hay waifus en esta categoría.</div>`;
@@ -969,8 +866,9 @@
       }
 
       const order = { exclusiva:0, legendaria:1, epica:2, rara:3, comun:4 };
-      list.sort((a,b) => (order[a.rarity]||9) - (order[b.rarity]||9));
+      list = [...list].sort((a,b) => (order[a.rarity]||9) - (order[b.rarity]||9));
 
+      const frag = document.createDocumentFragment();
       list.forEach(w => {
         const card = document.createElement('div');
         card.className = 'waifu-card';
@@ -980,7 +878,7 @@
         imgDiv.className = 'waifu-img';
         imgDiv.dataset.name = w.name;
         imgDiv.dataset.type = 'waifu';
-        
+
         const badge = document.createElement('div');
         badge.className = 'waifu-badge';
         badge.textContent = `x${w.count}`;
@@ -1001,53 +899,43 @@
 
         card.appendChild(imgDiv);
         card.appendChild(infoDiv);
-        grid.appendChild(card);
+        frag.appendChild(card);
 
         observeImg(imgDiv);
       });
+      grid.appendChild(frag);
 
       grid.querySelectorAll('.btn-sell').forEach(btn => {
         btn.onclick = async () => {
           const name = btn.dataset.name;
           const count = parseInt(btn.dataset.count, 10) || 1;
-          const countMsg = count > 1
-            ? `\n\n📦 Tienes ${count} copias. Solo se venderá 1 copia.`
-            : '';
-          
+          const countMsg = count > 1 ? `\n\n📦 Tienes ${count} copias. Solo se venderá 1 copia.` : '';
+
           showModal(
-            'Vender 1 copia', 
-            `¿Por cuánto quieres vender a ${name}?${countMsg}\n(Mínimo: 100 | Máximo: 3500)`, 
-            true, 
-            'Ej: 500', 
-            '100', 
+            'Vender 1 copia',
+            `¿Por cuánto quieres vender a ${name}?${countMsg}\n(Mínimo: 100 | Máximo: 3500)`,
+            true, 'Ej: 500', '100',
             async (priceStr) => {
               if (!priceStr) return;
-              
               const price = parseInt(priceStr, 10);
               if (isNaN(price) || price < 100 || price > 3500) {
                 return showToast('Precio inválido. Debe estar entre 100 y 3500.', 'error');
               }
-
               btn.disabled = true;
               btn.textContent = '...';
 
               const reqId = 'sell_' + Date.now();
               const reqRef = ref(db, 'sell_waifu_requests/' + reqId);
-
               const unsub = onValue(reqRef, (snap) => {
                 const res = snap.val();
                 if (!res) return;
-
                 if (res.status === 'done') {
                   unsub();
-                  const copiesLeft = (typeof res.copiesAfter === 'number')
-                    ? res.copiesAfter
-                    : Math.max(0, count - 1);
+                  const copiesLeft = (typeof res.copiesAfter === 'number') ? res.copiesAfter : Math.max(0, count - 1);
                   const soldName = res.waifuName || name;
-                  const msg = copiesLeft > 0
+                  showToast(copiesLeft > 0
                     ? `¡1 copia de ${soldName} vendida! Te quedan ${copiesLeft}.`
-                    : `¡${soldName} vendida! (última copia)`;
-                  showToast(msg, 'success');
+                    : `¡${soldName} vendida! (última copia)`, 'success');
                   requestSync(auth.currentUser.uid);
                 } else if (res.status === 'error') {
                   unsub();
@@ -1061,10 +949,7 @@
                 userId: auth.currentUser.uid,
                 userName: $('p-name').textContent,
                 username: $('p-tag').textContent.replace('@',''),
-                waifuName: name,
-                price: price,
-                status: 'pending',
-                createdAt: Date.now()
+                waifuName: name, price, status: 'pending', createdAt: Date.now()
               }).catch(err => {
                 showToast('Error: ' + err.message, 'error');
                 btn.disabled = false;
@@ -1077,8 +962,7 @@
       });
 
     } else if (collectionTab === 'skins') {
-      filters.style.display = 'none'; 
-
+      filters.style.display = 'none';
       const skinsList = myGameData?.skinsList || [];
 
       if (skinsList.length === 0) {
@@ -1086,9 +970,9 @@
         return;
       }
 
+      const frag = document.createDocumentFragment();
       skinsList.forEach(s => {
         const isActive = s.active !== false;
-
         const card = document.createElement('div');
         card.className = 'waifu-card';
         card.dataset.r = s.rarity;
@@ -1097,7 +981,7 @@
         imgDiv.className = 'waifu-img';
         imgDiv.dataset.name = s.id;
         imgDiv.dataset.type = 'skin';
-        
+
         const rBadge = document.createElement('div');
         rBadge.className = 'waifu-rarity-badge';
         rBadge.textContent = s.rarity;
@@ -1105,7 +989,6 @@
 
         const infoDiv = document.createElement('div');
         infoDiv.className = 'waifu-info';
-        
         infoDiv.innerHTML = `
           <div class="waifu-name" title="${s.waifuName}">${s.waifuName}</div>
           <button class="btn-toggle ${isActive ? 'active' : 'inactive'}" data-id="${s.id}" data-active="${isActive}">
@@ -1115,10 +998,10 @@
 
         card.appendChild(imgDiv);
         card.appendChild(infoDiv);
-        grid.appendChild(card);
-
+        frag.appendChild(card);
         observeImg(imgDiv);
       });
+      grid.appendChild(frag);
 
       grid.querySelectorAll('.btn-toggle').forEach(btn => {
         btn.onclick = async () => {
@@ -1129,15 +1012,11 @@
 
           const reqId = 'tog_' + Date.now();
           const reqRef = ref(db, 'skin_toggle_requests/' + reqId);
-          
           const unsub = onValue(reqRef, (snap) => {
             const res = snap.val();
             if (!res) return;
-            if (res.status === 'done') {
-              unsub();
-              requestSync(auth.currentUser.uid);
-              set(reqRef, null).catch(()=>{});
-            } else if (res.status === 'error') {
+            if (res.status === 'done') { unsub(); requestSync(auth.currentUser.uid); set(reqRef, null).catch(()=>{}); }
+            else if (res.status === 'error') {
               unsub();
               showToast('Error: ' + res.error, 'error');
               btn.disabled = false;
@@ -1147,11 +1026,7 @@
           });
 
           await set(reqRef, {
-            userId: auth.currentUser.uid,
-            skinId: id,
-            activate: !isActive,
-            status: 'pending',
-            createdAt: Date.now()
+            userId: auth.currentUser.uid, skinId: id, activate: !isActive, status: 'pending', createdAt: Date.now()
           });
         };
       });
@@ -1159,32 +1034,34 @@
   }
 
   // ================= TIENDA =================
-  function renderShop() {
+  function renderShop(force = false) {
     const grid = $('shop-grid');
     if (!grid) return;
 
+    if (!force && !$('tab-shop').classList.contains('active')) {
+      shopDirty = true;
+      return;
+    }
+    shopDirty = false;
+
     cleanupGridObservers(grid);
     grid.innerHTML = '';
-    
+
     const currentUserId = auth.currentUser?.uid;
-    const ownedWaifuNames = new Set((myGameData?.waifusList || []).map(w => String(w.name).toLowerCase()));
-    const ownedSkinIds = new Set((myGameData?.skinsList || []).map(s => String(s.id)));
+    const owned = getOwnedSets();
 
     let items = shopFilter === 'waifus' ? (shopData.waifus || []) : (shopData.skins || []);
 
     items = items.filter(item => {
       if (String(item.sellerId) === String(currentUserId)) return false;
-      if (shopFilter === 'waifus' && ownedWaifuNames.has(String(item.name).toLowerCase())) return false;
-      if (shopFilter === 'skins' && ownedSkinIds.has(String(item.id))) return false;
+      if (shopFilter === 'waifus' && owned.waifus.has(String(item.name).toLowerCase())) return false;
+      if (shopFilter === 'skins' && owned.skins.has(String(item.id))) return false;
       return true;
     });
 
     const q = shopSearchQuery.trim().toLowerCase();
     if (q) {
-      items = items.filter(item => {
-        const displayName = String(item.waifuName || item.name || '').toLowerCase();
-        return displayName.includes(q);
-      });
+      items = items.filter(item => String(item.waifuName || item.name || '').toLowerCase().includes(q));
     }
 
     if (items.length === 0) {
@@ -1195,6 +1072,7 @@
       return;
     }
 
+    const frag = document.createDocumentFragment();
     items.forEach(item => {
       const isSkin = shopFilter === 'skins';
       const nameToImg = isSkin ? item.id : item.name;
@@ -1207,7 +1085,7 @@
       imgDiv.className = 'waifu-img';
       imgDiv.dataset.name = nameToImg;
       imgDiv.dataset.type = isSkin ? 'skin' : 'waifu';
-      
+
       const priceBadge = document.createElement('div');
       priceBadge.className = 'waifu-badge';
       priceBadge.style.color = 'var(--gold)';
@@ -1234,83 +1112,75 @@
 
       card.appendChild(imgDiv);
       card.appendChild(infoDiv);
-      grid.appendChild(card);
-
+      frag.appendChild(card);
       observeImg(imgDiv);
     });
+    grid.appendChild(frag);
 
     grid.querySelectorAll('.btn-buy').forEach(btn => {
-      btn.onclick = async (e) => {
+      btn.onclick = async () => {
         const id = btn.dataset.id;
         const type = btn.dataset.type;
         const name = btn.dataset.name;
         const price = Number(btn.dataset.price);
 
         if (!myGameData || myGameData.coins < price) return showToast('No tienes suficientes monedas.', 'error');
-        
-        showModal(
-          'Confirmar Compra', 
-          `¿Seguro que quieres comprar a ${name} por ${price} monedas?`, 
-          false, 
-          '', 
-          '', 
-          async () => {
-            btn.disabled = true;
-            btn.textContent = '...';
 
-            const reqId = 'buy_' + Date.now();
-            const resRef = ref(db, 'shop_buy_requests/' + reqId);
-            const unsub = onValue(resRef, (snap) => {
-              const res = snap.val();
-              if (!res) return;
-              
-              if (res.status === 'done') {
-                unsub();
-                showToast('¡Compra exitosa!', 'success');
-                requestSync(auth.currentUser.uid);
-                card.style.transform = 'scale(0.9)';
-                card.style.opacity = '0';
-                setTimeout(() => card.remove(), 300);
-                set(resRef, null).catch(()=>{});
-              } else if (res.status === 'error') {
-                unsub();
-                showToast('Error: ' + res.error, 'error');
-                btn.disabled = false;
-                btn.textContent = 'Comprar';
-                set(resRef, null).catch(()=>{});
-              }
-            });
+        showModal('Confirmar Compra', `¿Seguro que quieres comprar a ${name} por ${price} monedas?`, false, '', '', async () => {
+          btn.disabled = true;
+          btn.textContent = '...';
 
-            await set(resRef, {
-              itemId: id, itemName: name, type: type, price: price,
-              buyerId: auth.currentUser.uid, buyerName: $('p-name').textContent,
-              buyerUsername: $('p-tag').textContent.replace('@',''),
-              status: 'pending', createdAt: Date.now()
-            }).catch(err => {
-              showToast('Error: ' + err.message, 'error');
-              btn.disabled = false; btn.textContent = 'Comprar'; unsub();
-            });
-          }
-        );
+          const reqId = 'buy_' + Date.now();
+          const resRef = ref(db, 'shop_buy_requests/' + reqId);
+          const unsub = onValue(resRef, (snap) => {
+            const res = snap.val();
+            if (!res) return;
+            if (res.status === 'done') {
+              unsub();
+              showToast('¡Compra exitosa!', 'success');
+              requestSync(auth.currentUser.uid);
+              card.style.opacity = '0';
+              setTimeout(() => card.remove(), 300);
+              set(resRef, null).catch(()=>{});
+            } else if (res.status === 'error') {
+              unsub();
+              showToast('Error: ' + res.error, 'error');
+              btn.disabled = false;
+              btn.textContent = 'Comprar';
+              set(resRef, null).catch(()=>{});
+            }
+          });
+
+          await set(resRef, {
+            itemId: id, itemName: name, type, price,
+            buyerId: auth.currentUser.uid, buyerName: $('p-name').textContent,
+            buyerUsername: $('p-tag').textContent.replace('@',''),
+            status: 'pending', createdAt: Date.now()
+          }).catch(err => {
+            showToast('Error: ' + err.message, 'error');
+            btn.disabled = false; btn.textContent = 'Comprar'; unsub();
+          });
+        });
       };
     });
   }
 
   function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, (m) => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[m]));
+    return String(str).replace(/[&<>"']/g, (m) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
   }
 
   // ================= NAVEGACIÓN =================
   function switchTab(tab) {
+    // ⚡ Renderizar ANTES de mostrar para evitar flash vacío
+    if (tab === 'collection' && collectionDirty) renderCollection(true);
+    if (tab === 'shop' && shopDirty) renderShop(true);
+
     document.querySelectorAll('.nav-item[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.mnav-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const el = $('tab-' + tab);
     if (el) el.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // ⚡ Sin precarga masiva: el IntersectionObserver (800px) ya precarga al vuelo
   }
 
   document.querySelectorAll('.nav-item[data-tab], .mnav-btn[data-tab]').forEach(btn => {
@@ -1322,7 +1192,7 @@
       document.querySelectorAll('#coll-subtabs .subtab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       collectionTab = btn.dataset.coll;
-      renderCollection();
+      renderCollection(true);
     };
   });
 
@@ -1331,7 +1201,7 @@
       document.querySelectorAll('#coll-filters button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentFilter = btn.dataset.f;
-      renderCollection();
+      renderCollection(true);
     };
   });
 
@@ -1340,21 +1210,22 @@
       document.querySelectorAll('#shop-filters button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       shopFilter = btn.dataset.shop;
-      renderShop();
+      renderShop(true);
     };
   });
 
+  // ⚡ Búsqueda con debounce
   const shopSearchInput = $('shop-search');
   const shopSearchClear = $('shop-search-clear');
+  let searchDebounceTimer = null;
 
   shopSearchInput.addEventListener('input', (e) => {
     shopSearchQuery = e.target.value;
-    if (shopSearchQuery.length > 0) {
-      shopSearchClear.classList.add('visible');
-    } else {
-      shopSearchClear.classList.remove('visible');
-    }
-    renderShop();
+    if (shopSearchQuery.length > 0) shopSearchClear.classList.add('visible');
+    else shopSearchClear.classList.remove('visible');
+
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => markShopDirty(), 200);
   });
 
   shopSearchClear.addEventListener('click', () => {
@@ -1362,7 +1233,8 @@
     shopSearchQuery = '';
     shopSearchClear.classList.remove('visible');
     shopSearchInput.focus();
-    renderShop();
+    clearTimeout(searchDebounceTimer);
+    markShopDirty();
   });
 
   // ================= LOGOUT =================
@@ -1378,9 +1250,7 @@
   }
 
   $('btn-logout').onclick = doLogout;
-  document.querySelectorAll('.inline-logout-btn[data-logout]').forEach(btn => {
-    btn.onclick = doLogout;
-  });
+  document.querySelectorAll('.inline-logout-btn[data-logout]').forEach(btn => { btn.onclick = doLogout; });
 
   const codeInputs = [...$('code-inputs').querySelectorAll('input')];
   codeInputs.forEach((inp, i) => {
@@ -1388,8 +1258,8 @@
       inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
       if (inp.value && i < codeInputs.length - 1) codeInputs[i + 1].focus();
     });
-    inp.addEventListener('keydown', (e) => { 
-      if (e.key === 'Backspace' && !inp.value && i > 0) codeInputs[i - 1].focus(); 
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !inp.value && i > 0) codeInputs[i - 1].focus();
     });
   });
 </script>
