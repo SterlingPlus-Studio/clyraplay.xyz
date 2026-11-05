@@ -43,6 +43,9 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    /* ⚡ Promoción de capa: evita que el navegador repinte el fondo al scrollear */
+    transform: translateZ(0);
+    will-change: transform;
     background-image:
       radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.18), transparent 60%),
       radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.22), transparent 60%),
@@ -67,12 +70,12 @@
   /* ============ LOGIN / CODE ============ */
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .login-card {
-    background: var(--surface);
+    /* ⚡ Sin backdrop-filter (pantalla estática, pero elimina una capa compuesta) */
+    background: rgba(22,22,32,0.94);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     padding: 32px;
     width: 100%; max-width: 420px;
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow);
   }
   .logo-hero { text-align: center; margin-bottom: 28px; }
@@ -108,7 +111,7 @@
     color: var(--text);
     font-size: 13px; font-weight: 700;
     cursor: pointer;
-    transition: all .18s;
+    transition: transform .18s, background .18s, border-color .18s, box-shadow .18s, color .18s, opacity .18s;
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   button:hover:not(:disabled) { transform: translateY(-1px); }
@@ -158,13 +161,13 @@
 
   .sidebar {
     width: var(--sidebar-w);
-    background: rgba(15,15,23,.88);
+    /* ⚡ Blur eliminado: fondo casi opaco, mismo look, cero coste GPU */
+    background: rgba(15,15,23,.95);
     border-right: 1px solid var(--border);
     position: fixed; top: 0; bottom: 0;
     padding: 20px 14px;
     z-index: 100;
     display: flex; flex-direction: column; gap: 16px;
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   }
 
   .sidebar-brand {
@@ -224,7 +227,7 @@
     justify-content: flex-start;
     font-size: 13px; font-weight: 600;
     cursor: pointer;
-    transition: all .15s;
+    transition: background .15s, color .15s, border-color .15s;
     margin: 0;
     text-align: left;
   }
@@ -242,7 +245,7 @@
     width: 20px; height: 20px; flex-shrink: 0;
     color: inherit;
   }
-  .icon svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+  .icon svg { width: 100%; height: 100%; display: block; }
 
   .btn-logout {
     background: rgba(239,68,68,.08);
@@ -273,11 +276,11 @@
 
   .profile-header {
     display: flex; align-items: center; gap: 16px;
-    background: var(--surface);
+    /* ⚡ Sin backdrop-filter (se desplaza con el scroll) */
+    background: rgba(22,22,32,0.92);
     padding: 18px 20px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
   }
   .avatar {
     width: 56px; height: 56px; border-radius: 50%;
@@ -329,7 +332,7 @@
     border: 1px solid rgba(239,68,68,.35);
     color: #fca5a5;
     align-items: center; justify-content: center;
-    cursor: pointer; transition: all .15s;
+    cursor: pointer; transition: background .15s, border-color .15s, transform .15s;
     flex-shrink: 0;
   }
   .inline-logout-btn:hover {
@@ -347,14 +350,14 @@
     gap: 12px;
   }
   .stat-box {
-    background: var(--surface);
+    /* ⚡ Sin backdrop-filter */
+    background: rgba(22,22,32,0.92);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 16px 18px;
     display: flex; flex-direction: column; gap: 8px;
     justify-content: center;
     min-height: 92px;
-    backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
     transition: border-color .2s;
@@ -388,11 +391,11 @@
   .minerals-bar {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    background: var(--surface);
+    /* ⚡ Sin backdrop-filter */
+    background: rgba(22,22,32,0.92);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    backdrop-filter: blur(10px);
   }
   .mineral-cell {
     display: flex; align-items: center; gap: 12px;
@@ -436,7 +439,7 @@
     border: 1px solid var(--border);
     color: var(--muted);
     font-size: 12px; font-weight: 700;
-    cursor: pointer; transition: all .15s;
+    cursor: pointer; transition: background .15s, color .15s, border-color .15s;
   }
   .filters button:hover {
     background: rgba(255,255,255,.08);
@@ -449,7 +452,6 @@
     border-color: rgba(236,72,153,.4);
   }
 
-  /* ⚡ Subtabs con esquinas bien redondeadas */
   .subtabs {
     display: inline-flex; gap: 4px;
     margin-bottom: 16px;
@@ -466,7 +468,7 @@
     border: none;
     color: var(--muted);
     font-size: 13px; font-weight: 700;
-    cursor: pointer; transition: all .15s;
+    cursor: pointer; transition: background .15s, color .15s, box-shadow .15s;
     margin: 0; width: auto;
   }
   .subtab:hover { color: var(--text); background: rgba(255,255,255,.05); }
@@ -476,7 +478,6 @@
     box-shadow: 0 2px 8px rgba(236,72,153,.18);
   }
 
-  /* ⚡ Fila que agrupa subtabs + toggles/filtros en la misma línea */
   .shop-header-row {
     display: flex;
     align-items: center;
@@ -503,7 +504,7 @@
     font-size: 12px; font-weight: 700;
     color: var(--muted);
     user-select: none;
-    transition: all .15s;
+    transition: background .15s, border-color .15s;
     margin: 0;
     text-transform: none;
     letter-spacing: 0;
@@ -535,7 +536,7 @@
     width: 14px; height: 14px;
     background: var(--muted);
     border-radius: 50%;
-    transition: all .2s;
+    transition: transform .2s, background .2s;
   }
   .toggle-switch input:checked + .toggle-slider {
     background: linear-gradient(135deg, rgba(236,72,153,.35), rgba(139,92,246,.35));
@@ -604,8 +605,11 @@
     transition: transform .2s, border-color .2s, box-shadow .2s;
     position: relative;
     display: flex; flex-direction: column;
+    /* ⚡ El navegador se salta el render de las tarjetas fuera de pantalla */
     content-visibility: auto;
     contain-intrinsic-size: auto 340px;
+    /* ⚡ Aísla layout/paint de cada tarjeta */
+    contain: layout style;
   }
   .waifu-card:hover {
     transform: translateY(-3px);
@@ -627,13 +631,13 @@
   }
   .waifu-img img.loaded { opacity: 1; }
 
+  /* ⚡ Badges sin backdrop-filter: se mueven con el scroll y el blur era carísimo */
   .waifu-badge {
     position: absolute; top: 8px; right: 8px;
-    background: rgba(0,0,0,.85);
+    background: rgba(0,0,0,.88);
     padding: 4px 9px;
     border-radius: 100px;
     font-size: 11px; font-weight: 800;
-    backdrop-filter: blur(4px);
     border: 1px solid var(--border-2);
     z-index: 2;
     box-shadow: 0 2px 6px rgba(0,0,0,.5);
@@ -641,11 +645,10 @@
 
   .waifu-rarity-badge {
     position: absolute; bottom: 8px; right: 8px;
-    background: rgba(0,0,0,.85);
+    background: rgba(0,0,0,.88);
     padding: 4px 9px;
     border-radius: 100px;
     font-size: 10px; font-weight: 800;
-    backdrop-filter: blur(4px);
     border: 1px solid var(--border-2);
     z-index: 2;
     text-transform: uppercase;
@@ -655,12 +658,11 @@
 
   .waifu-seller-badge {
     position: absolute; bottom: 8px; left: 8px;
-    background: rgba(0,0,0,.85);
+    background: rgba(0,0,0,.88);
     color: var(--gold);
     padding: 4px 9px;
     border-radius: 100px;
     font-size: 10px; font-weight: 700;
-    backdrop-filter: blur(4px);
     border: 1px solid var(--border-2);
     z-index: 2;
     box-shadow: 0 2px 6px rgba(0,0,0,.5);
@@ -691,7 +693,7 @@
     border-radius: 8px;
     cursor: pointer;
     width: 100%;
-    transition: all .15s;
+    transition: transform .15s, box-shadow .15s, border-color .15s, background .15s;
     border: 1.5px solid transparent;
     margin: 0;
     line-height: 1.3;
@@ -746,11 +748,11 @@
     position: fixed;
     bottom: 12px; left: 12px; right: 12px;
     z-index: 300;
-    background: rgba(18,18,28,.94);
+    /* ⚡ Sin blur: es fixed y el contenido pasa por debajo → re-blur cada frame */
+    background: rgba(18,18,28,.97);
     border: 1px solid var(--border-2);
     border-radius: 22px;
     padding: 6px; gap: 4px;
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 10px 40px rgba(0,0,0,.6);
   }
   .mnav-btn {
@@ -764,7 +766,7 @@
     align-items: center; justify-content: center;
     gap: 3px;
     font-size: 10px; font-weight: 700;
-    cursor: pointer; transition: all .15s;
+    cursor: pointer; transition: background .15s, color .15s;
     letter-spacing: .02em;
   }
   .mnav-btn.active {
@@ -791,21 +793,21 @@
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,.7);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); /* solo cuando está abierto */
     display: none;
     align-items: center; justify-content: center;
     z-index: 1000; padding: 20px;
   }
   .modal-overlay.active { display: flex; animation: fadeIn .18s ease; }
   .modal-box {
-    background: var(--surface);
+    /* ⚡ Sin blur (su backdrop ya está desenfocado) */
+    background: rgba(22,22,32,0.97);
     border: 1px solid var(--border-2);
     border-radius: var(--radius-xl);
     padding: 24px;
     width: 100%; max-width: 400px;
     box-shadow: var(--shadow);
     animation: slideUp .22s ease;
-    backdrop-filter: blur(20px);
   }
   .modal-title {
     font-size: 18px; font-weight: 800;
@@ -838,7 +840,7 @@
     padding: 11px 16px;
     border-radius: var(--radius);
     font-size: 13px; font-weight: 700;
-    cursor: pointer; transition: all .15s;
+    cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s;
     border: none; margin: 0;
   }
   .modal-btn.cancel {
@@ -864,13 +866,13 @@
     width: calc(100% - 32px); max-width: 400px;
   }
   .toast {
-    background: var(--surface);
+    /* ⚡ Sin blur, fondo sólido */
+    background: rgba(22,22,32,0.97);
     border: 1px solid var(--border-2);
     padding: 11px 22px;
     border-radius: 100px;
     font-size: 13px; font-weight: 700;
     color: #fff;
-    backdrop-filter: blur(10px);
     box-shadow: var(--shadow);
     animation: slideUp .28s ease;
     transition: opacity .25s, transform .25s;
@@ -1308,6 +1310,9 @@
         if (!img) {
           img = document.createElement('img');
           img.decoding = 'async';
+          img.loading = 'lazy';
+          img.draggable = false;
+          img.alt = '';
           imgContainer.insertBefore(img, imgContainer.firstChild);
         }
         if (img.getAttribute('src') !== url) img.src = url;
@@ -1319,17 +1324,15 @@
     });
   }
 
+  // ⚡ Un solo observer de carga. Ya NO se eliminan las imágenes al salir de pantalla
+  //    (eso causaba mutaciones de DOM y layout thrashing durante el scroll).
   const imageLoadObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => { if (entry.isIntersecting) loadImageForContainer(entry.target); });
-  }, { rootMargin: '800px' });
-
-  const imageUnloadObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) return;
-      const imgTag = entry.target.querySelector('img');
-      if (imgTag && imgTag.classList.contains('loaded')) imgTag.remove();
-    });
-  }, { rootMargin: '1600px' });
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      imageLoadObserver.unobserve(entry.target); // ya no necesita seguimiento
+      loadImageForContainer(entry.target);
+    }
+  }, { rootMargin: '1000px 0px' });
 
   async function getLocalImage(type, target) {
     const cacheKey = `${type}_${target}`;
@@ -1382,14 +1385,12 @@
 
   function observeImg(el) {
     imageLoadObserver.observe(el);
-    imageUnloadObserver.observe(el);
   }
 
   function cleanupGridObservers(grid) {
     if (!grid) return;
     grid.querySelectorAll('.waifu-img').forEach(el => {
       try { imageLoadObserver.unobserve(el); } catch {}
-      try { imageUnloadObserver.unobserve(el); } catch {}
     });
   }
 
@@ -1469,7 +1470,7 @@
     show('screen-panel');
 
     getLocalImage('avatar', uid).then(dataUrl => {
-      const imgHtml = dataUrl ? `<img src="${dataUrl}">` : '?';
+      const imgHtml = dataUrl ? `<img src="${dataUrl}" decoding="async" alt="">` : '?';
       $('p-avatar').innerHTML = imgHtml;
       $('sb-avatar').innerHTML = imgHtml;
     });
@@ -1834,10 +1835,16 @@
               unsub();
               showToast('🎉 ¡Compra exitosa!', 'success');
               requestSync(auth.currentUser.uid);
-              card.style.opacity = '0';
-              card.style.transform = 'scale(0.9)';
-              card.style.transition = 'all .3s';
-              setTimeout(() => card.remove(), 300);
+              const card = btn.closest('.waifu-card');
+              if (card) {
+                card.style.transition = 'opacity .3s, transform .3s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                  try { cleanupGridObservers(card.parentElement); } catch {}
+                  card.remove();
+                }, 300);
+              }
               set(resRef, null).catch(()=>{});
             } else if (res.status === 'error') {
               unsub();
