@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -687,85 +687,134 @@
   }
 
   // ================= LAZY LOAD & CACHE (2 OBSERVERS) =================
-  const imageCache = new Map();
+  const imageCache      = new Map(); // cacheKey -> url | null
+  const pendingRequests = new Map(); // cacheKey -> Promise<url|null>
 
-  // 🟢 Observer de CARGA: precarga 3 filas por debajo (scroll fluido)
+  // ---- Carga real de la imagen para un contenedor ----
+  function loadImageForContainer(imgContainer, attempt = 1) {
+    if (!imgContainer || !imgContainer.isConnected) return;
+    const imgTag = imgContainer.querySelector('img');
+    if (imgTag && imgTag.classList.contains('loaded')) return;
+
+    const type = imgContainer.dataset.type || 'waifu';
+    const name = imgContainer.dataset.name;
+    if (!name) return;
+
+    getLocalImage(type, name).then(url => {
+      if (!imgContainer.isConnected) return;
+
+      if (url) {
+        let img = imgContainer.querySelector('img');
+        if (!img) {
+          img = document.createElement('img');
+          imgContainer.insertBefore(img, imgContainer.firstChild);
+        }
+        if (img.getAttribute('src') !== url) img.src = url;
+        if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
+        else img.onload = () => img.classList.add('loaded');
+      } else if (attempt < 3 && !imageCache.has(`${type}_${name}`)) {
+        // reintentar solo si no fue "not found" cacheado
+        setTimeout(() => loadImageForContainer(imgContainer, attempt + 1), 2000 * attempt);
+      }
+    });
+  }
+
+  // 🟢 Observer de CARGA (entra en viewport + 800px)
   const imageLoadObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const imgContainer = entry.target;
-      const imgTag = imgContainer.querySelector('img');
-      if (imgTag && imgTag.classList.contains('loaded')) return;
-
-      getLocalImage(imgContainer.dataset.type || 'waifu', imgContainer.dataset.name).then(url => {
-        if (url && imgContainer.isConnected) {
-          let img = imgContainer.querySelector('img');
-          if (!img) {
-            img = document.createElement('img');
-            imgContainer.insertBefore(img, imgContainer.firstChild);
-          }
-          img.src = url;
-          img.onload = () => img.classList.add('loaded');
-        }
-      });
+      if (entry.isIntersecting) loadImageForContainer(entry.target);
     });
-  }, { rootMargin: '600px' });
+  }, { rootMargin: '800px' });
 
-  // 🔴 Observer de DESCARGA: elimina la imagen APENAS sale de pantalla
+  // 🔴 Observer de DESCARGA (se aleja >1600px)
   const imageUnloadObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) return;
       const imgTag = entry.target.querySelector('img');
-      if (imgTag && imgTag.classList.contains('loaded')) {
-        imgTag.remove(); // 🧹 libera memoria; la URL sigue guardada en IndexedDB
-      }
+      if (imgTag && imgTag.classList.contains('loaded')) imgTag.remove();
     });
-  }, { rootMargin: '0px' }); // ← 0px = unload inmediato
+  }, { rootMargin: '1600px' });
 
+  // ---- Pedir imagen (deduplicada + cache selectivo) ----
   async function getLocalImage(type, target) {
     const cacheKey = `${type}_${target}`;
+
     if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
+    if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey);
 
-    // 1️⃣ Caché persistente (sobrevive reloads, cierres, etc.)
-    const cached = await idbGetImg(cacheKey);
-    if (cached) {
-      imageCache.set(cacheKey, cached);
-      return cached;
-    }
+    const promise = (async () => {
+      try {
+        const stored = await idbGetImg(cacheKey);
+        if (stored) {
+          imageCache.set(cacheKey, stored);
+          return stored;
+        }
+      } catch {}
 
-    // 2️⃣ Pedir al backend vía Firebase
-    return new Promise((resolve) => {
-      const reqId = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-      const reqRef = ref(db, 'image_requests/' + reqId);
-      const resRef = ref(db, 'image_responses/' + reqId);
+      return new Promise((resolve) => {
+        const reqId  = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const reqRef = ref(db, 'image_requests/'  + reqId);
+        const resRef = ref(db, 'image_responses/' + reqId);
 
-      const unsub = onValue(resRef, (snap) => {
-        const res = snap.val();
-        if (!res) return;
-        unsub();
+        let done = false;
+        let unsub = null;
 
-        let url = null;
-        if (res.success && res.base64) url = `data:image/${res.mime};base64,${res.base64}`;
+        const finish = (url, cacheNull) => {
+          if (done) return;
+          done = true;
+          try { unsub && unsub(); } catch {}
 
-        imageCache.set(cacheKey, url);
-        if (url) idbSetImg(cacheKey, url); // solo cachear éxitos
-        resolve(url);
-        set(resRef, null).catch(()=>{});
+          if (url) {
+            imageCache.set(cacheKey, url);
+            idbSetImg(cacheKey, url);
+          } else if (cacheNull) {
+            imageCache.set(cacheKey, null);
+          }
+
+          set(resRef, null).catch(() => {});
+          resolve(url || null);
+        };
+
+        unsub = onValue(resRef, (snap) => {
+          const res = snap.val();
+          if (!res) return;
+          if (res.success && res.base64) {
+            finish(`data:image/${res.mime};base64,${res.base64}`, false);
+          } else {
+            finish(null, true);
+          }
+        });
+
+        set(reqRef, { type, target, createdAt: Date.now() })
+          .catch(() => finish(null, false));
+
+        setTimeout(() => finish(null, false), 8000);
       });
+    })();
 
-      set(reqRef, { type, target, createdAt: Date.now() }).catch(() => resolve(null));
-      setTimeout(() => { unsub(); resolve(null); }, 12000);
-    });
+    pendingRequests.set(cacheKey, promise);
+    try {
+      return await promise;
+    } finally {
+      pendingRequests.delete(cacheKey);
+    }
   }
 
   async function requestSync(uid) {
     await set(ref(db, 'sync_requests/' + uid), { userId: uid, createdAt: Date.now() }).catch(()=>{});
   }
 
-  // Helper: observar con AMBOS observers
   function observeImg(el) {
     imageLoadObserver.observe(el);
     imageUnloadObserver.observe(el);
+  }
+
+  function cleanupGridObservers(grid) {
+    if (!grid) return;
+    grid.querySelectorAll('.waifu-img').forEach(el => {
+      try { imageLoadObserver.unobserve(el); } catch {}
+      try { imageUnloadObserver.unobserve(el); } catch {}
+    });
   }
 
   // ================= AUTH & LOGIN =================
@@ -903,6 +952,7 @@
     const filters = $('coll-filters-wrap');
     if (!grid) return;
 
+    cleanupGridObservers(grid);
     grid.innerHTML = ''; 
 
     if (collectionTab === 'waifus') {
@@ -1113,6 +1163,7 @@
     const grid = $('shop-grid');
     if (!grid) return;
 
+    cleanupGridObservers(grid);
     grid.innerHTML = '';
     
     const currentUserId = auth.currentUser?.uid;
@@ -1259,16 +1310,7 @@
     const el = $('tab-' + tab);
     if (el) el.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // ⚡ Prefetch proactivo
-    setTimeout(() => {
-      document.querySelectorAll(`#tab-${tab} .waifu-img[data-name]`).forEach(el => {
-        const img = el.querySelector('img');
-        if (!img || !img.classList.contains('loaded')) {
-          getLocalImage(el.dataset.type || 'waifu', el.dataset.name);
-        }
-      });
-    }, 60);
+    // ⚡ Sin precarga masiva: el IntersectionObserver (800px) ya precarga al vuelo
   }
 
   document.querySelectorAll('.nav-item[data-tab], .mnav-btn[data-tab]').forEach(btn => {
@@ -1329,7 +1371,8 @@
       if (unsubProfile) unsubProfile();
       if (unsubGameData) unsubGameData();
       if (unsubShopData) unsubShopData();
-      imageCache.clear(); // RAM sí; IndexedDB NO (útil en re-login)
+      imageCache.clear();
+      pendingRequests.clear();
     } catch (e) {}
     signOut(auth).catch(() => {}).finally(() => window.location.reload());
   }
