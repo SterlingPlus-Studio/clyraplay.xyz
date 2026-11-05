@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a0a0f">
-<title>Jinx Waifus Web</title>
+<title>SentinelCollection</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <link rel="preload" as="font" type="font/ttf" href="https://raw.githubusercontent.com/SterlingPlus-Studio/clyraplay.xyz/main/Fuente/fuente.ttf" crossorigin>
@@ -17,23 +17,26 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'ClyraPlay', -apple-system, sans-serif !important; }
   :root{
     --pink:#ec4899; --purple:#8b5cf6; --cyan:#06b6d4; --gold:#f59e0b;
-    --bg:#0a0a0f; --surface:rgba(20,20,30,0.85);
+    --bg:#0a0a0f; --surface:rgba(20,20,30,0.85); --surface-2:#191920; --surface-3:#212129;
     --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.12);
     --text:#f5f5f7; --text-2:#c7c7d2; --muted:#8b8b9e;
     --comun:#ffb6c1; --rara:#fb7185; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee;
-    --sidebar-w: 260px;
-    --radius: 14px; --radius-lg: 20px;
+    --sidebar-w: 240px;
+    --radius: 10px; --radius-lg: 16px; --radius-xl: 20px;
     --shadow: 0 4px 20px rgba(0,0,0,.35);
+    --shadow-glow: 0 4px 16px rgba(236,72,153,.25);
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes shimmer { 0%{background-position: -200% 0} 100%{background-position: 200% 0} }
 
   html, body { overflow-x: hidden; }
   body {
     color: var(--text); background: var(--bg); min-height: 100vh;
+    font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
-  /* ⚡ Gradientes como pseudo-elemento fixed (evita jank de background-attachment:fixed) */
   body::before {
     content: '';
     position: fixed;
@@ -41,191 +44,842 @@
     z-index: -1;
     pointer-events: none;
     background-image:
-      radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.16), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.20), transparent 60%);
+      radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.18), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.22), transparent 60%),
+      radial-gradient(ellipse 600px 500px at 50% 100%, rgba(6,182,212,.10), transparent 60%);
   }
 
   .screen { display: none; width: 100%; min-height: 100vh; }
-  .screen.active { display: block; animation: slideUp .35s ease; }
+  .screen.active { display: block; animation: fadeIn .25s ease; }
 
+  /* ============ LOADING ============ */
   .loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .loading-spinner { width: 64px; height: 64px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--pink); border-right-color: var(--purple); animation: spin 1s linear infinite; margin-bottom: 20px; }
-  
-  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 440px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: var(--shadow); }
-  .logo-hero { text-align: center; margin-bottom: 24px; }
-  .logo-hero .l1 { font-size: 34px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink)); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite; text-transform: uppercase; }
-  
-  label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
-  input { width: 100%; padding: 13px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--text); font-size: 15px; outline: none; }
-  input:focus { border-color: var(--purple); }
-  button { width: 100%; padding: 14px; border: none; border-radius: var(--radius); background: linear-gradient(135deg, var(--pink), var(--purple)); color: white; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; transition: .2s; }
-  button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(236,72,153,.3); }
+  .loading-spinner {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--pink);
+    border-right-color: var(--purple);
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  .loading-label { font-size: 11px; color: var(--muted); letter-spacing: .25em; text-transform: uppercase; font-weight: 700; }
+
+  /* ============ LOGIN / CODE ============ */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    width: 100%; max-width: 420px;
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow);
+  }
+  .logo-hero { text-align: center; margin-bottom: 28px; }
+  .logo-hero .l1 {
+    font-size: 26px; font-weight: 900;
+    background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink));
+    background-size: 200% auto;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+    text-transform: uppercase; letter-spacing: -0.01em;
+  }
+  .logo-hero .l2 { font-size: 10px; color: var(--muted); margin-top: 8px; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; }
+
+  label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: .05em; }
+
+  input {
+    width: 100%; padding: 12px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,.3);
+    color: var(--text);
+    font-size: 15px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input::placeholder { color: var(--muted); }
+  input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(139,92,246,.15); }
+
+  button {
+    padding: 11px 18px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer;
+    transition: all .18s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  button:hover:not(:disabled) { transform: translateY(-1px); }
   button:disabled { opacity: .5; cursor: not-allowed; }
-  .msg { margin-top: 14px; padding: 12px; border-radius: var(--radius); font-size: 13px; display: none; font-weight: 600; }
-  .msg.err { display: block; background: rgba(239,68,68,.1); color: #fca5a5; }
-  .msg.ok { display: block; background: rgba(16,185,129,.1); color: #6ee7b7; }
-  .code-inputs { display: flex; gap: 6px; justify-content: center; margin: 20px 0; }
-  .code-inputs input { width: 46px; height: 58px; text-align: center; font-size: 22px; font-weight: 800; padding: 0; }
 
+  button.btn-primary {
+    width: 100%; margin-top: 16px;
+    padding: 13px 18px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(236,72,153,.25);
+  }
+  button.btn-primary:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(236,72,153,.4);
+  }
+  button.btn-secondary {
+    width: 100%; margin-top: 8px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+  }
+  button.btn-secondary:hover:not(:disabled) {
+    background: rgba(255,255,255,.08);
+    border-color: var(--border-2);
+  }
+
+  .msg {
+    margin-top: 14px; padding: 11px 14px;
+    border-radius: var(--radius);
+    font-size: 13px; display: none;
+    font-weight: 600;
+    border: 1px solid;
+    line-height: 1.4;
+  }
+  .msg.err { display: block; background: rgba(239,68,68,.1); color: #fca5a5; border-color: rgba(239,68,68,.25); }
+  .msg.ok { display: block; background: rgba(16,185,129,.1); color: #6ee7b7; border-color: rgba(16,185,129,.25); }
+
+  .code-inputs { display: flex; gap: 8px; justify-content: center; margin: 22px 0; }
+  .code-inputs input {
+    width: 46px; height: 56px;
+    text-align: center;
+    font-size: 22px; font-weight: 800;
+    padding: 0;
+  }
+
+  /* ============ LAYOUT ============ */
   .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: var(--sidebar-w); background: rgba(15,15,23,.95); border-right: 1px solid var(--border); position: fixed; top: 0; bottom: 0; padding: 20px 14px; z-index: 100; display: flex; flex-direction: column; }
-  .sidebar-brand { padding: 0 10px 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-  .sidebar-brand .logo { font-size: 22px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,.03); border-radius: var(--radius); margin-bottom: 20px; border: 1px solid var(--border); }
-  .sidebar-user .avatar-sm { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: 700; overflow: hidden; }
-  .sidebar-user .avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+
+  .sidebar {
+    width: var(--sidebar-w);
+    background: rgba(15,15,23,.88);
+    border-right: 1px solid var(--border);
+    position: fixed; top: 0; bottom: 0;
+    padding: 20px 14px;
+    z-index: 100;
+    display: flex; flex-direction: column; gap: 16px;
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  }
+
+  .sidebar-brand {
+    padding: 4px 8px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-brand .logo {
+    font-size: 15px; font-weight: 900;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.01em;
+  }
+
+  .sidebar-user {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px;
+    background: rgba(255,255,255,.03);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .avatar-sm {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    overflow: hidden; flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,.15);
+  }
+  .avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
   .sidebar-user .info { flex: 1; min-width: 0; }
-  .sidebar-user .uname { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
-  .sidebar-user .utag { color: var(--muted); font-size: 11px; }
+  .sidebar-user .uname {
+    font-weight: 700; font-size: 13px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+  }
+  .sidebar-user .utag {
+    color: var(--muted); font-size: 11px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
 
-  .nav-group { display: flex; flex-direction: column; gap: 2px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); padding: 6px; margin-bottom: 20px; }
-  .nav-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; background: transparent; color: var(--text-2); border: none; justify-content: flex-start; font-size: 14px; cursor: pointer; font-weight: 600; transition: .2s; margin: 0; }
+  .nav-group {
+    display: flex; flex-direction: column; gap: 2px;
+    background: rgba(0,0,0,.2);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: var(--radius);
+    padding: 6px;
+  }
+
+  .nav-item {
+    width: 100%;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-2);
+    border: none;
+    justify-content: flex-start;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    margin: 0;
+    text-align: left;
+  }
   .nav-item:hover { background: rgba(255,255,255,.06); color: var(--text); }
-  .nav-item.active { background: linear-gradient(135deg, rgba(236,72,153,.15), rgba(139,92,246,.15)); color: var(--text); border-left: 3px solid var(--pink); }
-  
-  .icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; }
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(236,72,153,.18), rgba(139,92,246,.18));
+    color: var(--text);
+    border-left: 3px solid var(--pink);
+    padding-left: 9px;
+  }
+  .nav-item.active .icon { color: var(--pink); }
 
-  .btn-logout { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; margin-top: auto; border-radius: var(--radius); padding: 12px 14px; }
-  .btn-logout:hover { background: rgba(239,68,68,.2); }
+  .icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; flex-shrink: 0;
+    color: inherit;
+  }
+  .icon svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
 
-  .main { flex: 1; margin-left: var(--sidebar-w); padding: 24px 30px; width: 100%; max-width: 1200px; margin-right: auto; }
+  .btn-logout {
+    background: rgba(239,68,68,.08);
+    border: 1px solid rgba(239,68,68,.25);
+    color: #fca5a5;
+    margin-top: auto;
+    padding: 10px 12px;
+    justify-content: flex-start;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .btn-logout:hover {
+    background: rgba(239,68,68,.16);
+    border-color: rgba(239,68,68,.4);
+  }
+
+  /* ============ MAIN ============ */
+  .main {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    padding: 24px 28px;
+    width: 100%; max-width: 1280px;
+    margin-right: auto;
+  }
+
   .tab-content { display: none; }
-  .tab-content.active { display: block; animation: slideUp .3s ease; }
-  
-  .profile-header { display: flex; align-items: center; gap: 16px; background: var(--surface); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-  .avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; border: 2px solid rgba(255,255,255,.2); overflow: hidden; flex-shrink: 0; }
+  .tab-content.active { display: block; animation: fadeIn .2s ease; }
+
+  .profile-header {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--surface);
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800;
+    border: 2px solid rgba(255,255,255,.2);
+    overflow: hidden; flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(236,72,153,.25);
+  }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
   .profile-info { flex: 1; min-width: 0; }
-  .profile-info .name { font-size: 22px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .profile-info .tag { font-size: 14px; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .profile-info .name {
+    font-size: 18px; font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .profile-info .tag {
+    font-size: 13px; color: var(--muted);
+    margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
 
-  .section-title { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 24px 0 12px 0; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .section-title::before { content: ''; width: 3px; height: 12px; background: linear-gradient(180deg, var(--pink), var(--purple)); border-radius: 3px; flex-shrink: 0; }
-  #tab-collection .section-title, #tab-shop .section-title { margin-top: 0; margin-bottom: 10px; }
+  .section-title {
+    font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 24px 0 12px 0;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::before {
+    content: '';
+    width: 3px; height: 12px;
+    background: linear-gradient(180deg, var(--pink), var(--purple));
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  #tab-collection .section-title,
+  #tab-shop .section-title { margin-top: 0; margin-bottom: 14px; }
 
   .inline-logout-btn {
     display: none;
-    width: 34px; height: 34px;
-    margin: 0 0 0 auto; padding: 0;
+    width: 32px; height: 32px;
+    margin: 0 0 0 auto;
+    padding: 0;
     border-radius: 50%;
     background: rgba(239,68,68,.15);
-    border: 1px solid rgba(239,68,68,.4);
+    border: 1px solid rgba(239,68,68,.35);
     color: #fca5a5;
     align-items: center; justify-content: center;
-    cursor: pointer; transition: all .2s;
+    cursor: pointer; transition: all .15s;
     flex-shrink: 0;
   }
-  .inline-logout-btn:hover { background: rgba(239,68,68,.3); border-color: rgba(239,68,68,.65); }
-  .inline-logout-btn .icon { width: 18px; height: 18px; }
-  .inline-logout-btn .icon svg { width: 18px; height: 18px; }
+  .inline-logout-btn:hover {
+    background: rgba(239,68,68,.28);
+    border-color: rgba(239,68,68,.55);
+    transform: scale(.94);
+  }
+  .inline-logout-btn .icon,
+  .inline-logout-btn .icon svg { width: 16px; height: 16px; }
 
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
-  .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .stat-num { font-size: 24px; font-weight: 800; color: var(--text); }
-  .stat-lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  /* ============ STATS ============ */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 8px;
+    justify-content: center;
+    min-height: 92px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, currentColor, transparent 70%);
+    opacity: .08;
+    pointer-events: none;
+  }
+  .stat-box:hover { border-color: var(--border-2); }
+  .stat-lbl {
+    font-size: 11px; color: var(--text-2);
+    text-transform: uppercase; font-weight: 700;
+    letter-spacing: .06em;
+    display: flex; align-items: center; gap: 8px;
+    position: relative;
+  }
+  .stat-lbl .icon { width: 16px; height: 16px; }
+  .stat-lbl .icon svg { width: 16px; height: 16px; }
+  .stat-num {
+    font-size: 28px; font-weight: 900;
+    letter-spacing: -0.02em; line-height: 1;
+    color: var(--text);
+    position: relative;
+  }
 
-  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
-  .filters button { width: auto; margin: 0; padding: 6px 14px; border-radius: 100px; background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; }
-  .filters button:hover, .filters button.active { background: rgba(255,255,255,.1); color: var(--text); border-color: var(--border-2); }
+  /* ============ MINERALES ============ */
+  .minerals-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  .mineral-cell {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 18px;
+    border-right: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .mineral-cell:hover { background: rgba(255,255,255,.02); }
+  .mineral-cell:last-child { border-right: none; }
+  .mineral-cell .icon { width: 22px; height: 22px; flex-shrink: 0; }
+  .mineral-cell .icon svg { width: 22px; height: 22px; }
+  .mineral-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .mineral-val {
+    font-size: 17px; font-weight: 800;
+    letter-spacing: -0.01em; line-height: 1.15;
+    color: var(--text);
+  }
+  .mineral-lbl {
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em; font-weight: 700;
+  }
 
-  .subtabs { display: flex; gap: 8px; margin-bottom: 18px; }
-  .subtab { flex: 1; padding: 10px; border-radius: var(--radius); background: rgba(255,255,255,.03); border: 1px solid var(--border); color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer; transition: .2s; text-align: center; }
-  .subtab:hover { background: rgba(255,255,255,.06); color: var(--text); }
-  .subtab.active { background: linear-gradient(135deg, rgba(236,72,153,.2), rgba(139,92,246,.2)); color: var(--text); border-color: var(--pink); }
+  @media (max-width: 640px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .minerals-bar { grid-template-columns: 1fr; }
+    .mineral-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    .mineral-cell:last-child { border-bottom: none; }
+  }
 
+  /* ============ FILTROS / SUBTABS ============ */
+  .filters {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .filters button {
+    width: auto; margin: 0;
+    padding: 6px 14px;
+    border-radius: 100px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+  }
+  .filters button:hover {
+    background: rgba(255,255,255,.08);
+    color: var(--text);
+    border-color: var(--border-2);
+  }
+  .filters button.active {
+    background: linear-gradient(135deg, rgba(236,72,153,.2), rgba(139,92,246,.2));
+    color: var(--text);
+    border-color: rgba(236,72,153,.4);
+  }
+
+  /* ⚡ Subtabs con esquinas bien redondeadas */
+  .subtabs {
+    display: inline-flex; gap: 4px;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 5px;
+    overflow: hidden;
+  }
+  .subtab {
+    padding: 8px 18px;
+    border-radius: 11px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+    margin: 0; width: auto;
+  }
+  .subtab:hover { color: var(--text); background: rgba(255,255,255,.05); }
+  .subtab.active {
+    background: linear-gradient(135deg, rgba(236,72,153,.28), rgba(139,92,246,.28));
+    color: var(--text);
+    box-shadow: 0 2px 8px rgba(236,72,153,.18);
+  }
+
+  /* ⚡ Fila que agrupa subtabs + toggles/filtros en la misma línea */
+  .shop-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .shop-header-row .subtabs { margin-bottom: 0; }
+  .shop-header-row .shop-toggles { margin-bottom: 0; }
+  .shop-header-row .filters { margin-bottom: 0; }
+
+  /* ============ SHOP TOGGLES ============ */
+  .shop-toggles {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .toggle-switch {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 9px 16px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 12px; font-weight: 700;
+    color: var(--muted);
+    user-select: none;
+    transition: all .15s;
+    margin: 0;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .toggle-switch:hover {
+    background: rgba(255,255,255,.06);
+    border-color: var(--border-2);
+  }
+  .toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0; height: 0;
+    padding: 0; margin: 0;
+  }
+  .toggle-switch .toggle-slider {
+    position: relative;
+    width: 32px; height: 18px;
+    background: rgba(255,255,255,.12);
+    border-radius: 100px;
+    transition: background .2s;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .toggle-switch .toggle-slider::before {
+    content: '';
+    position: absolute;
+    top: 1px; left: 1px;
+    width: 14px; height: 14px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: all .2s;
+  }
+  .toggle-switch input:checked + .toggle-slider {
+    background: linear-gradient(135deg, rgba(236,72,153,.35), rgba(139,92,246,.35));
+    border-color: rgba(236,72,153,.4);
+  }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(14px);
+    background: #fff;
+  }
+  .toggle-switch input:checked ~ .toggle-label {
+    color: var(--text);
+  }
+
+  /* ============ SEARCH ============ */
   .shop-search { position: relative; margin-bottom: 12px; }
-  .shop-search input { padding-left: 42px; padding-right: 42px; font-size: 14px; }
-  .shop-search::before { content: '🔍'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; opacity: .65; z-index: 1; }
-  .shop-search .clear-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; margin: 0; padding: 0; border-radius: 50%; background: rgba(255,255,255,.08); color: var(--muted); font-size: 14px; font-weight: 700; display: none; align-items: center; justify-content: center; z-index: 2; }
-  .shop-search .clear-btn:hover { background: rgba(255,255,255,.16); color: var(--text); }
+  .shop-search input {
+    padding-left: 42px; padding-right: 42px;
+    font-size: 14px;
+    background: rgba(0,0,0,.3);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  .shop-search input:focus {
+    border-color: var(--purple);
+    box-shadow: 0 0 0 3px rgba(139,92,246,.15);
+  }
+  .shop-search::before {
+    content: '🔍';
+    position: absolute;
+    left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none; opacity: .65; z-index: 1;
+  }
+  .shop-search .clear-btn {
+    position: absolute;
+    right: 10px; top: 50%; transform: translateY(-50%);
+    width: 26px; height: 26px;
+    margin: 0; padding: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    border: none;
+    color: var(--muted);
+    font-size: 13px; font-weight: 700;
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 2;
+  }
+  .shop-search .clear-btn:hover { background: rgba(255,255,255,.16); color: var(--text); transform: translateY(-50%) scale(1.05); }
   .shop-search .clear-btn.visible { display: flex; }
 
-  .waifu-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-  @media (max-width: 1100px) { .waifu-grid { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 850px) { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 550px) { .waifu-grid { grid-template-columns: repeat(2, 1fr); } }
-
-  /* ⚡ Optimización: content-visibility salta paint de tarjetas fuera de pantalla */
-  .waifu-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden; transition: border-color .2s, box-shadow .2s;
-    position: relative; display: flex; flex-direction: column;
-    content-visibility: auto;
-    contain-intrinsic-size: auto 350px;
+  /* ============ GRID + CARDS ============ */
+  .waifu-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
   }
-  .waifu-card:hover { border-color: var(--border-2); box-shadow: var(--shadow); }
-  
-  .waifu-img { width: 100%; aspect-ratio: 3/4; background: #111; display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative; overflow: hidden; }
-  .waifu-img img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .3s ease; }
+  @media (max-width: 1100px) { .waifu-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 850px)  { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 550px)  { .waifu-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .waifu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+    position: relative;
+    display: flex; flex-direction: column;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 340px;
+  }
+  .waifu-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-2);
+    box-shadow: var(--shadow);
+  }
+
+  .waifu-img {
+    width: 100%; aspect-ratio: 3/4;
+    background: #111;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+    position: relative; overflow: hidden;
+  }
+  .waifu-img img {
+    width: 100%; height: 100%;
+    object-fit: cover; opacity: 0;
+    transition: opacity .3s ease;
+  }
   .waifu-img img.loaded { opacity: 1; }
-  
-  .waifu-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.85); padding: 4px 8px; border-radius: 100px; font-size: 11px; font-weight: 800; border: 1px solid var(--border-2); z-index: 2; }
-  .waifu-rarity-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.85); padding: 4px 8px; border-radius: 100px; font-size: 10px; font-weight: 800; border: 1px solid var(--border-2); z-index: 2; text-transform: uppercase; letter-spacing: 0.5px; }
-  .waifu-seller-badge { position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,.85); color: var(--gold); padding: 4px 8px; border-radius: 100px; font-size: 10px; font-weight: 700; border: 1px solid var(--border-2); z-index: 2; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  .waifu-info { padding: 8px 6px; text-align: center; border-top: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; gap: 8px; min-height: 64px; flex-shrink: 0; }
-  .waifu-info.shop-info { min-height: 64px; justify-content: space-between; padding: 8px 6px; }
+  .waifu-badge {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,.85);
+    padding: 4px 9px;
+    border-radius: 100px;
+    font-size: 11px; font-weight: 800;
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-2);
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  }
 
-  .waifu-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; line-height: 1.2; display: block; }
-  
-  .btn-buy, .btn-sell, .btn-toggle { padding: 8px; font-size: 11px; margin-top: 0; border-radius: 8px; color: white; font-weight: 700; cursor: pointer; width: 100%; transition: border-color .2s, background .2s; border: 1.5px solid transparent; }
-  .btn-buy { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
-  .btn-buy:hover { border-color: #6ee7b7; }
-  .btn-sell { background: linear-gradient(135deg, #f59e0b, #d97706); border-color: #fbbf24; }
-  .btn-sell:hover { border-color: #fcd34d; }
-  .btn-toggle.active { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; }
-  .btn-toggle.inactive { background: rgba(255,255,255,.1); border-color: var(--border-2); color: var(--muted); }
-  .btn-toggle.inactive:hover { background: linear-gradient(135deg, #10b981, #059669); border-color: #34d399; color: white; }
+  .waifu-rarity-badge {
+    position: absolute; bottom: 8px; right: 8px;
+    background: rgba(0,0,0,.85);
+    padding: 4px 9px;
+    border-radius: 100px;
+    font-size: 10px; font-weight: 800;
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-2);
+    z-index: 2;
+    text-transform: uppercase;
+    box-shadow: 0 2px 6px rgba(0,0,0,.5);
+    letter-spacing: .06em;
+  }
 
-  .waifu-card[data-r="comun"] .waifu-rarity-badge { color: var(--comun); }
-  .waifu-card[data-r="rara"] .waifu-rarity-badge { color: var(--rara); }
-  .waifu-card[data-r="epica"] .waifu-rarity-badge { color: var(--epica); }
+  .waifu-seller-badge {
+    position: absolute; bottom: 8px; left: 8px;
+    background: rgba(0,0,0,.85);
+    color: var(--gold);
+    padding: 4px 9px;
+    border-radius: 100px;
+    font-size: 10px; font-weight: 700;
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--border-2);
+    z-index: 2;
+    box-shadow: 0 2px 6px rgba(0,0,0,.5);
+    max-width: 60%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .waifu-info {
+    padding: 10px 8px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 8px;
+    min-height: 72px; flex-shrink: 0;
+  }
+  .waifu-info.shop-info { justify-content: space-between; }
+
+  .waifu-name {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: -0.01em; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--text);
+  }
+
+  .btn-buy, .btn-sell, .btn-toggle {
+    padding: 8px 10px;
+    font-size: 11px; font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: all .15s;
+    border: 1.5px solid transparent;
+    margin: 0;
+    line-height: 1.3;
+  }
+  .btn-buy {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #34d399;
+    color: #fff;
+  }
+  .btn-buy:hover { border-color: #6ee7b7; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(16,185,129,.3); }
+
+  .btn-sell {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #fbbf24;
+    color: #fff;
+  }
+  .btn-sell:hover { border-color: #fcd34d; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(245,158,11,.3); }
+
+  .btn-toggle.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #34d399;
+    color: #fff;
+  }
+  .btn-toggle.active:hover {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #f87171;
+  }
+  .btn-toggle.inactive {
+    background: rgba(255,255,255,.08);
+    border-color: var(--border-2);
+    color: var(--muted);
+  }
+  .btn-toggle.inactive:hover {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #34d399;
+    color: #fff;
+  }
+
+  .waifu-card[data-r="comun"]      .waifu-rarity-badge { color: var(--comun); }
+  .waifu-card[data-r="rara"]       .waifu-rarity-badge { color: var(--rara); }
+  .waifu-card[data-r="epica"]      .waifu-rarity-badge { color: var(--epica); }
   .waifu-card[data-r="legendaria"] .waifu-rarity-badge { color: var(--legendaria); }
-  .waifu-card[data-r="exclusiva"] .waifu-rarity-badge { color: var(--exclusiva); }
+  .waifu-card[data-r="exclusiva"]  .waifu-rarity-badge { color: var(--exclusiva); }
 
+  .waifu-card[data-r="legendaria"]:hover { border-color: rgba(251,191,36,.4); box-shadow: 0 4px 16px rgba(251,191,36,.15); }
+  .waifu-card[data-r="exclusiva"]:hover  { border-color: rgba(34,211,238,.4); box-shadow: 0 4px 16px rgba(34,211,238,.15); }
+  .waifu-card[data-r="epica"]:hover      { border-color: rgba(167,139,250,.4); box-shadow: 0 4px 16px rgba(167,139,250,.15); }
+
+  /* ============ MOBILE NAV ============ */
   .mobile-nav {
     display: none;
-    position: fixed; bottom: 14px; left: 14px; right: 14px; z-index: 300;
-    background: rgba(18,18,28,.98);
+    position: fixed;
+    bottom: 12px; left: 12px; right: 12px;
+    z-index: 300;
+    background: rgba(18,18,28,.94);
     border: 1px solid var(--border-2);
-    border-radius: 22px; padding: 6px; gap: 4px;
+    border-radius: 22px;
+    padding: 6px; gap: 4px;
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 10px 40px rgba(0,0,0,.6);
   }
-  .mnav-btn { flex: 1; margin: 0; padding: 8px 4px; border-radius: 16px; background: transparent; color: var(--muted); border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 700; cursor: pointer; transition: all .2s; letter-spacing: .3px; }
-  .mnav-btn .icon { width: 22px; height: 22px; }
-  .mnav-btn .icon svg { width: 22px; height: 22px; }
-  .mnav-btn.active { background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22)); color: var(--text); }
+  .mnav-btn {
+    flex: 1; margin: 0;
+    padding: 8px 4px;
+    border-radius: 16px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px;
+    font-size: 10px; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+    letter-spacing: .02em;
+  }
+  .mnav-btn.active {
+    background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22));
+    color: var(--text);
+  }
+  .mnav-btn.active .icon { color: var(--pink); }
+  .mnav-btn .icon,
+  .mnav-btn .icon svg { width: 20px; height: 20px; }
 
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); }
-    .main { margin-left: 0; padding: 20px 15px; padding-bottom: 110px; }
+    .main { margin-left: 0; padding: 20px 16px 100px; }
     .mobile-nav { display: flex; }
     .inline-logout-btn { display: flex; }
-    .profile-info .name { font-size: 18px; }
-    .avatar { width: 60px; height: 60px; font-size: 22px; }
+    .profile-info .name { font-size: 16px; }
+    .avatar { width: 48px; height: 48px; font-size: 17px; }
+    .stat-num { font-size: 22px; }
+    .stat-box { min-height: 78px; padding: 14px 16px; }
+    .section-title { margin-top: 20px; }
   }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-  .modal-overlay.active { display: flex; animation: slideUp .2s ease; }
-  .modal-box { background: var(--surface); border: 1px solid var(--border-2); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow); }
-  .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; background: linear-gradient(90deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .modal-desc { font-size: 14px; color: var(--text-2); margin-bottom: 16px; line-height: 1.5; white-space: pre-line; }
-  .modal-input { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--text); margin-bottom: 16px; font-size: 16px; }
-  .modal-input:focus { border-color: var(--pink); outline: none; }
+  /* ============ MODALES ============ */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; animation: fadeIn .18s ease; }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-xl);
+    padding: 24px;
+    width: 100%; max-width: 400px;
+    box-shadow: var(--shadow);
+    animation: slideUp .22s ease;
+    backdrop-filter: blur(20px);
+  }
+  .modal-title {
+    font-size: 18px; font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .modal-desc {
+    font-size: 13px; color: var(--text-2);
+    margin-bottom: 16px;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  .modal-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,.3);
+    color: var(--text);
+    margin-bottom: 16px;
+    font-size: 16px;
+    outline: none;
+  }
+  .modal-input:focus { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(236,72,153,.15); }
   .modal-actions { display: flex; gap: 10px; }
-  .modal-btn { flex: 1; padding: 12px; border-radius: var(--radius); font-weight: 700; cursor: pointer; border: none; transition: .2s; margin: 0; font-size: 14px; }
-  .modal-btn.cancel { background: rgba(255,255,255,.1); color: var(--text); }
-  .modal-btn.cancel:hover { background: rgba(255,255,255,.2); }
-  .modal-btn.accept { background: linear-gradient(135deg, var(--pink), var(--purple)); color: white; }
-  .modal-btn.accept:hover { transform: translateY(-1px); }
+  .modal-btn {
+    flex: 1;
+    padding: 11px 16px;
+    border-radius: var(--radius);
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+    border: none; margin: 0;
+  }
+  .modal-btn.cancel {
+    background: rgba(255,255,255,.1);
+    color: var(--text);
+  }
+  .modal-btn.cancel:hover { background: rgba(255,255,255,.16); }
+  .modal-btn.accept {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(236,72,153,.3);
+  }
+  .modal-btn.accept:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(236,72,153,.4); }
 
-  .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: calc(100% - 32px); max-width: 380px; }
-  .toast { background: var(--surface); border: 1px solid var(--border-2); padding: 12px 24px; border-radius: 100px; font-size: 14px; font-weight: 700; color: white; box-shadow: var(--shadow); animation: slideUp .3s ease; transition: opacity .3s, transform .3s; text-align: center; }
+  /* ============ TOASTS ============ */
+  .toast-container {
+    position: fixed;
+    bottom: 100px; left: 50%; transform: translateX(-50%);
+    z-index: 2000;
+    display: flex; flex-direction: column; gap: 10px;
+    align-items: center;
+    pointer-events: none;
+    width: calc(100% - 32px); max-width: 400px;
+  }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    padding: 11px 22px;
+    border-radius: 100px;
+    font-size: 13px; font-weight: 700;
+    color: #fff;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+    animation: slideUp .28s ease;
+    transition: opacity .25s, transform .25s;
+    text-align: center;
+  }
   .toast.error { border-color: #ef4444; color: #fca5a5; }
   .toast.success { border-color: #10b981; color: #6ee7b7; }
 
-  @media (min-width: 769px) { .toast-container { bottom: 20px; } }
+  @media (min-width: 769px) { .toast-container { bottom: 24px; } }
 </style>
 </head>
 <body>
@@ -246,17 +900,20 @@
 <div id="screen-loading" class="screen active">
   <div class="loading-screen">
     <div class="loading-spinner"></div>
-    <div style="font-size:12px; color:var(--muted); letter-spacing:2px;">CARGANDO...</div>
+    <div class="loading-label">Cargando</div>
   </div>
 </div>
 
 <div id="screen-login" class="screen">
   <div class="login-wrap">
     <div class="login-card">
-      <div class="logo-hero"><div class="l1">Jinx Waifus</div><div class="l2" style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;">◢ Web Edition ◣</div></div>
+      <div class="logo-hero">
+        <div class="l1">SentinelCollection</div>
+        <div class="l2">◢ Web Edition ◣</div>
+      </div>
       <label for="identifier">@Usuario de Telegram</label>
       <input id="identifier" type="text" placeholder="@tunombre" autocomplete="username">
-      <button id="btn-request">Enviar código</button>
+      <button id="btn-request" class="btn-primary">✨ Enviar código</button>
       <div id="msg-login" class="msg"></div>
     </div>
   </div>
@@ -265,14 +922,17 @@
 <div id="screen-code" class="screen">
   <div class="login-wrap">
     <div class="login-card">
-      <div class="logo-hero"><div class="l1">Verificación</div></div>
+      <div class="logo-hero">
+        <div class="l1">Verificación</div>
+        <div class="l2">Ingresa el código</div>
+      </div>
       <div class="code-inputs" id="code-inputs">
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
         <input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric">
       </div>
-      <button id="btn-verify">Verificar</button>
-      <button id="btn-back" style="background:rgba(255,255,255,.05); margin-top:8px;">Volver</button>
+      <button id="btn-verify" class="btn-primary">🔓 Verificar</button>
+      <button id="btn-back" class="btn-secondary">Volver</button>
       <div id="msg-code" class="msg"></div>
     </div>
   </div>
@@ -281,7 +941,7 @@
 <div id="screen-panel" class="screen">
   <div class="layout">
     <aside class="sidebar">
-      <div class="sidebar-brand"><div class="logo">Jinx Waifus</div></div>
+      <div class="sidebar-brand"><div class="logo">SentinelCollection</div></div>
       <div class="sidebar-user">
         <div class="avatar-sm" id="sb-avatar">?</div>
         <div class="info">
@@ -289,7 +949,7 @@
           <div class="utag" id="sb-tag">—</div>
         </div>
       </div>
-      
+
       <div class="nav-group">
         <button class="nav-item active" data-tab="profile"><span class="icon" data-icon="user"></span> Perfil</button>
         <button class="nav-item" data-tab="collection"><span class="icon" data-icon="package"></span> Mi Colección</button>
@@ -300,7 +960,7 @@
     </aside>
 
     <div class="main">
-      
+
       <div id="tab-profile" class="tab-content active">
         <div class="profile-header">
           <div class="avatar" id="p-avatar">?</div>
@@ -313,35 +973,44 @@
           </button>
         </div>
 
-        <div class="section-title">Estadísticas de Jinx</div>
+        <div class="section-title">Resumen</div>
         <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-num" id="stat-coins" style="color:var(--gold)">0</div>
+          <div class="stat-box" style="color:var(--gold)">
             <div class="stat-lbl"><span class="icon" data-icon="coin"></span> Monedas</div>
+            <div class="stat-num" id="stat-coins" style="color:var(--gold)">0</div>
           </div>
-          <div class="stat-box">
+          <div class="stat-box" style="color:var(--pink)">
+            <div class="stat-lbl"><span class="icon" data-icon="layers"></span> Personajes totales</div>
             <div class="stat-num" id="stat-waifus" style="color:var(--pink)">0</div>
-            <div class="stat-lbl"><span class="icon" data-icon="layers"></span> Waifus Totales</div>
           </div>
-          <div class="stat-box">
+          <div class="stat-box" style="color:var(--purple)">
+            <div class="stat-lbl"><span class="icon" data-icon="sparkles"></span> Personajes únicos</div>
             <div class="stat-num" id="stat-unique" style="color:var(--purple)">0</div>
-            <div class="stat-lbl"><span class="icon" data-icon="sparkles"></span> Únicas</div>
           </div>
         </div>
 
         <div class="section-title">Minerales</div>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-num" id="stat-hierro">0</div>
-            <div class="stat-lbl"><span class="icon" data-icon="gear"></span> Hierro</div>
+        <div class="minerals-bar">
+          <div class="mineral-cell">
+            <span class="icon" data-icon="gear"></span>
+            <div class="mineral-info">
+              <div class="mineral-val" id="stat-hierro">0</div>
+              <div class="mineral-lbl">Hierro</div>
+            </div>
           </div>
-          <div class="stat-box">
-            <div class="stat-num" id="stat-oro">0</div>
-            <div class="stat-lbl"><span class="icon" data-icon="medal"></span> Oro</div>
+          <div class="mineral-cell">
+            <span class="icon" data-icon="medal"></span>
+            <div class="mineral-info">
+              <div class="mineral-val" id="stat-oro">0</div>
+              <div class="mineral-lbl">Oro</div>
+            </div>
           </div>
-          <div class="stat-box">
-            <div class="stat-num" id="stat-diamante">0</div>
-            <div class="stat-lbl"><span class="icon" data-icon="diamond"></span> Diamante</div>
+          <div class="mineral-cell">
+            <span class="icon" data-icon="diamond"></span>
+            <div class="mineral-info">
+              <div class="mineral-val" id="stat-diamante">0</div>
+              <div class="mineral-lbl">Diamante</div>
+            </div>
           </div>
         </div>
       </div>
@@ -353,20 +1022,22 @@
             <span class="icon" data-icon="logout"></span>
           </button>
         </div>
-        
-        <div class="subtabs" id="coll-subtabs">
-          <button class="subtab active" data-coll="waifus">Waifus</button>
-          <button class="subtab" data-coll="skins">Skins</button>
-        </div>
 
-        <div id="coll-filters-wrap">
-          <div class="filters" id="coll-filters">
-            <button class="active" data-f="all">Todas</button>
-            <button data-f="exclusiva">Exclusiva</button>
-            <button data-f="legendaria">Legendaria</button>
-            <button data-f="epica">Épica</button>
-            <button data-f="rara">Rara</button>
-            <button data-f="comun">Común</button>
+        <div class="shop-header-row">
+          <div class="subtabs" id="coll-subtabs">
+            <button class="subtab active" data-coll="waifus">Personajes</button>
+            <button class="subtab" data-coll="skins">Skins</button>
+          </div>
+
+          <div id="coll-filters-wrap">
+            <div class="filters" id="coll-filters">
+              <button class="active" data-f="all">Todos</button>
+              <button data-f="exclusiva">Exclusiva</button>
+              <button data-f="legendaria">Legendaria</button>
+              <button data-f="epica">Épica</button>
+              <button data-f="rara">Rara</button>
+              <button data-f="comun">Común</button>
+            </div>
           </div>
         </div>
 
@@ -375,7 +1046,7 @@
 
       <div id="tab-shop" class="tab-content">
         <div class="section-title">
-          <span>Tienda de Jinx</span>
+          <span>Tienda</span>
           <button class="inline-logout-btn" data-logout aria-label="Cerrar sesión" title="Cerrar sesión">
             <span class="icon" data-icon="logout"></span>
           </button>
@@ -386,10 +1057,26 @@
           <button type="button" class="clear-btn" id="shop-search-clear" aria-label="Limpiar">✕</button>
         </div>
 
-        <div class="filters" id="shop-filters">
-          <button class="active" data-shop="waifus">Waifus en Venta</button>
-          <button data-shop="skins">Skins en Venta</button>
+        <div class="shop-header-row">
+          <div class="subtabs" id="shop-filters">
+            <button class="subtab active" data-shop="waifus">Personajes en venta</button>
+            <button class="subtab" data-shop="skins">Skins en venta</button>
+          </div>
+
+          <div class="shop-toggles">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-hide-mine" checked>
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">Ocultar mis ventas</span>
+            </label>
+            <label class="toggle-switch" id="toggle-hide-owned-wrap">
+              <input type="checkbox" id="toggle-hide-owned" checked>
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">Ocultar ya poseídos</span>
+            </label>
+          </div>
         </div>
+
         <div class="waifu-grid" id="shop-grid"></div>
       </div>
 
@@ -431,10 +1118,9 @@
     const el = $(id); el.className = 'msg ' + (type || 'err'); el.textContent = text;
   };
 
-  // ⚡ Cache de formateo de números
   const NUM_FMT = new Intl.NumberFormat('es-MX');
 
-  // ================= VARIABLES DE ESTADO GLOBALES =================
+  // ================= ESTADO GLOBAL =================
   let currentRequestId = null;
   let unsubRequest = null;
   let unsubProfile = null;
@@ -444,18 +1130,18 @@
   let shopData = { waifus: [], skins: [] };
   let currentFilter = 'all';
   let shopFilter = 'waifus';
-  let collectionTab = 'waifus'; 
+  let collectionTab = 'waifus';
   let syncRequested = false;
   let shopSearchQuery = '';
+  let hideMine = true;
+  let hideOwned = true;
 
-  // ⚡ Dirty flags + control de render
   let collectionDirty = true;
   let shopDirty = true;
   let lastGameDataUpdatedAt = undefined;
   let lastShopUpdatedAt = undefined;
   const rafPending = { collection: false, shop: false };
 
-  // ⚡ Cache de sets "owned" para la tienda
   let cachedOwnedForGameData = null;
   let cachedOwnedWaifuNames = new Set();
   let cachedOwnedSkinIds = new Set();
@@ -470,7 +1156,6 @@
     return { waifus: cachedOwnedWaifuNames, skins: cachedOwnedSkinIds };
   }
 
-  // ================= RENDER SCHEDULING (rAF + dirty) =================
   function scheduleRender(scope) {
     if (rafPending[scope]) return;
     rafPending[scope] = true;
@@ -483,7 +1168,7 @@
   function markCollectionDirty() { collectionDirty = true; scheduleRender('collection'); }
   function markShopDirty() { shopDirty = true; scheduleRender('shop'); }
 
-  // ================= SISTEMA DE NOTIFICACIONES Y MODALES =================
+  // ================= TOASTS + MODAL =================
   function showToast(message, type = 'info') {
     const container = $('toast-container');
     const toast = document.createElement('div');
@@ -493,7 +1178,7 @@
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(10px)';
-      setTimeout(() => toast.remove(), 300);
+      setTimeout(() => toast.remove(), 250);
     }, 3000);
   }
 
@@ -558,7 +1243,7 @@
   }
   hydrateIcons();
 
-  // ================= CACHÉ PERSISTENTE (IndexedDB) =================
+  // ================= CACHÉ PERSISTENTE =================
   const IMG_CACHE_DB = 'jinx_imgs_v1';
   const IMG_CACHE_STORE = 'data';
   let imgDBPromise = null;
@@ -603,7 +1288,7 @@
     } catch {}
   }
 
-  // ================= LAZY LOAD & CACHE =================
+  // ================= LAZY LOAD =================
   const imageCache = new Map();
   const pendingRequests = new Map();
 
@@ -708,7 +1393,7 @@
     });
   }
 
-  // ================= AUTH & LOGIN =================
+  // ================= AUTH =================
   onAuthStateChanged(auth, (user) => {
     if (user && !user.isAnonymous) {
       loadDashboard(user.uid);
@@ -737,7 +1422,7 @@
     } catch (e) {
       setMsg('msg-login', "Error: " + e.message, 'err');
       $('btn-request').disabled = false;
-      $('btn-request').textContent = 'Enviar código';
+      $('btn-request').textContent = '✨ Enviar código';
     }
   };
 
@@ -765,12 +1450,12 @@
     const code = [...$('code-inputs').querySelectorAll('input')].map(i => i.value).join('');
     if (code.length !== 6) return setMsg('msg-code', 'Faltan dígitos.', 'err');
     $('btn-verify').disabled = true;
-    setMsg('msg-code', 'Verificando...', 'ok');
+    setMsg('msg-code', '⏳ Verificando...', 'ok');
     try {
       await update(ref(db, 'login_requests/' + currentRequestId), { userCode: code, status: 'checking' });
       setMsg('msg-code', '⏳ Esperando validación...', 'ok');
     } catch (e) {
-      setMsg('msg-code', "Error: " + e.message, 'err'); $('btn-verify').disabled = false;
+      setMsg('msg-code', 'Error: ' + e.message, 'err'); $('btn-verify').disabled = false;
     }
   };
 
@@ -810,12 +1495,10 @@
         return;
       }
 
-      // ⚡ Skip si no cambió (updatedAt es barato de comparar)
       if (data.updatedAt && data.updatedAt === lastGameDataUpdatedAt) return;
       lastGameDataUpdatedAt = data.updatedAt;
       myGameData = data;
 
-      // Stats (solo 6 elementos, rápido)
       $('stat-coins').textContent   = NUM_FMT.format(Number(data.coins || 0));
       $('stat-waifus').textContent  = NUM_FMT.format(Number(data.waifusTotal || 0));
       $('stat-unique').textContent  = NUM_FMT.format(Number(data.waifusUnique || 0));
@@ -844,7 +1527,6 @@
     const filters = $('coll-filters-wrap');
     if (!grid) return;
 
-    // ⚡ Si la pestaña no está activa y no se fuerza, marcar dirty y salir
     if (!force && !$('tab-collection').classList.contains('active')) {
       collectionDirty = true;
       return;
@@ -855,13 +1537,13 @@
     grid.innerHTML = '';
 
     if (collectionTab === 'waifus') {
-      filters.style.display = 'block';
+      filters.style.display = '';
 
       let list = myGameData?.waifusList || [];
       if (currentFilter !== 'all') list = list.filter(w => w.rarity === currentFilter);
 
       if (list.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted);">No hay waifus en esta categoría.</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🎴 No hay personajes en esta categoría.</div>`;
         return;
       }
 
@@ -891,7 +1573,7 @@
 
         const infoDiv = document.createElement('div');
         infoDiv.className = 'waifu-info';
-        const sellLabel = w.count > 1 ? `Vender 1 (de ${w.count})` : 'Vender';
+        const sellLabel = w.count > 1 ? `💰 Vender 1 (de ${w.count})` : '💰 Vender';
         infoDiv.innerHTML = `
           <div class="waifu-name" title="${w.name}">${w.name}</div>
           <button class="btn-sell" data-name="${w.name}" data-rarity="${w.rarity}" data-count="${w.count}">${sellLabel}</button>
@@ -900,7 +1582,6 @@
         card.appendChild(imgDiv);
         card.appendChild(infoDiv);
         frag.appendChild(card);
-
         observeImg(imgDiv);
       });
       grid.appendChild(frag);
@@ -909,17 +1590,17 @@
         btn.onclick = async () => {
           const name = btn.dataset.name;
           const count = parseInt(btn.dataset.count, 10) || 1;
-          const countMsg = count > 1 ? `\n\n📦 Tienes ${count} copias. Solo se venderá 1 copia.` : '';
+          const countMsg = count > 1 ? `\n\n📦 Tienes ${count} copias. Solo se venderá 1.` : '';
 
           showModal(
-            'Vender 1 copia',
-            `¿Por cuánto quieres vender a ${name}?${countMsg}\n(Mínimo: 100 | Máximo: 3500)`,
+            '💰 Vender personaje',
+            `¿Por cuánto quieres vender a ${name}?${countMsg}\n(Mínimo: 100 · Máximo: 3500)`,
             true, 'Ej: 500', '100',
             async (priceStr) => {
               if (!priceStr) return;
               const price = parseInt(priceStr, 10);
               if (isNaN(price) || price < 100 || price > 3500) {
-                return showToast('Precio inválido. Debe estar entre 100 y 3500.', 'error');
+                return showToast('⚠️ Precio inválido. Debe estar entre 100 y 3500.', 'error');
               }
               btn.disabled = true;
               btn.textContent = '...';
@@ -934,14 +1615,14 @@
                   const copiesLeft = (typeof res.copiesAfter === 'number') ? res.copiesAfter : Math.max(0, count - 1);
                   const soldName = res.waifuName || name;
                   showToast(copiesLeft > 0
-                    ? `¡1 copia de ${soldName} vendida! Te quedan ${copiesLeft}.`
-                    : `¡${soldName} vendida! (última copia)`, 'success');
+                    ? `✅ ¡Vendiste 1 ${soldName}! Quedan ${copiesLeft}`
+                    : `🎉 ¡${soldName} vendida! (última copia)`, 'success');
                   requestSync(auth.currentUser.uid);
                 } else if (res.status === 'error') {
                   unsub();
-                  showToast('Error: ' + res.error, 'error');
+                  showToast('❌ ' + res.error, 'error');
                   btn.disabled = false;
-                  btn.textContent = count > 1 ? `Vender 1 (de ${count})` : 'Vender';
+                  btn.textContent = count > 1 ? `💰 Vender 1 (de ${count})` : '💰 Vender';
                 }
               });
 
@@ -951,9 +1632,9 @@
                 username: $('p-tag').textContent.replace('@',''),
                 waifuName: name, price, status: 'pending', createdAt: Date.now()
               }).catch(err => {
-                showToast('Error: ' + err.message, 'error');
+                showToast('❌ ' + err.message, 'error');
                 btn.disabled = false;
-                btn.textContent = count > 1 ? `Vender 1 (de ${count})` : 'Vender';
+                btn.textContent = count > 1 ? `💰 Vender 1 (de ${count})` : '💰 Vender';
                 unsub();
               });
             }
@@ -966,7 +1647,7 @@
       const skinsList = myGameData?.skinsList || [];
 
       if (skinsList.length === 0) {
-        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted);">No tienes skins todavía.<br>Compra algunas en la tienda.</div>`;
+        grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">🎨 No tienes skins todavía.<br><span style="font-size:12px;">Compra algunas en la tienda.</span></div>`;
         return;
       }
 
@@ -992,7 +1673,7 @@
         infoDiv.innerHTML = `
           <div class="waifu-name" title="${s.waifuName}">${s.waifuName}</div>
           <button class="btn-toggle ${isActive ? 'active' : 'inactive'}" data-id="${s.id}" data-active="${isActive}">
-            ${isActive ? 'Desactivar' : 'Activar'}
+            ${isActive ? '✓ Desactivar' : '○ Activar'}
           </button>
         `;
 
@@ -1015,12 +1696,13 @@
           const unsub = onValue(reqRef, (snap) => {
             const res = snap.val();
             if (!res) return;
-            if (res.status === 'done') { unsub(); requestSync(auth.currentUser.uid); set(reqRef, null).catch(()=>{}); }
-            else if (res.status === 'error') {
+            if (res.status === 'done') {
+              unsub(); requestSync(auth.currentUser.uid); set(reqRef, null).catch(()=>{});
+            } else if (res.status === 'error') {
               unsub();
-              showToast('Error: ' + res.error, 'error');
+              showToast('❌ ' + res.error, 'error');
               btn.disabled = false;
-              btn.textContent = isActive ? 'Desactivar' : 'Activar';
+              btn.textContent = isActive ? '✓ Desactivar' : '○ Activar';
               set(reqRef, null).catch(()=>{});
             }
           });
@@ -1053,9 +1735,12 @@
     let items = shopFilter === 'waifus' ? (shopData.waifus || []) : (shopData.skins || []);
 
     items = items.filter(item => {
-      if (String(item.sellerId) === String(currentUserId)) return false;
-      if (shopFilter === 'waifus' && owned.waifus.has(String(item.name).toLowerCase())) return false;
-      if (shopFilter === 'skins' && owned.skins.has(String(item.id))) return false;
+      if (hideMine && String(item.sellerId) === String(currentUserId)) return false;
+      if (shopFilter === 'skins') {
+        if (owned.skins.has(String(item.id))) return false;
+      } else {
+        if (hideOwned && owned.waifus.has(String(item.name).toLowerCase())) return false;
+      }
       return true;
     });
 
@@ -1065,10 +1750,20 @@
     }
 
     if (items.length === 0) {
-      const emptyMsg = q
-        ? `No se encontraron resultados para "<b>${escapeHtml(shopSearchQuery)}</b>".<br><small>Prueba con otro nombre.</small>`
-        : `No hay artículos disponibles para ti.<br><small>(Ocultando tus ventas y artículos que ya posees)</small>`;
-      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted);">${emptyMsg}</div>`;
+      let emptyMsg;
+      if (q) {
+        emptyMsg = `🔍 Sin resultados para "<b>${escapeHtml(shopSearchQuery)}</b>".<br><span style="font-size:12px;">Prueba con otro nombre.</span>`;
+      } else {
+        const activeFilters = [];
+        if (hideMine) activeFilters.push('tus ventas');
+        if (shopFilter === 'skins') activeFilters.push('skins ya poseídas');
+        else if (hideOwned) activeFilters.push('personajes ya poseídos');
+        const filterNote = activeFilters.length
+          ? `<br><span style="font-size:12px;">(Ocultando ${activeFilters.join(' y ')})</span>`
+          : '';
+        emptyMsg = `🛒 No hay artículos disponibles.${filterNote}`;
+      }
+      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted); font-size:13px;">${emptyMsg}</div>`;
       return;
     }
 
@@ -1089,7 +1784,7 @@
       const priceBadge = document.createElement('div');
       priceBadge.className = 'waifu-badge';
       priceBadge.style.color = 'var(--gold)';
-      priceBadge.textContent = `${item.price} 🪙`;
+      priceBadge.textContent = `🪙 ${item.price}`;
       imgDiv.appendChild(priceBadge);
 
       const rBadge = document.createElement('div');
@@ -1106,8 +1801,8 @@
       const infoDiv = document.createElement('div');
       infoDiv.className = 'waifu-info shop-info';
       infoDiv.innerHTML = `
-        <div class="waifu-name" title="${item.waifuName || item.name}">${item.waifuName || item.name} ${isSkin ? '(Skin)' : ''}</div>
-        <button class="btn-buy" data-id="${item.id}" data-type="${isSkin ? 'skin' : 'waifu'}" data-name="${item.waifuName || item.name}" data-price="${item.price}">Comprar</button>
+        <div class="waifu-name" title="${item.waifuName || item.name}">${item.waifuName || item.name}${isSkin ? ' · Skin' : ''}</div>
+        <button class="btn-buy" data-id="${item.id}" data-type="${isSkin ? 'skin' : 'waifu'}" data-name="${item.waifuName || item.name}" data-price="${item.price}">🛍️ Comprar</button>
       `;
 
       card.appendChild(imgDiv);
@@ -1124,9 +1819,9 @@
         const name = btn.dataset.name;
         const price = Number(btn.dataset.price);
 
-        if (!myGameData || myGameData.coins < price) return showToast('No tienes suficientes monedas.', 'error');
+        if (!myGameData || myGameData.coins < price) return showToast('⚠️ No tienes suficientes monedas.', 'error');
 
-        showModal('Confirmar Compra', `¿Seguro que quieres comprar a ${name} por ${price} monedas?`, false, '', '', async () => {
+        showModal('🛍️ Confirmar compra', `¿Comprar a ${name} por ${price} monedas?`, false, '', '', async () => {
           btn.disabled = true;
           btn.textContent = '...';
 
@@ -1137,16 +1832,18 @@
             if (!res) return;
             if (res.status === 'done') {
               unsub();
-              showToast('¡Compra exitosa!', 'success');
+              showToast('🎉 ¡Compra exitosa!', 'success');
               requestSync(auth.currentUser.uid);
               card.style.opacity = '0';
+              card.style.transform = 'scale(0.9)';
+              card.style.transition = 'all .3s';
               setTimeout(() => card.remove(), 300);
               set(resRef, null).catch(()=>{});
             } else if (res.status === 'error') {
               unsub();
-              showToast('Error: ' + res.error, 'error');
+              showToast('❌ ' + res.error, 'error');
               btn.disabled = false;
-              btn.textContent = 'Comprar';
+              btn.textContent = '🛍️ Comprar';
               set(resRef, null).catch(()=>{});
             }
           });
@@ -1157,8 +1854,8 @@
             buyerUsername: $('p-tag').textContent.replace('@',''),
             status: 'pending', createdAt: Date.now()
           }).catch(err => {
-            showToast('Error: ' + err.message, 'error');
-            btn.disabled = false; btn.textContent = 'Comprar'; unsub();
+            showToast('❌ ' + err.message, 'error');
+            btn.disabled = false; btn.textContent = '🛍️ Comprar'; unsub();
           });
         });
       };
@@ -1171,7 +1868,6 @@
 
   // ================= NAVEGACIÓN =================
   function switchTab(tab) {
-    // ⚡ Renderizar ANTES de mostrar para evitar flash vacío
     if (tab === 'collection' && collectionDirty) renderCollection(true);
     if (tab === 'shop' && shopDirty) renderShop(true);
 
@@ -1205,16 +1901,29 @@
     };
   });
 
-  document.querySelectorAll('#shop-filters button').forEach(btn => {
+  document.querySelectorAll('#shop-filters .subtab').forEach(btn => {
     btn.onclick = () => {
-      document.querySelectorAll('#shop-filters button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#shop-filters .subtab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       shopFilter = btn.dataset.shop;
+
+      $('toggle-hide-owned-wrap').style.display = shopFilter === 'skins' ? 'none' : '';
+
       renderShop(true);
     };
   });
 
-  // ⚡ Búsqueda con debounce
+  // ================= TOGGLES DE FILTROS EN TIENDA =================
+  $('toggle-hide-mine').addEventListener('change', (e) => {
+    hideMine = e.target.checked;
+    markShopDirty();
+  });
+
+  $('toggle-hide-owned').addEventListener('change', (e) => {
+    hideOwned = e.target.checked;
+    markShopDirty();
+  });
+
   const shopSearchInput = $('shop-search');
   const shopSearchClear = $('shop-search-clear');
   let searchDebounceTimer = null;
