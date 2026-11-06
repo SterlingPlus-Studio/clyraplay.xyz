@@ -43,6 +43,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    /* ⚡ Promoción de capa: evita que el navegador repinte el fondo al scrollear */
     transform: translateZ(0);
     will-change: transform;
     background-image:
@@ -69,6 +70,7 @@
   /* ============ LOGIN / CODE ============ */
   .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
   .login-card {
+    /* ⚡ Sin backdrop-filter (pantalla estática, pero elimina una capa compuesta) */
     background: rgba(22,22,32,0.94);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
@@ -159,6 +161,7 @@
 
   .sidebar {
     width: var(--sidebar-w);
+    /* ⚡ Blur eliminado: fondo casi opaco, mismo look, cero coste GPU */
     background: rgba(15,15,23,.95);
     border-right: 1px solid var(--border);
     position: fixed; top: 0; bottom: 0;
@@ -266,7 +269,6 @@
     padding: 24px 28px;
     width: 100%; max-width: 1280px;
     margin-right: auto;
-    min-width: 0; /* Previene desbordamientos */
   }
 
   .tab-content { display: none; }
@@ -274,11 +276,11 @@
 
   .profile-header {
     display: flex; align-items: center; gap: 16px;
+    /* ⚡ Sin backdrop-filter (se desplaza con el scroll) */
     background: rgba(22,22,32,0.92);
     padding: 18px 20px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
-    min-width: 0; overflow: hidden; /* Previene que nombres largos rompan el diseño */
   }
   .avatar {
     width: 56px; height: 56px; border-radius: 50%;
@@ -290,18 +292,16 @@
     box-shadow: 0 2px 10px rgba(236,72,153,.25);
   }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .profile-info { flex: 1; min-width: 0; overflow: hidden; }
+  .profile-info { flex: 1; min-width: 0; }
   .profile-info .name {
     font-size: 18px; font-weight: 800;
     letter-spacing: -0.01em;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 100%;
   }
   .profile-info .tag {
     font-size: 13px; color: var(--muted);
     margin-top: 3px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 100%;
   }
 
   .section-title {
@@ -346,11 +346,11 @@
   /* ============ STATS ============ */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    min-width: 0;
   }
   .stat-box {
+    /* ⚡ Sin backdrop-filter */
     background: rgba(22,22,32,0.92);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
@@ -361,7 +361,6 @@
     position: relative;
     overflow: hidden;
     transition: border-color .2s;
-    min-width: 0;
   }
   .stat-box::before {
     content: '';
@@ -391,19 +390,18 @@
   /* ============ MINERALES ============ */
   .minerals-bar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+    /* ⚡ Sin backdrop-filter */
     background: rgba(22,22,32,0.92);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
-    min-width: 0;
   }
   .mineral-cell {
     display: flex; align-items: center; gap: 12px;
     padding: 16px 18px;
     border-right: 1px solid var(--border);
     transition: background .15s;
-    min-width: 0;
   }
   .mineral-cell:hover { background: rgba(255,255,255,.02); }
   .mineral-cell:last-child { border-right: none; }
@@ -419,6 +417,13 @@
     font-size: 10px; color: var(--muted);
     text-transform: uppercase;
     letter-spacing: .08em; font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .minerals-bar { grid-template-columns: 1fr; }
+    .mineral-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    .mineral-cell:last-child { border-bottom: none; }
   }
 
   /* ============ FILTROS / SUBTABS ============ */
@@ -587,7 +592,6 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px;
-    min-width: 0;
   }
   @media (max-width: 1100px) { .waifu-grid { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 850px)  { .waifu-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -601,10 +605,11 @@
     transition: transform .2s, border-color .2s, box-shadow .2s;
     position: relative;
     display: flex; flex-direction: column;
+    /* ⚡ El navegador se salta el render de las tarjetas fuera de pantalla */
     content-visibility: auto;
     contain-intrinsic-size: auto 340px;
+    /* ⚡ Aísla layout/paint de cada tarjeta */
     contain: layout style;
-    min-width: 0;
   }
   .waifu-card:hover {
     transform: translateY(-3px);
@@ -626,6 +631,7 @@
   }
   .waifu-img img.loaded { opacity: 1; }
 
+  /* ⚡ Badges sin backdrop-filter: se mueven con el scroll y el blur era carísimo */
   .waifu-badge {
     position: absolute; top: 8px; right: 8px;
     background: rgba(0,0,0,.88);
@@ -742,6 +748,7 @@
     position: fixed;
     bottom: 12px; left: 12px; right: 12px;
     z-index: 300;
+    /* ⚡ Sin blur: es fixed y el contenido pasa por debajo → re-blur cada frame */
     background: rgba(18,18,28,.97);
     border: 1px solid var(--border-2);
     border-radius: 22px;
@@ -770,202 +777,30 @@
   .mnav-btn .icon,
   .mnav-btn .icon svg { width: 20px; height: 20px; }
 
-  /* ============================================================
-     RESPONSIVE — Tablets y Móviles en Horizontal (≤1024px)
-     ============================================================ */
-  @media (max-width: 1024px) {
-    .sidebar { transform: translateX(-100%); }
-    .main { margin-left: 0; padding: 20px 20px 90px; }
-    .mobile-nav { display: flex; padding: 5px; bottom: 10px; left: 10px; right: 10px; border-radius: 18px; }
-    .inline-logout-btn { display: flex; width: 28px; height: 28px; }
-    .inline-logout-btn .icon,
-    .inline-logout-btn .icon svg { width: 14px; height: 14px; }
-    
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .minerals-bar { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  /* ============================================================
-     RESPONSIVE — Móvil vertical (≤768px)
-     ============================================================ */
   @media (max-width: 768px) {
-    .main { padding: 16px 12px 90px; }
-    .mobile-nav { padding: 5px; bottom: 10px; left: 10px; right: 10px; border-radius: 18px; }
-    .inline-logout-btn { display: flex; width: 28px; height: 28px; }
-    .inline-logout-btn .icon,
-    .inline-logout-btn .icon svg { width: 14px; height: 14px; }
-
-    .profile-header { padding: 12px 14px; gap: 10px; border-radius: 12px; }
-    .profile-info .name { font-size: 15px; }
-    .profile-info .tag { font-size: 11px; }
-    .avatar { width: 42px; height: 42px; font-size: 15px; }
-    .avatar-sm { width: 32px; height: 32px; font-size: 12px; }
-
-    .section-title { font-size: 10px; margin-top: 18px; margin-bottom: 10px; gap: 6px; }
-    .section-title::before { height: 10px; width: 2px; }
-
-    .filters { gap: 5px; margin-bottom: 12px; }
-    .filters button { padding: 5px 11px; font-size: 11px; }
-    .subtabs { padding: 4px; border-radius: 13px; margin-bottom: 12px; }
-    .subtab { padding: 6px 13px; font-size: 12px; border-radius: 9px; }
-
-    .shop-search { margin-bottom: 10px; }
-    .shop-search input { padding: 10px 38px 10px 36px; font-size: 13px; border-radius: 12px; }
-    .shop-search::before { left: 12px; font-size: 13px; }
-    .shop-search .clear-btn { width: 22px; height: 22px; font-size: 11px; }
-
-    .shop-toggles { gap: 8px; margin-bottom: 10px; }
-    .toggle-switch { padding: 7px 12px; font-size: 11px; gap: 8px; }
-    .toggle-switch .toggle-slider { width: 28px; height: 16px; }
-    .toggle-switch .toggle-slider::before { width: 12px; height: 12px; }
-    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(12px); }
-
-    .waifu-grid { gap: 8px; }
-    .waifu-info { padding: 8px 6px; min-height: 62px; gap: 6px; }
-    .waifu-name { font-size: 11px; }
-    .btn-buy, .btn-sell, .btn-toggle { padding: 7px 8px; font-size: 10px; border-radius: 7px; }
-    .waifu-badge { font-size: 10px; padding: 3px 8px; top: 6px; right: 6px; }
-    .waifu-rarity-badge { font-size: 9px; padding: 3px 7px; bottom: 6px; right: 6px; }
-    .waifu-seller-badge { font-size: 9px; padding: 3px 7px; bottom: 6px; left: 6px; }
-
-    .mnav-btn { padding: 7px 3px; font-size: 9px; gap: 2px; border-radius: 14px; }
-    .mnav-btn .icon,
-    .mnav-btn .icon svg { width: 18px; height: 18px; }
-
-    .toast-container { bottom: 85px; }
-    .toast { font-size: 12px; padding: 10px 18px; }
-    .modal-box { padding: 20px; }
-    .modal-title { font-size: 16px; }
-    .modal-desc { font-size: 12px; margin-bottom: 14px; }
-    .modal-input { padding: 10px; font-size: 15px; margin-bottom: 14px; }
-    .modal-btn { padding: 10px 14px; font-size: 12px; }
-
-    .login-card { padding: 24px 20px; }
-    .logo-hero .l1 { font-size: 22px; }
-    .logo-hero .l2 { font-size: 9px; }
-    .code-inputs { gap: 6px; margin: 18px 0; }
-    .code-inputs input { width: 40px; height: 48px; font-size: 18px; }
-  }
-
-  /* ============================================================
-     RESPONSIVE — Stats + minerales compactos (≤640px)
-     ============================================================ */
-  @media (max-width: 640px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-    .stat-box {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 54px;
-      padding: 12px 16px;
-      gap: 12px;
-      border-radius: 12px;
-    }
-    .stat-lbl {
-      font-size: 12px;
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-    }
-    .stat-lbl .icon {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-    .stat-lbl .icon svg { width: 18px; height: 18px; }
-    .stat-num {
-      font-size: 20px;
-      flex-shrink: 0;
-      text-align: right;
-    }
-
-    .minerals-bar {
-      grid-template-columns: repeat(3, 1fr);
-      border-radius: 12px;
-    }
-    .mineral-cell {
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 12px 6px;
-      gap: 5px;
-      border-right: 1px solid var(--border);
-      border-bottom: none;
-    }
-    .mineral-cell:last-child { border-right: none; }
-    .mineral-cell .icon { width: 20px; height: 20px; }
-    .mineral-cell .icon svg { width: 20px; height: 20px; }
-    .mineral-info { align-items: center; gap: 2px; }
-    .mineral-val { font-size: 14px; }
-    .mineral-lbl { font-size: 8px; letter-spacing: .04em; }
-  }
-
-  /* ============================================================
-     RESPONSIVE — Móvil pequeño (≤480px)
-     ============================================================ */
-  @media (max-width: 480px) {
-    .main { padding: 12px 10px 85px; }
-
-    .profile-header { padding: 10px 12px; gap: 8px; }
-    .profile-info .name { font-size: 14px; }
-    .profile-info .tag { font-size: 10px; }
-    .avatar { width: 38px; height: 38px; font-size: 13px; border-width: 1.5px; }
-    .inline-logout-btn { width: 26px; height: 26px; }
-    .inline-logout-btn .icon,
-    .inline-logout-btn .icon svg { width: 13px; height: 13px; }
-
-    .stat-box { min-height: 48px; padding: 10px 14px; gap: 10px; }
-    .stat-lbl { font-size: 11px; gap: 6px; }
-    .stat-lbl .icon,
-    .stat-lbl .icon svg { width: 16px; height: 16px; }
-    .stat-num { font-size: 18px; }
-
-    .mineral-cell { padding: 10px 4px; gap: 4px; }
-    .mineral-cell .icon,
-    .mineral-cell .icon svg { width: 16px; height: 16px; }
-    .mineral-val { font-size: 13px; }
-    .mineral-lbl { font-size: 7px; letter-spacing: .02em; }
-
-    .waifu-grid { gap: 6px; }
-    .waifu-info { padding: 6px 5px; min-height: 54px; gap: 5px; }
-    .waifu-name { font-size: 10px; }
-    .btn-buy, .btn-sell, .btn-toggle { padding: 6px 6px; font-size: 9px; border-radius: 6px; }
-    .waifu-badge { font-size: 9px; padding: 2px 6px; top: 5px; right: 5px; }
-    .waifu-rarity-badge { font-size: 8px; padding: 2px 6px; bottom: 5px; right: 5px; letter-spacing: .04em; }
-    .waifu-seller-badge { font-size: 8px; padding: 2px 6px; bottom: 5px; left: 5px; }
-
-    .filters button { padding: 4px 9px; font-size: 10px; }
-    .subtab { padding: 6px 11px; font-size: 11px; }
-
-    .toast-container { bottom: 80px; }
-    .toast { font-size: 11px; padding: 9px 16px; }
-
-    .modal-box { padding: 18px; border-radius: 16px; }
-    .modal-title { font-size: 15px; }
-    .modal-btn { padding: 9px 12px; font-size: 11px; }
-
-    .login-card { padding: 22px 18px; border-radius: 16px; }
-    .logo-hero .l1 { font-size: 20px; }
-    .code-inputs { gap: 5px; }
-    .code-inputs input { width: 38px; height: 46px; font-size: 17px; }
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; padding: 20px 16px 100px; }
+    .mobile-nav { display: flex; }
+    .inline-logout-btn { display: flex; }
+    .profile-info .name { font-size: 16px; }
+    .avatar { width: 48px; height: 48px; font-size: 17px; }
+    .stat-num { font-size: 22px; }
+    .stat-box { min-height: 78px; padding: 14px 16px; }
+    .section-title { margin-top: 20px; }
   }
 
   /* ============ MODALES ============ */
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,.7);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); /* solo cuando está abierto */
     display: none;
     align-items: center; justify-content: center;
     z-index: 1000; padding: 20px;
   }
   .modal-overlay.active { display: flex; animation: fadeIn .18s ease; }
   .modal-box {
+    /* ⚡ Sin blur (su backdrop ya está desenfocado) */
     background: rgba(22,22,32,0.97);
     border: 1px solid var(--border-2);
     border-radius: var(--radius-xl);
@@ -1031,6 +866,7 @@
     width: calc(100% - 32px); max-width: 400px;
   }
   .toast {
+    /* ⚡ Sin blur, fondo sólido */
     background: rgba(22,22,32,0.97);
     border: 1px solid var(--border-2);
     padding: 11px 22px;
@@ -1488,10 +1324,12 @@
     });
   }
 
+  // ⚡ Un solo observer de carga. Ya NO se eliminan las imágenes al salir de pantalla
+  //    (eso causaba mutaciones de DOM y layout thrashing durante el scroll).
   const imageLoadObserver = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
-      imageLoadObserver.unobserve(entry.target);
+      imageLoadObserver.unobserve(entry.target); // ya no necesita seguimiento
       loadImageForContainer(entry.target);
     }
   }, { rootMargin: '1000px 0px' });
@@ -1641,14 +1479,10 @@
     unsubProfile = onValue(ref(db, 'users/' + uid + '/profile'), (snap) => {
       const p = snap.val() || {};
       const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Usuario';
-      const tagText = p.username ? '@' + p.username : 'ID: ' + uid.slice(0, 8) + '…';
-      const tagFull = p.username ? '@' + p.username : uid;
       $('p-name').textContent = fullName;
-      $('p-tag').textContent = tagText;
-      $('p-tag').title = tagFull;
+      $('p-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
       $('sb-name').textContent = fullName;
-      $('sb-tag').textContent = tagText;
-      $('sb-tag').title = tagFull;
+      $('sb-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
     });
 
     if (unsubGameData) unsubGameData();
