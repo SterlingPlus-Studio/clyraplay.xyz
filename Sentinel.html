@@ -413,13 +413,6 @@
     letter-spacing: .08em; font-weight: 700;
   }
 
-  @media (max-width: 640px) {
-    .stats-grid { grid-template-columns: 1fr; }
-    .minerals-bar { grid-template-columns: 1fr; }
-    .mineral-cell { border-right: none; border-bottom: 1px solid var(--border); }
-    .mineral-cell:last-child { border-bottom: none; }
-  }
-
   /* ============ FILTROS / SUBTABS ============ */
   .filters {
     display: flex; gap: 6px; flex-wrap: wrap;
@@ -767,6 +760,9 @@
   .mnav-btn .icon,
   .mnav-btn .icon svg { width: 20px; height: 20px; }
 
+  /* ============================================================
+     RESPONSIVE — Mobile base (≤768px)
+     ============================================================ */
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); }
     .main { margin-left: 0; padding: 16px 12px 90px; }
@@ -783,20 +779,6 @@
 
     .section-title { font-size: 10px; margin-top: 18px; margin-bottom: 10px; gap: 6px; }
     .section-title::before { height: 10px; width: 2px; }
-
-    .stats-grid { gap: 8px; }
-    .stat-box { min-height: 68px; padding: 12px 14px; gap: 5px; border-radius: 12px; }
-    .stat-lbl { font-size: 10px; gap: 6px; }
-    .stat-lbl .icon,
-    .stat-lbl .icon svg { width: 14px; height: 14px; }
-    .stat-num { font-size: 20px; }
-
-    .minerals-bar { border-radius: 12px; }
-    .mineral-cell { padding: 12px 14px; gap: 10px; }
-    .mineral-cell .icon,
-    .mineral-cell .icon svg { width: 18px; height: 18px; }
-    .mineral-val { font-size: 15px; }
-    .mineral-lbl { font-size: 9px; }
 
     .filters { gap: 5px; margin-bottom: 12px; }
     .filters button { padding: 5px 11px; font-size: 11px; }
@@ -841,7 +823,72 @@
     .code-inputs input { width: 40px; height: 48px; font-size: 18px; }
   }
 
-  /* ============ MÓVIL PEQUEÑO (≤480px) ============ */
+  /* ============================================================
+     RESPONSIVE — Stats + minerales compactos (≤640px)
+     Aquí empieza la adaptación real del PERFIL:
+       - stats en fila horizontal (icono+texto ← → número)
+       - minerales en 3 columnas verticales compactas
+     ============================================================ */
+  @media (max-width: 640px) {
+    /* --- Stats: fila horizontal compacta --- */
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .stat-box {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 54px;
+      padding: 12px 16px;
+      gap: 12px;
+      border-radius: 12px;
+    }
+    .stat-lbl {
+      font-size: 12px;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .stat-lbl .icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .stat-lbl .icon svg { width: 18px; height: 18px; }
+    .stat-num {
+      font-size: 20px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    /* --- Minerales: 3 columnas verticales compactas --- */
+    .minerals-bar {
+      grid-template-columns: repeat(3, 1fr);
+      border-radius: 12px;
+    }
+    .mineral-cell {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px 6px;
+      gap: 5px;
+      border-right: 1px solid var(--border);
+      border-bottom: none;
+    }
+    .mineral-cell:last-child { border-right: none; }
+    .mineral-cell .icon { width: 20px; height: 20px; }
+    .mineral-cell .icon svg { width: 20px; height: 20px; }
+    .mineral-info { align-items: center; gap: 2px; }
+    .mineral-val { font-size: 14px; }
+    .mineral-lbl { font-size: 8px; letter-spacing: .04em; }
+  }
+
+  /* ============================================================
+     RESPONSIVE — Móvil pequeño (≤480px)
+     ============================================================ */
   @media (max-width: 480px) {
     .main { padding: 12px 10px 85px; }
 
@@ -849,16 +896,23 @@
     .profile-info .name { font-size: 14px; }
     .profile-info .tag { font-size: 10px; }
     .avatar { width: 38px; height: 38px; font-size: 13px; border-width: 1.5px; }
+    .inline-logout-btn { width: 26px; height: 26px; }
+    .inline-logout-btn .icon,
+    .inline-logout-btn .icon svg { width: 13px; height: 13px; }
 
-    .stat-box { min-height: 60px; padding: 10px 12px; }
+    /* Stats aún más compactas */
+    .stat-box { min-height: 48px; padding: 10px 14px; gap: 10px; }
+    .stat-lbl { font-size: 11px; gap: 6px; }
+    .stat-lbl .icon,
+    .stat-lbl .icon svg { width: 16px; height: 16px; }
     .stat-num { font-size: 18px; }
-    .stat-lbl { font-size: 9px; }
 
-    .mineral-cell { padding: 10px 12px; gap: 8px; }
+    /* Minerales aún más compactos */
+    .mineral-cell { padding: 10px 4px; gap: 4px; }
     .mineral-cell .icon,
     .mineral-cell .icon svg { width: 16px; height: 16px; }
-    .mineral-val { font-size: 14px; }
-    .mineral-lbl { font-size: 8px; }
+    .mineral-val { font-size: 13px; }
+    .mineral-lbl { font-size: 7px; letter-spacing: .02em; }
 
     .waifu-grid { gap: 6px; }
     .waifu-info { padding: 6px 5px; min-height: 54px; gap: 5px; }
@@ -884,11 +938,32 @@
     .code-inputs input { width: 38px; height: 46px; font-size: 17px; }
   }
 
-  /* ============ MÓVIL MUY PEQUEÑO (≤380px) ============ */
+  /* ============================================================
+     RESPONSIVE — Móvil muy pequeño (≤380px)
+     ============================================================ */
   @media (max-width: 380px) {
+    .profile-header { padding: 8px 10px; gap: 8px; }
+    .avatar { width: 34px; height: 34px; font-size: 12px; }
+    .profile-info .name { font-size: 13px; }
+    .profile-info .tag { font-size: 9px; }
+    .inline-logout-btn { width: 24px; height: 24px; }
+    .inline-logout-btn .icon,
+    .inline-logout-btn .icon svg { width: 12px; height: 12px; }
+
+    .section-title { font-size: 9px; gap: 5px; margin-top: 16px; margin-bottom: 8px; }
+    .section-title::before { height: 9px; width: 2px; }
+
+    .stat-box { min-height: 44px; padding: 9px 12px; gap: 8px; }
+    .stat-lbl { font-size: 10px; gap: 5px; }
+    .stat-lbl .icon,
+    .stat-lbl .icon svg { width: 14px; height: 14px; }
     .stat-num { font-size: 16px; }
-    .stat-lbl { font-size: 8px; }
-    .stat-box { min-height: 54px; padding: 9px 10px; }
+
+    .mineral-cell { padding: 8px 3px; gap: 3px; }
+    .mineral-cell .icon,
+    .mineral-cell .icon svg { width: 14px; height: 14px; }
+    .mineral-val { font-size: 12px; }
+    .mineral-lbl { font-size: 7px; letter-spacing: 0; }
 
     .waifu-info { min-height: 50px; padding: 5px 4px; }
     .waifu-name { font-size: 9px; }
@@ -1591,10 +1666,14 @@
     unsubProfile = onValue(ref(db, 'users/' + uid + '/profile'), (snap) => {
       const p = snap.val() || {};
       const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Usuario';
+      const tagText = p.username ? '@' + p.username : 'ID: ' + uid.slice(0, 8) + '…';
+      const tagFull = p.username ? '@' + p.username : uid;
       $('p-name').textContent = fullName;
-      $('p-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
+      $('p-tag').textContent = tagText;
+      $('p-tag').title = tagFull;
       $('sb-name').textContent = fullName;
-      $('sb-tag').textContent = p.username ? '@' + p.username : 'ID: ' + uid;
+      $('sb-tag').textContent = tagText;
+      $('sb-tag').title = tagFull;
     });
 
     if (unsubGameData) unsubGameData();
