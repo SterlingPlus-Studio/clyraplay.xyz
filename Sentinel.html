@@ -146,7 +146,60 @@
   .mnav-btn.active { background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22)); color: var(--text); }
   .mnav-btn.active .icon { color: var(--pink); }
   .mnav-btn .icon, .mnav-btn .icon svg { width: 20px; height: 20px; }
-  @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .main { margin-left: 0; padding: 20px 16px 100px; } .mobile-nav { display: flex; } .inline-logout-btn { display: flex; } .profile-info .name { font-size: 16px; } .avatar { width: 48px; height: 48px; font-size: 17px; } .stat-num { font-size: 22px; } .stat-box { min-height: 78px; padding: 14px 16px; } }
+
+  @media (max-width: 768px), ((orientation: landscape) and (max-height: 500px)) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; padding: 20px 16px 100px; }
+    .mobile-nav { display: flex; }
+    .inline-logout-btn { display: flex; }
+    .profile-info .name { font-size: 16px; }
+    .avatar { width: 48px; height: 48px; font-size: 17px; }
+    .stat-num { font-size: 22px; }
+    .stat-box { min-height: 78px; padding: 14px 16px; }
+    #tab-tiktok.active { left: 0 !important; }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .main { padding: 12px 16px 80px; }
+    .mobile-nav { bottom: 8px; left: 8px; right: 8px; padding: 4px; border-radius: 18px; }
+    .mnav-btn { padding: 6px 4px; font-size: 9px; gap: 2px; border-radius: 12px; }
+    .mnav-btn .icon, .mnav-btn .icon svg { width: 18px; height: 18px; }
+    .tiktok-actions-rail { bottom: 80px; gap: 10px; right: 6px; }
+    .tiktok-bottom-info { bottom: 80px; right: 70px; left: 12px; }
+    .tiktok-user-line { font-size: 14px; margin-bottom: 4px; }
+    .tiktok-caption { font-size: 12px; margin-bottom: 6px; -webkit-line-clamp: 2; }
+    .tiktok-music-line { font-size: 11px; }
+    .tiktok-top-bar { padding: 8px 12px; }
+    .tiktok-top-tabs { gap: 14px; }
+    .tiktok-top-tab { font-size: 14px; }
+    .tiktok-icon-btn { width: 36px; height: 36px; }
+    .tiktok-icon-btn svg { width: 20px; height: 20px; }
+    .tiktok-profile-btn { width: 42px; height: 42px; font-size: 16px; }
+    .tiktok-action-icon { width: 28px; height: 28px; }
+    .tiktok-action-label { font-size: 10px; }
+    .tiktok-audio-card { padding: 16px 20px; max-width: 340px; }
+    .tiktok-audio-icon { width: 56px; height: 56px; margin-bottom: 10px; }
+    .tiktok-audio-icon svg { width: 28px; height: 28px; }
+    .tiktok-audio-title { font-size: 16px; margin-bottom: 4px; }
+    .tiktok-audio-desc { font-size: 12px; margin-bottom: 14px; }
+    .tiktok-audio-actions button { padding: 9px 12px; font-size: 12px; }
+    .tiktok-comments-sheet { height: 90vh; max-height: 90vh; }
+    .tiktok-comments-header { padding: 10px 14px; }
+    .tiktok-comments-list { padding: 10px 14px; gap: 10px; }
+    .tiktok-comments-input-wrap { padding: 8px 12px; }
+    .tiktok-comments-input-wrap input { padding: 8px 12px; font-size: 13px; }
+    .tiktok-comments-input-wrap button { padding: 8px 14px; font-size: 12px; }
+    .login-card { padding: 20px; }
+    .logo-hero { margin-bottom: 16px; }
+    .logo-hero .l1 { font-size: 20px; }
+    .logo-hero .l2 { font-size: 9px; margin-top: 4px; }
+    .profile-header { padding: 12px 14px; }
+    .avatar { width: 42px; height: 42px; font-size: 15px; }
+    .profile-info .name { font-size: 15px; }
+    .stat-box { min-height: 70px; padding: 12px 14px; }
+    .stat-num { font-size: 20px; }
+  }
+
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
   .modal-overlay.active { display: flex; animation: fadeIn .18s ease; }
   .modal-box { background: rgba(22,22,32,0.97); border: 1px solid var(--border-2); border-radius: var(--radius-xl); padding: 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow); animation: slideUp .22s ease; max-height: calc(100vh - 40px); overflow-y: auto; }
@@ -163,7 +216,6 @@
   .toast.success { border-color: #10b981; color: #6ee7b7; }
   @media (min-width: 769px) { .toast-container { bottom: 24px; } }
   #tab-tiktok.active { position: fixed; top: 0; left: var(--sidebar-w); right: 0; bottom: 0; background: #000; z-index: 50; margin: 0; padding: 0; }
-  @media (max-width: 768px) { #tab-tiktok.active { left: 0; } }
   .tiktok-shell { position: relative; width: 100%; height: 100%; background: #000; }
   .tiktok-feed-v { width: 100%; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
   .tiktok-feed-v::-webkit-scrollbar { display: none; }
@@ -945,7 +997,7 @@
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   // ═══════════════════════════════════════════════════════════════
-  // VIDEOS (feed)
+  // VIDEOS - LAZY LOAD (carga/descarga automática por viewport)
   // ═══════════════════════════════════════════════════════════════
   const TIKTOK_MAX_BYTES = 15 * 1024 * 1024, TIKTOK_CHUNK_B64 = 512 * 1024, TIKTOK_FETCH_TIMEOUT = 45000;
   let tiktokFeed = [], tiktokUnsub = null, tiktokSelectedFile = null, tiktokUploading = false;
@@ -964,6 +1016,52 @@
 
   const tiktokMediaCache = new Map(), tiktokMediaPending = new Map();
   const tiktokVideoRefs = new Map(), tiktokLikedByMe = new Set(), tiktokAvatarCache = new Map();
+
+  // ═════════ OBSERVER COMPARTIDO (carga + descarga) ═════════
+  // ⚡ IMPORTANTE: NUNCA se desconecta. Si se reconstruye el feed,
+  // solo se hace unobserve de los viejos. Así el observer sigue vivo
+  // y los nuevos slides cargan igual que las imágenes.
+  let feedMediaObserver = null;
+  function getFeedMediaObserver() {
+    if (feedMediaObserver) return feedMediaObserver;
+    feedMediaObserver = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const wrap = e.target;
+        const id = wrap.dataset.mediaId;
+        if (!id) continue;
+        if (e.isIntersecting) {
+          if (wrap.dataset.loaded !== '1' && wrap.dataset.failed !== '1') {
+            wrap.dataset.loaded = '1';
+            loadTiktokMedia(wrap, id);
+          }
+        } else {
+          if (wrap.dataset.loaded === '1') {
+            unloadTiktokMedia(wrap, id);
+            wrap.dataset.loaded = '';
+          }
+        }
+      }
+    }, { rootMargin: '100px 0px', threshold: 0 });
+    return feedMediaObserver;
+  }
+
+  function unloadTiktokMedia(wrap, mediaId) {
+    const video = wrap.querySelector('video');
+    if (video) {
+      try { video.pause(); } catch {}
+      try { video.removeAttribute('src'); video.load(); } catch {}
+      try { video.remove(); } catch {}
+      tiktokVideoRefs.delete(mediaId);
+      if (activeVideoId === mediaId) activeVideoId = null;
+    }
+    // Asegurar placeholder siempre visible cuando no hay media
+    if (!wrap.querySelector('img, video, .tiktok-placeholder')) {
+      const ph = document.createElement('div');
+      ph.className = 'tiktok-placeholder';
+      ph.textContent = '⏳ Cargando video...';
+      wrap.appendChild(ph);
+    }
+  }
 
   function formatCount(n) {
     n = Number(n) || 0;
@@ -1095,39 +1193,26 @@
   // ═════════ FULLSCREEN con rotación a landscape ═════════
   async function enterFullscreen(video, slide) {
     if (!video || !slide) return;
-
     const feed = $('tiktok-feed');
     savedFeedScroll = feed ? feed.scrollTop : 0;
-
     slide.classList.add('fs-active');
     fsVideo = video;
     fsSlide = slide;
-
     const req = slide.requestFullscreen || slide.webkitRequestFullscreen || slide.mozRequestFullScreen || slide.msRequestFullscreen;
-    if (req) {
-      try { await req.call(slide); } catch (e) { console.warn('[fullscreen] API nativa no disponible:', e?.message); }
-    }
-
-    // ⚡ Importante: lock DESPUÉS de que fullscreen esté activo
+    if (req) { try { await req.call(slide); } catch (e) { console.warn('[fullscreen] API nativa no disponible:', e?.message); } }
     let locked = await lockLandscape();
-    if (!locked) {
-      await new Promise(r => setTimeout(r, 150));
-      locked = await lockLandscape();
-    }
+    if (!locked) { await new Promise(r => setTimeout(r, 150)); locked = await lockLandscape(); }
     if (locked) console.log('[fullscreen] ✅ Orientación bloqueada a landscape');
     else console.warn('[fullscreen] ⚠️ No se pudo bloquear orientación');
-
     if (video.paused) { video.muted = !tiktokAudioEnabled; video.play().catch(() => {}); }
     else if (tiktokAudioEnabled) { video.muted = false; }
-
     startFsProgress(video, slide);
   }
 
   async function lockLandscape() {
     try {
       if (screen.orientation && typeof screen.orientation.lock === 'function') {
-        await screen.orientation.lock('landscape');
-        return true;
+        await screen.orientation.lock('landscape'); return true;
       }
     } catch (e) {}
     try {
@@ -1137,7 +1222,6 @@
     } catch (e) {}
     return false;
   }
-
   function unlockOrientation() {
     try { if (screen.orientation && typeof screen.orientation.unlock === 'function') screen.orientation.unlock(); } catch {}
     try {
@@ -1182,28 +1266,23 @@
     const timeTot = slide.querySelector('[data-fs-time-tot]');
     const progress = slide.querySelector('[data-fs-progress]');
     if (!fill || !progress) return;
-
     const update = () => {
       if (!video || fsVideo !== video) return;
-      const dur = video.duration || 0;
-      const cur = video.currentTime || 0;
+      const dur = video.duration || 0, cur = video.currentTime || 0;
       fill.style.width = (dur ? (cur / dur) * 100 : 0) + '%';
       if (timeCur) timeCur.textContent = formatTime(cur);
       if (timeTot) timeTot.textContent = formatTime(dur);
       if (!video.paused) fsRafId = requestAnimationFrame(update);
       else fsRafId = null;
     };
-
     const seekTo = (clientX) => {
       if (!video.duration) return;
       const rect = progress.getBoundingClientRect();
       const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
       video.currentTime = pct * video.duration;
     };
-
     progress.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      progress.classList.add('dragging');
+      e.preventDefault(); progress.classList.add('dragging');
       try { progress.setPointerCapture(e.pointerId); } catch {}
       seekTo(e.clientX);
     });
@@ -1211,7 +1290,6 @@
     const endDrag = (e) => { progress.classList.remove('dragging'); try { progress.releasePointerCapture(e.pointerId); } catch {} };
     progress.addEventListener('pointerup', endDrag);
     progress.addEventListener('pointercancel', endDrag);
-
     const onVideoTap = (e) => {
       if (e.target.closest('.fs-close') || e.target.closest('.fs-progress-wrap')) return;
       if (video.paused) { video.muted = !tiktokAudioEnabled; video.play().catch(() => {}); }
@@ -1221,10 +1299,8 @@
     video.addEventListener('play', () => { if (!fsRafId) update(); });
     video.addEventListener('seeked', update);
     video.addEventListener('timeupdate', update);
-
     update();
   }
-
   function hideFsProgress() { if (fsRafId) { cancelAnimationFrame(fsRafId); fsRafId = null; } }
 
   function onFullscreenChange() {
@@ -1311,8 +1387,27 @@
 
   async function loadTiktokMedia(container, mediaId) {
     const media = await fetchTiktokMedia(mediaId);
-    if (!container.isConnected) return;
-    if (!media) { container.innerHTML = ''; const ph = document.createElement('div'); ph.className = 'tiktok-placeholder'; ph.textContent = 'No se pudo cargar'; container.appendChild(ph); return; }
+    // Si mientras cargaba se descargó (porque salió del viewport), abortar
+    if (!container.isConnected) {
+      if (container.dataset) container.dataset.loaded = '';
+      return;
+    }
+    if (!media) {
+      container.innerHTML = '';
+      const ph = document.createElement('div');
+      ph.className = 'tiktok-placeholder'; ph.textContent = 'No se pudo cargar';
+      container.appendChild(ph);
+      container.dataset.failed = '1';
+      return;
+    }
+    // Limpiar cualquier media previa (evita duplicados si el fetch fue lento)
+    container.querySelectorAll('video, img').forEach(el => {
+      if (el.tagName === 'VIDEO') {
+        try { el.pause(); el.removeAttribute('src'); el.load(); } catch {}
+        tiktokVideoRefs.delete(mediaId);
+      }
+      el.remove();
+    });
     const ph = container.querySelector('.tiktok-placeholder'); if (ph) ph.remove();
     let mediaEl;
     if (media.fileType === 'video') {
@@ -1450,6 +1545,12 @@
   function renderTiktokFeed() {
     const feed = $('tiktok-feed'); if (!feed) return;
     if (fsVideo) exitFullscreen();
+    // ⚡ SOLO unobserve los viejos, NO desconectar el observer compartido
+    if (feedMediaObserver) {
+      feed.querySelectorAll('.tiktok-media').forEach(el => {
+        try { feedMediaObserver.unobserve(el); } catch {}
+      });
+    }
     tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
     tiktokVideoRefs.clear();
     activeVideoId = null;
@@ -1469,6 +1570,7 @@
     const frag = document.createDocumentFragment();
     const muteIcon = tiktokAudioEnabled ? tic('sound', 20) : tic('mute', 20);
     const muteTitle = tiktokAudioEnabled ? 'Silenciar' : 'Activar sonido';
+    const mediaObs = getFeedMediaObserver();  // ← siempre el mismo, nunca desconectado
 
     sorted.forEach(post => {
       const isVideoPost = post.fileType === 'video';
@@ -1524,10 +1626,10 @@
 
       loadAvatarInto(rail.querySelector('.tiktok-profile-btn'), post.userId, (post.userName || uname || 'U').charAt(0).toUpperCase());
 
-      const mediaObserver = new IntersectionObserver((entries) => {
-        for (const e of entries) if (e.isIntersecting) { mediaObserver.disconnect(); loadTiktokMedia(mediaWrap, post.id); }
-      }, { rootMargin: '600px 0px' });
-      mediaObserver.observe(mediaWrap);
+      // ⚡ IMPORTANTE: guardar loaded='' ANTES de observe, y usar el observer compartido
+      mediaWrap.dataset.mediaId = post.id;
+      mediaWrap.dataset.loaded = '';  // ← reset explícito
+      mediaObs.observe(mediaWrap);
 
       topBar.querySelector('[data-action="upload"]').onclick = openTiktokUploadModal;
       topBar.querySelector('[data-action="logout"]').onclick = doLogout;
@@ -1582,12 +1684,19 @@
     feed.removeEventListener('scrollend', onTiktokScrollEnd);
     feed.addEventListener('scrollend', onTiktokScrollEnd, { passive: true });
 
-    setTimeout(() => {
-      if (!document.hidden && !profileUserId && !fsVideo && $('tab-tiktok').classList.contains('active')) {
-        const id = getVisibleSlideId();
-        if (id) setActiveVideo(id);
+    // ⚡ Pre-carga el primer video visible (no esperar al observer)
+    requestAnimationFrame(() => {
+      if (document.hidden || profileUserId || fsVideo) return;
+      if (!$('tab-tiktok').classList.contains('active')) return;
+      const id = getVisibleSlideId();
+      if (!id) return;
+      const slide = feed.querySelector(`.tiktok-slide[data-media-id="${id}"]`);
+      const wrap = slide?.querySelector('.tiktok-media');
+      if (wrap && wrap.dataset.loaded !== '1' && wrap.dataset.failed !== '1') {
+        wrap.dataset.loaded = '1';
+        loadTiktokMedia(wrap, id);
       }
-    }, 120);
+    });
   }
 
   function showHeartPop(container, x, y) {
@@ -1862,6 +1971,11 @@
     } else {
       if (fsVideo) exitFullscreen();
       pauseAllVideos();
+      // ⚡ Descargar videos del feed al salir (libera memoria)
+      document.querySelectorAll('#tiktok-feed .tiktok-media[data-loaded="1"]').forEach(wrap => {
+        unloadTiktokMedia(wrap, wrap.dataset.mediaId);
+        wrap.dataset.loaded = '';
+      });
       closeTiktokProfile();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -1901,6 +2015,8 @@
       if (unsubProfileFollowers) try { unsubProfileFollowers(); } catch {}
       if (unsubProfileFollowing) try { unsubProfileFollowing(); } catch {}
       imageCache.clear(); pendingRequests.clear();
+      // ⚡ Cleanup observer al cerrar sesión (único lugar donde se desconecta)
+      if (feedMediaObserver) { try { feedMediaObserver.disconnect(); } catch {} feedMediaObserver = null; }
       if (tiktokUnsub) try { tiktokUnsub(); } catch {}
       tiktokMediaCache.forEach(v => { if (v.isObjectUrl) try { URL.revokeObjectURL(v.url); } catch {} });
       tiktokMediaCache.clear(); tiktokVideoRefs.forEach(v => { try { v.pause(); } catch {} });
