@@ -207,15 +207,9 @@
   .tiktok-empty .tiktok-empty-icon { margin-bottom: 20px; opacity: .6; display: inline-flex; }
   .tiktok-empty .tiktok-empty-icon svg { width: 64px; height: 64px; }
 
-  /* ══════════════════════════════════════════════════════════
-     FULLSCREEN — usando clase .fs-active (más confiable)
-     ══════════════════════════════════════════════════════════ */
   .tiktok-slide.fs-active {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
+    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
     height: 100dvh !important;
@@ -223,8 +217,7 @@
     max-height: 100vh !important;
     z-index: 999999 !important;
     background: #000 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 !important; padding: 0 !important;
     border-radius: 0 !important;
     overflow: hidden !important;
     scroll-snap-align: none !important;
@@ -233,17 +226,13 @@
   .tiktok-slide.fs-active .tiktok-media {
     position: absolute !important;
     inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
+    width: 100% !important; height: 100% !important;
+    max-width: none !important; max-height: none !important;
   }
   .tiktok-slide.fs-active .tiktok-media img,
   .tiktok-slide.fs-active .tiktok-media video {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
+    width: 100% !important; height: 100% !important;
+    max-width: 100% !important; max-height: 100% !important;
     object-fit: contain !important;
   }
   .tiktok-slide.fs-active .tiktok-top-bar,
@@ -253,7 +242,6 @@
   .tiktok-slide.fs-active .tiktok-gradient-top { display: none !important; }
   .tiktok-slide.fs-active .fs-controls { display: block !important; }
 
-  /* También soportamos :fullscreen nativo por si el user usa F11/Esc */
   .tiktok-slide:fullscreen { z-index: 999999 !important; background: #000 !important; }
   .tiktok-slide:fullscreen .tiktok-media { inset: 0 !important; width: 100% !important; height: 100% !important; }
   .tiktok-slide:fullscreen .tiktok-media img,
@@ -270,15 +258,12 @@
     position: absolute;
     top: max(16px, env(safe-area-inset-top, 16px));
     right: max(16px, env(safe-area-inset-right, 16px));
-    width: 54px !important;
-    height: 54px !important;
+    width: 54px !important; height: 54px !important;
     border-radius: 50%;
     background: rgba(0,0,0,0.88) !important;
     border: 2px solid rgba(255,255,255,0.75) !important;
     color: #fff !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
+    display: flex !important; align-items: center; justify-content: center;
     cursor: pointer;
     pointer-events: auto !important;
     z-index: 2147483001 !important;
@@ -294,71 +279,21 @@
     bottom: 0; left: 0; right: 0;
     padding: 22px 26px calc(26px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    display: flex; align-items: center; gap: 14px;
     pointer-events: auto !important;
     z-index: 2147483001 !important;
   }
-  .fs-time {
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    font-variant-numeric: tabular-nums;
-    min-width: 44px;
-    text-align: center;
-    text-shadow: 0 1px 3px rgba(0,0,0,.9);
-    user-select: none;
-  }
-  .fs-progress {
-    flex: 1;
-    height: 6px;
-    background: rgba(255,255,255,.3);
-    border-radius: 4px;
-    cursor: pointer;
-    position: relative;
-    touch-action: none;
-    transition: height .15s;
-  }
+  .fs-time { font-size: 13px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; min-width: 44px; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,.9); user-select: none; }
+  .fs-progress { flex: 1; height: 6px; background: rgba(255,255,255,.3); border-radius: 4px; cursor: pointer; position: relative; touch-action: none; transition: height .15s; }
   .fs-progress:hover, .fs-progress.dragging { height: 10px; }
-  .fs-progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--pink), var(--purple));
-    border-radius: 4px;
-    pointer-events: none;
-    position: relative;
-  }
-  .fs-progress-fill::after {
-    content: '';
-    position: absolute;
-    right: -8px; top: 50%; transform: translateY(-50%);
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.5);
-    opacity: 0; transition: opacity .15s;
-  }
-  .fs-progress:hover .fs-progress-fill::after,
-  .fs-progress.dragging .fs-progress-fill::after { opacity: 1; }
+  .fs-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--purple)); border-radius: 4px; pointer-events: none; position: relative; }
+  .fs-progress-fill::after { content: ''; position: absolute; right: -8px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.5); opacity: 0; transition: opacity .15s; }
+  .fs-progress:hover .fs-progress-fill::after, .fs-progress.dragging .fs-progress-fill::after { opacity: 1; }
 
-  /* Perfil view */
   .tiktok-profile-view { position: absolute; inset: 0; background: #000; z-index: 90; overflow-y: auto; display: none; color: #fff; }
   .tiktok-profile-view.active { display: block; animation: fadeIn .2s ease; }
   .tt-profile-topbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 0; background: #000; z-index: 10; }
-  .tt-profile-back {
-    width: 44px !important;
-    height: 44px !important;
-    border-radius: 50% !important;
-    background: rgba(255,255,255,0.15) !important;
-    border: 1px solid rgba(255,255,255,0.25) !important;
-    color: #fff !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer;
-    flex-shrink: 0;
-    padding: 0;
-    transition: background .15s;
-  }
+  .tt-profile-back { width: 44px !important; height: 44px !important; border-radius: 50% !important; background: rgba(255,255,255,0.15) !important; border: 1px solid rgba(255,255,255,0.25) !important; color: #fff !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; flex-shrink: 0; padding: 0; transition: background .15s; }
   .tt-profile-back:hover { background: rgba(255,255,255,0.28) !important; }
   .tt-profile-back svg { width: 22px !important; height: 22px !important; display: block; }
   .tt-profile-topname { flex: 1; text-align: center; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 44px; }
@@ -1022,7 +957,6 @@
   let activeVideoId = null;
   let scrollDebounceTimer = null;
 
-  // Fullscreen state
   let fsVideo = null;
   let fsSlide = null;
   let fsRafId = null;
@@ -1158,78 +1092,83 @@
     updateAllMuteButtons();
   }
 
-  // ═════════ FULLSCREEN (usando clase .fs-active) ═════════
-  function enterFullscreen(video, slide) {
+  // ═════════ FULLSCREEN con rotación a landscape ═════════
+  async function enterFullscreen(video, slide) {
     if (!video || !slide) return;
 
     const feed = $('tiktok-feed');
     savedFeedScroll = feed ? feed.scrollTop : 0;
 
-    // Aplicar clase inmediatamente (sin esperar a requestFullscreen)
     slide.classList.add('fs-active');
     fsVideo = video;
     fsSlide = slide;
 
-    // Intentar fullscreen nativo (oculta barra del navegador, mejor UX)
     const req = slide.requestFullscreen || slide.webkitRequestFullscreen || slide.mozRequestFullScreen || slide.msRequestFullscreen;
     if (req) {
-      Promise.resolve(req.call(slide)).catch(() => {
-        // Fallback silencioso: solo con .fs-active alcanza
-        console.warn('[fullscreen] API no disponible, usando modo fixed');
-      });
+      try { await req.call(slide); } catch (e) { console.warn('[fullscreen] API nativa no disponible:', e?.message); }
     }
 
-    // Bloquear rotación a landscape
-    try {
-      if (screen.orientation && typeof screen.orientation.lock === 'function') {
-        screen.orientation.lock('landscape').catch(() => {});
-      }
-    } catch {}
+    // ⚡ Importante: lock DESPUÉS de que fullscreen esté activo
+    let locked = await lockLandscape();
+    if (!locked) {
+      await new Promise(r => setTimeout(r, 150));
+      locked = await lockLandscape();
+    }
+    if (locked) console.log('[fullscreen] ✅ Orientación bloqueada a landscape');
+    else console.warn('[fullscreen] ⚠️ No se pudo bloquear orientación');
 
-    // Asegurar reproducción
     if (video.paused) { video.muted = !tiktokAudioEnabled; video.play().catch(() => {}); }
     else if (tiktokAudioEnabled) { video.muted = false; }
 
     startFsProgress(video, slide);
   }
 
-  function exitFullscreen() {
-    // Quitar clase primero (visual instantáneo)
-    if (fsSlide) fsSlide.classList.remove('fs-active');
+  async function lockLandscape() {
+    try {
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        await screen.orientation.lock('landscape');
+        return true;
+      }
+    } catch (e) {}
+    try {
+      if (typeof screen.lockOrientation === 'function') return !!screen.lockOrientation('landscape');
+      if (typeof screen.mozLockOrientation === 'function') return !!screen.mozLockOrientation('landscape');
+      if (typeof screen.msLockOrientation === 'function') return !!screen.msLockOrientation('landscape');
+    } catch (e) {}
+    return false;
+  }
 
-    // Salir del fullscreen API nativo
+  function unlockOrientation() {
+    try { if (screen.orientation && typeof screen.orientation.unlock === 'function') screen.orientation.unlock(); } catch {}
+    try {
+      if (typeof screen.unlockOrientation === 'function') screen.unlockOrientation();
+      else if (typeof screen.mozUnlockOrientation === 'function') screen.mozUnlockOrientation();
+      else if (typeof screen.msUnlockOrientation === 'function') screen.msUnlockOrientation();
+    } catch {}
+  }
+
+  function exitFullscreen() {
+    if (fsSlide) fsSlide.classList.remove('fs-active');
     try {
       if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
         const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
         if (exit) Promise.resolve(exit.call(document)).catch(() => {});
       }
     } catch {}
-
-    // Liberar orientación
-    try { if (screen.orientation && typeof screen.orientation.unlock === 'function') screen.orientation.unlock(); } catch {}
-
-    // Limpiar estado
+    unlockOrientation();
     hideFsProgress();
     const wasVideo = fsVideo;
     fsVideo = null;
     fsSlide = null;
-
-    // Restaurar scroll SIN que el snap lo mueva
     requestAnimationFrame(() => {
       const feed = $('tiktok-feed');
       if (feed) {
         const prevSnap = feed.style.scrollSnapType;
         feed.style.scrollSnapType = 'none';
         feed.scrollTop = savedFeedScroll;
-        // Restaurar después de un tick
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => { feed.style.scrollSnapType = prevSnap || ''; });
-        });
+        requestAnimationFrame(() => { requestAnimationFrame(() => { feed.style.scrollSnapType = prevSnap || ''; }); });
       }
-      // Asegurar que el video correcto sigue reproduciéndose
-      if (wasVideo && !wasVideo.paused) {
-        // ya está reproduciéndose, no hacemos nada
-      } else {
+      if (!wasVideo || wasVideo.paused) {
         const id = getVisibleSlideId();
         if (id) setActiveVideo(id);
       }
@@ -1268,18 +1207,11 @@
       try { progress.setPointerCapture(e.pointerId); } catch {}
       seekTo(e.clientX);
     });
-    progress.addEventListener('pointermove', (e) => {
-      if (!progress.classList.contains('dragging')) return;
-      seekTo(e.clientX);
-    });
-    const endDrag = (e) => {
-      progress.classList.remove('dragging');
-      try { progress.releasePointerCapture(e.pointerId); } catch {}
-    };
+    progress.addEventListener('pointermove', (e) => { if (progress.classList.contains('dragging')) seekTo(e.clientX); });
+    const endDrag = (e) => { progress.classList.remove('dragging'); try { progress.releasePointerCapture(e.pointerId); } catch {} };
     progress.addEventListener('pointerup', endDrag);
     progress.addEventListener('pointercancel', endDrag);
 
-    // Play/pause al tocar el video
     const onVideoTap = (e) => {
       if (e.target.closest('.fs-close') || e.target.closest('.fs-progress-wrap')) return;
       if (video.paused) { video.muted = !tiktokAudioEnabled; video.play().catch(() => {}); }
@@ -1293,17 +1225,15 @@
     update();
   }
 
-  function hideFsProgress() {
-    if (fsRafId) { cancelAnimationFrame(fsRafId); fsRafId = null; }
-  }
+  function hideFsProgress() { if (fsRafId) { cancelAnimationFrame(fsRafId); fsRafId = null; } }
 
-  // Sincronizar con fullscreen API nativo (Esc, F11, gestos del sistema)
   function onFullscreenChange() {
     const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
-    if (!isFs && fsSlide) {
-      // Salida nativa: solo limpiamos lo que quede
+    if (isFs && fsSlide) {
+      lockLandscape();
+    } else if (!isFs && fsSlide) {
       fsSlide.classList.remove('fs-active');
-      try { if (screen.orientation && typeof screen.orientation.unlock === 'function') screen.orientation.unlock(); } catch {}
+      unlockOrientation();
       hideFsProgress();
       const wasVideo = fsVideo;
       fsVideo = null;
@@ -1314,9 +1244,7 @@
           const prevSnap = feed.style.scrollSnapType;
           feed.style.scrollSnapType = 'none';
           feed.scrollTop = savedFeedScroll;
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => { feed.style.scrollSnapType = prevSnap || ''; });
-          });
+          requestAnimationFrame(() => { requestAnimationFrame(() => { feed.style.scrollSnapType = prevSnap || ''; }); });
         }
         setTimeout(() => {
           if (document.hidden) return;
@@ -1331,7 +1259,6 @@
   document.addEventListener('fullscreenchange', onFullscreenChange);
   document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
-  // ═════════ Media ═════════
   async function fetchTiktokMedia(mediaId) {
     if (tiktokMediaCache.has(mediaId)) return tiktokMediaCache.get(mediaId);
     if (tiktokMediaPending.has(mediaId)) return tiktokMediaPending.get(mediaId);
@@ -1408,7 +1335,6 @@
     }
   }
 
-  // ═════════ Follows ═════════
   function listenMyFollowing() {
     const me = String(auth.currentUser?.uid || ''); if (!me) return;
     if (unsubMyFollowing) { try { unsubMyFollowing(); } catch {} }
@@ -1521,7 +1447,6 @@
     };
   });
 
-  // ═════════ Feed render ═════════
   function renderTiktokFeed() {
     const feed = $('tiktok-feed'); if (!feed) return;
     if (fsVideo) exitFullscreen();
@@ -1577,7 +1502,6 @@
       const bottom = document.createElement('div'); bottom.className = 'tiktok-bottom-info';
       bottom.innerHTML = `<div class="tiktok-user-line">@${escapeHtml(uname)}</div>${post.caption ? `<div class="tiktok-caption">${escapeHtml(post.caption)}</div>` : ''}<div class="tiktok-music-line"><span class="tiktok-music-icon">${tic('music', 14)}</span> Sonido original - @${escapeHtml(uname)}</div>`;
 
-      // FS controls
       const fsCtrl = document.createElement('div');
       fsCtrl.className = 'fs-controls';
       fsCtrl.innerHTML = `
@@ -1617,7 +1541,6 @@
         t.onclick = () => { tiktokTabMode = t.dataset.mode; renderTiktokFeed(); const f = $('tiktok-feed'); if (f) f.scrollTop = 0; };
       });
 
-      // FS close
       fsCtrl.querySelector('[data-fs-close]').onclick = exitFullscreen;
 
       const likeBtn = rail.querySelector('[data-action="like"]'); likeBtn.onclick = () => handleTiktokLike(post, likeBtn);
@@ -2009,10 +1932,7 @@
   }
   onAuthStateChanged(auth, u => { if (u && !u.isAnonymous) checkTiktokUrlParam(); });
 
-  // Escape para salir de fullscreen
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && fsVideo) exitFullscreen();
-  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fsVideo) exitFullscreen(); });
 </script>
 </body>
 </html>
