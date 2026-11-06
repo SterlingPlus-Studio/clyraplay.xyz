@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>SentinelCollection</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
@@ -13,7 +16,15 @@
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'ClyraPlay', -apple-system, sans-serif !important; -webkit-tap-highlight-color: transparent; }
   *:focus { outline: none !important; }
   *::-moz-focus-inner { border: 0; }
-  :root{ --pink:#ec4899; --purple:#8b5cf6; --cyan:#06b6d4; --gold:#f59e0b; --bg:#0a0a0f; --surface:rgba(20,20,30,0.85); --surface-2:#191920; --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.12); --text:#f5f5f7; --text-2:#c7c7d2; --muted:#8b8b9e; --comun:#ffb6c1; --rara:#fb7185; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee; --sidebar-w: 240px; --radius: 10px; --radius-lg: 16px; --radius-xl: 20px; --shadow: 0 4px 20px rgba(0,0,0,.35); }
+  :root{
+    --pink:#ec4899; --purple:#8b5cf6; --cyan:#06b6d4; --gold:#f59e0b;
+    --bg:#0a0a0f; --surface:rgba(20,20,30,0.85); --surface-2:#191920;
+    --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.12);
+    --text:#f5f5f7; --text-2:#c7c7d2; --muted:#8b8b9e;
+    --comun:#ffb6c1; --rara:#fb7185; --epica:#a78bfa; --legendaria:#fbbf24; --exclusiva:#22d3ee;
+    --sidebar-w: 240px; --radius: 10px; --radius-lg: 16px; --radius-xl: 20px;
+    --shadow: 0 4px 20px rgba(0,0,0,.35);
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -26,10 +37,32 @@
   body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; transform: translateZ(0); will-change: transform; background-image: radial-gradient(ellipse 800px 600px at 12% 8%, rgba(236,72,153,.18), transparent 60%), radial-gradient(ellipse 700px 500px at 88% 12%, rgba(139,92,246,.22), transparent 60%), radial-gradient(ellipse 600px 500px at 50% 100%, rgba(6,182,212,.10), transparent 60%); }
   .screen { display: none; width: 100%; min-height: 100vh; }
   .screen.active { display: block; animation: fadeIn .25s ease; }
-  .loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  /* ═════════════════════════════════════════════════════════════
+     SAFE AREAS GLOBALES (batería / notch / home indicator)
+     Usamos env(safe-area-inset-*) que devuelve 0px en dispositivos
+     sin notch o en navegador normal, así que no rompe nada.
+     ═════════════════════════════════════════════════════════════ */
+
+  .loading-screen {
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
   .loading-spinner { width: 56px; height: 56px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--pink); border-right-color: var(--purple); animation: spin 1s linear infinite; margin-bottom: 20px; }
   .loading-label { font-size: 11px; color: var(--muted); letter-spacing: .25em; text-transform: uppercase; font-weight: 700; }
-  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+
+  .login-wrap {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(24px + env(safe-area-inset-left, 0px));
+    padding-right: calc(24px + env(safe-area-inset-right, 0px));
+  }
   .login-card { background: rgba(22,22,32,0.94); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px; width: 100%; max-width: 420px; box-shadow: var(--shadow); }
   .logo-hero { text-align: center; margin-bottom: 28px; }
   .logo-hero .l1 { font-size: 26px; font-weight: 900; background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan), var(--pink)); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 4s linear infinite; text-transform: uppercase; letter-spacing: -0.01em; }
@@ -141,15 +174,37 @@
   .waifu-card[data-r="epica"] .waifu-rarity-badge { color: var(--epica); }
   .waifu-card[data-r="legendaria"] .waifu-rarity-badge { color: var(--legendaria); }
   .waifu-card[data-r="exclusiva"] .waifu-rarity-badge { color: var(--exclusiva); }
-  .mobile-nav { display: none; position: fixed; bottom: 12px; left: 12px; right: 12px; z-index: 300; background: rgba(18,18,28,.97); border: 1px solid var(--border-2); border-radius: 22px; padding: 6px; gap: 4px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+
+  /* ═══════════ NAV MÓVIL (con safe areas) ═══════════ */
+  .mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    right: calc(12px + env(safe-area-inset-right, 0px));
+    z-index: 300;
+    background: rgba(18,18,28,.97);
+    border: 1px solid var(--border-2);
+    border-radius: 22px;
+    padding: 6px;
+    gap: 4px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.6);
+  }
   .mnav-btn { flex: 1; margin: 0; padding: 8px 4px; border-radius: 16px; background: transparent; border: none; color: var(--muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 700; cursor: pointer; }
   .mnav-btn.active { background: linear-gradient(135deg, rgba(236,72,153,.22), rgba(139,92,246,.22)); color: var(--text); }
   .mnav-btn.active .icon { color: var(--pink); }
   .mnav-btn .icon, .mnav-btn .icon svg { width: 20px; height: 20px; }
 
+  /* ═══════════ MOBILE + LANDSCAPE PHONE ═══════════ */
   @media (max-width: 768px), ((orientation: landscape) and (max-height: 500px)) {
     .sidebar { transform: translateX(-100%); }
-    .main { margin-left: 0; padding: 20px 16px 100px; }
+    .main {
+      margin-left: 0;
+      padding-top: calc(20px + env(safe-area-inset-top, 0px));
+      padding-right: calc(16px + env(safe-area-inset-right, 0px));
+      padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+      padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    }
     .mobile-nav { display: flex; }
     .inline-logout-btn { display: flex; }
     .profile-info .name { font-size: 16px; }
@@ -157,19 +212,68 @@
     .stat-num { font-size: 22px; }
     .stat-box { min-height: 78px; padding: 14px 16px; }
     #tab-tiktok.active { left: 0 !important; }
+    .toast-container { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+    .modal-overlay {
+      padding-top: calc(20px + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      padding-left: calc(20px + env(safe-area-inset-left, 0px));
+      padding-right: calc(20px + env(safe-area-inset-right, 0px));
+    }
+    .tiktok-top-bar {
+      padding-top: calc(14px + env(safe-area-inset-top, 0px));
+      padding-right: calc(16px + env(safe-area-inset-right, 0px));
+      padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    }
+    .tiktok-actions-rail {
+      bottom: calc(200px + env(safe-area-inset-bottom, 0px));
+      right: calc(8px + env(safe-area-inset-right, 0px));
+    }
+    .tiktok-bottom-info {
+      bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+      left: calc(12px + env(safe-area-inset-left, 0px));
+    }
+    .tt-profile-topbar { padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+    .tt-profile-tabs { top: calc(65px + env(safe-area-inset-top, 0px)); }
+    .tiktok-comments-input-wrap { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .tiktok-audio-card { margin-top: env(safe-area-inset-top, 0px); margin-bottom: env(safe-area-inset-bottom, 0px); }
+    .tiktok-comments-sheet { height: calc(80vh - env(safe-area-inset-bottom, 0px)); }
   }
 
+  /* ═══════════ LANDSCAPE PHONE (feed TikTok) ═══════════ */
   @media (orientation: landscape) and (max-height: 500px) {
-    .main { padding: 12px 16px 80px; }
-    .mobile-nav { bottom: 8px; left: 8px; right: 8px; padding: 4px; border-radius: 18px; }
+    .main {
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      padding-right: calc(16px + env(safe-area-inset-right, 0px));
+      padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+      padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    }
+    .mobile-nav {
+      bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      left: calc(8px + env(safe-area-inset-left, 0px));
+      right: calc(8px + env(safe-area-inset-right, 0px));
+      padding: 4px; border-radius: 18px;
+    }
     .mnav-btn { padding: 6px 4px; font-size: 9px; gap: 2px; border-radius: 12px; }
     .mnav-btn .icon, .mnav-btn .icon svg { width: 18px; height: 18px; }
-    .tiktok-actions-rail { bottom: 80px; gap: 10px; right: 6px; }
-    .tiktok-bottom-info { bottom: 80px; right: 70px; left: 12px; }
+    .tiktok-actions-rail {
+      bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+      right: calc(6px + env(safe-area-inset-right, 0px));
+      gap: 10px;
+    }
+    .tiktok-bottom-info {
+      bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+      left: calc(12px + env(safe-area-inset-left, 0px));
+      right: calc(70px + env(safe-area-inset-right, 0px));
+    }
     .tiktok-user-line { font-size: 14px; margin-bottom: 4px; }
     .tiktok-caption { font-size: 12px; margin-bottom: 6px; -webkit-line-clamp: 2; }
     .tiktok-music-line { font-size: 11px; }
-    .tiktok-top-bar { padding: 8px 12px; }
+    .tiktok-top-bar {
+      padding-top: calc(8px + env(safe-area-inset-top, 0px));
+      padding-right: calc(12px + env(safe-area-inset-right, 0px));
+      padding-left: calc(12px + env(safe-area-inset-left, 0px));
+      padding-bottom: 8px;
+    }
     .tiktok-top-tabs { gap: 14px; }
     .tiktok-top-tab { font-size: 14px; }
     .tiktok-icon-btn { width: 36px; height: 36px; }
@@ -183,10 +287,10 @@
     .tiktok-audio-title { font-size: 16px; margin-bottom: 4px; }
     .tiktok-audio-desc { font-size: 12px; margin-bottom: 14px; }
     .tiktok-audio-actions button { padding: 9px 12px; font-size: 12px; }
-    .tiktok-comments-sheet { height: 90vh; max-height: 90vh; }
+    .tiktok-comments-sheet { height: calc(90vh - env(safe-area-inset-bottom, 0px)); max-height: calc(90vh - env(safe-area-inset-bottom, 0px)); }
     .tiktok-comments-header { padding: 10px 14px; }
     .tiktok-comments-list { padding: 10px 14px; gap: 10px; }
-    .tiktok-comments-input-wrap { padding: 8px 12px; }
+    .tiktok-comments-input-wrap { padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); }
     .tiktok-comments-input-wrap input { padding: 8px 12px; font-size: 13px; }
     .tiktok-comments-input-wrap button { padding: 8px 14px; font-size: 12px; }
     .login-card { padding: 20px; }
@@ -198,11 +302,24 @@
     .profile-info .name { font-size: 15px; }
     .stat-box { min-height: 70px; padding: 12px 14px; }
     .stat-num { font-size: 20px; }
+    .toast-container { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+    .tt-profile-topbar { padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+    .tt-profile-tabs { top: calc(60px + env(safe-area-inset-top, 0px)); }
   }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-overlay {
+    position: fixed; inset: 0;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(20px + env(safe-area-inset-left, 0px));
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
   .modal-overlay.active { display: flex; animation: fadeIn .18s ease; }
-  .modal-box { background: rgba(22,22,32,0.97); border: 1px solid var(--border-2); border-radius: var(--radius-xl); padding: 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow); animation: slideUp .22s ease; max-height: calc(100vh - 40px); overflow-y: auto; }
+  .modal-box { background: rgba(22,22,32,0.97); border: 1px solid var(--border-2); border-radius: var(--radius-xl); padding: 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow); animation: slideUp .22s ease; max-height: calc(100vh - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
   .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; background: linear-gradient(90deg, var(--pink), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .modal-desc { font-size: 13px; color: var(--text-2); margin-bottom: 16px; line-height: 1.6; white-space: pre-line; }
   .modal-input { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--text); margin-bottom: 16px; font-size: 16px; }
@@ -210,11 +327,18 @@
   .modal-btn { flex: 1; padding: 11px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 700; cursor: pointer; border: none; margin: 0; }
   .modal-btn.cancel { background: rgba(255,255,255,.1); color: var(--text); }
   .modal-btn.accept { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; }
-  .toast-container { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; width: calc(100% - 32px); max-width: 400px; }
+
+  .toast-container {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 50%; transform: translateX(-50%);
+    z-index: 2000; display: flex; flex-direction: column; gap: 10px; align-items: center;
+    pointer-events: none; width: calc(100% - 32px); max-width: 400px;
+  }
   .toast { background: rgba(22,22,32,0.97); border: 1px solid var(--border-2); padding: 11px 22px; border-radius: 100px; font-size: 13px; font-weight: 700; color: #fff; box-shadow: var(--shadow); animation: slideUp .28s ease; transition: opacity .25s, transform .25s; text-align: center; }
   .toast.error { border-color: #ef4444; color: #fca5a5; }
   .toast.success { border-color: #10b981; color: #6ee7b7; }
-  @media (min-width: 769px) { .toast-container { bottom: 24px; } }
+
   #tab-tiktok.active { position: fixed; top: 0; left: var(--sidebar-w); right: 0; bottom: 0; background: #000; z-index: 50; margin: 0; padding: 0; }
   .tiktok-shell { position: relative; width: 100%; height: 100%; background: #000; }
   .tiktok-feed-v { width: 100%; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
@@ -224,8 +348,15 @@
   .tiktok-media img, .tiktok-media video { max-width: 100%; max-height: 100%; object-fit: contain; display: block; user-select: none; -webkit-user-select: none; }
   .tiktok-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.5); font-size: 13px; background: #0a0a0a; z-index: 1; }
   .tiktok-gradient { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 40%, transparent 100%); pointer-events: none; z-index: 2; }
-  .tiktok-gradient-top { position: absolute; left: 0; right: 0; top: 0; height: 120px; background: linear-gradient(to bottom, rgba(0,0,0,.6) 0%, transparent 100%); pointer-events: none; z-index: 2; }
-  .tiktok-top-bar { position: absolute; top: 0; left: 0; right: 0; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 5; color: #fff; }
+  .tiktok-gradient-top { position: absolute; left: 0; right: 0; top: 0; height: calc(120px + env(safe-area-inset-top, 0px)); background: linear-gradient(to bottom, rgba(0,0,0,.6) 0%, transparent 100%); pointer-events: none; z-index: 2; }
+  .tiktok-top-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    padding-right: calc(16px + env(safe-area-inset-right, 0px));
+    padding-bottom: 14px;
+    padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    display: flex; align-items: center; justify-content: space-between; z-index: 5; color: #fff;
+  }
   .tiktok-top-tabs { display: flex; gap: 20px; }
   .tiktok-top-tab { font-size: 16px; font-weight: 700; color: rgba(255,255,255,.6); cursor: pointer; padding: 4px 0; position: relative; }
   .tiktok-top-tab.active { color: #fff; }
@@ -234,8 +365,12 @@
   .tiktok-icon-btn { background: none; border: none; color: #fff; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; }
   .tiktok-icon-btn:hover { background: rgba(255,255,255,.15); }
   .tiktok-icon-btn svg { width: 22px; height: 22px; display: block; }
-  .tiktok-actions-rail { position: absolute; right: 8px; bottom: 130px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 5; color: #fff; }
-  @media (max-width: 768px) { .tiktok-actions-rail { bottom: 200px; } }
+  .tiktok-actions-rail {
+    position: absolute;
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 5; color: #fff;
+  }
   .tiktok-profile-btn { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); border: 2px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; cursor: pointer; flex-shrink: 0; }
   .tiktok-profile-btn img { width: 100%; height: 100%; object-fit: cover; }
   .tiktok-action-btn { background: none; border: none; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 0; margin: 0; width: auto; }
@@ -247,8 +382,13 @@
   .tiktok-action-btn.liked .tiktok-action-icon { color: #fe2c55; animation: heartPopSmall .4s ease; }
   .tiktok-action-btn.liked .tiktok-action-icon .heart-path { fill: currentColor; stroke: currentColor; }
   .tiktok-action-label { font-size: 12px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
-  .tiktok-bottom-info { position: absolute; left: 12px; right: 88px; bottom: 24px; z-index: 5; color: #fff; }
-  @media (max-width: 768px) { .tiktok-bottom-info { bottom: 100px; } }
+  .tiktok-bottom-info {
+    position: absolute;
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    right: calc(88px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    z-index: 5; color: #fff;
+  }
   .tiktok-user-line { font-size: 16px; font-weight: 800; margin-bottom: 8px; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
   .tiktok-caption { font-size: 14px; line-height: 1.4; margin-bottom: 10px; text-shadow: 0 1px 4px rgba(0,0,0,.7); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .tiktok-music-line { font-size: 13px; display: flex; align-items: center; gap: 6px; text-shadow: 0 1px 4px rgba(0,0,0,.7); opacity: .95; }
@@ -308,8 +448,8 @@
   .fs-controls { position: absolute; inset: 0; z-index: 2147483000; display: none; pointer-events: none; }
   .fs-close {
     position: absolute;
-    top: max(16px, env(safe-area-inset-top, 16px));
-    right: max(16px, env(safe-area-inset-right, 16px));
+    top: max(16px, calc(16px + env(safe-area-inset-top, 0px)));
+    right: max(16px, calc(16px + env(safe-area-inset-right, 0px)));
     width: 54px !important; height: 54px !important;
     border-radius: 50%;
     background: rgba(0,0,0,0.88) !important;
@@ -329,7 +469,7 @@
   .fs-progress-wrap {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    padding: 22px 26px calc(26px + env(safe-area-inset-bottom, 0px));
+    padding: 22px calc(26px + env(safe-area-inset-right, 0px)) calc(26px + env(safe-area-inset-bottom, 0px)) calc(26px + env(safe-area-inset-left, 0px));
     background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
     display: flex; align-items: center; gap: 14px;
     pointer-events: auto !important;
@@ -344,7 +484,15 @@
 
   .tiktok-profile-view { position: absolute; inset: 0; background: #000; z-index: 90; overflow-y: auto; display: none; color: #fff; }
   .tiktok-profile-view.active { display: block; animation: fadeIn .2s ease; }
-  .tt-profile-topbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 0; background: #000; z-index: 10; }
+  .tt-profile-topbar {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    padding-right: calc(12px + env(safe-area-inset-right, 0px));
+    padding-bottom: 10px;
+    padding-left: calc(12px + env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    position: sticky; top: 0; background: #000; z-index: 10;
+  }
   .tt-profile-back { width: 44px !important; height: 44px !important; border-radius: 50% !important; background: rgba(255,255,255,0.15) !important; border: 1px solid rgba(255,255,255,0.25) !important; color: #fff !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer; flex-shrink: 0; padding: 0; transition: background .15s; }
   .tt-profile-back:hover { background: rgba(255,255,255,0.28) !important; }
   .tt-profile-back svg { width: 22px !important; height: 22px !important; display: block; }
@@ -360,7 +508,7 @@
   .tt-profile-stat-lbl { font-size: 11px; color: rgba(255,255,255,.6); font-weight: 600; }
   .tt-profile-btn { padding: 10px 32px; border-radius: 8px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; min-width: 140px; background: #fe2c55; color: #fff; }
   .tt-profile-btn.following { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.3); }
-  .tt-profile-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: 65px; background: #000; z-index: 9; }
+  .tt-profile-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); position: sticky; top: calc(65px + env(safe-area-inset-top, 0px)); background: #000; z-index: 9; }
   .tt-profile-tab { flex: 1; padding: 14px; background: transparent; border: none; color: rgba(255,255,255,.6); font-size: 13px; font-weight: 700; cursor: pointer; position: relative; }
   .tt-profile-tab.active { color: #fff; }
   .tt-profile-tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 36px; height: 2px; background: #fff; }
@@ -392,10 +540,14 @@
   .tt-progress.visible { display: block; }
   .tt-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan)); transition: width .2s ease; }
   .tt-progress-text { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 12px; font-weight: 700; }
-  .tiktok-comments-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 1500; align-items: flex-end; justify-content: center; }
+
+  .tiktok-comments-overlay {
+    position: fixed; inset: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(0,0,0,.5); display: none; z-index: 1500; align-items: flex-end; justify-content: center;
+  }
   .tiktok-comments-overlay.active { display: flex; animation: fadeIn .2s ease; }
   .tiktok-comments-sheet { background: #1a1a1f; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; height: 70vh; display: flex; flex-direction: column; border: 1px solid var(--border); border-bottom: none; }
-  @media (max-width: 768px) { .tiktok-comments-sheet { height: 80vh; } }
   .tiktok-comments-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .tiktok-comments-header .title { font-size: 14px; font-weight: 700; color: var(--text); }
   .tiktok-comments-close { background: none; border: none; color: var(--muted); font-size: 20px; padding: 4px 8px; cursor: pointer; border-radius: 6px; }
@@ -408,7 +560,7 @@
   .tiktok-comment-user { font-size: 12px; font-weight: 700; color: var(--text-2); margin-bottom: 2px; cursor: pointer; }
   .tiktok-comment-text { font-size: 13px; color: var(--text); line-height: 1.4; word-wrap: break-word; }
   .tiktok-comment-time { font-size: 10px; color: var(--muted); margin-top: 4px; }
-  .tiktok-comments-input-wrap { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: rgba(0,0,0,.2); flex-shrink: 0; }
+  .tiktok-comments-input-wrap { display: flex; gap: 8px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); background: rgba(0,0,0,.2); flex-shrink: 0; }
   .tiktok-comments-input-wrap input { flex: 1; padding: 10px 14px; border-radius: 100px; background: rgba(255,255,255,.06); border: 1px solid var(--border); font-size: 14px; }
   .tiktok-comments-input-wrap button { padding: 10px 18px; border-radius: 100px; background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; font-size: 13px; font-weight: 700; border: none; cursor: pointer; }
 </style>
@@ -647,6 +799,15 @@
   const setMsg = (id, text, type) => { const el = $(id); el.className = 'msg ' + (type || 'err'); el.textContent = text; };
   const NUM_FMT = new Intl.NumberFormat('es-MX');
 
+  // 🎨 Cambiar color de la barra de estado (batería) según pestaña
+  function updateThemeColor(tab) {
+    const isTiktok = tab === 'tiktok';
+    const bgColor = isTiktok ? '#000000' : '#0a0a0f';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bgColor));
+    // También actualizar el color de fondo del body (para cuando no hay status bar translúcida)
+    document.body.style.backgroundColor = isTiktok ? '#000000' : '';
+  }
+
   let currentRequestId = null, unsubRequest = null, unsubProfile = null, unsubGameData = null, unsubShopData = null;
   let myGameData = null, shopData = { waifus: [], skins: [] };
   let currentFilter = 'all', shopFilter = 'waifus', collectionTab = 'waifus', syncRequested = false;
@@ -840,6 +1001,7 @@
 
   function loadDashboard(uid) {
     show('screen-panel');
+    updateThemeColor('profile');
     getLocalImage('avatar', uid).then(url => { const h = url ? `<img src="${url}" decoding="async" alt="">` : '?'; $('p-avatar').innerHTML = h; $('sb-avatar').innerHTML = h; });
     if (unsubProfile) unsubProfile();
     unsubProfile = onValue(ref(db, 'users/' + uid + '/profile'), snap => {
@@ -996,9 +1158,6 @@
 
   function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  // ═══════════════════════════════════════════════════════════════
-  // VIDEOS - LAZY LOAD (carga/descarga automática por viewport)
-  // ═══════════════════════════════════════════════════════════════
   const TIKTOK_MAX_BYTES = 15 * 1024 * 1024, TIKTOK_CHUNK_B64 = 512 * 1024, TIKTOK_FETCH_TIMEOUT = 45000;
   let tiktokFeed = [], tiktokUnsub = null, tiktokSelectedFile = null, tiktokUploading = false;
   let tiktokTabMode = 'foryou', activeCommentsMediaId = null, unsubComments = null;
@@ -1017,10 +1176,6 @@
   const tiktokMediaCache = new Map(), tiktokMediaPending = new Map();
   const tiktokVideoRefs = new Map(), tiktokLikedByMe = new Set(), tiktokAvatarCache = new Map();
 
-  // ═════════ OBSERVER COMPARTIDO (carga + descarga) ═════════
-  // ⚡ IMPORTANTE: NUNCA se desconecta. Si se reconstruye el feed,
-  // solo se hace unobserve de los viejos. Así el observer sigue vivo
-  // y los nuevos slides cargan igual que las imágenes.
   let feedMediaObserver = null;
   function getFeedMediaObserver() {
     if (feedMediaObserver) return feedMediaObserver;
@@ -1054,7 +1209,6 @@
       tiktokVideoRefs.delete(mediaId);
       if (activeVideoId === mediaId) activeVideoId = null;
     }
-    // Asegurar placeholder siempre visible cuando no hay media
     if (!wrap.querySelector('img, video, .tiktok-placeholder')) {
       const ph = document.createElement('div');
       ph.className = 'tiktok-placeholder';
@@ -1190,7 +1344,6 @@
     updateAllMuteButtons();
   }
 
-  // ═════════ FULLSCREEN con rotación a landscape ═════════
   async function enterFullscreen(video, slide) {
     if (!video || !slide) return;
     const feed = $('tiktok-feed');
@@ -1202,8 +1355,6 @@
     if (req) { try { await req.call(slide); } catch (e) { console.warn('[fullscreen] API nativa no disponible:', e?.message); } }
     let locked = await lockLandscape();
     if (!locked) { await new Promise(r => setTimeout(r, 150)); locked = await lockLandscape(); }
-    if (locked) console.log('[fullscreen] ✅ Orientación bloqueada a landscape');
-    else console.warn('[fullscreen] ⚠️ No se pudo bloquear orientación');
     if (video.paused) { video.muted = !tiktokAudioEnabled; video.play().catch(() => {}); }
     else if (tiktokAudioEnabled) { video.muted = false; }
     startFsProgress(video, slide);
@@ -1387,11 +1538,7 @@
 
   async function loadTiktokMedia(container, mediaId) {
     const media = await fetchTiktokMedia(mediaId);
-    // Si mientras cargaba se descargó (porque salió del viewport), abortar
-    if (!container.isConnected) {
-      if (container.dataset) container.dataset.loaded = '';
-      return;
-    }
+    if (!container.isConnected) { if (container.dataset) container.dataset.loaded = ''; return; }
     if (!media) {
       container.innerHTML = '';
       const ph = document.createElement('div');
@@ -1400,7 +1547,6 @@
       container.dataset.failed = '1';
       return;
     }
-    // Limpiar cualquier media previa (evita duplicados si el fetch fue lento)
     container.querySelectorAll('video, img').forEach(el => {
       if (el.tagName === 'VIDEO') {
         try { el.pause(); el.removeAttribute('src'); el.load(); } catch {}
@@ -1545,7 +1691,6 @@
   function renderTiktokFeed() {
     const feed = $('tiktok-feed'); if (!feed) return;
     if (fsVideo) exitFullscreen();
-    // ⚡ SOLO unobserve los viejos, NO desconectar el observer compartido
     if (feedMediaObserver) {
       feed.querySelectorAll('.tiktok-media').forEach(el => {
         try { feedMediaObserver.unobserve(el); } catch {}
@@ -1570,7 +1715,7 @@
     const frag = document.createDocumentFragment();
     const muteIcon = tiktokAudioEnabled ? tic('sound', 20) : tic('mute', 20);
     const muteTitle = tiktokAudioEnabled ? 'Silenciar' : 'Activar sonido';
-    const mediaObs = getFeedMediaObserver();  // ← siempre el mismo, nunca desconectado
+    const mediaObs = getFeedMediaObserver();
 
     sorted.forEach(post => {
       const isVideoPost = post.fileType === 'video';
@@ -1626,9 +1771,8 @@
 
       loadAvatarInto(rail.querySelector('.tiktok-profile-btn'), post.userId, (post.userName || uname || 'U').charAt(0).toUpperCase());
 
-      // ⚡ IMPORTANTE: guardar loaded='' ANTES de observe, y usar el observer compartido
       mediaWrap.dataset.mediaId = post.id;
-      mediaWrap.dataset.loaded = '';  // ← reset explícito
+      mediaWrap.dataset.loaded = '';
       mediaObs.observe(mediaWrap);
 
       topBar.querySelector('[data-action="upload"]').onclick = openTiktokUploadModal;
@@ -1684,7 +1828,6 @@
     feed.removeEventListener('scrollend', onTiktokScrollEnd);
     feed.addEventListener('scrollend', onTiktokScrollEnd, { passive: true });
 
-    // ⚡ Pre-carga el primer video visible (no esperar al observer)
     requestAnimationFrame(() => {
       if (document.hidden || profileUserId || fsVideo) return;
       if (!$('tab-tiktok').classList.contains('active')) return;
@@ -1965,13 +2108,13 @@
     document.querySelectorAll('.mnav-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     const el = $('tab-' + tab); if (el) el.classList.add('active');
+    updateThemeColor(tab);  // 🎨 Barra de estado se adapta al fondo
     if (tab === 'tiktok') {
       renderTiktokFeed();
       if (!tiktokAudioPromptShown) setTimeout(() => showAudioPrompt(), 300);
     } else {
       if (fsVideo) exitFullscreen();
       pauseAllVideos();
-      // ⚡ Descargar videos del feed al salir (libera memoria)
       document.querySelectorAll('#tiktok-feed .tiktok-media[data-loaded="1"]').forEach(wrap => {
         unloadTiktokMedia(wrap, wrap.dataset.mediaId);
         wrap.dataset.loaded = '';
@@ -2015,7 +2158,6 @@
       if (unsubProfileFollowers) try { unsubProfileFollowers(); } catch {}
       if (unsubProfileFollowing) try { unsubProfileFollowing(); } catch {}
       imageCache.clear(); pendingRequests.clear();
-      // ⚡ Cleanup observer al cerrar sesión (único lugar donde se desconecta)
       if (feedMediaObserver) { try { feedMediaObserver.disconnect(); } catch {} feedMediaObserver = null; }
       if (tiktokUnsub) try { tiktokUnsub(); } catch {}
       tiktokMediaCache.forEach(v => { if (v.isObjectUrl) try { URL.revokeObjectURL(v.url); } catch {} });
@@ -2024,6 +2166,7 @@
       tiktokFeed = []; tiktokAudioEnabled = false; tiktokAudioPromptShown = false;
       profileUserId = null; userFollowingSet.clear(); activeVideoId = null;
       hideAudioPrompt();
+      updateThemeColor('profile');
     } catch {}
     signOut(auth).catch(() => {}).finally(() => window.location.reload());
   }
