@@ -304,7 +304,7 @@
   }
   .tab-hero.shop-hero .shop-search { margin-bottom: 0; }
 
-  /* ============ PROFILE (nuevo diseño) ============ */
+  /* ============ PROFILE ============ */
   .profile-card {
     border-radius: var(--r-xl);
     padding: 32px 28px 28px;
@@ -418,7 +418,7 @@
     color: #fff;
   }
 
-  /* ============ GROUP CARDS (stats + minerales) ============ */
+  /* ============ GROUP CARDS ============ */
   .group-card {
     display: grid;
     background: var(--surface-1);
@@ -1103,7 +1103,7 @@
           </div>
 
           <div class="shop-search">
-            <input id="shop-search" type="text" placeholder="Buscar por nombre..." autocomplete="off">
+            <input id="shop-search" type="text" placeholder="Buscar por nombre o rareza..." autocomplete="off">
             <button type="button" class="clear-btn" id="shop-search-clear" aria-label="Limpiar">✕</button>
           </div>
         </div>
@@ -1806,15 +1806,20 @@
       return true;
     });
 
+    // Búsqueda por nombre O rareza
     const q = shopSearchQuery.trim().toLowerCase();
     if (q) {
-      items = items.filter(item => String(item.waifuName || item.name || '').toLowerCase().includes(q));
+      items = items.filter(item => {
+        const nameMatch = String(item.waifuName || item.name || '').toLowerCase().includes(q);
+        const rarityMatch = String(item.rarity || '').toLowerCase().includes(q);
+        return nameMatch || rarityMatch;
+      });
     }
 
     if (items.length === 0) {
       let emptyMsg;
       if (q) {
-        emptyMsg = `Sin resultados para "<b>${escapeHtml(shopSearchQuery)}</b>".<br><span style="font-size:12px; opacity:.7;">Prueba con otro nombre.</span>`;
+        emptyMsg = `Sin resultados para "<b>${escapeHtml(shopSearchQuery)}</b>".<br><span style="font-size:12px; opacity:.7;">Prueba con otro nombre o rareza.</span>`;
       } else {
         const activeFilters = [];
         if (hideMine) activeFilters.push('tus ventas');
