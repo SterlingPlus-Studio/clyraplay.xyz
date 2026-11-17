@@ -1306,148 +1306,141 @@
   }
   hydrateIcons();
 
-  // ================= CACHÉ PERSISTENTE =================
-  const IMG_CACHE_DB = 'jinx_imgs_v1';
-  const IMG_CACHE_STORE = 'data';
+  // ========== CACHÉ COMPARTIDA + LIBERACIÓN DE IMÁGENES FUERA DE PANTALLA ==========
+  // IndexedDB pertenece al origen del sitio, no a la sesión: personajes/skins
+  // comparten la misma entrada entre cuentas. Los avatares sí son por UID.
+  const IMG_CACHE_DB = 'jinx_imgs_v1', IMG_CACHE_STORE = 'data';
   let imgDBPromise = null;
-
   function getImgDB() {
     if (imgDBPromise) return imgDBPromise;
-    imgDBPromise = new Promise((resolve) => {
+    imgDBPromise = new Promise(resolve => {
       try {
-        if (typeof indexedDB === 'undefined') return resolve(null);
+        if (!window.indexedDB) return resolve(null);
         const req = indexedDB.open(IMG_CACHE_DB, 1);
-        req.onupgradeneeded = () => {
-          if (!req.result.objectStoreNames.contains(IMG_CACHE_STORE)) {
-            req.result.createObjectStore(IMG_CACHE_STORE);
-          }
-        };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => resolve(null);
+        req.onupgradeneeded = () => { if (!req.result.objectStoreNames.contains(IMG_CACHE_STORE)) req.result.createObjectStore(IMG_CACHE_STORE); };
+        req.onsuccess = () => { req.result.onversionchange = () => req.result.close(); resolve(req.result); };
+        req.onerror = req.onblocked = () => resolve(null);
       } catch { resolve(null); }
     });
     return imgDBPromise;
   }
-
   async function idbGetImg(key) {
-    const db = await getImgDB();
-    if (!db) return null;
-    return new Promise((resolve) => {
-      try {
-        const tx = db.transaction(IMG_CACHE_STORE, 'readonly');
-        const req = tx.objectStore(IMG_CACHE_STORE).get(key);
-        req.onsuccess = () => resolve(req.result || null);
-        req.onerror = () => resolve(null);
-      } catch { resolve(null); }
-    });
+    const db=await getImgDB(); if(!db) return null;
+    return new Promise(resolve=>{ try { const r=db.transaction(IMG_CACHE_STORE,'readonly').objectStore(IMG_CACHE_STORE).get(key); r.onsuccess=()=>resolve(typeof r.result==='string'?r.result:null); r.onerror=()=>resolve(null); } catch { resolve(null); } });
   }
+  async function idbSetImg(key,value) { const db=await getImgDB(); if(!db||!value)return; try { db.transaction(IMG_CACHE_STORE,'readwrite').objectStore(IMG_CACHE_STORE).put(value,key); } catch {} }
+  async function idbDeleteImg(key) { const db=await getImgDB(); if(!db)return; try { db.transaction(IMG_CACHE_STORE,'readwrite').objectStore(IMG_CACHE_STORE).delete(key); } catch {} }
 
-  async function idbSetImg(key, dataUrl) {
-    const db = await getImgDB();
-    if (!db) return;
+  function normalizeImageType(type) {
+    const t=String(type||'waifu').trim().toLowerCase();
+    return ['character','personaje','personajes','waifu'].includes(t)?'waifu':t;
+  }
+  function getImageCacheKey(type,target) {
+    const t=normalizeImageType(type); let n=String(target??'').trim().normalize('NFC');
+    if(t!=='avatar') n=n.toLocaleLowerCase();
+    return `${t}_${n}`;
+  }
+  const imageCache=new Map(), pendingRequests=new Map(), visibleImageContainers=new Map();
+  const imageRetryTimers=new WeakMap(), imageRetryCounts=new WeakMap();
+  const hasIntersectionObserver=typeof IntersectionObserver!=='undefined';
+  function isKeyVisible(key) { return !hasIntersectionObserver||(visibleImageContainers.get(key)?.size||0)>0; }
+  function isContainerVisible(el,key) { return !!el?.isConnected&&(!hasIntersectionObserver||visibleImageContainers.get(key)?.has(el)===true); }
+  function clearContainerImage(el) {
+    const timer=imageRetryTimers.get(el); if(timer)clearTimeout(timer);
+    imageRetryTimers.delete(el); imageRetryCounts.delete(el);
+    const img=el.querySelector('img');
+    if(img){ img.onload=null; img.onerror=null; img.removeAttribute('src'); img.remove(); }
+    el.dataset.imageLoading='false';
+  }
+  function releaseVisibleImageContainer(el) {
+    if(!el)return;
+    const key=getImageCacheKey(el.dataset.type,el.dataset.name), users=visibleImageContainers.get(key);
+    if(users){ users.delete(el); if(!users.size){ visibleImageContainers.delete(key); imageCache.delete(key); } }
+    clearContainerImage(el);
+  }
+  function retryImage(el,key) {
+    if(!isContainerVisible(el,key))return;
+    const old=imageRetryTimers.get(el); if(old)clearTimeout(old);
+    const n=imageRetryCounts.get(el)||0; if(n>=3)return;
+    imageRetryCounts.set(el,n+1);
+    imageRetryTimers.set(el,setTimeout(()=>{ imageRetryTimers.delete(el); if(isContainerVisible(el,key))loadImageForContainer(el); },Math.min(1500*2**n,6000)));
+  }
+  async function loadImageForContainer(el) {
+    if(!el?.isConnected)return;
+    const type=normalizeImageType(el.dataset.type||'waifu'), target=String(el.dataset.name||'').trim(); if(!target)return;
+    const key=getImageCacheKey(type,target); if(!isContainerVisible(el,key))return;
+    const current=el.querySelector('img');
+    if(current?.classList.contains('loaded')&&current.dataset.cacheKey===key)return;
+    if(el.dataset.imageLoading==='true'&&el.dataset.imageKey===key)return;
+    el.dataset.imageKey=key; el.dataset.imageLoading='true';
     try {
-      const tx = db.transaction(IMG_CACHE_STORE, 'readwrite');
-      tx.objectStore(IMG_CACHE_STORE).put(dataUrl, key);
-    } catch {}
+      const url=await getLocalImage(type,target);
+      if(!url){ retryImage(el,key); return; }
+      if(!isContainerVisible(el,key)||el.dataset.imageKey!==key)return;
+      let img=el.querySelector('img');
+      if(!img){ img=document.createElement('img'); img.decoding='async'; img.loading='eager'; img.draggable=false; img.alt=''; img.dataset.cacheKey=key; el.insertBefore(img,el.firstChild); }
+      img.onload=()=>{ if(isContainerVisible(el,key)&&el.querySelector('img')===img){img.classList.add('loaded');imageRetryCounts.delete(el);}else{img.removeAttribute('src');img.remove();} };
+      img.onerror=()=>{ if(el.querySelector('img')!==img)return; imageCache.delete(key); idbDeleteImg(key); idbDeleteImg(`${type}_${target}`); img.removeAttribute('src'); img.remove(); retryImage(el,key); };
+      img.src=url; if(img.complete&&img.naturalWidth>0)img.classList.add('loaded');
+    } catch(e){ console.warn('[images] Error al cargar',key,e?.message||e); retryImage(el,key); }
+    finally { if(el.dataset.imageKey===key)el.dataset.imageLoading='false'; }
   }
+  const imageLoadObserver=hasIntersectionObserver?new IntersectionObserver(entries=>{
+    for(const entry of entries){ const el=entry.target, key=getImageCacheKey(el.dataset.type,el.dataset.name);
+      if(entry.isIntersecting){ let set=visibleImageContainers.get(key); if(!set)visibleImageContainers.set(key,set=new Set()); set.add(el); loadImageForContainer(el); }
+      else releaseVisibleImageContainer(el);
+    }
+  },{rootMargin:'0px',threshold:0.01}):{observe:el=>loadImageForContainer(el),unobserve:()=>{}};
 
-  // ================= LAZY LOAD =================
-  const imageCache = new Map();
-  const pendingRequests = new Map();
-
-  function loadImageForContainer(imgContainer, attempt = 1) {
-    if (!imgContainer || !imgContainer.isConnected) return;
-    const imgTag = imgContainer.querySelector('img');
-    if (imgTag && imgTag.classList.contains('loaded')) return;
-
-    const type = imgContainer.dataset.type || 'waifu';
-    const name = imgContainer.dataset.name;
-    if (!name) return;
-
-    getLocalImage(type, name).then(url => {
-      if (!imgContainer.isConnected) return;
-      if (url) {
-        let img = imgContainer.querySelector('img');
-        if (!img) {
-          img = document.createElement('img');
-          img.decoding = 'async';
-          img.loading = 'lazy';
-          img.draggable = false;
-          img.alt = '';
-          imgContainer.insertBefore(img, imgContainer.firstChild);
-        }
-        if (img.getAttribute('src') !== url) img.src = url;
-        if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
-        else img.onload = () => img.classList.add('loaded');
-      } else if (attempt < 3 && !imageCache.has(`${type}_${name}`)) {
-        setTimeout(() => loadImageForContainer(imgContainer, attempt + 1), 2000 * attempt);
+  document.addEventListener('visibilitychange', () => {
+    document.querySelectorAll('.waifu-img').forEach(el => {
+      if (document.hidden) {
+        try { imageLoadObserver.unobserve(el); } catch {}
+        releaseVisibleImageContainer(el);
+      } else {
+        imageLoadObserver.observe(el);
       }
     });
-  }
+  });
 
-  const imageLoadObserver = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      imageLoadObserver.unobserve(entry.target);
-      loadImageForContainer(entry.target);
-    }
-  }, { rootMargin: '1000px 0px' });
-
-  async function getLocalImage(type, target) {
-    const cacheKey = `${type}_${target}`;
-
-    if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
-    if (pendingRequests.has(cacheKey)) return pendingRequests.get(cacheKey);
-
-    const promise = (async () => {
-      try {
-        const stored = await idbGetImg(cacheKey);
-        if (stored) { imageCache.set(cacheKey, stored); return stored; }
-      } catch {}
-
-      return new Promise((resolve) => {
-        const reqId  = 'img_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-        const reqRef = ref(db, 'image_requests/'  + reqId);
-        const resRef = ref(db, 'image_responses/' + reqId);
-
-        let done = false, unsub = null;
-
-        const finish = (url, cacheNull) => {
-          if (done) return;
-          done = true;
-          try { unsub && unsub(); } catch {}
-          if (url) { imageCache.set(cacheKey, url); idbSetImg(cacheKey, url); }
-          else if (cacheNull) { imageCache.set(cacheKey, null); }
-          set(resRef, null).catch(() => {});
-          resolve(url || null);
-        };
-
-        unsub = onValue(resRef, (snap) => {
-          const res = snap.val();
-          if (!res) return;
-          if (res.success && res.base64) finish(`data:image/${res.mime};base64,${res.base64}`, false);
-          else finish(null, true);
-        });
-
-        set(reqRef, { type, target, createdAt: Date.now() }).catch(() => finish(null, false));
-        setTimeout(() => finish(null, false), 8000);
+  async function getLocalImage(type,target) {
+    const normalizedType=normalizeImageType(type), key=getImageCacheKey(normalizedType,target);
+    if(imageCache.has(key))return imageCache.get(key);
+    if(pendingRequests.has(key))return pendingRequests.get(key);
+    const promise=(async()=>{
+      const legacyKey=`${normalizedType}_${String(target??'').trim().normalize('NFC')}`;
+      const stored=await idbGetImg(key).catch(()=>null) || await idbGetImg(legacyKey).catch(()=>null);
+      if(stored){if(isKeyVisible(key))imageCache.set(key,stored);if(legacyKey!==key)idbSetImg(key,stored);return stored;}
+      return new Promise(resolve=>{
+        const id='img_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+        const reqRef=ref(db,'image_requests/'+id), resRef=ref(db,'image_responses/'+id);
+        let done=false,unsub=null,timer=null;
+        const finish=url=>{ if(done)return; done=true; if(timer)clearTimeout(timer); try{unsub&&unsub();}catch{}
+          set(reqRef,null).catch(()=>{}); set(resRef,null).catch(()=>{});
+          if(url){if(isKeyVisible(key))imageCache.set(key,url);idbSetImg(key,url);} resolve(url||null); };
+        unsub=onValue(resRef,snap=>{ const res=snap.val(); if(!res)return;
+          if(res.success&&res.base64){const mime=/^[a-z0-9.+-]+$/i.test(String(res.mime||''))?res.mime:'jpeg';finish(`data:image/${mime};base64,${res.base64}`);}else finish(null);
+        },()=>finish(null));
+        set(reqRef,{type:normalizedType,target:String(target),createdAt:Date.now()}).catch(()=>finish(null));
+        // Margen de 20 s para evitar fallos cuando el worker procesa otras imágenes.
+        timer=setTimeout(()=>finish(null),20000);
       });
     })();
-
-    pendingRequests.set(cacheKey, promise);
-    try { return await promise; } finally { pendingRequests.delete(cacheKey); }
+    pendingRequests.set(key,promise);
+    try{return await promise;}finally{pendingRequests.delete(key);}
   }
 
   async function requestSync(uid) {
     await set(ref(db, 'sync_requests/' + uid), { userId: uid, createdAt: Date.now() }).catch(()=>{});
   }
 
-  function observeImg(el) { imageLoadObserver.observe(el); }
+  function observeImg(el) { if (el) imageLoadObserver.observe(el); }
 
   function cleanupGridObservers(grid) {
     if (!grid) return;
     grid.querySelectorAll('.waifu-img').forEach(el => {
       try { imageLoadObserver.unobserve(el); } catch {}
+      releaseVisibleImageContainer(el);
     });
   }
 
@@ -1906,7 +1899,10 @@
                 card.style.opacity = '0';
                 card.style.transform = 'scale(0.9)';
                 setTimeout(() => {
-                  try { cleanupGridObservers(card.parentElement); } catch {}
+                  try {
+                    const imageEl = card.querySelector('.waifu-img');
+                    if (imageEl) { imageLoadObserver.unobserve(imageEl); releaseVisibleImageContainer(imageEl); }
+                  } catch {}
                   card.remove();
                 }, 300);
               }
@@ -2022,8 +2018,11 @@
       if (unsubProfile) unsubProfile();
       if (unsubGameData) unsubGameData();
       if (unsubShopData) unsubShopData();
+      document.querySelectorAll('.waifu-img').forEach(el => {
+        try { imageLoadObserver.unobserve(el); } catch {}
+        releaseVisibleImageContainer(el);
+      });
       imageCache.clear();
-      pendingRequests.clear();
     } catch (e) {}
     signOut(auth).catch(() => {}).finally(() => window.location.reload());
   }
