@@ -46,6 +46,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideInRight { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
 
   html, body { overflow-x: hidden; }
   body {
@@ -55,6 +56,7 @@
     -webkit-user-select: none;
     user-select: none;
   }
+  body.skins-open { overflow: hidden; }
   input, textarea { -webkit-user-select: text; user-select: text; }
 
   button:focus, a:focus, [tabindex]:focus, label:focus { outline: none; }
@@ -746,6 +748,116 @@
     border-radius: var(--r-lg);
   }
 
+  /* ============ PANTALLA COMPLETA DE SKINS ============ */
+  .skins-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    animation: fadeIn .2s ease;
+  }
+  .skins-screen.active { display: flex; }
+
+  .skins-screen-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    border-bottom: 1px solid var(--border);
+    background: #000;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .skins-back-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    padding: 0; margin: 0;
+    flex-shrink: 0;
+    transition: background .15s, border-color .15s;
+  }
+  .skins-back-btn:hover { background: var(--surface-3); border-color: var(--border-strong); }
+  .skins-back-btn .icon,
+  .skins-back-btn .icon svg { width: 20px; height: 20px; }
+
+  .skins-screen-title-wrap { flex: 1; min-width: 0; }
+  .skins-screen-title {
+    font-size: 17px; font-weight: 800;
+    letter-spacing: -.01em;
+    color: #fff;
+    line-height: 1.15;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .skins-screen-subtitle {
+    font-size: 11px; color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+    letter-spacing: .02em;
+  }
+
+  .skins-screen-count {
+    font-size: 11px; color: var(--text-2);
+    font-weight: 700;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: var(--r-pill);
+    flex-shrink: 0;
+    letter-spacing: .02em;
+  }
+
+  .skins-screen-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 769px) {
+    .skins-screen-body { padding: 24px 28px calc(28px + env(safe-area-inset-bottom, 0px)); }
+  }
+
+  .skins-screen-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (min-width: 550px)  { .skins-screen-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+  @media (min-width: 850px)  { .skins-screen-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 1100px) { .skins-screen-grid { grid-template-columns: repeat(5, 1fr); } }
+
+  .skins-view-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color .15s, transform .15s;
+  }
+  .skins-view-card:hover { border-color: var(--border-strong); }
+  .skins-view-card.is-active {
+    border-color: rgba(255,255,255,0.5);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+  }
+  
+  /* ===== FIX: Botones desbordados ===== */
+  .skins-view-card .skins-view-btn {
+    margin: 12px 10px;
+    padding: 10px 14px;
+    font-size: 11px;
+    width: calc(100% - 20px);
+    align-self: center;
+    flex-shrink: 0;
+  }
+
   /* ============ MOBILE NAV ============ */
   .mobile-nav {
     display: none;
@@ -785,7 +897,7 @@
     background: rgba(0,0,0,.85);
     display: none;
     align-items: center; justify-content: center;
-    z-index: 1000; padding: 20px;
+    z-index: 1100; padding: 20px;
     animation: fadeIn .15s ease;
     backdrop-filter: blur(4px);
   }
@@ -888,6 +1000,11 @@
     .tab-hero-subtitle { font-size: 11px; }
 
     .tab-hero.shop-hero .tab-hero-main { gap: 12px; }
+
+    .skins-screen-header { padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); gap: 10px; }
+    .skins-back-btn { width: 38px; height: 38px; }
+    .skins-screen-title { font-size: 15px; }
+    .skins-screen-count { padding: 5px 10px; font-size: 10px; }
   }
 
   @media (max-width: 768px) {
@@ -923,7 +1040,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .screen.active, .tab-content.active, .modal-box, .toast { animation: none !important; }
+    .screen.active, .tab-content.active, .modal-box, .toast, .skins-screen { animation: none !important; }
   }
 </style>
 </head>
@@ -940,6 +1057,7 @@
     </div>
   </div>
 </div>
+
 <div id="toast-container" class="toast-container"></div>
 
 <div id="screen-loading" class="screen active">
@@ -1141,6 +1259,23 @@
   </nav>
 </div>
 
+<!-- ===== PANTALLA COMPLETA DE SKINS ===== -->
+<div id="skins-screen" class="skins-screen">
+  <div class="skins-screen-header">
+    <button class="skins-back-btn" id="skins-back-btn" aria-label="Volver" title="Volver">
+      <span class="icon" data-icon="back"></span>
+    </button>
+    <div class="skins-screen-title-wrap">
+      <div class="skins-screen-title" id="skins-screen-title">Skins</div>
+      <div class="skins-screen-subtitle" id="skins-screen-subtitle">—</div>
+    </div>
+    <div class="skins-screen-count" id="skins-screen-count">0</div>
+  </div>
+  <div class="skins-screen-body">
+    <div id="skins-screen-grid" class="skins-screen-grid"></div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -1209,6 +1344,7 @@
   let shopSearchQuery = '';
   let hideMine = true;
   let hideOwned = true;
+  let openSkinsWaifu = null;
 
   let collectionDirty = true;
   let shopDirty = true;
@@ -1289,6 +1425,7 @@
       package: '<path d="M3 7l9-4 9 4v10l-9 4-9-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 7l9 4 9-4M12 11v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
       store: '<path d="M4 9l1-5h14l1 5M4 9h16M4 9v11h16V9M9 20v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
       logout: '<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+      back: '<path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
       gear: '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
       medal: '<circle cx="12" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 14l-2 8 6-3 6 3-2-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
       diamond: '<path d="M6 3h12l4 6-10 12L2 9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2 9h20M12 21L8 9l4-6 4 6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
@@ -1307,8 +1444,6 @@
   hydrateIcons();
 
   // ========== CACHÉ COMPARTIDA + LIBERACIÓN DE IMÁGENES FUERA DE PANTALLA ==========
-  // IndexedDB pertenece al origen del sitio, no a la sesión: personajes/skins
-  // comparten la misma entrada entre cuentas. Los avatares sí son por UID.
   const IMG_CACHE_DB = 'jinx_imgs_v1', IMG_CACHE_STORE = 'data';
   let imgDBPromise = null;
   function getImgDB() {
@@ -1422,7 +1557,6 @@
           if(res.success&&res.base64){const mime=/^[a-z0-9.+-]+$/i.test(String(res.mime||''))?res.mime:'jpeg';finish(`data:image/${mime};base64,${res.base64}`);}else finish(null);
         },()=>finish(null));
         set(reqRef,{type:normalizedType,target:String(target),createdAt:Date.now()}).catch(()=>finish(null));
-        // Margen de 20 s para evitar fallos cuando el worker procesa otras imágenes.
         timer=setTimeout(()=>finish(null),20000);
       });
     })();
@@ -1564,6 +1698,14 @@
 
       markCollectionDirty();
       markShopDirty();
+
+      // Refrescar pantalla de skins si está abierta (para reflejar activaciones)
+      if (openSkinsWaifu) {
+        const allSkins = data.skinsList || [];
+        const current = allSkins.filter(s => String(s.waifuName) === openSkinsWaifu);
+        if (current.length > 0) openSkinsView(openSkinsWaifu, current, true);
+        else closeSkinsView();
+      }
     });
 
     if (unsubShopData) unsubShopData();
@@ -1706,69 +1848,183 @@
         return;
       }
 
-      const frag = document.createDocumentFragment();
+      // Agrupar por personaje
+      const groups = new Map();
       skinsList.forEach(s => {
-        const isActive = s.active !== false;
+        const key = String(s.waifuName || 'Sin nombre');
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(s);
+      });
+
+      const frag = document.createDocumentFragment();
+      groups.forEach((skins, waifuName) => {
+        const sorted = [...skins].sort((a, b) =>
+          Number(b.active !== false) - Number(a.active !== false)
+        );
+        const displaySkin = sorted[0];
+
         const card = document.createElement('div');
         card.className = 'waifu-card';
-        card.dataset.r = s.rarity;
+        card.dataset.r = displaySkin.rarity;
+        card.style.cursor = 'pointer';
 
         const imgDiv = document.createElement('div');
         imgDiv.className = 'waifu-img';
-        imgDiv.dataset.name = s.id;
+        imgDiv.dataset.name = displaySkin.id;
         imgDiv.dataset.type = 'skin';
+
+        const countBadge = document.createElement('div');
+        countBadge.className = 'waifu-badge';
+        countBadge.textContent = sorted.length;
+        countBadge.title = `${sorted.length} skin${sorted.length !== 1 ? 's' : ''}`;
+        imgDiv.appendChild(countBadge);
 
         const rBadge = document.createElement('div');
         rBadge.className = 'waifu-rarity-badge';
-        rBadge.textContent = s.rarity;
+        rBadge.textContent = displaySkin.rarity;
         imgDiv.appendChild(rBadge);
 
         const infoDiv = document.createElement('div');
         infoDiv.className = 'waifu-info';
         infoDiv.innerHTML = `
-          <div class="waifu-name" title="${s.waifuName}">${s.waifuName}</div>
-          <button class="btn-toggle ${isActive ? 'active' : 'inactive'}" data-id="${s.id}" data-active="${isActive}">
-            ${isActive ? 'Desactivar' : 'Activar'}
-          </button>
+          <div class="waifu-name" title="${escapeHtml(waifuName)}">${escapeHtml(waifuName)}</div>
+          <button class="btn-sell" data-view="${escapeHtml(waifuName)}">Ver skins (${sorted.length})</button>
         `;
 
         card.appendChild(imgDiv);
         card.appendChild(infoDiv);
         frag.appendChild(card);
         observeImg(imgDiv);
-      });
-      grid.appendChild(frag);
 
-      grid.querySelectorAll('.btn-toggle').forEach(btn => {
-        btn.onclick = async () => {
-          const id = btn.dataset.id;
-          const isActive = btn.dataset.active === 'true';
-          btn.disabled = true;
-          btn.textContent = '...';
-
-          const reqId = 'tog_' + Date.now();
-          const reqRef = ref(db, 'skin_toggle_requests/' + reqId);
-          const unsub = onValue(reqRef, (snap) => {
-            const res = snap.val();
-            if (!res) return;
-            if (res.status === 'done') {
-              unsub(); requestSync(auth.currentUser.uid); set(reqRef, null).catch(()=>{});
-            } else if (res.status === 'error') {
-              unsub();
-              showToast('❌ ' + res.error, 'error');
-              btn.disabled = false;
-              btn.textContent = isActive ? 'Desactivar' : 'Activar';
-              set(reqRef, null).catch(()=>{});
-            }
-          });
-
-          await set(reqRef, {
-            userId: auth.currentUser.uid, skinId: id, activate: !isActive, status: 'pending', createdAt: Date.now()
-          });
+        card.onclick = (e) => {
+          e.stopPropagation();
+          openSkinsView(waifuName, sorted);
         };
       });
+      grid.appendChild(frag);
     }
   }
+
+  // ================= PANTALLA COMPLETA DE SKINS =================
+  function openSkinsView(waifuName, skins, isRefresh = false) {
+    openSkinsWaifu = waifuName;
+
+    $('skins-screen-title').textContent = waifuName;
+    const activeCount = skins.filter(s => s.active !== false).length;
+    $('skins-screen-subtitle').textContent = activeCount > 0
+      ? `${activeCount} activa${activeCount !== 1 ? 's' : ''}`
+      : 'Ninguna activa';
+    $('skins-screen-count').textContent = `${skins.length} skin${skins.length !== 1 ? 's' : ''}`;
+
+    const grid = $('skins-screen-grid');
+    grid.querySelectorAll('.waifu-img').forEach(el => {
+      try { imageLoadObserver.unobserve(el); } catch {}
+      releaseVisibleImageContainer(el);
+    });
+    grid.innerHTML = '';
+
+    const sorted = [...skins].sort((a, b) =>
+      Number(b.active !== false) - Number(a.active !== false)
+    );
+
+    sorted.forEach(s => {
+      const isActive = s.active !== false;
+
+      const card = document.createElement('div');
+      card.className = 'skins-view-card' + (isActive ? ' is-active' : '');
+
+      const imgDiv = document.createElement('div');
+      imgDiv.className = 'waifu-img';
+      imgDiv.dataset.name = s.id;
+      imgDiv.dataset.type = 'skin';
+
+      if (isActive) {
+        const activeBadge = document.createElement('div');
+        activeBadge.className = 'waifu-badge';
+        activeBadge.textContent = 'Activa';
+        activeBadge.style.background = '#fff';
+        activeBadge.style.color = '#000';
+        activeBadge.style.borderColor = '#fff';
+        imgDiv.appendChild(activeBadge);
+      }
+
+      const rBadge = document.createElement('div');
+      rBadge.className = 'waifu-rarity-badge';
+      rBadge.textContent = s.rarity;
+      imgDiv.appendChild(rBadge);
+
+      const btn = document.createElement('button');
+      btn.className = 'btn-toggle ' + (isActive ? 'active' : 'inactive') + ' skins-view-btn';
+      btn.textContent = isActive ? 'Desactivar' : 'Activar';
+
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        btn.disabled = true;
+        btn.textContent = '...';
+
+        const reqId = 'tog_' + Date.now();
+        const reqRef = ref(db, 'skin_toggle_requests/' + reqId);
+        const unsub = onValue(reqRef, (snap) => {
+          const res = snap.val();
+          if (!res) return;
+          if (res.status === 'done') {
+            unsub();
+            requestSync(auth.currentUser.uid);
+            set(reqRef, null).catch(()=>{});
+          } else if (res.status === 'error') {
+            unsub();
+            showToast('❌ ' + res.error, 'error');
+            btn.disabled = false;
+            btn.textContent = isActive ? 'Desactivar' : 'Activar';
+            set(reqRef, null).catch(()=>{});
+          }
+        });
+
+        await set(reqRef, {
+          userId: auth.currentUser.uid,
+          skinId: s.id,
+          activate: !isActive,
+          status: 'pending',
+          createdAt: Date.now()
+        }).catch(err => {
+          showToast('❌ ' + err.message, 'error');
+          btn.disabled = false;
+          btn.textContent = isActive ? 'Desactivar' : 'Activar';
+          unsub();
+        });
+      };
+
+      card.appendChild(imgDiv);
+      card.appendChild(btn);
+      grid.appendChild(card);
+      observeImg(imgDiv);
+    });
+
+    if (!isRefresh) {
+      $('skins-screen').classList.add('active');
+      document.body.classList.add('skins-open');
+      const body = document.querySelector('.skins-screen-body');
+      if (body) body.scrollTop = 0;
+    }
+  }
+
+  function closeSkinsView() {
+    const grid = $('skins-screen-grid');
+    grid.querySelectorAll('.waifu-img').forEach(el => {
+      try { imageLoadObserver.unobserve(el); } catch {}
+      releaseVisibleImageContainer(el);
+    });
+    grid.innerHTML = '';
+    $('skins-screen').classList.remove('active');
+    document.body.classList.remove('skins-open');
+    openSkinsWaifu = null;
+  }
+
+  $('skins-back-btn').onclick = closeSkinsView;
+
+  window.addEventListener('popstate', () => {
+    if (openSkinsWaifu) closeSkinsView();
+  });
 
   // ================= TIENDA =================
   function renderShop(force = false) {
@@ -1799,7 +2055,6 @@
       return true;
     });
 
-    // Búsqueda por nombre O rareza
     const q = shopSearchQuery.trim().toLowerCase();
     if (q) {
       items = items.filter(item => {
@@ -2018,6 +2273,7 @@
       if (unsubProfile) unsubProfile();
       if (unsubGameData) unsubGameData();
       if (unsubShopData) unsubShopData();
+      try { closeSkinsView(); } catch (e) {}
       document.querySelectorAll('.waifu-img').forEach(el => {
         try { imageLoadObserver.unobserve(el); } catch {}
         releaseVisibleImageContainer(el);
